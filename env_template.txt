@@ -1,0 +1,9 @@
+# Supabase Configuration
+SUPABASE_DB_URL=postgresql://postgres:[YOUR_PASSWORD]@db.[YOUR_PROJECT_REF].supabase.co:5432/postgres?sslmode=require
+SUPABASE_URL=https://[YOUR_PROJECT_REF].supabase.co
+SUPABASE_ANON_KEY=[YOUR_SUPABASE_ANON_KEY]
+OPENAI_API_KEY=[YOUR_OPENAI_API_KEY]
+
+
+# Optional: Read-only database user (more secure for production)
+SUPABASE_READONLY_URL="postgresql://app_readonly:[PASSWORD]@[PROJECT-REF].supabase.co:5432/postgres"
