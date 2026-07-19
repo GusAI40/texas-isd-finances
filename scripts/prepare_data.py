@@ -2,9 +2,11 @@
 Data preparation script for Texas ISD financial data
 Cleans and transforms Excel data for Supabase import
 """
-import pandas as pd
 import re
 from pathlib import Path
+
+import pandas as pd
+
 
 def clean_district_number(x):
     """Clean district numbers - remove quotes, preserve leading zeros"""
@@ -26,11 +28,11 @@ def prepare_data(input_file, output_dir):
     """Main data preparation function"""
     print(f"Loading data from {input_file}...")
     df = pd.read_excel(input_file, sheet_name="DATAMART")
-    
+
     # Clean district numbers
     print("Cleaning district numbers...")
     df["DISTRICT NUMBER"] = df["DISTRICT NUMBER"].apply(clean_district_number)
-    
+
     # Rename columns to snake_case
     print("Converting column names to snake_case...")
     col_mapping = {}
@@ -44,9 +46,9 @@ def prepare_data(input_file, output_dir):
             i += 1
         seen.add(candidate)
         col_mapping[col] = candidate
-    
+
     df.rename(columns=col_mapping, inplace=True)
-    
+
     # Convert data types
     print("Converting data types...")
     for col in df.columns:
@@ -58,15 +60,15 @@ def prepare_data(input_file, output_dir):
             nums = pd.to_numeric(df[col], errors="coerce")
             if nums.notna().mean() >= 0.9:
                 df[col] = nums
-    
+
     # Save outputs
     output_dir = Path(output_dir)
     output_dir.mkdir(exist_ok=True)
-    
+
     csv_path = output_dir / "texas_finance_clean.csv"
     print(f"Saving cleaned data to {csv_path}...")
     df.to_csv(csv_path, index=False)
-    
+
     # Generate data dictionary
     print("Generating data dictionary...")
     data_dict = pd.DataFrame({
@@ -76,21 +78,21 @@ def prepare_data(input_file, output_dir):
         "non_null_count": [df[col].notna().sum() for col in df.columns],
         "null_count": [df[col].isna().sum() for col in df.columns]
     })
-    
+
     dict_path = output_dir / "data_dictionary.csv"
     data_dict.to_csv(dict_path, index=False)
-    
-    print(f"Data preparation complete!")
+
+    print("Data preparation complete!")
     print(f"- Cleaned CSV: {csv_path}")
     print(f"- Data dictionary: {dict_path}")
     print(f"- Total rows: {len(df):,}")
     print(f"- Total columns: {len(df.columns)}")
-    
+
     return df
 
 if __name__ == "__main__":
     # Update this path to your Excel file location
     input_file = "ETL_2008-2024-summarized-financial-data-03-17-2025.xlsx"
     output_dir = "data"
-    
+
     prepare_data(input_file, output_dir)

@@ -122,6 +122,14 @@ WHERE year > (SELECT MIN(year) FROM v_finance_summary); -- Exclude first year (n
 CREATE INDEX IF NOT EXISTS idx_anomaly_flags_district ON public.v_anomaly_flags (district_number);
 CREATE INDEX IF NOT EXISTS idx_anomaly_flags_year ON public.v_anomaly_flags (year);
 
--- Grant permissions
+-- Lock down the base table: revoke direct access and enable row-level
+-- security with no policies, so API roles can only read through the views.
+REVOKE ALL ON public.texas_school_finance FROM anon, authenticated;
+ALTER TABLE public.texas_school_finance ENABLE ROW LEVEL SECURITY;
+
+-- Grant read-only access to the public views
 GRANT SELECT ON public.v_finance_summary TO anon, authenticated;
 GRANT SELECT ON public.v_anomaly_flags TO anon, authenticated;
+
+-- After importing new data, refresh the anomaly materialized view:
+--   REFRESH MATERIALIZED VIEW public.v_anomaly_flags;

@@ -1,22 +1,25 @@
 # Texas ISD Financial Data Portal
 
-A comprehensive system for analyzing Texas Independent School District financial data from 2008-2024, featuring natural language querying, anomaly detection, and public transparency tools.
+A public transparency system for analyzing Texas Independent School District
+financial data (2008–2024), featuring a citizen-friendly web portal, natural
+language querying, and automatic anomaly detection.
 
 ## 🎯 Project Goals
 
 - **Scalable Oversight**: AI-powered anomaly detection across 1000+ districts
-- **Public Accountability**: Citizen-friendly portal for viewing district finances  
+- **Public Accountability**: Citizen-friendly portal for viewing district finances
 - **Policy Feedback**: Data-driven insights for legislators and policymakers
 
 ## 🚀 Quick Start
 
-See [QUICKSTART.md](QUICKSTART.md) for detailed setup instructions.
+See [QUICKSTART.md](QUICKSTART.md) for local setup and
+[DEPLOYMENT.md](DEPLOYMENT.md) for taking it public.
 
 ### Prerequisites
-- Python 3.8+
-- Supabase account
-- OpenAI API key
-- Excel data file (2008-2024 financial data)
+- Python 3.10+
+- Supabase account (free tier works)
+- OpenAI API key (only for natural-language queries)
+- TEA Excel data file (2008–2024 summarized financial data)
 
 ### Basic Setup
 ```bash
@@ -27,31 +30,46 @@ pip install -r requirements.txt
 cp env_template.txt .env
 # Edit .env with your credentials
 
-# 3. Prepare data
+# 3. Prepare and import data (see DEPLOYMENT.md)
 python scripts/prepare_data.py
+python scripts/import_to_supabase.py
 
-# 4. Start API
+# 4. Start the API + portal
 uvicorn src.api:app --reload
 ```
+
+Then open http://localhost:8000/ for the portal, or
+http://localhost:8000/docs for the API documentation.
 
 ## 📁 Project Structure
 
 ```
 texas-isd-finances/
-├── data/                   # Processed data files
-├── scripts/               # Data preparation scripts
-│   └── prepare_data.py   # Excel to CSV converter
-├── sql/                   # Database schemas
-│   └── create_tables.sql # Supabase table definitions
-├── src/                   # Source code
-│   ├── api.py            # FastAPI service
-│   ├── nlp_engine.py     # Natural language to SQL
-│   └── visualizations.py # Chart generation
-├── implementation_plan.md # Detailed implementation steps
-└── requirements.txt      # Python dependencies
+├── api/                    # Vercel serverless entrypoint
+├── scripts/                # Data preparation and import
+│   ├── prepare_data.py     # Excel → clean CSV converter
+│   └── import_to_supabase.py
+├── sql/
+│   └── create_tables.sql   # Tables, views, indexes, RLS, grants
+├── src/
+│   ├── api.py              # FastAPI service (serves portal + API)
+│   ├── nlp_engine.py       # Natural language → SQL (LangChain)
+│   └── visualizations.py   # Chart generation helpers
+├── static/
+│   └── index.html          # Public portal (no build step needed)
+├── tests/                  # Pytest suite (runs without credentials)
+├── Dockerfile              # Container deployment
+├── render.yaml             # One-click Render blueprint
+├── DEPLOYMENT.md           # Public launch guide
+└── AUDIT.md                # Pre-launch audit report (June 2026)
 ```
 
 ## 🔧 Key Features
+
+### Public Portal
+A dependency-free single-page portal served at `/`: statewide stats,
+district search, per-student spending trends, anomaly flags, and a
+plain-English question box.
 
 ### Natural Language Queries
 Ask questions in plain English:
@@ -67,10 +85,12 @@ Automatic flagging of:
 - Enrollment declines >10%
 
 ### API Endpoints
-- `POST /query` - Natural language queries
-- `GET /districts` - List all districts
-- `GET /district/{id}/summary` - District financials
-- `GET /anomalies` - Flagged anomalies
+- `POST /query` — Natural language queries
+- `GET /districts` — List/search districts
+- `GET /district/{id}/summary` — District financials
+- `GET /anomalies` — Flagged anomalies
+- `GET /stats` — Statewide statistics
+- `GET /health` — Service health
 
 ## 📊 Data Schema
 
@@ -79,34 +99,45 @@ Main table: `texas_school_finance`
 - Primary key: (district_number, year)
 - Covers: Revenue, expenditures, enrollment, debt
 
-Views:
-- `v_finance_summary` - Simplified public view
-- `v_anomaly_flags` - Detected anomalies
+Public views:
+- `v_finance_summary` — Simplified read-only view
+- `v_anomaly_flags` — Detected anomalies (materialized; refresh after imports)
+
+Source: Texas Education Agency (TEA) summarized financial data, PEIMS.
 
 ## 🔒 Security
 
-- Row-level security on base tables
-- Read-only views for public access
-- Separate database roles for different access levels
-
-## 📈 Sample Visualizations
-
-The system includes visualization functions for:
-- Spending trends over time
-- District comparisons
-- Enrollment vs spending analysis
-- Anomaly heatmaps
+- Row-level security enabled on the base table; API roles read only the views
+- Read-only public views; NLP agent is restricted to those views
+- CORS locked to GET/POST; origins configurable via `CORS_ALLOW_ORIGINS`
+- No credentials in the repository — everything via environment variables
 
 ## 🚀 Deployment
 
-1. **Database**: Supabase (managed Postgres)
-2. **API**: FastAPI on Railway/Render/Fly.io
-3. **Frontend**: Next.js on Vercel (optional)
+See [DEPLOYMENT.md](DEPLOYMENT.md). Supported targets:
+
+1. **Render** — one-click blueprint (`render.yaml`)
+2. **Docker** — Railway, Fly.io, or any VPS (`Dockerfile`)
+3. **Vercel** — portal + data API (`vercel.json`, `api/index.py`)
+
+Database: Supabase (managed Postgres, free tier).
+
+## 🧪 Development
+
+```bash
+pip install -r requirements-dev.txt
+ruff check .
+pytest
+```
+
+CI runs both on every push and pull request (Python 3.10–3.12).
 
 ## 📝 License
 
-This project is designed for public transparency and accountability.
+[MIT](LICENSE) — free to use, modify, and redistribute. This project exists
+to promote transparency in Texas education funding.
 
 ## 🤝 Contributing
 
-This system is intended to promote transparency in Texas education funding. Contributions that enhance public access and understanding are welcome.
+See [CONTRIBUTING.md](CONTRIBUTING.md). Contributions that enhance public
+access and understanding are welcome.

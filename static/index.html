@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Texas ISD Finances — Public Transparency Portal</title>
+<style>
+  :root {
+    color-scheme: light;
+    --page: #f9f9f7;
+    --surface-1: #fcfcfb;
+    --text-primary: #0b0b0b;
+    --text-secondary: #52514e;
+    --muted: #898781;
+    --grid: #e1e0d9;
+    --baseline: #c3c2b7;
+    --border: rgba(11,11,11,0.10);
+    --series-1: #2a78d6;
+    --critical: #d03b3b;
+    --accent: #256abf;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      color-scheme: dark;
+      --page: #0d0d0d;
+      --surface-1: #1a1a19;
+      --text-primary: #ffffff;
+      --text-secondary: #c3c2b7;
+      --muted: #898781;
+      --grid: #2c2c2a;
+      --baseline: #383835;
+      --border: rgba(255,255,255,0.10);
+      --series-1: #3987e5;
+      --critical: #d03b3b;
+      --accent: #3987e5;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--page);
+    color: var(--text-primary);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    line-height: 1.5;
+  }
+  header {
+    padding: 2.5rem 1.5rem 1.5rem;
+    max-width: 960px;
+    margin: 0 auto;
+  }
+  header h1 { margin: 0 0 .35rem; font-size: 1.75rem; }
+  header p { margin: 0; color: var(--text-secondary); max-width: 46rem; }
+  main { max-width: 960px; margin: 0 auto; padding: 0 1.5rem 4rem; }
+  section {
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.25rem 1.5rem;
+    margin-top: 1.25rem;
+  }
+  section h2 { margin: 0 0 .75rem; font-size: 1.1rem; }
+  .tiles { display: flex; flex-wrap: wrap; gap: 1rem; }
+  .tile {
+    flex: 1 1 140px;
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: .85rem 1rem;
+  }
+  .tile .label { font-size: .78rem; color: var(--muted); }
+  .tile .value { font-size: 1.5rem; font-weight: 650; }
+  input[type=text], input[type=search] {
+    width: 100%;
+    padding: .55rem .75rem;
+    font: inherit;
+    color: var(--text-primary);
+    background: var(--page);
+    border: 1px solid var(--baseline);
+    border-radius: 8px;
+  }
+  button {
+    font: inherit;
+    padding: .55rem 1rem;
+    border-radius: 8px;
+    border: 1px solid var(--accent);
+    background: var(--accent);
+    color: #fff;
+    cursor: pointer;
+  }
+  button:hover { filter: brightness(1.08); }
+  .row { display: flex; gap: .6rem; }
+  .row input { flex: 1; }
+  ul.results { list-style: none; padding: 0; margin: .75rem 0 0; }
+  ul.results li { margin: 0; }
+  ul.results button {
+    width: 100%;
+    text-align: left;
+    background: none;
+    border: none;
+    color: var(--accent);
+    padding: .3rem .2rem;
+    border-radius: 6px;
+  }
+  ul.results button:hover { background: var(--page); filter: none; }
+  table { border-collapse: collapse; width: 100%; margin-top: .75rem; font-size: .88rem; }
+  th, td { text-align: right; padding: .4rem .6rem; border-bottom: 1px solid var(--grid); font-variant-numeric: tabular-nums; }
+  th:first-child, td:first-child { text-align: left; }
+  th { color: var(--muted); font-weight: 600; }
+  .note { color: var(--muted); font-size: .85rem; margin-top: .5rem; }
+  .warn {
+    border-left: 3px solid var(--critical);
+    padding: .5rem .9rem;
+    background: var(--surface-1);
+    color: var(--text-secondary);
+    margin-top: 1rem;
+    border-radius: 6px;
+    display: none;
+  }
+  .answer {
+    white-space: pre-wrap;
+    background: var(--page);
+    border: 1px solid var(--grid);
+    border-radius: 8px;
+    padding: .85rem 1rem;
+    margin-top: .75rem;
+    display: none;
+  }
+  #chartwrap { position: relative; margin-top: 1rem; display: none; }
+  #tooltip {
+    position: absolute;
+    pointer-events: none;
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: .3rem .6rem;
+    font-size: .8rem;
+    display: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,.15);
+    white-space: nowrap;
+  }
+  footer { max-width: 960px; margin: 0 auto; padding: 1rem 1.5rem 2.5rem; color: var(--muted); font-size: .82rem; }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+<header>
+  <h1>Texas ISD Finances</h1>
+  <p>A public transparency portal for Texas Independent School District financial data,
+     2008&ndash;2024. Search any district, explore spending trends, review automatically
+     flagged anomalies, or ask a question in plain English.</p>
+  <div class="warn" id="dbwarn">The database behind this portal is not connected yet.
+    Browsing and querying will be unavailable until the administrator configures it.</div>
+</header>
+<main>
+  <section id="stats-section">
+    <h2>Statewide at a glance</h2>
+    <div class="tiles" id="tiles">
+      <div class="tile"><div class="label">Districts</div><div class="value" id="t-districts">—</div></div>
+      <div class="tile"><div class="label">Years covered</div><div class="value" id="t-years">—</div></div>
+      <div class="tile"><div class="label">Records</div><div class="value" id="t-records">—</div></div>
+      <div class="tile"><div class="label">Avg spend / student</div><div class="value" id="t-avg">—</div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Find a district</h2>
+    <div class="row">
+      <input type="search" id="search" placeholder="e.g. Dallas, Austin, Houston&hellip;" aria-label="Search districts">
+      <button id="searchbtn">Search</button>
+    </div>
+    <ul class="results" id="results"></ul>
+    <div id="detail" style="display:none">
+      <h2 id="dname" style="margin-top:1.25rem"></h2>
+      <div id="chartwrap">
+        <svg id="chart" width="100%" height="280" role="img" aria-label="Spending per student over time"></svg>
+        <div id="tooltip"></div>
+      </div>
+      <div style="overflow-x:auto"><table id="dtable"></table></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Ask a question</h2>
+    <div class="row">
+      <input type="text" id="question" maxlength="500" placeholder="e.g. Which districts have the highest debt service?" aria-label="Ask a question">
+      <button id="askbtn">Ask</button>
+    </div>
+    <div class="note">Answers are generated by an AI model from read-only views of the data. Verify important figures against official TEA releases.</div>
+    <div class="answer" id="answer"></div>
+  </section>
+
+  <section>
+    <h2>Recent anomaly flags</h2>
+    <p class="note" style="margin-top:0">Districts flagged for unusual year-over-year changes:
+      revenue drops &gt;15%, spending spikes &gt;20% with flat enrollment, per-student spending
+      jumps &gt;15%, or enrollment declines &gt;10%. Flags are starting points for questions,
+      not findings of wrongdoing.</p>
+    <div style="overflow-x:auto"><table id="atable"></table></div>
+  </section>
+</main>
+<footer>
+  Data source: Texas Education Agency summarized financial data (2008&ndash;2024).
+  Open source &mdash; <a href="/docs">API documentation</a>.
+</footer>
+<script>
+const $ = id => document.getElementById(id);
+const fmtMoney = v => v == null ? '—' : '$' + Math.round(v).toLocaleString();
+const fmtNum = v => v == null ? '—' : Number(v).toLocaleString();
+
+async function api(path, opts) {
+  const res = await fetch(path, opts);
+  if (res.status === 503) { $('dbwarn').style.display = 'block'; throw new Error('db-unavailable'); }
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  return res.json();
+}
+
+async function loadStats() {
+  try {
+    const s = await api('/stats');
+    $('t-districts').textContent = fmtNum(s.total_districts);
+    $('t-years').textContent = s.start_year + '–' + s.end_year;
+    $('t-records').textContent = fmtNum(s.total_records);
+    $('t-avg').textContent = fmtMoney(s.avg_spend_per_student);
+  } catch (e) { /* leave placeholders */ }
+}
+
+async function search() {
+  const q = $('search').value.trim();
+  if (!q) return;
+  const list = $('results');
+  list.innerHTML = '<li class="note">Searching…</li>';
+  try {
+    const rows = await api('/districts?search=' + encodeURIComponent(q) + '&limit=15');
+    list.innerHTML = rows.length ? '' : '<li class="note">No districts found.</li>';
+    for (const r of rows) {
+      const li = document.createElement('li');
+      const b = document.createElement('button');
+      b.textContent = r.district_name + ' (' + r.district_number + ')';
+      b.onclick = () => showDistrict(r.district_number, r.district_name);
+      li.appendChild(b); list.appendChild(li);
+    }
+  } catch (e) { list.innerHTML = '<li class="note">Search unavailable.</li>'; }
+}
+
+async function showDistrict(num, name) {
+  try {
+    const rows = await api('/district/' + encodeURIComponent(num) + '/summary');
+    $('detail').style.display = 'block';
+    $('dname').textContent = name + ' — spend per student';
+    drawChart(rows);
+    const t = $('dtable');
+    t.innerHTML = '<tr><th>Year</th><th>Enrollment</th><th>Revenue</th><th>Spend</th><th>Spend / student</th></tr>' +
+      rows.map(r => '<tr><td>' + r.year + '</td><td>' + fmtNum(r.enrollment) + '</td><td>' +
+        fmtMoney(r.total_revenue) + '</td><td>' + fmtMoney(r.total_spend) + '</td><td>' +
+        fmtMoney(r.spend_per_student) + '</td></tr>').join('');
+    $('detail').scrollIntoView({behavior: 'smooth', block: 'nearest'});
+  } catch (e) { /* warning banner already shown */ }
+}
+
+function drawChart(rows) {
+  const data = rows.filter(r => r.spend_per_student != null);
+  const wrap = $('chartwrap'), svg = $('chart');
+  if (data.length < 2) { wrap.style.display = 'none'; return; }
+  wrap.style.display = 'block';
+  const css = getComputedStyle(document.documentElement);
+  const W = svg.clientWidth || 900, H = 280, m = {t: 16, r: 16, b: 28, l: 64};
+  svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+  const ys = data.map(d => d.spend_per_student);
+  const yMax = Math.max(...ys) * 1.05, yMin = 0;
+  const x = i => m.l + (W - m.l - m.r) * (i / (data.length - 1));
+  const y = v => m.t + (H - m.t - m.b) * (1 - (v - yMin) / (yMax - yMin));
+  let out = '';
+  const ticks = 4;
+  for (let i = 0; i <= ticks; i++) {
+    const v = yMin + (yMax - yMin) * i / ticks, yy = y(v);
+    out += '<line x1="' + m.l + '" x2="' + (W - m.r) + '" y1="' + yy + '" y2="' + yy +
+           '" stroke="' + css.getPropertyValue('--grid').trim() + '" stroke-width="1"/>';
+    out += '<text x="' + (m.l - 8) + '" y="' + (yy + 4) + '" text-anchor="end" font-size="11" fill="' +
+           css.getPropertyValue('--muted').trim() + '">$' + Math.round(v).toLocaleString() + '</text>';
+  }
+  data.forEach((d, i) => {
+    if (data.length <= 8 || i % 2 === 0 || i === data.length - 1) {
+      out += '<text x="' + x(i) + '" y="' + (H - 8) + '" text-anchor="middle" font-size="11" fill="' +
+             css.getPropertyValue('--muted').trim() + '">' + d.year + '</text>';
+    }
+  });
+  const line = css.getPropertyValue('--series-1').trim();
+  out += '<polyline fill="none" stroke="' + line + '" stroke-width="2" points="' +
+         data.map((d, i) => x(i) + ',' + y(d.spend_per_student)).join(' ') + '"/>';
+  data.forEach((d, i) => {
+    out += '<circle data-i="' + i + '" cx="' + x(i) + '" cy="' + y(d.spend_per_student) +
+           '" r="4" fill="' + line + '" stroke="' + css.getPropertyValue('--surface-1').trim() + '" stroke-width="2"/>';
+    out += '<rect data-i="' + i + '" x="' + (x(i) - 14) + '" y="' + m.t + '" width="28" height="' +
+           (H - m.t - m.b) + '" fill="transparent"/>';
+  });
+  svg.innerHTML = out;
+  const tip = $('tooltip');
+  svg.onmousemove = e => {
+    const t = e.target.closest('[data-i]');
+    if (!t) { tip.style.display = 'none'; return; }
+    const d = data[+t.dataset.i];
+    tip.textContent = d.year + ': ' + fmtMoney(d.spend_per_student) + ' per student';
+    tip.style.display = 'block';
+    const r = svg.getBoundingClientRect();
+    tip.style.left = Math.min(e.clientX - r.left + 12, r.width - 150) + 'px';
+    tip.style.top = (e.clientY - r.top - 34) + 'px';
+  };
+  svg.onmouseleave = () => { tip.style.display = 'none'; };
+}
+
+async function ask() {
+  const q = $('question').value.trim();
+  if (q.length < 3) return;
+  const box = $('answer');
+  box.style.display = 'block';
+  box.textContent = 'Thinking…';
+  try {
+    const r = await api('/query', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({question: q}),
+    });
+    box.textContent = r.success ? r.answer : ('Sorry, that query failed: ' + (r.error || 'unknown error'));
+  } catch (e) {
+    box.textContent = 'The question service is unavailable right now.';
+  }
+}
+
+async function loadAnomalies() {
+  const t = $('atable');
+  try {
+    const rows = await api('/anomalies?limit=15');
+    if (!rows.length) { t.innerHTML = '<tr><td class="note">No anomalies flagged.</td></tr>'; return; }
+    const flagNames = {
+      revenue_drop_flag: 'Revenue drop',
+      spend_spike_flag: 'Spending spike',
+      per_student_spike_flag: 'Per-student spike',
+      enrollment_decline_flag: 'Enrollment decline',
+    };
+    t.innerHTML = '<tr><th>District</th><th>Year</th><th style="text-align:left">Flags</th></tr>' +
+      rows.map(r => {
+        const flags = Object.keys(flagNames).filter(k => r[k]).map(k => flagNames[k]).join(', ');
+        return '<tr><td>' + r.district_name + '</td><td>' + r.year + '</td><td style="text-align:left">' + flags + '</td></tr>';
+      }).join('');
+  } catch (e) {
+    t.innerHTML = '<tr><td class="note">Anomaly data unavailable.</td></tr>';
+  }
+}
+
+$('searchbtn').onclick = search;
+$('search').addEventListener('keydown', e => { if (e.key === 'Enter') search(); });
+$('askbtn').onclick = ask;
+$('question').addEventListener('keydown', e => { if (e.key === 'Enter') ask(); });
+
+loadStats();
+loadAnomalies();
+</script>
+</body>
+</html>
