@@ -23,8 +23,14 @@ OpenAI via LangChain (src/nlp_engine.py) — natural-language questions
 2. In the SQL Editor, run the whole of `sql/create_tables.sql`. This creates
    the base table, public read-only views, indexes, and locks the base table
    down with row-level security.
-3. Copy the **connection string** (Settings → Database → Connection string,
-   URI format) — this is your `SUPABASE_DB_URL`.
+3. Copy the **connection string** — this is your `SUPABASE_DB_URL`.
+
+   ⚠️ **Use the Session pooler string** (Connect → Session pooler:
+   `postgresql://postgres.[REF]:[PASSWORD]@aws-[REGION].pooler.supabase.com:5432/postgres`).
+   Per current Supabase docs, the "direct connection" host
+   (`db.[REF].supabase.co:5432`) is **IPv6-only** unless you buy the IPv4
+   add-on — and Render, Railway, and Vercel egress over IPv4, so the direct
+   string will fail there with a connection timeout.
 
 ## 2. Load the data
 
@@ -68,11 +74,14 @@ docker run -p 8000:8000 \
   texas-isd-finances
 ```
 
-### Option C — Vercel (portal + data API only)
+### Option C — Vercel
 
-`vercel.json` and `api/index.py` are included. The full dependency set
-(pandas, matplotlib, langchain) exceeds Vercel's serverless bundle limit, so
-for Vercel use a slim requirements file containing only:
+`vercel.json` and `api/index.py` are included; Vercel's Python runtime
+auto-detects the ASGI `app` (Python 3.12 by default). Python bundles are
+capped at **500 MB uncompressed** and include all project files by default
+(`excludeFiles` in `vercel.json` already drops tests and data). If the full
+dependency set (pandas, matplotlib, langchain) pushes past the cap, swap in
+a slim requirements file for the Vercel deploy:
 
 ```
 fastapi
@@ -82,8 +91,8 @@ python-dotenv
 pydantic
 ```
 
-The portal, district browsing, anomalies and stats all work; `/query`
-(natural language) returns 503 on this target — host the full API on
+With slim requirements the portal, district browsing, anomalies and stats
+all work; `/query` (natural language) returns 503 — host the full API on
 Render/Docker if you want NLP.
 
 Set the same two environment variables in the Vercel project settings.

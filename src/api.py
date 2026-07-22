@@ -108,27 +108,6 @@ class NLPQueryResponse(BaseModel):
     timestamp: datetime = Field(default_factory=datetime.now)
 
 
-class DistrictSummary(BaseModel):
-    district_number: str
-    district_name: str
-    year: int
-    total_revenue: float
-    total_spend: float
-    enrollment: Optional[int]
-    spend_per_student: Optional[float]
-    revenue_per_student: Optional[float]
-
-
-class AnomalyFlag(BaseModel):
-    district_number: str
-    district_name: str
-    year: int
-    revenue_drop_flag: bool
-    spend_spike_flag: bool
-    per_student_spike_flag: bool
-    enrollment_decline_flag: bool
-
-
 # API Endpoints
 
 @app.get("/", include_in_schema=False)

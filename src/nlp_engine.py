@@ -1,13 +1,18 @@
 """
-NLP Query Engine using LangChain for natural language to SQL conversion
+NLP Query Engine: natural language to SQL over the public finance views.
+
+Uses LangChain 1.x `create_agent` (the supported agent API) with the SQL
+toolkit. Note: `langchain-community` (home of SQLDatabase/SQLDatabaseToolkit)
+was sunset in June 2026; it still works but is no longer actively maintained.
+Track https://github.com/langchain-ai/langchain-community/issues/674 for the
+migration path to standalone integration packages.
 """
 import os
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 from dotenv import load_dotenv
-from langchain.agents import create_sql_agent
-from langchain.agents.agent_toolkits import SQLDatabaseToolkit
-from langchain.agents.agent_types import AgentType
+from langchain.agents import create_agent
+from langchain_community.agent_toolkits import SQLDatabaseToolkit
 from langchain_community.utilities import SQLDatabase
 from langchain_openai import ChatOpenAI
 
@@ -15,37 +20,7 @@ from .sample_queries import SAMPLE_QUERIES
 
 load_dotenv()
 
-
-class TexasFinanceNLPEngine:
-    """Natural language query engine for Texas school finance data"""
-
-    def __init__(self):
-        # Initialize database connection
-        db_url = os.getenv("SUPABASE_DB_URL")
-        if not db_url:
-            raise ValueError("SUPABASE_DB_URL not found in environment variables")
-        if not os.getenv("OPENAI_API_KEY"):
-            raise ValueError("OPENAI_API_KEY not found in environment variables")
-
-        # Connect to specific views only (for safety)
-        self.db = SQLDatabase.from_uri(
-            db_url,
-            include_tables=["v_finance_summary", "v_anomaly_flags"],
-            view_support=True,
-        )
-
-        # Initialize LLM
-        self.llm = ChatOpenAI(
-            model=os.getenv("NLP_MODEL", "gpt-4o-mini"),
-            temperature=0,
-            api_key=os.getenv("OPENAI_API_KEY"),
-        )
-
-        # Create SQL toolkit
-        toolkit = SQLDatabaseToolkit(db=self.db, llm=self.llm)
-
-        # System prompt with schema context
-        self.system_prefix = """You are a helpful assistant that converts natural language questions
+SYSTEM_PROMPT = """You are a helpful assistant that converts natural language questions
 about Texas school district finances into SQL queries.
 
 Available views:
@@ -80,14 +55,42 @@ Rules:
 
 Be concise and clear in your responses. If asked for trends, calculate year-over-year changes."""
 
-        # Create agent
-        self.agent = create_sql_agent(
-            llm=self.llm,
-            toolkit=toolkit,
-            agent_type=AgentType.OPENAI_FUNCTIONS,
-            verbose=os.getenv("NLP_VERBOSE", "false").lower() == "true",
-            prefix=self.system_prefix,
-            max_iterations=5,
+
+class TexasFinanceNLPEngine:
+    """Natural language query engine for Texas school finance data"""
+
+    def __init__(
+        self,
+        db_url: Optional[str] = None,
+        llm: Optional[Any] = None,
+        db: Optional[SQLDatabase] = None,
+    ):
+        if db is None:
+            db_url = db_url or os.getenv("SUPABASE_DB_URL")
+            if not db_url:
+                raise ValueError("SUPABASE_DB_URL not found in environment variables")
+            # Connect to the two public read-only views only (least privilege)
+            db = SQLDatabase.from_uri(
+                db_url,
+                include_tables=["v_finance_summary", "v_anomaly_flags"],
+                view_support=True,
+            )
+        if llm is None and not os.getenv("OPENAI_API_KEY"):
+            raise ValueError("OPENAI_API_KEY not found in environment variables")
+
+        self.db = db
+
+        self.llm = llm or ChatOpenAI(
+            model=os.getenv("NLP_MODEL", "gpt-4o-mini"),
+            temperature=0,
+            api_key=os.getenv("OPENAI_API_KEY"),
+        )
+
+        toolkit = SQLDatabaseToolkit(db=self.db, llm=self.llm)
+        self.agent = create_agent(
+            self.llm,
+            toolkit.get_tools(),
+            system_prompt=SYSTEM_PROMPT,
         )
 
     def query(self, question: str) -> Dict[str, Any]:
@@ -101,14 +104,13 @@ Be concise and clear in your responses. If asked for trends, calculate year-over
             Dict with 'success', 'question' and 'answer' or 'error' keys
         """
         try:
-            # Add safety constraints to the question
             safe_question = f"{question}\nPlease limit results to 100 rows maximum."
-
-            # Execute query
-            result = self.agent.invoke({"input": safe_question})
-
-            # Extract the output
-            output = result.get("output", "No result returned")
+            result = self.agent.invoke(
+                {"messages": [{"role": "user", "content": safe_question}]},
+                config={"recursion_limit": 15},
+            )
+            messages = result.get("messages", [])
+            output = messages[-1].content if messages else "No result returned"
 
             return {
                 "success": True,
@@ -128,12 +130,10 @@ Be concise and clear in your responses. If asked for trends, calculate year-over
         return SAMPLE_QUERIES
 
 
-# Example usage
+# Example usage: python -m src.nlp_engine
 if __name__ == "__main__":
-    # Initialize engine
     engine = TexasFinanceNLPEngine()
 
-    # Test queries
     test_queries = [
         "Show me Dallas ISD spending per student from 2018 to 2023",
         "Which districts have anomaly flags in 2024?",

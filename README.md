@@ -4,6 +4,9 @@ A public transparency system for analyzing Texas Independent School District
 financial data (2008–2024), featuring a citizen-friendly web portal, natural
 language querying, and automatic anomaly detection.
 
+🗺️ **New here?** See [PROJECT_MAP.md](PROJECT_MAP.md) for a visual,
+plain-English map of the whole system.
+
 ## 🎯 Project Goals
 
 - **Scalable Oversight**: AI-powered anomaly detection across 1000+ districts

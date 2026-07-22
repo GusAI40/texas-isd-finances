@@ -1,4 +1,4 @@
-# Public-Launch Audit — June 1, 2026
+# Public-Launch Audit — June 1, 2026 (Round 2 addendum below, July 22, 2026)
 
 Full code and repository audit performed ahead of opening this project for
 public use. Scope: every source file, SQL schema, docs, CI, and git history.
@@ -56,3 +56,38 @@ Data coverage is TEA's summarized financial data for fiscal years
   read-only database role in production.
 - Anomaly thresholds (15/20/10%) are heuristics; the portal labels them as
   starting points for questions, not findings of wrongdoing.
+
+---
+
+# Round 2 — Documentation-Validated Audit (July 22, 2026)
+
+Second pass with every assumption checked against current provider
+documentation and the installed dependency versions, plus a full git-history
+secret scan.
+
+## Findings and resolutions
+
+| # | Severity | Finding | Resolution |
+|---|----------|---------|------------|
+| R2-1 | **High** | The NLP engine was written against the removed LangChain legacy API: with current LangChain (1.x, installed 1.3.14) `from langchain.agents import create_sql_agent` raises `ImportError`, so `/query` could never work on a fresh install. The round-1 test suite deliberately avoided importing the module, masking this. | Rewritten on the supported `langchain.agents.create_agent` API; requirements pinned to `langchain>=1.0,<2.0`; new construction tests run the engine against a local SQLite database on every CI run so API drift is caught immediately |
+| R2-2 | **High** | `env_template.txt` used Supabase's direct-connection format (`db.[REF].supabase.co:5432`). Per current Supabase docs this host is **IPv6-only** without the paid IPv4 add-on — Render/Railway/Vercel egress over IPv4, so every documented deploy path would have failed with connection timeouts. | Template and DEPLOYMENT.md now lead with the shared **session pooler** string (`postgres.[REF]@aws-[REGION].pooler.supabase.com:5432`), which is IPv4-compatible on all tiers |
+| R2-3 | **Medium** | Git-history secret scan: deleted internal status docs remain in history and expose the old Supabase **project ref** (`emtwbizmorqwhboebgzw`) and confirm which services were configured. No complete secrets leak (DB password is masked, the anon key is truncated at the JWT header, no OpenAI keys found). | Documented here. **Recommendation:** if that Supabase project is still live, rotate its database password and anon key, since the ref narrows an attacker's target. History rewrite is optional (refs are semi-public by design) but `git filter-repo` guidance is available if desired |
+| R2-4 | Medium | `vercel.json` used `includeFiles`, which the current Vercel Python runtime docs do not support — Python bundles include all project files by default and support only `excludeFiles`. | Replaced with `excludeFiles` for tests/data; docs updated with the current 500 MB uncompressed bundle cap and Python 3.12 default |
+| R2-5 | Low | `langchain-community` (source of `SQLDatabase`/`SQLDatabaseToolkit`) was officially sunset in June 2026 and is no longer actively maintained. It still functions and no standalone replacement for the SQL toolkit exists yet. | Documented in code and here; track langchain-community issue #674 for the migration path |
+| R2-6 | Low | Dead code: `DistrictSummary`/`AnomalyFlag` Pydantic models were defined but never used. | Removed |
+| R2-7 | Info | `render.yaml` validated against the current Blueprint spec: `runtime: python` (correct; `env:` is discouraged), `plan: free`, and `healthCheckPath` are all valid. | No change needed |
+
+## Version matrix validated (July 22, 2026)
+
+| Package | Installed/tested | Notes |
+|---|---|---|
+| fastapi | 0.139.x | lifespan API current |
+| langchain | 1.3.x | `create_agent` is the supported agent API |
+| langchain-community | 0.4.x | sunset June 2026; still functional |
+| pydantic | 2.13.x | v2 API used throughout |
+| asyncpg | 0.31.x | — |
+| plotly | 6.9.x | `update_xaxes`/`update_yaxes` verified |
+| pandas | 3.0.x | prepare-data helpers tested |
+
+All 24 tests pass against this matrix; CI enforces ruff + pytest on Python
+3.10–3.12.
