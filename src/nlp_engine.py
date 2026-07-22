@@ -27,7 +27,7 @@ Available views:
 1. v_finance_summary - Main financial data with columns:
    - district_number (6-digit code)
    - district_name (e.g., 'DALLAS ISD')
-   - year (2008-2024)
+   - year (2009-2025)
    - total_revenue (all funds total operating revenue)
    - total_spend (all funds total disbursements)
    - enrollment (fall survey enrollment count)

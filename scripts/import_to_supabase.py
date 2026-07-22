@@ -34,7 +34,9 @@ def import_data():
         raise FileNotFoundError(f"CSV file not found: {csv_path}")
 
     print(f"✓ Loading data from {csv_path}...")
-    df = pd.read_csv(csv_path)
+    # district_number must stay a string: pandas would otherwise infer int
+    # and strip the leading zeros off canonical 6-digit district IDs
+    df = pd.read_csv(csv_path, dtype={"district_number": str, "district_name": str})
 
     print(f"✓ Loaded {len(df):,} records with {len(df.columns)} columns")
 

@@ -46,7 +46,7 @@ python scripts/import_to_supabase.py
 #   REFRESH MATERIALIZED VIEW public.v_anomaly_flags;
 ```
 
-The source file is TEA's *2008–2024 Summarized Financial Data* release
+The source file is TEA's *2009–2025 Summarized Financial Data* release
 (PEIMS), available from the Texas Education Agency website. Re-run these two
 scripts and the refresh whenever TEA publishes a new year.
 
@@ -74,28 +74,21 @@ docker run -p 8000:8000 \
   texas-isd-finances
 ```
 
-### Option C — Vercel
+### Option C — Vercel (the current production deployment)
 
 `vercel.json` and `api/index.py` are included; Vercel's Python runtime
 auto-detects the ASGI `app` (Python 3.12 by default). Python bundles are
 capped at **500 MB uncompressed** and include all project files by default
-(`excludeFiles` in `vercel.json` already drops tests and data). If the full
-dependency set (pandas, matplotlib, langchain) pushes past the cap, swap in
-a slim requirements file for the Vercel deploy:
+(`excludeFiles` in `vercel.json` already drops tests and data).
 
-```
-fastapi
-uvicorn
-asyncpg
-python-dotenv
-pydantic
-```
+Deploy with `requirements-vercel.txt` as the deployment's `requirements.txt`
+— the full API **including NLP** with only the offline data-prep/viz
+libraries removed. Everything works on this target: portal, districts,
+anomalies, stats, and `/query`.
 
-With slim requirements the portal, district browsing, anomalies and stats
-all work; `/query` (natural language) returns 503 — host the full API on
-Render/Docker if you want NLP.
-
-Set the same two environment variables in the Vercel project settings.
+Set the same two environment variables in the Vercel project settings and
+use the **transaction pooler** connection string (port 6543) — the API
+disables asyncpg's statement cache so it is pooler-compatible.
 
 ## 4. Configuration reference
 
@@ -106,7 +99,7 @@ Set the same two environment variables in the Vercel project settings.
 | `CORS_ALLOW_ORIGINS` | no (default `*`) | Comma-separated allowed origins |
 | `NLP_MODEL` | no (default `gpt-4o-mini`) | OpenAI model for NLP queries |
 | `NLP_VERBOSE` | no (default `false`) | Log agent reasoning |
-| `DATA_MIN_YEAR` / `DATA_MAX_YEAR` | no (2008/2024) | Data coverage bounds |
+| `DATA_MIN_YEAR` / `DATA_MAX_YEAR` | no (2009/2025) | Data coverage bounds |
 
 **Security notes for public operation**
 

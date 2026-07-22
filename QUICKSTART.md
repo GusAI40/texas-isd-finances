@@ -4,7 +4,9 @@
 - Python 3.10+
 - Supabase account
 - OpenAI API key (only needed for natural-language queries)
-- TEA Excel file: `2008-2024-summarized-financial-data-03-17-2025.xlsx`
+- TEA Excel file: the "Summarized PEIMS Actual Financial Data" release
+  (currently fiscal 2009–2025), from
+  https://tea.texas.gov/finance-and-grants/state-funding/state-funding-reports-and-data/peims-financial-data-downloads
 
 ## Step-by-Step Setup
 

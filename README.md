@@ -1,8 +1,10 @@
 # Texas ISD Financial Data Portal
 
 A public transparency system for analyzing Texas Independent School District
-financial data (2008–2024), featuring a citizen-friendly web portal, natural
+financial data (2009–2025), featuring a citizen-friendly web portal, natural
 language querying, and automatic anomaly detection.
+
+🌐 **Live portal:** https://texas-isd-finances.vercel.app
 
 🗺️ **New here?** See [PROJECT_MAP.md](PROJECT_MAP.md) for a visual,
 plain-English map of the whole system.
@@ -22,7 +24,7 @@ See [QUICKSTART.md](QUICKSTART.md) for local setup and
 - Python 3.10+
 - Supabase account (free tier works)
 - OpenAI API key (only for natural-language queries)
-- TEA Excel data file (2008–2024 summarized financial data)
+- TEA Excel data file (2009–2025 summarized financial data)
 
 ### Basic Setup
 ```bash

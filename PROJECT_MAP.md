@@ -38,7 +38,7 @@ graph TB
     end
 
     subgraph FACTORY["🏭 FACTORY DISTRICT: Data Preparation (runs occasionally)"]
-        TEA["📦 Raw shipment:<br/>TEA Excel file (2008–2024)"]
+        TEA["📦 Raw shipment:<br/>TEA Excel file (2009–2025)"]
         PREP["🧹 Cleaning machine:<br/>scripts/prepare_data.py"]
         LOAD["🚚 Delivery truck:<br/>scripts/import_to_supabase.py"]
         SQLF["📐 Blueprints:<br/>sql/create_tables.sql"]
@@ -69,7 +69,7 @@ graph TB
 | 🛣️ **Street** | The FastAPI web service (`src/api.py`) | The road every visitor travels; street signs (`/docs`) tell you where things are |
 | 🏠 **House** | The portal web page (`static/index.html`) | The visitor center — search, charts, and a help desk in one building |
 | 🤖 **Agent** | The NLP engine (`src/nlp_engine.py`) | A translator: you ask "How much does Dallas spend per kid?" and it writes the precise database question for you |
-| 🏦 **Vault** | Supabase Postgres database | The bank next door holding 17 years of money records |
+| 🏦 **Vault** | Supabase Postgres database | The bank next door holding 17 fiscal years of money records |
 | 🪟 **Windows** | Read-only SQL views | Visitors can *look* through the glass but can't touch or change anything — even the translator only gets window access |
 | 🏭 **Factory** | Data prep scripts | Where the state's messy spreadsheet gets cleaned, labeled, and shelved — runs once per yearly data release |
 | 🛡️ **Inspector** | CI tests + audits | A building inspector who re-checks the whole town every time anyone changes anything |
@@ -116,6 +116,6 @@ private tours, and event rentals pay the bills.
 |---|---|
 | Code (GitHub) | https://github.com/GusAI40/texas-isd-finances |
 | Audit branch | [`claude/audit-public-launch-ocd7ra`](https://github.com/GusAI40/texas-isd-finances/tree/claude/audit-public-launch-ocd7ra) |
-| Database | Your Supabase project (create at https://app.supabase.com — see DEPLOYMENT.md) |
-| Live site | Not yet deployed — one-click path in [DEPLOYMENT.md](DEPLOYMENT.md) |
-| Raw data source | Texas Education Agency (TEA) summarized financial data, 2008–2024 |
+| Database | Supabase project `texas-isd-finances` (`zwhvabkvrexphlskubog`, us-east-1) — 20,587 records live |
+| Live site | **https://texas-isd-finances.vercel.app** (Vercel, production) |
+| Raw data source | Texas Education Agency (TEA) summarized financial data, 2009–2025 |

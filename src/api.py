@@ -18,10 +18,10 @@ from .sample_queries import SAMPLE_QUERIES
 
 load_dotenv()
 
-# Data coverage (TEA summarized financial data). Override via env if a new
-# release extends the range.
-MIN_YEAR = int(os.getenv("DATA_MIN_YEAR", "2008"))
-MAX_YEAR = int(os.getenv("DATA_MAX_YEAR", "2024"))
+# Data coverage (TEA summarized financial data, fiscal years). Override via
+# env if a new release extends the range.
+MIN_YEAR = int(os.getenv("DATA_MIN_YEAR", "2009"))
+MAX_YEAR = int(os.getenv("DATA_MAX_YEAR", "2025"))
 
 STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
 
@@ -38,7 +38,12 @@ async def lifespan(app: FastAPI):
     db_url = os.getenv("SUPABASE_DB_URL")
     if db_url:
         try:
-            app.state.db_pool = await asyncpg.create_pool(db_url, min_size=1, max_size=10)
+            # statement_cache_size=0 keeps asyncpg compatible with Supabase's
+            # transaction pooler (PgBouncer-style), the recommended mode for
+            # serverless deploys; harmless on direct/session connections.
+            app.state.db_pool = await asyncpg.create_pool(
+                db_url, min_size=1, max_size=10, statement_cache_size=0
+            )
         except Exception as exc:  # pragma: no cover - depends on environment
             print(f"WARNING: could not connect to database: {exc}")
     else:
@@ -262,8 +267,9 @@ async def get_anomalies(
         if flag_type:
             params.append(True)
             conditions.append(f"{_FLAG_COLUMNS[flag_type]} = ${len(params)}")
-
-        if not conditions:
+        else:
+            # /anomalies must only ever return flagged rows; without a
+            # specific flag filter, require at least one flag to be set
             conditions.append(
                 "(revenue_drop_flag OR spend_spike_flag OR per_student_spike_flag OR enrollment_decline_flag)"
             )
