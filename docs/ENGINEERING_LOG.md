@@ -17,6 +17,26 @@ Entry template:
 
 ---
 
+## 2026-07-23 — Complete repository blueprint published (draft PR #2)
+
+**What changed:** Added the verified blueprint doc set on branch
+`docs/complete-repo-blueprint` (draft PR #2, not merged): REPO_MAP.md
+(7 Mermaid diagrams + status inventory), ARCHITECTURE.md, AGENTS.md,
+RUNBOOK.md, ENVIRONMENT.md, CHANGELOG.md; README got a docs index and
+SECURITY.md a verified-posture section. All validation ran: ruff, 29
+tests, boot 200, mermaid structural checks, link check, secret scan.
+
+**Why:** User requested a full verified repo/revenue blueprint with
+city-analogy diagrams and honest component statuses. Key honest calls:
+revenue funnel stages marked 🔵/🔴 where nothing is built (no lead
+capture, no payments, no analytics); src/visualizations.py flagged 🗑️
+candidate (unused by app) but kept pending the reports-product decision;
+no type checker configured (listed as a gap, not silently skipped).
+
+**Open items:** merge/review draft PR #2; credential rotation still red.
+
+---
+
 ## 2026-07-23 — PR #1 merged to master
 
 **What changed:** Merged PR #1 (all audit + launch + dashboard work) into

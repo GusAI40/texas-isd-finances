@@ -9,6 +9,21 @@ language querying, and automatic anomaly detection.
 🗺️ **New here?** See [PROJECT_MAP.md](PROJECT_MAP.md) for a visual,
 plain-English map of the whole system.
 
+## 📚 Documentation Index
+
+| Doc | What it answers |
+|---|---|
+| [REPO_MAP.md](REPO_MAP.md) | The full verified blueprint — city-style diagrams, component inventory with statuses, revenue funnel |
+| [ARCHITECTURE.md](ARCHITECTURE.md) | How the system actually works, path by path |
+| [AGENTS.md](AGENTS.md) | Every AI agent and automation, with guardrails |
+| [RUNBOOK.md](RUNBOOK.md) | Operating the live system: incidents, refresh, rotation |
+| [ENVIRONMENT.md](ENVIRONMENT.md) | Every environment variable |
+| [DEPLOYMENT.md](DEPLOYMENT.md) | Zero-to-production launch guide |
+| [docs/TUTORIAL.md](docs/TUTORIAL.md) | End-user guide (8th-grade friendly) |
+| [docs/UX_RESEARCH.md](docs/UX_RESEARCH.md) | The Monte Carlo simulation behind the design |
+| [AUDIT.md](AUDIT.md) | All three audit rounds |
+| [CHANGELOG.md](CHANGELOG.md) | Release history |
+
 ## 🎯 Project Goals
 
 - **Scalable Oversight**: AI-powered anomaly detection across 1000+ districts
