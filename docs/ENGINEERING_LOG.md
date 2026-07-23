@@ -17,6 +17,18 @@ Entry template:
 
 ---
 
+## 2026-07-23 — PR #1 merged to master
+
+**What changed:** Merged PR #1 (all audit + launch + dashboard work) into
+`master` with a merge commit to preserve the commit history. Work branch
+restarts from master per protocol.
+
+**Why:** master previously showed pre-audit code to repo visitors.
+
+**Open items:** credential rotation (user-side) remains the only red item.
+
+---
+
 ## 2026-07-23 — A+ pass: all report-card gaps closed; white-minimalist McKinsey/SWD redesign live
 
 **What changed:** New `v_spending_breakdown` view (TEA function codes → 9

@@ -22,7 +22,7 @@ read-only Postgres views on Supabase. MIT-licensed, built for public use.
 | Database | Supabase project `texas-isd-finances`, ref `zwhvabkvrexphlskubog`, us-east-1, org "GOAT-UIX" |
 | Data loaded | 20,587 rows · 1,310 districts · fiscal 2009–2025 (TEA "Summarized PEIMS Actual Financial Data") |
 | Secrets | ONLY in Vercel env vars (`SUPABASE_DB_URL`, `OPENAI_API_KEY`). Never in repo, never in this file, never in the log. |
-| GitHub | https://github.com/GusAI40/texas-isd-finances — work branch `claude/audit-public-launch-ocd7ra`, PR #1 open to `master` |
+| GitHub | https://github.com/GusAI40/texas-isd-finances — default branch `master` (PR #1 merged 2026-07-23); work branch `claude/audit-public-launch-ocd7ra` restarts from master |
 
 ## Invariants (violate these and production breaks)
 
@@ -61,7 +61,6 @@ curl -s https://texas-isd-finances.vercel.app/health
 - ✅ Admin dashboard v3 live: white-minimalist McKinsey/SWD design, action titles, exec summary, MECE breakdown, compare mode, PNG/CSV exports, /query rate limit. Demand-weighted grade ≈3.96/4.0.
 - ✅ Three audit rounds complete (`AUDIT.md`); 29 tests green; CI enforces ruff+pytest.
 - 🔴 OPEN: user must rotate credentials pasted into chat on 2026-07-22 (OpenAI/GitHub/Hetzner/Anthropic etc.); OpenAI key in Vercel env needs updating after rotation.
-- 🟡 OPEN: PR #1 unmerged — `master` still shows pre-audit code.
 - 🟡 WATCH: Supabase free tier pauses after ~7 days idle → portal shows "database not connected" until woken in dashboard. Vercel Hobby is non-commercial; upgrade both if pursuing revenue.
 
 ## Key docs
