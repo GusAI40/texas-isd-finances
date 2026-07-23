@@ -17,6 +17,43 @@ Entry template:
 
 ---
 
+## 2026-07-23 — Dashboard redesign driven by Monte Carlo user simulation; deployed live
+
+**What changed:** Simulated 1,000 Texas school admins against the real
+district population (`scripts/simulate_admin_usage.py`, seed 42 —
+reproducible; results in `docs/simulation_results.json`). Findings drove a
+full UI rebuild (`static/index.html`): KPI tiles with plain-English
+captions, trend chart vs statewide median with metric tabs, similar-size
+peer comparison, spending breakdown, per-district anomaly explainer cards,
+guided first-run tutorial, disclaimer modal/footer, print + CSV export.
+New endpoints: `GET /district/{id}/peers`, `GET /benchmarks`,
+`district_number` filter on `/anomalies` (SQL validated on live DB via
+management API before shipping). Docs: `docs/UX_RESEARCH.md`,
+`docs/TUTORIAL.md`. 27 tests green. Deployed to Vercel production and
+verified live (peers for Dallas: Cy-Fair/Houston/Northside/Katy, 70th
+percentile, 2025 statewide median $19,314/student).
+
+**Why:** User mandate: build what admins want, not what we want. The
+simulation showed the old UI led with the LOWEST-demand feature (freeform
+NLP, 2.3%) and had zero support for the top four demands (peer comparison
+16.1%, trends 13.8%, board-ready output 11.5%, statewide context 10.6%).
+Page order now mirrors the demand ranking.
+
+**Gotchas:**
+- Deploys still go through the Vercel REST API with the user-supplied PAT
+  (re-staged temporarily from conversation, shredded after). Deploy payload
+  swaps `requirements-vercel.txt` in as requirements.txt (comments
+  stripped).
+- Persona/task priors are modeled assumptions, documented honestly in
+  UX_RESEARCH.md — replace with real analytics/interviews when available.
+
+**Open items:** unchanged (rotation, rate limit, PR #1 merge) — see
+CLAUDE.md status.
+
+**Notes:**
+
+---
+
 ## 2026-07-22 — Memory system created (/ariba skill, CLAUDE.md, this log)
 
 **What changed:** Added `.claude/skills/ariba/SKILL.md` (catch-up / save /

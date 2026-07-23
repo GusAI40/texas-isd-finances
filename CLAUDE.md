@@ -55,10 +55,11 @@ ruff check . && python -m pytest -q       # 24 tests, all must pass
 curl -s https://texas-isd-finances.vercel.app/health
 ```
 
-## Current Status (updated 2026-07-22 — keep this a snapshot, history goes in the log)
+## Current Status (updated 2026-07-23 — keep this a snapshot, history goes in the log)
 
 - ✅ Live in production, all endpoints verified including end-to-end NLP.
-- ✅ Three audit rounds complete (`AUDIT.md`); 24 tests green; CI enforces ruff+pytest.
+- ✅ Admin dashboard v2 live: simulation-driven design (`docs/UX_RESEARCH.md`), tutorial, disclaimer, peers/benchmarks endpoints.
+- ✅ Three audit rounds complete (`AUDIT.md`); 27 tests green; CI enforces ruff+pytest.
 - 🔴 OPEN: user must rotate credentials pasted into chat on 2026-07-22 (OpenAI/GitHub/Hetzner/Anthropic etc.); OpenAI key in Vercel env needs updating after rotation.
 - 🟡 OPEN: no rate limit on `/query` (each call costs an OpenAI request) — add before wide promotion.
 - 🟡 OPEN: PR #1 unmerged — `master` still shows pre-audit code.
