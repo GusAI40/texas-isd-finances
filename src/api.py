@@ -2,10 +2,11 @@
 FastAPI service for Texas School Finance Data Portal
 """
 import os
+import time
 from contextlib import asynccontextmanager
 from datetime import datetime
 from pathlib import Path
-from typing import Any, List, Optional
+from typing import Any, Dict, List, Optional
 
 import asyncpg
 from dotenv import load_dotenv
@@ -143,8 +144,30 @@ async def api_info():
     }
 
 
+# Simple sliding-window rate limit for /query: each call costs a paid
+# OpenAI request. Per-process state — on serverless each warm instance
+# enforces its own window, which still bounds abuse per instance; put a
+# CDN/WAF limit in front for a hard global guarantee.
+_RATE_LIMIT = int(os.getenv("QUERY_RATE_LIMIT", "10"))  # requests
+_RATE_WINDOW = 60.0  # seconds
+_rate_buckets: Dict[str, List[float]] = {}
+
+
+def _rate_limited(ip: str) -> bool:
+    now = time.monotonic()
+    bucket = [t for t in _rate_buckets.get(ip, []) if now - t < _RATE_WINDOW]
+    if len(bucket) >= _RATE_LIMIT:
+        _rate_buckets[ip] = bucket
+        return True
+    bucket.append(now)
+    _rate_buckets[ip] = bucket
+    if len(_rate_buckets) > 10000:  # bound memory
+        _rate_buckets.clear()
+    return False
+
+
 @app.post("/query", response_model=NLPQueryResponse, tags=["NLP"])
-async def nlp_query(request: NLPQueryRequest):
+async def nlp_query(request: NLPQueryRequest, http_request: Request):
     """
     Process natural language query about Texas school finances
 
@@ -153,6 +176,13 @@ async def nlp_query(request: NLPQueryRequest):
     - "Which districts have declining enrollment?"
     - "Compare Austin ISD and Houston ISD budgets"
     """
+    client_ip = (http_request.headers.get("x-forwarded-for", "") or "").split(",")[0].strip() \
+        or (http_request.client.host if http_request.client else "unknown")
+    if _rate_limited(client_ip):
+        raise HTTPException(
+            status_code=429,
+            detail=f"Rate limit: {_RATE_LIMIT} questions per minute. Please wait a moment.",
+        )
     try:
         engine = get_nlp_engine()
     except Exception:
@@ -350,6 +380,22 @@ async def get_district_peers(request: Request, district_number: str):
             "peers": [dict(p) for p in peers],
             "statewide": dict(pct),
         }
+
+
+@app.get("/district/{district_number}/breakdown", tags=["Districts"])
+async def get_district_breakdown(request: Request, district_number: str):
+    """Function-level spending breakdown (MECE categories from TEA function
+    codes) for every year — where the money actually goes."""
+    pool = get_pool(request)
+    async with pool.acquire() as conn:
+        rows = await conn.fetch("""
+            SELECT * FROM v_spending_breakdown
+            WHERE district_number = $1 AND total_operating > 0
+            ORDER BY year
+        """, district_number)
+        if not rows:
+            raise HTTPException(status_code=404, detail="District not found")
+        return [dict(r) for r in rows]
 
 
 @app.get("/sample-queries", tags=["NLP"])

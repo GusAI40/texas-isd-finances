@@ -47,6 +47,7 @@ def test_health_degraded_without_db(client):
     "/stats",
     "/benchmarks",
     "/district/057905/peers",
+    "/district/057905/breakdown",
 ])
 def test_data_endpoints_return_503_without_db(client, path):
     res = client.get(path)
@@ -68,6 +69,17 @@ def test_sample_queries(client):
     res = client.get("/sample-queries")
     assert res.status_code == 200
     assert len(res.json()["sample_queries"]) == 10
+
+
+def test_query_rate_limit():
+    from src import api as api_mod
+
+    api_mod._rate_buckets.clear()
+    ip = "203.0.113.5"
+    for _ in range(api_mod._RATE_LIMIT):
+        assert api_mod._rate_limited(ip) is False
+    assert api_mod._rate_limited(ip) is True
+    api_mod._rate_buckets.clear()
 
 
 def test_anomalies_district_filter_validated(client):
