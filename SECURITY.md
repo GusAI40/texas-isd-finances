@@ -1,5 +1,21 @@
 # Security Policy
 
+## Security posture (verified 2026-07-23)
+
+- **Read-only by design:** the public API and NLP agent can only SELECT
+  from three database views; the base table has row-level security
+  enabled and grants revoked for API roles (`sql/create_tables.sql`).
+- **No PII:** district-level financial aggregates only — no student or
+  personnel data anywhere in the system.
+- **Injection defenses:** parameterized queries throughout `src/api.py`;
+  user-influenced column names come from a hardcoded allowlist; NLP agent
+  is table-allowlisted and SELECT-only prompted.
+- **Cost abuse:** `POST /query` is rate-limited per IP (see
+  ENVIRONMENT.md); a CDN/WAF is recommended before large-scale promotion.
+- **Secrets:** live only in the hosting provider's env vars; the repo,
+  its history (secret-scanned — see AUDIT.md R2-3), and all docs contain
+  none.
+
 ## Reporting a Vulnerability
 
 If you discover a security vulnerability, please report it responsibly.
