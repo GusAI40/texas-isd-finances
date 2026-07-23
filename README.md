@@ -71,10 +71,14 @@ texas-isd-finances/
 
 ## 🔧 Key Features
 
-### Public Portal
-A dependency-free single-page portal served at `/`: statewide stats,
-district search, per-student spending trends, anomaly flags, and a
-plain-English question box.
+### Administrator Dashboard
+A dependency-free single-page dashboard served at `/`, designed from a
+Monte Carlo simulation of 1,000 Texas school administrators
+([docs/UX_RESEARCH.md](docs/UX_RESEARCH.md)): KPI tiles with plain-English
+captions, 17-year trends vs the statewide median, similar-size peer
+comparison, spending breakdown, anomaly explanations, guided tutorial,
+print/CSV export for board packets, and a plain-English question box.
+User guide: [docs/TUTORIAL.md](docs/TUTORIAL.md).
 
 ### Natural Language Queries
 Ask questions in plain English:
@@ -93,7 +97,9 @@ Automatic flagging of:
 - `POST /query` — Natural language queries
 - `GET /districts` — List/search districts
 - `GET /district/{id}/summary` — District financials
-- `GET /anomalies` — Flagged anomalies
+- `GET /district/{id}/peers` — Similar-size peer comparison + percentile
+- `GET /benchmarks` — Statewide medians per year
+- `GET /anomalies` — Flagged anomalies (filterable by district)
 - `GET /stats` — Statewide statistics
 - `GET /health` — Service health
 

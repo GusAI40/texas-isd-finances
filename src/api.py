@@ -244,6 +244,7 @@ _FLAG_COLUMNS = {
 async def get_anomalies(
     request: Request,
     year: Optional[int] = Query(None, ge=MIN_YEAR, le=MAX_YEAR),
+    district_number: Optional[str] = Query(None, max_length=6, description="Filter to one district"),
     flag_type: Optional[str] = Query(
         None,
         description="Filter by flag type",
@@ -264,6 +265,10 @@ async def get_anomalies(
             params.append(year)
             conditions.append(f"year = ${len(params)}")
 
+        if district_number:
+            params.append(district_number)
+            conditions.append(f"district_number = ${len(params)}")
+
         if flag_type:
             params.append(True)
             conditions.append(f"{_FLAG_COLUMNS[flag_type]} = ${len(params)}")
@@ -283,6 +288,68 @@ async def get_anomalies(
 
         rows = await conn.fetch(query, *params)
         return [dict(row) for row in rows]
+
+
+@app.get("/benchmarks", tags=["Benchmarks"])
+async def get_benchmarks(request: Request):
+    """Statewide per-year medians — the 'what's normal?' context that
+    district numbers are meaningless without."""
+    pool = get_pool(request)
+    async with pool.acquire() as conn:
+        rows = await conn.fetch("""
+            SELECT year,
+                   COUNT(*) AS n_districts,
+                   ROUND((percentile_cont(0.5) WITHIN GROUP (ORDER BY spend_per_student))::numeric, 0)
+                       AS median_spend_per_student,
+                   ROUND((percentile_cont(0.5) WITHIN GROUP (ORDER BY revenue_per_student))::numeric, 0)
+                       AS median_revenue_per_student,
+                   SUM(enrollment) AS total_enrollment
+            FROM v_finance_summary
+            WHERE spend_per_student IS NOT NULL AND spend_per_student > 0
+            GROUP BY year ORDER BY year
+        """)
+        return [dict(r) for r in rows]
+
+
+@app.get("/district/{district_number}/peers", tags=["Districts"])
+async def get_district_peers(request: Request, district_number: str):
+    """Peer comparison: districts of similar size (0.5x-2x enrollment) in
+    the latest year, plus this district's statewide percentile. The #1
+    demand in admin usage simulation (docs/UX_RESEARCH.md)."""
+    pool = get_pool(request)
+    async with pool.acquire() as conn:
+        me = await conn.fetchrow("""
+            SELECT * FROM v_finance_summary
+            WHERE district_number = $1 AND enrollment > 0 AND spend_per_student IS NOT NULL
+            ORDER BY year DESC LIMIT 1
+        """, district_number)
+        if me is None:
+            raise HTTPException(status_code=404, detail="District not found or has no usable data")
+
+        peers = await conn.fetch("""
+            SELECT district_number, district_name, enrollment, spend_per_student,
+                   revenue_per_student, instruction_spend, total_spend
+            FROM v_finance_summary
+            WHERE year = $1 AND district_number != $2
+              AND enrollment BETWEEN $3 * 0.5 AND $3 * 2
+              AND spend_per_student IS NOT NULL AND spend_per_student > 0
+            ORDER BY ABS(enrollment - $3) LIMIT 12
+        """, me["year"], district_number, me["enrollment"])
+
+        pct = await conn.fetchrow("""
+            SELECT ROUND(100.0 * COUNT(*) FILTER (WHERE spend_per_student < $1) / COUNT(*), 0)
+                       AS spend_percentile,
+                   ROUND((percentile_cont(0.5) WITHIN GROUP (ORDER BY spend_per_student))::numeric, 0)
+                       AS statewide_median_spend
+            FROM v_finance_summary
+            WHERE year = $2 AND spend_per_student IS NOT NULL AND spend_per_student > 0
+        """, me["spend_per_student"], me["year"])
+
+        return {
+            "district": dict(me),
+            "peers": [dict(p) for p in peers],
+            "statewide": dict(pct),
+        }
 
 
 @app.get("/sample-queries", tags=["NLP"])

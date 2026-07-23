@@ -45,6 +45,8 @@ def test_health_degraded_without_db(client):
     "/district/057905/summary",
     "/anomalies",
     "/stats",
+    "/benchmarks",
+    "/district/057905/peers",
 ])
 def test_data_endpoints_return_503_without_db(client, path):
     res = client.get(path)
@@ -66,6 +68,12 @@ def test_sample_queries(client):
     res = client.get("/sample-queries")
     assert res.status_code == 200
     assert len(res.json()["sample_queries"]) == 10
+
+
+def test_anomalies_district_filter_validated(client):
+    # district_number longer than 6 chars is rejected before touching the DB
+    res = client.get("/anomalies?district_number=1234567")
+    assert res.status_code == 422
 
 
 def test_year_bounds_validated(client):

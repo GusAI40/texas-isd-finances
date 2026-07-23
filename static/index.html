@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Texas ISD Finances — Public Transparency Portal</title>
+<title>Texas ISD Finances — District Dashboard</title>
 <style>
   :root {
     color-scheme: light;
@@ -16,8 +16,11 @@
     --baseline: #c3c2b7;
     --border: rgba(11,11,11,0.10);
     --series-1: #2a78d6;
+    --series-2: #008300;
     --critical: #d03b3b;
+    --good: #006300;
     --accent: #256abf;
+    --highlight: rgba(42,120,214,0.08);
   }
   @media (prefers-color-scheme: dark) {
     :root {
@@ -31,8 +34,11 @@
       --baseline: #383835;
       --border: rgba(255,255,255,0.10);
       --series-1: #3987e5;
+      --series-2: #008300;
       --critical: #d03b3b;
+      --good: #0ca30c;
       --accent: #3987e5;
+      --highlight: rgba(57,135,229,0.14);
     }
   }
   * { box-sizing: border-box; }
@@ -44,168 +50,257 @@
     line-height: 1.5;
   }
   header {
-    padding: 2.5rem 1.5rem 1.5rem;
-    max-width: 960px;
-    margin: 0 auto;
+    max-width: 1080px; margin: 0 auto;
+    padding: 1.5rem 1.5rem 0.5rem;
+    display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; justify-content: space-between;
   }
-  header h1 { margin: 0 0 .35rem; font-size: 1.75rem; }
-  header p { margin: 0; color: var(--text-secondary); max-width: 46rem; }
-  main { max-width: 960px; margin: 0 auto; padding: 0 1.5rem 4rem; }
+  header h1 { margin: 0; font-size: 1.35rem; }
+  header .sub { color: var(--text-secondary); font-size: .85rem; margin-top: .15rem; }
+  .hbtns { display: flex; gap: .5rem; flex-wrap: wrap; }
+  main { max-width: 1080px; margin: 0 auto; padding: 0 1.5rem 4rem; }
   section {
     background: var(--surface-1);
     border: 1px solid var(--border);
     border-radius: 10px;
     padding: 1.25rem 1.5rem;
     margin-top: 1.25rem;
+    position: relative;
   }
-  section h2 { margin: 0 0 .75rem; font-size: 1.1rem; }
-  .tiles { display: flex; flex-wrap: wrap; gap: 1rem; }
+  section h2 { margin: 0 0 .25rem; font-size: 1.05rem; }
+  .why { color: var(--muted); font-size: .82rem; margin: 0 0 .9rem; }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 1rem; }
   .tile {
-    flex: 1 1 140px;
-    background: var(--surface-1);
-    border: 1px solid var(--border);
-    border-radius: 10px;
+    background: var(--page); border: 1px solid var(--border); border-radius: 10px;
     padding: .85rem 1rem;
   }
-  .tile .label { font-size: .78rem; color: var(--muted); }
-  .tile .value { font-size: 1.5rem; font-weight: 650; }
+  .tile .label { font-size: .76rem; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+  .tile .value { font-size: 1.65rem; font-weight: 650; margin: .1rem 0; }
+  .tile .delta { font-size: .82rem; font-variant-numeric: tabular-nums; }
+  .tile .plain { font-size: .8rem; color: var(--text-secondary); margin-top: .3rem; }
+  .up { color: var(--good); } .down { color: var(--critical); } .flat { color: var(--muted); }
   input[type=text], input[type=search] {
-    width: 100%;
-    padding: .55rem .75rem;
-    font: inherit;
-    color: var(--text-primary);
-    background: var(--page);
-    border: 1px solid var(--baseline);
-    border-radius: 8px;
+    width: 100%; padding: .6rem .8rem; font: inherit;
+    color: var(--text-primary); background: var(--page);
+    border: 1px solid var(--baseline); border-radius: 8px;
   }
   button {
-    font: inherit;
-    padding: .55rem 1rem;
-    border-radius: 8px;
-    border: 1px solid var(--accent);
-    background: var(--accent);
-    color: #fff;
-    cursor: pointer;
+    font: inherit; padding: .5rem .95rem; border-radius: 8px;
+    border: 1px solid var(--accent); background: var(--accent); color: #fff; cursor: pointer;
   }
+  button.ghost { background: transparent; color: var(--accent); }
+  button.small { padding: .3rem .7rem; font-size: .85rem; }
   button:hover { filter: brightness(1.08); }
-  .row { display: flex; gap: .6rem; }
-  .row input { flex: 1; }
-  ul.results { list-style: none; padding: 0; margin: .75rem 0 0; }
-  ul.results li { margin: 0; }
+  button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .row { display: flex; gap: .6rem; flex-wrap: wrap; }
+  .row input { flex: 1; min-width: 220px; }
+  ul.results { list-style: none; padding: 0; margin: .5rem 0 0; }
   ul.results button {
-    width: 100%;
-    text-align: left;
-    background: none;
-    border: none;
-    color: var(--accent);
-    padding: .3rem .2rem;
-    border-radius: 6px;
+    width: 100%; text-align: left; background: none; border: none;
+    color: var(--accent); padding: .35rem .3rem; border-radius: 6px;
   }
-  ul.results button:hover { background: var(--page); filter: none; }
-  table { border-collapse: collapse; width: 100%; margin-top: .75rem; font-size: .88rem; }
+  ul.results button:hover { background: var(--highlight); filter: none; }
+  table { border-collapse: collapse; width: 100%; margin-top: .5rem; font-size: .88rem; }
   th, td { text-align: right; padding: .4rem .6rem; border-bottom: 1px solid var(--grid); font-variant-numeric: tabular-nums; }
   th:first-child, td:first-child { text-align: left; }
   th { color: var(--muted); font-weight: 600; }
-  .note { color: var(--muted); font-size: .85rem; margin-top: .5rem; }
-  .warn {
-    border-left: 3px solid var(--critical);
-    padding: .5rem .9rem;
-    background: var(--surface-1);
-    color: var(--text-secondary);
-    margin-top: 1rem;
-    border-radius: 6px;
-    display: none;
+  tr.me { background: var(--highlight); font-weight: 650; }
+  .note { color: var(--muted); font-size: .84rem; margin-top: .5rem; }
+  .chart-tabs { display: flex; gap: .4rem; margin-bottom: .5rem; flex-wrap: wrap; }
+  .chart-tabs button { background: transparent; color: var(--text-secondary); border: 1px solid var(--baseline); }
+  .chart-tabs button.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .chartwrap { position: relative; }
+  .tooltip {
+    position: absolute; pointer-events: none;
+    background: var(--surface-1); border: 1px solid var(--border); border-radius: 6px;
+    padding: .3rem .6rem; font-size: .8rem; display: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,.18); white-space: nowrap; z-index: 5;
   }
+  .legend { display: flex; gap: 1.1rem; font-size: .8rem; color: var(--text-secondary); margin-top: .3rem; flex-wrap: wrap; }
+  .legend .key { display: inline-block; width: 14px; height: 3px; border-radius: 2px; vertical-align: middle; margin-right: .35rem; }
+  .flagcard {
+    border-left: 3px solid var(--critical); background: var(--page);
+    border-radius: 0 8px 8px 0; padding: .7rem 1rem; margin-top: .6rem; font-size: .9rem;
+  }
+  .flagcard.ok { border-left-color: var(--good); }
   .answer {
-    white-space: pre-wrap;
-    background: var(--page);
-    border: 1px solid var(--grid);
-    border-radius: 8px;
-    padding: .85rem 1rem;
-    margin-top: .75rem;
-    display: none;
+    white-space: pre-wrap; background: var(--page); border: 1px solid var(--grid);
+    border-radius: 8px; padding: .85rem 1rem; margin-top: .75rem; display: none;
   }
-  #chartwrap { position: relative; margin-top: 1rem; display: none; }
-  #tooltip {
-    position: absolute;
-    pointer-events: none;
-    background: var(--surface-1);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: .3rem .6rem;
-    font-size: .8rem;
-    display: none;
-    box-shadow: 0 2px 8px rgba(0,0,0,.15);
-    white-space: nowrap;
+  .warnbar {
+    border-left: 3px solid var(--critical); padding: .5rem .9rem;
+    background: var(--surface-1); color: var(--text-secondary);
+    margin-top: 1rem; border-radius: 6px; display: none;
   }
-  footer { max-width: 960px; margin: 0 auto; padding: 1rem 1.5rem 2.5rem; color: var(--muted); font-size: .82rem; }
+  footer { max-width: 1080px; margin: 0 auto; padding: 1rem 1.5rem 2.5rem; color: var(--muted); font-size: .82rem; }
   a { color: var(--accent); }
+  /* Tour + modal */
+  .overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,.55); z-index: 50; display: none;
+  }
+  .tourbox, .modal {
+    position: fixed; z-index: 60; background: var(--surface-1); color: var(--text-primary);
+    border: 1px solid var(--border); border-radius: 12px; padding: 1.1rem 1.3rem;
+    max-width: 420px; width: calc(100vw - 3rem); box-shadow: 0 8px 30px rgba(0,0,0,.35); display: none;
+  }
+  .tourbox { left: 50%; transform: translateX(-50%); bottom: 2rem; }
+  .modal { left: 50%; top: 50%; transform: translate(-50%,-50%); max-height: 80vh; overflow-y: auto; max-width: 560px; }
+  .tourbox h3, .modal h3 { margin: 0 0 .4rem; font-size: 1rem; }
+  .tourbox p, .modal p, .modal li { font-size: .9rem; color: var(--text-secondary); }
+  .tour-highlight { outline: 3px solid var(--accent); outline-offset: 3px; border-radius: 10px; }
+  .hidden { display: none !important; }
+  @media print {
+    header .hbtns, .chart-tabs, #picker-section, #ask-section, .warnbar, button { display: none !important; }
+    body { background: #fff; color: #000; }
+    section { border: none; page-break-inside: avoid; }
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    html { scroll-behavior: smooth; }
+  }
 </style>
 </head>
 <body>
 <header>
-  <h1>Texas ISD Finances</h1>
-  <p>A public transparency portal for Texas Independent School District financial data,
-     fiscal years 2009&ndash;2025. Search any district, explore spending trends, review automatically
-     flagged anomalies, or ask a question in plain English.</p>
-  <div class="warn" id="dbwarn">The database behind this portal is not connected yet.
-    Browsing and querying will be unavailable until the administrator configures it.</div>
+  <div>
+    <h1>Texas ISD Finances</h1>
+    <div class="sub">District finance dashboard · TEA data, fiscal 2009&ndash;2025</div>
+  </div>
+  <div class="hbtns">
+    <button class="ghost small" id="btn-tour">🎓 Tutorial</button>
+    <button class="ghost small" id="btn-disclaimer">ⓘ Disclaimer</button>
+    <button class="ghost small" id="btn-print" title="Print or save as PDF for a board packet">🖨 Print</button>
+  </div>
 </header>
-<main>
-  <section id="stats-section">
-    <h2>Statewide at a glance</h2>
-    <div class="tiles" id="tiles">
-      <div class="tile"><div class="label">Districts</div><div class="value" id="t-districts">—</div></div>
-      <div class="tile"><div class="label">Years covered</div><div class="value" id="t-years">—</div></div>
-      <div class="tile"><div class="label">Records</div><div class="value" id="t-records">—</div></div>
-      <div class="tile"><div class="label">Avg spend / student</div><div class="value" id="t-avg">—</div></div>
-    </div>
-  </section>
 
-  <section>
-    <h2>Find a district</h2>
+<main>
+  <div class="warnbar" id="dbwarn">The database behind this dashboard is not reachable right now.
+    If this persists, the project may be paused — an administrator can wake it in the Supabase dashboard.</div>
+
+  <section id="picker-section">
+    <h2 id="picker-title">Step 1 — Find your district</h2>
+    <p class="why">Type a few letters of your district's name and pick it from the list. We'll remember it on this device.</p>
     <div class="row">
-      <input type="search" id="search" placeholder="e.g. Dallas, Austin, Houston&hellip;" aria-label="Search districts">
+      <input type="search" id="search" placeholder="e.g. Dallas, Katy, Alamo Heights&hellip;" aria-label="Search districts">
       <button id="searchbtn">Search</button>
     </div>
     <ul class="results" id="results"></ul>
-    <div id="detail" style="display:none">
-      <h2 id="dname" style="margin-top:1.25rem"></h2>
-      <div id="chartwrap">
-        <svg id="chart" width="100%" height="280" role="img" aria-label="Spending per student over time"></svg>
-        <div id="tooltip"></div>
+  </section>
+
+  <div id="dash" class="hidden">
+    <section id="kpi-section">
+      <h2 id="dname"></h2>
+      <p class="why" id="kpi-why"></p>
+      <div class="tiles" id="kpis"></div>
+    </section>
+
+    <section id="trend-section">
+      <h2>Trends over time</h2>
+      <p class="why">The gray dashed line is the <strong>statewide median</strong> — the "typical Texas district" — so you can see whether you run above or below normal.</p>
+      <div class="chart-tabs" id="trend-tabs">
+        <button data-m="spend" class="active">Spending per student</button>
+        <button data-m="enrollment">Enrollment</button>
+        <button data-m="revspend">Revenue vs. spending</button>
       </div>
-      <div style="overflow-x:auto"><table id="dtable"></table></div>
-    </div>
-  </section>
+      <div class="chartwrap">
+        <svg id="trendchart" width="100%" height="300" role="img" aria-label="Trend chart"></svg>
+        <div class="tooltip" id="trendtip"></div>
+      </div>
+      <div class="legend" id="trendlegend"></div>
+      <div style="overflow-x:auto"><table id="trendtable"></table></div>
+      <div class="row" style="margin-top:.6rem">
+        <button class="ghost small" id="btn-csv">⬇ Download this table (CSV)</button>
+      </div>
+    </section>
 
-  <section>
-    <h2>Ask a question</h2>
-    <div class="row">
-      <input type="text" id="question" maxlength="500" placeholder="e.g. Which districts have the highest debt service?" aria-label="Ask a question">
-      <button id="askbtn">Ask</button>
-    </div>
-    <div class="note">Answers are generated by an AI model from read-only views of the data. Verify important figures against official TEA releases.</div>
-    <div class="answer" id="answer"></div>
-  </section>
+    <section id="peers-section">
+      <h2>How you compare with similar districts</h2>
+      <p class="why" id="peers-why"></p>
+      <div class="chartwrap">
+        <svg id="peerchart" width="100%" height="360" role="img" aria-label="Peer comparison chart"></svg>
+        <div class="tooltip" id="peertip"></div>
+      </div>
+      <div class="note" id="peers-note"></div>
+    </section>
 
-  <section>
-    <h2>Recent anomaly flags</h2>
-    <p class="note" style="margin-top:0">Districts flagged for unusual year-over-year changes:
-      revenue drops &gt;15%, spending spikes &gt;20% with flat enrollment, per-student spending
-      jumps &gt;15%, or enrollment declines &gt;10%. Flags are starting points for questions,
-      not findings of wrongdoing.</p>
-    <div style="overflow-x:auto"><table id="atable"></table></div>
+    <section id="money-section">
+      <h2>Where the money goes</h2>
+      <p class="why">Share of total spending in the most recent year. "Other operations" covers everything else — transportation, food service, utilities, administration, and more.</p>
+      <div class="chartwrap">
+        <svg id="moneychart" width="100%" height="190" role="img" aria-label="Spending breakdown"></svg>
+        <div class="tooltip" id="moneytip"></div>
+      </div>
+    </section>
+
+    <section id="flags-section">
+      <h2>Anomaly check</h2>
+      <p class="why">We flag unusual year-over-year changes automatically. A flag is a <strong>question, not an accusation</strong> — growth spurts, bond programs, and one-time grants trip these flags for perfectly good reasons.</p>
+      <div id="flaglist"></div>
+    </section>
+
+    <section id="ask-section">
+      <h2>Ask anything</h2>
+      <p class="why">Plain English works: "How did our debt service change since 2020?"</p>
+      <div class="row">
+        <input type="text" id="question" maxlength="500" placeholder="Type a question about any Texas district&hellip;" aria-label="Ask a question">
+        <button id="askbtn">Ask</button>
+      </div>
+      <div class="answer" id="answer"></div>
+      <div class="note">Answers are AI-generated from the same read-only data. Double-check important figures below or against <a href="https://tea.texas.gov/finance-and-grants/state-funding/state-funding-reports-and-data/peims-financial-data-downloads" target="_blank" rel="noopener">official TEA releases</a>.</div>
+    </section>
+  </div>
+
+  <section id="statewide-section">
+    <h2>Statewide at a glance</h2>
+    <div class="tiles" id="statetiles">
+      <div class="tile"><div class="label">Districts</div><div class="value" id="t-districts">—</div></div>
+      <div class="tile"><div class="label">Years covered</div><div class="value" id="t-years">—</div></div>
+      <div class="tile"><div class="label">Records</div><div class="value" id="t-records">—</div></div>
+      <div class="tile"><div class="label">Median spend / student</div><div class="value" id="t-med">—</div><div class="plain">Half of districts spend more, half less.</div></div>
+    </div>
   </section>
 </main>
-<footer>
-  Data source: Texas Education Agency summarized financial data (fiscal 2009&ndash;2025).
-  Open source &mdash; <a href="/docs">API documentation</a>.
+
+<footer id="footer-disclaimer">
+  <strong>Disclaimer:</strong> This dashboard presents Texas Education Agency (TEA) summarized
+  PEIMS financial data (fiscal 2009&ndash;2025) for informational and transparency purposes only.
+  It is not an official TEA product, not an audit, and not financial or legal advice. Anomaly
+  flags are automatic statistical checks, not findings of wrongdoing. Always verify figures
+  against <a href="https://tea.texas.gov" target="_blank" rel="noopener">official TEA publications</a>
+  before making decisions. Contains only district-level aggregates — no student or personnel data.
+  Open source (MIT) &mdash; <a href="/docs">API</a> · <a href="https://github.com/GusAI40/texas-isd-finances" target="_blank" rel="noopener">source code</a>.
 </footer>
+
+<div class="overlay" id="overlay"></div>
+<div class="tourbox" id="tourbox">
+  <h3 id="tour-title"></h3>
+  <p id="tour-text"></p>
+  <div class="row" style="justify-content:space-between">
+    <button class="ghost small" id="tour-skip">Skip</button>
+    <span class="note" id="tour-step"></span>
+    <button class="small" id="tour-next">Next →</button>
+  </div>
+</div>
+<div class="modal" id="disc-modal">
+  <h3>About this data — the honest version</h3>
+  <p><strong>Where it comes from:</strong> the Texas Education Agency's "Summarized PEIMS Actual
+  Financial Data" release, the state's official roll-up of every district's adopted financial
+  reports, fiscal years 2009&ndash;2025.</p>
+  <p><strong>What the flags mean:</strong> math, not judgment. A "revenue drop" flag means revenue
+  fell more than 15% from the prior year. Districts get flagged for good reasons all the time —
+  a bond program ending, a one-time federal grant expiring, a boundary change.</p>
+  <p><strong>What this is NOT:</strong> an audit, an official TEA product, a rating system, or
+  advice. Numbers can differ from a district's own books due to timing and reporting rules.</p>
+  <p><strong>Per-student math:</strong> we divide by fall enrollment. Districts with very small
+  enrollment can show extreme per-student values — that's arithmetic, not scandal.</p>
+  <div class="row" style="justify-content:flex-end"><button class="small" id="disc-close">Got it</button></div>
+</div>
+
 <script>
 const $ = id => document.getElementById(id);
 const fmtMoney = v => v == null ? '—' : '$' + Math.round(v).toLocaleString();
 const fmtNum = v => v == null ? '—' : Number(v).toLocaleString();
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+
+const state = { district: null, summary: [], benchmarks: [], peers: null, flags: [], metric: 'spend' };
 
 async function api(path, opts) {
   const res = await fetch(path, opts);
@@ -214,16 +309,7 @@ async function api(path, opts) {
   return res.json();
 }
 
-async function loadStats() {
-  try {
-    const s = await api('/stats');
-    $('t-districts').textContent = fmtNum(s.total_districts);
-    $('t-years').textContent = s.start_year + '–' + s.end_year;
-    $('t-records').textContent = fmtNum(s.total_records);
-    $('t-avg').textContent = fmtMoney(s.avg_spend_per_student);
-  } catch (e) { /* leave placeholders */ }
-}
-
+/* ---------- district picker ---------- */
 async function search() {
   const q = $('search').value.trim();
   if (!q) return;
@@ -231,129 +317,366 @@ async function search() {
   list.innerHTML = '<li class="note">Searching…</li>';
   try {
     const rows = await api('/districts?search=' + encodeURIComponent(q) + '&limit=15');
-    list.innerHTML = rows.length ? '' : '<li class="note">No districts found.</li>';
+    list.innerHTML = rows.length ? '' : '<li class="note">No districts found — try fewer letters.</li>';
     for (const r of rows) {
       const li = document.createElement('li');
       const b = document.createElement('button');
       b.textContent = r.district_name + ' (' + r.district_number + ')';
-      b.onclick = () => showDistrict(r.district_number, r.district_name);
+      b.onclick = () => selectDistrict(r.district_number, r.district_name);
       li.appendChild(b); list.appendChild(li);
     }
-  } catch (e) { list.innerHTML = '<li class="note">Search unavailable.</li>'; }
+  } catch (e) { list.innerHTML = '<li class="note">Search unavailable right now.</li>'; }
 }
 
-async function showDistrict(num, name) {
+async function selectDistrict(num, name) {
+  localStorage.setItem('tisd_district', JSON.stringify({ num, name }));
+  state.district = { num, name };
+  $('results').innerHTML = '';
+  $('search').value = '';
+  $('picker-title').textContent = 'Look up a different district';
+  await loadDashboard();
+}
+
+/* ---------- dashboard load ---------- */
+async function loadDashboard() {
+  const d = state.district;
+  if (!d) return;
+  $('dash').classList.remove('hidden');
+  $('dname').textContent = d.name;
   try {
-    const rows = await api('/district/' + encodeURIComponent(num) + '/summary');
-    $('detail').style.display = 'block';
-    $('dname').textContent = name + ' — spend per student';
-    drawChart(rows);
-    const t = $('dtable');
-    t.innerHTML = '<tr><th>Year</th><th>Enrollment</th><th>Revenue</th><th>Spend</th><th>Spend / student</th></tr>' +
-      rows.map(r => '<tr><td>' + r.year + '</td><td>' + fmtNum(r.enrollment) + '</td><td>' +
-        fmtMoney(r.total_revenue) + '</td><td>' + fmtMoney(r.total_spend) + '</td><td>' +
-        fmtMoney(r.spend_per_student) + '</td></tr>').join('');
-    $('detail').scrollIntoView({behavior: 'smooth', block: 'nearest'});
-  } catch (e) { /* warning banner already shown */ }
+    const [summary, peers, flags] = await Promise.all([
+      api('/district/' + encodeURIComponent(d.num) + '/summary'),
+      api('/district/' + encodeURIComponent(d.num) + '/peers'),
+      api('/anomalies?district_number=' + encodeURIComponent(d.num) + '&limit=50'),
+    ]);
+    state.summary = summary; state.peers = peers; state.flags = flags;
+    renderKPIs(); renderTrend(); renderPeers(); renderMoney(); renderFlags();
+    $('dash').scrollIntoView({ block: 'start' });
+  } catch (e) { /* warning bar shown by api() */ }
 }
 
-function drawChart(rows) {
-  const data = rows.filter(r => r.spend_per_student != null);
-  const wrap = $('chartwrap'), svg = $('chart');
-  if (data.length < 2) { wrap.style.display = 'none'; return; }
-  wrap.style.display = 'block';
-  const css = getComputedStyle(document.documentElement);
-  const W = svg.clientWidth || 900, H = 280, m = {t: 16, r: 16, b: 28, l: 64};
-  svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
-  const ys = data.map(d => d.spend_per_student);
-  const yMax = Math.max(...ys) * 1.05, yMin = 0;
-  const x = i => m.l + (W - m.l - m.r) * (i / (data.length - 1));
-  const y = v => m.t + (H - m.t - m.b) * (1 - (v - yMin) / (yMax - yMin));
-  let out = '';
-  const ticks = 4;
-  for (let i = 0; i <= ticks; i++) {
-    const v = yMin + (yMax - yMin) * i / ticks, yy = y(v);
-    out += '<line x1="' + m.l + '" x2="' + (W - m.r) + '" y1="' + yy + '" y2="' + yy +
-           '" stroke="' + css.getPropertyValue('--grid').trim() + '" stroke-width="1"/>';
-    out += '<text x="' + (m.l - 8) + '" y="' + (yy + 4) + '" text-anchor="end" font-size="11" fill="' +
-           css.getPropertyValue('--muted').trim() + '">$' + Math.round(v).toLocaleString() + '</text>';
+/* ---------- KPIs ---------- */
+function renderKPIs() {
+  const rows = state.summary.filter(r => r.spend_per_student != null);
+  const cur = rows[rows.length - 1], prev = rows[rows.length - 2];
+  const st = state.peers?.statewide || {};
+  $('kpi-why').textContent = 'Fiscal year ' + cur.year + ' — the most recent data TEA has published for this district.';
+  const delta = (a, b, money) => {
+    if (a == null || b == null) return '';
+    const pct = 100 * (a - b) / b;
+    const cls = pct > 1 ? 'up' : pct < -1 ? 'down' : 'flat';
+    const arrow = pct > 1 ? '▲' : pct < -1 ? '▼' : '◆';
+    return `<span class="delta ${cls}">${arrow} ${Math.abs(pct).toFixed(1)}% vs prior year</span>`;
+  };
+  const pctile = st.spend_percentile != null ? Number(st.spend_percentile) : null;
+  $('kpis').innerHTML = `
+    <div class="tile"><div class="label">Spending per student</div>
+      <div class="value">${fmtMoney(cur.spend_per_student)}</div>
+      ${delta(cur.spend_per_student, prev?.spend_per_student, true)}
+      <div class="plain">Statewide median: ${fmtMoney(st.statewide_median_spend)}</div></div>
+    <div class="tile"><div class="label">Statewide rank</div>
+      <div class="value">${pctile == null ? '—' : pctile + '<span style="font-size:1rem">th</span>'}</div>
+      <div class="plain">${pctile == null ? '' : 'Spends more per student than ' + pctile + '% of Texas districts.'}</div></div>
+    <div class="tile"><div class="label">Enrollment</div>
+      <div class="value">${fmtNum(cur.enrollment)}</div>
+      ${delta(cur.enrollment, prev?.enrollment)}
+      <div class="plain">Students counted in the fall survey.</div></div>
+    <div class="tile"><div class="label">Budget balance</div>
+      <div class="value">${cur.total_revenue >= cur.total_spend ? 'Surplus' : 'Deficit'}</div>
+      <div class="plain">Revenue ${fmtMoney(cur.total_revenue)} vs spending ${fmtMoney(cur.total_spend)}. One year alone isn't a verdict — check the trend below.</div></div>`;
+}
+
+/* ---------- trend chart ---------- */
+function trendSeries() {
+  const rows = state.summary;
+  const med = Object.fromEntries(state.benchmarks.map(b => [b.year, b]));
+  if (state.metric === 'spend') {
+    return {
+      series: [
+        { name: state.district.name, color: css('--series-1'), pts: rows.filter(r => r.spend_per_student != null).map(r => ({ x: r.year, y: +r.spend_per_student })) },
+        { name: 'Statewide median', color: css('--muted'), dash: true, pts: state.benchmarks.map(b => ({ x: b.year, y: +b.median_spend_per_student })) },
+      ], money: true };
   }
-  data.forEach((d, i) => {
-    if (data.length <= 8 || i % 2 === 0 || i === data.length - 1) {
-      out += '<text x="' + x(i) + '" y="' + (H - 8) + '" text-anchor="middle" font-size="11" fill="' +
-             css.getPropertyValue('--muted').trim() + '">' + d.year + '</text>';
-    }
+  if (state.metric === 'enrollment') {
+    return { series: [{ name: 'Enrollment', color: css('--series-1'), pts: rows.filter(r => r.enrollment != null).map(r => ({ x: r.year, y: +r.enrollment })) }], money: false };
+  }
+  return {
+    series: [
+      { name: 'Revenue', color: css('--series-2'), pts: rows.filter(r => r.total_revenue != null).map(r => ({ x: r.year, y: +r.total_revenue })) },
+      { name: 'Spending', color: css('--series-1'), pts: rows.filter(r => r.total_spend != null).map(r => ({ x: r.year, y: +r.total_spend })) },
+    ], money: true };
+}
+
+function renderTrend() {
+  const { series, money } = trendSeries();
+  const svg = $('trendchart'), tip = $('trendtip');
+  const W = svg.clientWidth || 980, H = 300, m = { t: 16, r: 16, b: 28, l: 74 };
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  const allPts = series.flatMap(s => s.pts);
+  if (!allPts.length) { svg.innerHTML = ''; return; }
+  const xs = [...new Set(allPts.map(p => p.x))].sort();
+  const yMax = Math.max(...allPts.map(p => p.y)) * 1.06;
+  const x = v => m.l + (W - m.l - m.r) * ((v - xs[0]) / (xs[xs.length - 1] - xs[0] || 1));
+  const y = v => m.t + (H - m.t - m.b) * (1 - v / yMax);
+  let out = '';
+  for (let i = 0; i <= 4; i++) {
+    const v = yMax * i / 4, yy = y(v);
+    out += `<line x1="${m.l}" x2="${W - m.r}" y1="${yy}" y2="${yy}" stroke="${css('--grid')}" stroke-width="1"/>`;
+    out += `<text x="${m.l - 8}" y="${yy + 4}" text-anchor="end" font-size="11" fill="${css('--muted')}">${money ? '$' + abbrev(v) : abbrev(v)}</text>`;
+  }
+  xs.forEach((yr, i) => {
+    if (xs.length <= 9 || i % 2 === 0 || i === xs.length - 1)
+      out += `<text x="${x(yr)}" y="${H - 8}" text-anchor="middle" font-size="11" fill="${css('--muted')}">${yr}</text>`;
   });
-  const line = css.getPropertyValue('--series-1').trim();
-  out += '<polyline fill="none" stroke="' + line + '" stroke-width="2" points="' +
-         data.map((d, i) => x(i) + ',' + y(d.spend_per_student)).join(' ') + '"/>';
-  data.forEach((d, i) => {
-    out += '<circle data-i="' + i + '" cx="' + x(i) + '" cy="' + y(d.spend_per_student) +
-           '" r="4" fill="' + line + '" stroke="' + css.getPropertyValue('--surface-1').trim() + '" stroke-width="2"/>';
-    out += '<rect data-i="' + i + '" x="' + (x(i) - 14) + '" y="' + m.t + '" width="28" height="' +
-           (H - m.t - m.b) + '" fill="transparent"/>';
+  for (const s of series) {
+    out += `<polyline fill="none" stroke="${s.color}" stroke-width="2" ${s.dash ? 'stroke-dasharray="6 4"' : ''} points="${s.pts.map(p => x(p.x) + ',' + y(p.y)).join(' ')}"/>`;
+  }
+  series.forEach((s, si) => {
+    s.pts.forEach(p => {
+      out += `<circle data-s="${si}" data-x="${p.x}" data-y="${p.y}" cx="${x(p.x)}" cy="${y(p.y)}" r="4" fill="${s.color}" stroke="${css('--surface-1')}" stroke-width="2"/>`;
+    });
   });
+  xs.forEach(yr => { out += `<rect data-col="${yr}" x="${x(yr) - 12}" y="${m.t}" width="24" height="${H - m.t - m.b}" fill="transparent"/>`; });
   svg.innerHTML = out;
-  const tip = $('tooltip');
+  $('trendlegend').innerHTML = series.map(s =>
+    `<span><span class="key" style="background:${s.color};${s.dash ? 'height:0;border-top:3px dashed ' + s.color + ';background:none;' : ''}"></span>${s.name}</span>`).join('');
+  svg.onmousemove = e => {
+    const t = e.target.closest('[data-col],[data-x]');
+    if (!t) { tip.style.display = 'none'; return; }
+    const yr = +(t.dataset.col ?? t.dataset.x);
+    tip.innerHTML = '<strong>' + yr + '</strong><br>' + series.map(s => {
+      const p = s.pts.find(p => p.x === yr);
+      return p ? s.name + ': ' + (money ? fmtMoney(p.y) : fmtNum(p.y)) : '';
+    }).filter(Boolean).join('<br>');
+    tip.style.display = 'block';
+    const r = svg.getBoundingClientRect();
+    tip.style.left = Math.min(e.clientX - r.left + 14, r.width - 190) + 'px';
+    tip.style.top = Math.max(e.clientY - r.top - 40, 0) + 'px';
+  };
+  svg.onmouseleave = () => { tip.style.display = 'none'; };
+  // accessible table view (also the CSV source)
+  const head = ['Year', ...series.map(s => s.name)];
+  const body = xs.map(yr => [yr, ...series.map(s => { const p = s.pts.find(p => p.x === yr); return p ? Math.round(p.y) : ''; })]);
+  $('trendtable').innerHTML = '<tr>' + head.map(h => '<th>' + h + '</th>').join('') + '</tr>' +
+    body.map(r => '<tr>' + r.map((c, i) => '<td>' + (i === 0 ? c : (money && c !== '' ? fmtMoney(c) : fmtNum(c))) + '</td>').join('') + '</tr>').join('');
+  state._csv = [head, ...body];
+}
+function abbrev(v) {
+  if (v >= 1e9) return (v / 1e9).toFixed(1) + 'B';
+  if (v >= 1e6) return (v / 1e6).toFixed(1) + 'M';
+  if (v >= 1e3) return Math.round(v / 1e3) + 'k';
+  return Math.round(v);
+}
+
+/* ---------- peers ---------- */
+function renderPeers() {
+  const p = state.peers;
+  if (!p) return;
+  const me = p.district;
+  const rows = [{ ...me, me: true }, ...p.peers].sort((a, b) => b.spend_per_student - a.spend_per_student);
+  const rank = rows.findIndex(r => r.me) + 1;
+  $('peers-why').textContent = `The ${p.peers.length} Texas districts closest in size to yours (${fmtNum(Math.round(me.enrollment * 0.5))}–${fmtNum(me.enrollment * 2)} students), fiscal ${me.year}.`;
+  $('peers-note').textContent = `Plain English: out of these ${rows.length} similar-size districts, ${me.district_name} has the #${rank} highest spending per student.`;
+  const svg = $('peerchart'), tip = $('peertip');
+  const W = svg.clientWidth || 980, rowH = 24, m = { t: 8, r: 70, b: 24, l: 230 };
+  const H = m.t + rows.length * rowH + m.b;
+  svg.setAttribute('height', H);
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  const vMax = Math.max(...rows.map(r => +r.spend_per_student)) * 1.05;
+  const x = v => m.l + (W - m.l - m.r) * (v / vMax);
+  let out = '';
+  const medX = x(+p.statewide.statewide_median_spend);
+  rows.forEach((r, i) => {
+    const yy = m.t + i * rowH;
+    const w = x(+r.spend_per_student) - m.l;
+    const color = r.me ? css('--series-1') : css('--baseline');
+    out += `<text x="${m.l - 8}" y="${yy + rowH / 2 + 4}" text-anchor="end" font-size="11" fill="${r.me ? css('--text-primary') : css('--muted')}" ${r.me ? 'font-weight="700"' : ''}>${trunc(r.district_name, 30)}</text>`;
+    out += `<rect data-i="${i}" x="${m.l}" y="${yy + 3}" width="${Math.max(w, 1)}" height="${rowH - 8}" rx="4" fill="${color}"/>`;
+    out += `<text x="${x(+r.spend_per_student) + 6}" y="${yy + rowH / 2 + 4}" font-size="11" fill="${css('--muted')}">${fmtMoney(r.spend_per_student)}</text>`;
+  });
+  out += `<line x1="${medX}" x2="${medX}" y1="${m.t}" y2="${H - m.b}" stroke="${css('--muted')}" stroke-width="1.5" stroke-dasharray="5 4"/>`;
+  out += `<text x="${medX}" y="${H - 8}" text-anchor="middle" font-size="11" fill="${css('--muted')}">state median ${fmtMoney(p.statewide.statewide_median_spend)}</text>`;
+  svg.innerHTML = out;
   svg.onmousemove = e => {
     const t = e.target.closest('[data-i]');
     if (!t) { tip.style.display = 'none'; return; }
-    const d = data[+t.dataset.i];
-    tip.textContent = d.year + ': ' + fmtMoney(d.spend_per_student) + ' per student';
+    const r = rows[+t.dataset.i];
+    tip.innerHTML = `<strong>${r.district_name}</strong><br>${fmtNum(r.enrollment)} students · ${fmtMoney(r.spend_per_student)}/student`;
     tip.style.display = 'block';
-    const r = svg.getBoundingClientRect();
-    tip.style.left = Math.min(e.clientX - r.left + 12, r.width - 150) + 'px';
-    tip.style.top = (e.clientY - r.top - 34) + 'px';
+    const rc = svg.getBoundingClientRect();
+    tip.style.left = Math.min(e.clientX - rc.left + 14, rc.width - 230) + 'px';
+    tip.style.top = (e.clientY - rc.top - 40) + 'px';
+  };
+  svg.onmouseleave = () => { tip.style.display = 'none'; };
+}
+function trunc(s, n) { return s.length > n ? s.slice(0, n - 1) + '…' : s; }
+
+/* ---------- money breakdown ---------- */
+function renderMoney() {
+  const rows = state.summary.filter(r => r.total_spend > 0);
+  const cur = rows[rows.length - 1];
+  if (!cur) return;
+  const parts = [
+    { name: 'Instruction (teachers & classrooms)', v: +cur.instruction_spend || 0 },
+    { name: 'Debt payments', v: +cur.debt_service || 0 },
+    { name: 'Building projects', v: +cur.capital_projects || 0 },
+  ];
+  const other = Math.max(0, cur.total_spend - parts.reduce((a, b) => a + b.v, 0));
+  parts.push({ name: 'Other operations (buses, food, utilities, admin…)', v: other });
+  const svg = $('moneychart'), tip = $('moneytip');
+  const W = svg.clientWidth || 980, rowH = 38, m = { t: 6, r: 90, l: 10 };
+  svg.setAttribute('viewBox', `0 0 ${W} ${parts.length * rowH + m.t}`);
+  svg.setAttribute('height', parts.length * rowH + m.t);
+  const vMax = Math.max(...parts.map(p => p.v)) * 1.05;
+  let out = '';
+  parts.forEach((p, i) => {
+    const yy = m.t + i * rowH;
+    const w = (W - m.l - m.r) * (p.v / vMax);
+    out += `<text x="${m.l}" y="${yy + 12}" font-size="12" fill="${css('--text-secondary')}">${p.name}</text>`;
+    out += `<rect data-i="${i}" x="${m.l}" y="${yy + 17}" width="${Math.max(w, 2)}" height="12" rx="4" fill="${css('--series-1')}" opacity="${i === parts.length - 1 ? .45 : 1}"/>`;
+    out += `<text x="${m.l + Math.max(w, 2) + 8}" y="${yy + 27}" font-size="12" fill="${css('--muted')}">${(100 * p.v / cur.total_spend).toFixed(0)}%</text>`;
+  });
+  svg.innerHTML = out;
+  svg.onmousemove = e => {
+    const t = e.target.closest('[data-i]');
+    if (!t) { tip.style.display = 'none'; return; }
+    const p = parts[+t.dataset.i];
+    tip.textContent = p.name + ': ' + fmtMoney(p.v);
+    tip.style.display = 'block';
+    const rc = svg.getBoundingClientRect();
+    tip.style.left = Math.min(e.clientX - rc.left + 14, rc.width - 200) + 'px';
+    tip.style.top = (e.clientY - rc.top - 34) + 'px';
   };
   svg.onmouseleave = () => { tip.style.display = 'none'; };
 }
 
+/* ---------- anomaly flags ---------- */
+const FLAG_EXPLAIN = {
+  revenue_drop_flag: ['Revenue dropped more than 15% from the prior year',
+    'Common innocent causes: a one-time grant ended, federal pandemic funds expired, or property values were re-assessed. Worth confirming with the business office.'],
+  spend_spike_flag: ['Spending jumped more than 20% while enrollment stayed flat',
+    'Common innocent causes: a construction project, a legal settlement, or a large one-time purchase. Check the capital projects line above.'],
+  per_student_spike_flag: ['Per-student spending rose more than 15% in one year',
+    'In small districts a handful of students leaving can cause this by simple division. Check the enrollment trend.'],
+  enrollment_decline_flag: ['Enrollment fell more than 10% in one year',
+    'Check whether it is a one-year dip (boundary change, charter opening) or a multi-year slide — the trend chart above answers that.'],
+};
+function renderFlags() {
+  const flagged = state.flags.filter(f =>
+    f.revenue_drop_flag || f.spend_spike_flag || f.per_student_spike_flag || f.enrollment_decline_flag);
+  const el = $('flaglist');
+  if (!flagged.length) {
+    el.innerHTML = '<div class="flagcard ok">✅ No anomaly flags for this district in any year of the data. Numbers have moved within normal ranges.</div>';
+    return;
+  }
+  el.innerHTML = flagged.sort((a, b) => b.year - a.year).map(f => {
+    const items = Object.keys(FLAG_EXPLAIN).filter(k => f[k]).map(k =>
+      `<strong>${FLAG_EXPLAIN[k][0]}.</strong> ${FLAG_EXPLAIN[k][1]}`).join('<br>');
+    return `<div class="flagcard"><strong>Fiscal ${f.year}</strong><br>${items}</div>`;
+  }).join('');
+}
+
+/* ---------- ask ---------- */
 async function ask() {
   const q = $('question').value.trim();
   if (q.length < 3) return;
   const box = $('answer');
   box.style.display = 'block';
-  box.textContent = 'Thinking…';
+  box.textContent = 'Thinking… (10–30 seconds)';
   try {
     const r = await api('/query', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({question: q}),
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question: q }),
     });
-    box.textContent = r.success ? r.answer : ('Sorry, that query failed: ' + (r.error || 'unknown error'));
-  } catch (e) {
-    box.textContent = 'The question service is unavailable right now.';
-  }
+    box.textContent = r.success ? r.answer : ('That one stumped the system: ' + (r.error || 'unknown error'));
+  } catch (e) { box.textContent = 'The question service is unavailable right now.'; }
 }
 
-async function loadAnomalies() {
-  const t = $('atable');
+/* ---------- export ---------- */
+function downloadCSV() {
+  if (!state._csv) return;
+  const csv = state._csv.map(r => r.join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+  a.download = (state.district?.name || 'district').replace(/\W+/g, '_') + '_trends.csv';
+  a.click();
+}
+
+/* ---------- tutorial tour ---------- */
+const TOUR = [
+  ['Welcome! 👋', 'This dashboard turns 17 years of official TEA finance data into answers. The tour takes 60 seconds.', 'picker-section'],
+  ['Your headline numbers', 'Four tiles show spending per student, your statewide rank, enrollment, and whether the budget ran a surplus — each with a plain-English caption.', 'kpi-section'],
+  ['Trends with context', 'The gray dashed line is the statewide median. Above it = you spend more than the typical district. Use the tabs to switch metrics, and hover any point for exact numbers.', 'trend-section'],
+  ['Apples-to-apples comparison', 'You are compared only with districts of similar size — your bar is blue. The dashed line marks the state median.', 'peers-section'],
+  ['Flags are questions, not verdicts', 'Automatic checks catch unusual jumps. Each flag explains what tripped it and the innocent explanations to rule out first.', 'flags-section'],
+  ['Take it with you', 'Print for a board packet (🖨 top right), download the table as CSV, or ask a question in plain English at the bottom. That\'s the tour!', 'ask-section'],
+];
+let tourI = 0;
+function tourShow(i) {
+  document.querySelectorAll('.tour-highlight').forEach(el => el.classList.remove('tour-highlight'));
+  if (i >= TOUR.length || ($('dash').classList.contains('hidden') && i > 0)) { tourEnd(); return; }
+  tourI = i;
+  const [title, text, target] = TOUR[i];
+  $('overlay').style.display = 'block';
+  $('tourbox').style.display = 'block';
+  $('tour-title').textContent = title;
+  $('tour-text').textContent = text;
+  $('tour-step').textContent = (i + 1) + ' / ' + TOUR.length;
+  $('tour-next').textContent = i === TOUR.length - 1 ? 'Done ✓' : 'Next →';
+  const el = $(target);
+  if (el) { el.classList.add('tour-highlight'); el.scrollIntoView({ block: 'center' }); }
+}
+function tourEnd() {
+  $('overlay').style.display = 'none';
+  $('tourbox').style.display = 'none';
+  document.querySelectorAll('.tour-highlight').forEach(el => el.classList.remove('tour-highlight'));
+  localStorage.setItem('tisd_toured', '1');
+}
+
+/* ---------- statewide + boot ---------- */
+async function loadStatewide() {
   try {
-    const rows = await api('/anomalies?limit=15');
-    if (!rows.length) { t.innerHTML = '<tr><td class="note">No anomalies flagged.</td></tr>'; return; }
-    const flagNames = {
-      revenue_drop_flag: 'Revenue drop',
-      spend_spike_flag: 'Spending spike',
-      per_student_spike_flag: 'Per-student spike',
-      enrollment_decline_flag: 'Enrollment decline',
-    };
-    t.innerHTML = '<tr><th>District</th><th>Year</th><th style="text-align:left">Flags</th></tr>' +
-      rows.map(r => {
-        const flags = Object.keys(flagNames).filter(k => r[k]).map(k => flagNames[k]).join(', ');
-        return '<tr><td>' + r.district_name + '</td><td>' + r.year + '</td><td style="text-align:left">' + flags + '</td></tr>';
-      }).join('');
-  } catch (e) {
-    t.innerHTML = '<tr><td class="note">Anomaly data unavailable.</td></tr>';
-  }
+    const [s, bm] = await Promise.all([api('/stats'), api('/benchmarks')]);
+    state.benchmarks = bm;
+    $('t-districts').textContent = fmtNum(s.total_districts);
+    $('t-years').textContent = s.start_year + '–' + s.end_year;
+    $('t-records').textContent = fmtNum(s.total_records);
+    const last = bm[bm.length - 1];
+    $('t-med').textContent = fmtMoney(last?.median_spend_per_student);
+  } catch (e) { /* banner shown */ }
 }
 
 $('searchbtn').onclick = search;
 $('search').addEventListener('keydown', e => { if (e.key === 'Enter') search(); });
 $('askbtn').onclick = ask;
 $('question').addEventListener('keydown', e => { if (e.key === 'Enter') ask(); });
+$('btn-csv').onclick = downloadCSV;
+$('btn-print').onclick = () => window.print();
+$('btn-tour').onclick = () => tourShow(0);
+$('tour-next').onclick = () => tourShow(tourI + 1);
+$('tour-skip').onclick = tourEnd;
+$('overlay').onclick = () => { tourEnd(); $('disc-modal').style.display = 'none'; };
+$('btn-disclaimer').onclick = () => { $('overlay').style.display = 'block'; $('disc-modal').style.display = 'block'; };
+$('disc-close').onclick = () => { $('overlay').style.display = 'none'; $('disc-modal').style.display = 'none'; };
+$('trend-tabs').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  document.querySelectorAll('#trend-tabs button').forEach(x => x.classList.remove('active'));
+  b.classList.add('active');
+  state.metric = b.dataset.m;
+  renderTrend();
+});
 
-loadStats();
-loadAnomalies();
+(async function boot() {
+  await loadStatewide();
+  const saved = localStorage.getItem('tisd_district');
+  if (saved) {
+    const { num, name } = JSON.parse(saved);
+    state.district = { num, name };
+    $('picker-title').textContent = 'Look up a different district';
+    await loadDashboard();
+  }
+  if (!localStorage.getItem('tisd_toured')) tourShow(0);
+})();
 </script>
 </body>
 </html>
