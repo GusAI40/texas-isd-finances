@@ -1,11 +1,12 @@
 """
 Import cleaned financial data to Supabase
 """
-import pandas as pd
-from sqlalchemy import create_engine
 import os
-from dotenv import load_dotenv
 from pathlib import Path
+
+import pandas as pd
+from dotenv import load_dotenv
+from sqlalchemy import create_engine
 
 # Load environment variables
 load_dotenv()
@@ -15,32 +16,34 @@ def import_data():
     print("=" * 60)
     print("Texas ISD Financial Data Import")
     print("=" * 60)
-    
+
     # Get database URL
     db_url = os.getenv("SUPABASE_DB_URL")
     if not db_url:
         raise ValueError("SUPABASE_DB_URL not found in .env file")
-    
-    print(f"\n✓ Database URL loaded")
-    
+
+    print("\n✓ Database URL loaded")
+
     # Create engine
     print("✓ Creating database connection...")
     engine = create_engine(db_url)
-    
+
     # Load CSV
     csv_path = Path("data/texas_finance_clean.csv")
     if not csv_path.exists():
         raise FileNotFoundError(f"CSV file not found: {csv_path}")
-    
+
     print(f"✓ Loading data from {csv_path}...")
-    df = pd.read_csv(csv_path)
-    
+    # district_number must stay a string: pandas would otherwise infer int
+    # and strip the leading zeros off canonical 6-digit district IDs
+    df = pd.read_csv(csv_path, dtype={"district_number": str, "district_name": str})
+
     print(f"✓ Loaded {len(df):,} records with {len(df.columns)} columns")
-    
+
     # Import to database
     print("\n⏳ Importing data to Supabase...")
     print("   This may take 2-3 minutes...")
-    
+
     df.to_sql(
         "texas_school_finance",
         engine,
@@ -49,11 +52,11 @@ def import_data():
         chunksize=1000,
         method="multi"
     )
-    
+
     print("\n" + "=" * 60)
     print("✅ SUCCESS! Data imported successfully!")
     print("=" * 60)
-    print(f"\n📊 Import Summary:")
+    print("\n📊 Import Summary:")
     print(f"   • Total records: {len(df):,}")
     print(f"   • Total columns: {len(df.columns)}")
     print(f"   • Year range: {df['year'].min()} - {df['year'].max()}")

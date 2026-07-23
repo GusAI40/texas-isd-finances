@@ -1,10 +1,12 @@
-# Texas ISD Finance Portal - Quick Start Guide
+# Texas ISD Finance Portal — Quick Start Guide
 
 ## Prerequisites
-- Python 3.8+
+- Python 3.10+
 - Supabase account
-- OpenAI API key
-- Excel file: `2008-2024-summarized-financial-data-03-17-2025.xlsx`
+- OpenAI API key (only needed for natural-language queries)
+- TEA Excel file: the "Summarized PEIMS Actual Financial Data" release
+  (currently fiscal 2009–2025), from
+  https://tea.texas.gov/finance-and-grants/state-funding/state-funding-reports-and-data/peims-financial-data-downloads
 
 ## Step-by-Step Setup
 
@@ -13,8 +15,10 @@
 # Create virtual environment
 python -m venv .venv
 
-# Activate (Windows)
-.venv\Scripts\activate
+# Activate — macOS/Linux:
+source .venv/bin/activate
+# Activate — Windows:
+#   .venv\Scripts\activate
 
 # Install dependencies
 pip install -r requirements.txt
@@ -22,36 +26,43 @@ pip install -r requirements.txt
 
 ### 2. Configure Environment
 ```bash
-# Copy template and fill in your credentials
-copy env_template.txt .env
+# Copy template and fill in your credentials (macOS/Linux)
+cp env_template.txt .env
+# Windows: copy env_template.txt .env
+
 # Edit .env with your Supabase and OpenAI credentials
 ```
 
 ### 3. Prepare Data
 ```bash
-# Place your Excel file in project root
-# Run data preparation
+# Place your Excel file in the project root, then:
 python scripts/prepare_data.py
 ```
 
 ### 4. Setup Supabase
-1. Create new project at https://app.supabase.com
-2. Open SQL Editor
-3. Run contents of `sql/create_tables.sql`
-4. Import `data/texas_finance_clean.csv` via Table Editor
+1. Create a new project at https://app.supabase.com
+2. Open the SQL Editor
+3. Run the contents of `sql/create_tables.sql`
+4. Import the data: `python scripts/import_to_supabase.py`
+5. In the SQL Editor: `REFRESH MATERIALIZED VIEW public.v_anomaly_flags;`
 
-### 5. Test NLP Engine
+### 5. Test the NLP Engine (optional)
 ```bash
-python src/nlp_engine.py
+python -m src.nlp_engine
 ```
 
-### 6. Start API Server
+### 6. Start the API + Portal
 ```bash
 uvicorn src.api:app --reload --port 8000
 ```
 
-### 7. Test API
-Visit http://localhost:8000/docs for interactive API documentation
+### 7. Try It
+- Portal: http://localhost:8000/
+- Interactive API docs: http://localhost:8000/docs
+
+The app starts even before the database is configured — the portal will show
+a "database not connected" banner and data endpoints return 503 until
+`SUPABASE_DB_URL` is set.
 
 ## Sample API Calls
 
@@ -73,8 +84,5 @@ curl "http://localhost:8000/anomalies?year=2024"
 ```
 
 ## Next Steps
-1. Deploy API to cloud (Railway, Render, etc.)
-2. Build frontend portal
-3. Add authentication for admin features
-4. Schedule data refresh jobs
-5. Implement advanced visualizations
+See [DEPLOYMENT.md](DEPLOYMENT.md) to deploy publicly (Render, Docker, or
+Vercel) and for production security notes.

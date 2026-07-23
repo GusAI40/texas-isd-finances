@@ -1,0 +1,147 @@
+{
+  "seed": 42,
+  "n_admins": 1000,
+  "n_sessions": 5990,
+  "n_task_events": 11991,
+  "source_of_truth": {
+    "districts_in_population": 1202,
+    "latest_year": 2025,
+    "flagged_district_share_pct": 15.2
+  },
+  "admins_in_flagged_districts": 87,
+  "flag_investigation_rate_pct": 88.5,
+  "demand_ranking": [
+    {
+      "task": "peer_comparison",
+      "question": "How do we compare with similar-size districts?",
+      "hits": 1931,
+      "share_pct": 16.1
+    },
+    {
+      "task": "trend_over_time",
+      "question": "How has our spending/enrollment changed over the years?",
+      "hits": 1660,
+      "share_pct": 13.8
+    },
+    {
+      "task": "board_packet_number",
+      "question": "Grab a defensible number/chart for a board meeting",
+      "hits": 1384,
+      "share_pct": 11.5
+    },
+    {
+      "task": "statewide_context",
+      "question": "What's normal statewide? (median, our percentile)",
+      "hits": 1272,
+      "share_pct": 10.6
+    },
+    {
+      "task": "spend_breakdown",
+      "question": "Where does our money actually go? (instruction/debt/capital)",
+      "hits": 1263,
+      "share_pct": 10.5
+    },
+    {
+      "task": "explain_flag",
+      "question": "We got flagged \u2014 what does it mean and is it right?",
+      "hits": 1036,
+      "share_pct": 8.6
+    },
+    {
+      "task": "enrollment_worry",
+      "question": "Is our enrollment decline a trend or a blip?",
+      "hits": 851,
+      "share_pct": 7.1
+    },
+    {
+      "task": "export_data",
+      "question": "Export/print the numbers for a spreadsheet or slide",
+      "hits": 714,
+      "share_pct": 6.0
+    },
+    {
+      "task": "neighbor_lookup",
+      "question": "What is district X (neighbor/rival) doing?",
+      "hits": 651,
+      "share_pct": 5.4
+    },
+    {
+      "task": "parent_question",
+      "question": "Answer a parent/press question in plain English",
+      "hits": 495,
+      "share_pct": 4.1
+    },
+    {
+      "task": "verify_tea",
+      "question": "Verify a number against official TEA figures",
+      "hits": 455,
+      "share_pct": 3.8
+    },
+    {
+      "task": "freeform_question",
+      "question": "Ask an odd one-off question (natural language)",
+      "hits": 279,
+      "share_pct": 2.3
+    }
+  ],
+  "by_size": {
+    "medium(1k-10k)": {
+      "peer_comparison": 846,
+      "trend_over_time": 721,
+      "board_packet_number": 565,
+      "spend_breakdown": 534,
+      "statewide_context": 515
+    },
+    "large(10k+)": {
+      "peer_comparison": 702,
+      "trend_over_time": 559,
+      "board_packet_number": 527,
+      "statewide_context": 480,
+      "spend_breakdown": 449
+    },
+    "small(<1k)": {
+      "peer_comparison": 383,
+      "trend_over_time": 380,
+      "board_packet_number": 292,
+      "spend_breakdown": 280,
+      "statewide_context": 277
+    }
+  },
+  "by_persona": {
+    "cfo_business_manager": {
+      "peer_comparison": 770,
+      "trend_over_time": 595,
+      "spend_breakdown": 503,
+      "board_packet_number": 447,
+      "statewide_context": 392
+    },
+    "superintendent": {
+      "board_packet_number": 430,
+      "peer_comparison": 403,
+      "trend_over_time": 326,
+      "statewide_context": 282,
+      "explain_flag": 224
+    },
+    "principal": {
+      "trend_over_time": 347,
+      "peer_comparison": 323,
+      "statewide_context": 303,
+      "enrollment_worry": 295,
+      "spend_breakdown": 277
+    },
+    "comms_or_admin_staff": {
+      "parent_question": 234,
+      "board_packet_number": 201,
+      "export_data": 199,
+      "trend_over_time": 168,
+      "peer_comparison": 141
+    },
+    "board_trustee": {
+      "peer_comparison": 294,
+      "trend_over_time": 224,
+      "explain_flag": 209,
+      "spend_breakdown": 184,
+      "statewide_context": 181
+    }
+  }
+}
