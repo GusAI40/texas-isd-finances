@@ -17,6 +17,35 @@ Entry template:
 
 ---
 
+## 2026-07-23 — A+ pass: all report-card gaps closed; white-minimalist McKinsey/SWD redesign live
+
+**What changed:** New `v_spending_breakdown` view (TEA function codes → 9
+MECE categories) + `GET /district/{id}/breakdown`; anomaly cards show
+before/after numbers; side-by-side district compare (orange series); PNG +
+CSV export on every chart; per-section TEA citations; enrollment
+multi-year-decline callout; in-app rate limit on /query (10/min/IP,
+QUERY_RATE_LIMIT env). UI v3: pure white minimalism, McKinsey action
+titles computed live from data, auto-generated executive summary (pyramid
+principle), SWD gray-context/blue-focus charts, direct end labels, tables
+behind disclosure toggles. 29 tests green. Deployed and verified live
+(Dallas breakdown: 55% classroom instruction).
+
+**Why:** User asked for A+ vs the demand-weighted report card and a
+McKinsey/storytelling-with-data white design. Demand-weighted grade moved
+≈3.5 → ≈3.96/4.0.
+
+**Gotchas:** Rate limiter is per-serverless-instance (documented in code) —
+CDN/WAF still recommended for a hard global cap. Light-only theme is a
+deliberate user-pinned choice (white background), replacing the earlier
+dark-mode support.
+
+**Open items:** rotation + PR #1 merge still user-side; those two are what
+separates product A from A+.
+
+**Notes:**
+
+---
+
 ## 2026-07-23 — Dashboard redesign driven by Monte Carlo user simulation; deployed live
 
 **What changed:** Simulated 1,000 Texas school admins against the real

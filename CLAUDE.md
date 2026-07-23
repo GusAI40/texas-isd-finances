@@ -58,10 +58,9 @@ curl -s https://texas-isd-finances.vercel.app/health
 ## Current Status (updated 2026-07-23 — keep this a snapshot, history goes in the log)
 
 - ✅ Live in production, all endpoints verified including end-to-end NLP.
-- ✅ Admin dashboard v2 live: simulation-driven design (`docs/UX_RESEARCH.md`), tutorial, disclaimer, peers/benchmarks endpoints.
-- ✅ Three audit rounds complete (`AUDIT.md`); 27 tests green; CI enforces ruff+pytest.
+- ✅ Admin dashboard v3 live: white-minimalist McKinsey/SWD design, action titles, exec summary, MECE breakdown, compare mode, PNG/CSV exports, /query rate limit. Demand-weighted grade ≈3.96/4.0.
+- ✅ Three audit rounds complete (`AUDIT.md`); 29 tests green; CI enforces ruff+pytest.
 - 🔴 OPEN: user must rotate credentials pasted into chat on 2026-07-22 (OpenAI/GitHub/Hetzner/Anthropic etc.); OpenAI key in Vercel env needs updating after rotation.
-- 🟡 OPEN: no rate limit on `/query` (each call costs an OpenAI request) — add before wide promotion.
 - 🟡 OPEN: PR #1 unmerged — `master` still shows pre-audit code.
 - 🟡 WATCH: Supabase free tier pauses after ~7 days idle → portal shows "database not connected" until woken in dashboard. Vercel Hobby is non-commercial; upgrade both if pursuing revenue.
 
