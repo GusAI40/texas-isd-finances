@@ -612,7 +612,9 @@ function renderPeers() {
   const rows = [{ ...me, me: true }, ...p.peers].sort((a, b) => b.spend_per_student - a.spend_per_student);
   const rank = rows.findIndex(r => r.me) + 1;
   $('peers-title').textContent = `${me.district_name} ranks #${rank} of ${rows.length} similar-size districts on per-student spending`;
-  $('peers-why').textContent = `The ${p.peers.length} Texas districts closest to your enrollment (${fmtNum(Math.round(me.enrollment * 0.5))}–${fmtNum(me.enrollment * 2)} students), fiscal ${me.year}. Your bar is blue; the dashed line is the state median.`;
+  $('peers-why').textContent = p.basis === 'similarity_graph'
+    ? `Your ${p.peers.length} most structurally similar Texas districts — matched on size, enrollment trajectory, and funding profile (not on spending itself, so this comparison stays fair), fiscal ${me.year}. Your bar is blue; the dashed line is the state median.`
+    : `The ${p.peers.length} Texas districts closest to your enrollment (${fmtNum(Math.round(me.enrollment * 0.5))}–${fmtNum(me.enrollment * 2)} students), fiscal ${me.year}. Your bar is blue; the dashed line is the state median.`;
   const svg = $('peerchart'), tip = $('peertip');
   const W = svg.clientWidth || 900, rowH = 25, m = { t: 8, r: 80, b: 26, l: 235 };
   const H = m.t + rows.length * rowH + m.b;

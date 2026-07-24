@@ -343,9 +343,14 @@ async def get_benchmarks(request: Request):
 
 @app.get("/district/{district_number}/peers", tags=["Districts"])
 async def get_district_peers(request: Request, district_number: str):
-    """Peer comparison: districts of similar size (0.5x-2x enrollment) in
-    the latest year, plus this district's statewide percentile. The #1
-    demand in admin usage simulation (docs/UX_RESEARCH.md)."""
+    """Peer comparison, plus this district's statewide percentile. The #1
+    demand in admin usage simulation (docs/UX_RESEARCH.md).
+
+    Peers come from the precomputed similarity graph (k-NN on EXOGENOUS
+    features only — size, enrollment trajectory, funding capacity, local-tax
+    share — so benchmarking spending against them is not circular; see
+    scripts/build_similarity_graph.py). Falls back to an enrollment window
+    if the graph has no edges for this district."""
     pool = get_pool(request)
     async with pool.acquire() as conn:
         me = await conn.fetchrow("""
@@ -356,15 +361,29 @@ async def get_district_peers(request: Request, district_number: str):
         if me is None:
             raise HTTPException(status_code=404, detail="District not found or has no usable data")
 
+        basis = "similarity_graph"
         peers = await conn.fetch("""
-            SELECT district_number, district_name, enrollment, spend_per_student,
-                   revenue_per_student, instruction_spend, total_spend
-            FROM v_finance_summary
-            WHERE year = $1 AND district_number != $2
-              AND enrollment BETWEEN $3 * 0.5 AND $3 * 2
-              AND spend_per_student IS NOT NULL AND spend_per_student > 0
-            ORDER BY ABS(enrollment - $3) LIMIT 12
-        """, me["year"], district_number, me["enrollment"])
+            SELECT f.district_number, f.district_name, f.enrollment, f.spend_per_student,
+                   f.revenue_per_student, f.instruction_spend, f.total_spend
+            FROM district_similarity s
+            JOIN v_finance_summary f
+              ON f.district_number = s.peer_number AND f.year = $2
+            WHERE s.district_number = $1
+              AND f.spend_per_student IS NOT NULL AND f.spend_per_student > 0
+            ORDER BY s.rank LIMIT 12
+        """, district_number, me["year"])
+
+        if not peers:
+            basis = "enrollment_window"
+            peers = await conn.fetch("""
+                SELECT district_number, district_name, enrollment, spend_per_student,
+                       revenue_per_student, instruction_spend, total_spend
+                FROM v_finance_summary
+                WHERE year = $1 AND district_number != $2
+                  AND enrollment BETWEEN $3 * 0.5 AND $3 * 2
+                  AND spend_per_student IS NOT NULL AND spend_per_student > 0
+                ORDER BY ABS(enrollment - $3) LIMIT 12
+            """, me["year"], district_number, me["enrollment"])
 
         pct = await conn.fetchrow("""
             SELECT ROUND(100.0 * COUNT(*) FILTER (WHERE spend_per_student < $1) / COUNT(*), 0)
@@ -379,6 +398,7 @@ async def get_district_peers(request: Request, district_number: str):
             "district": dict(me),
             "peers": [dict(p) for p in peers],
             "statewide": dict(pct),
+            "basis": basis,
         }
 
 
