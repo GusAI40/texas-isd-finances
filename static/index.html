@@ -158,7 +158,7 @@
   <header class="top">
     <div class="brand">Texas ISD Finances<span class="tag">TEA data · fiscal 2009–2025</span></div>
     <div class="hbtns">
-      <button onclick="location.href='/map'">🗺 State map</button>
+      <button id="btn-map">🗺 State map</button>
       <button id="btn-tour">Tutorial</button>
       <button id="btn-disclaimer">Disclaimer</button>
       <button id="btn-print" title="Print or save as PDF">Print</button>
@@ -887,6 +887,7 @@ $('csearch').addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(
 $('askbtn').onclick = ask;
 $('question').addEventListener('keydown', e => { if (e.key === 'Enter') ask(); });
 $('btn-print').onclick = () => window.print();
+$('btn-map').onclick = () => { location.href = state.district ? '/map?d=' + encodeURIComponent(state.district.num) : '/map'; };
 $('btn-tour').onclick = () => tourShow(0);
 $('tour-next').onclick = () => tourShow(tourI + 1);
 $('tour-skip').onclick = tourEnd;

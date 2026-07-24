@@ -51,7 +51,51 @@ def build_map(df, latest):
     cov = np.cov(Xz.T)
     vals, vecs = np.linalg.eigh(cov)
     order = np.argsort(vals)[::-1]
-    P = Xz @ vecs[:, order[:2]]
+    W = vecs[:, order[:2]]  # loadings: features x 2
+
+    # Canonicalize axis orientation so the map reads the same every rebuild:
+    # PC1 positive direction = larger districts; PC2 positive = growing.
+    if W[FEATS.index("log_enroll"), 0] < 0:
+        W[:, 0] *= -1
+    if W[FEATS.index("growth5"), 1] < 0:
+        W[:, 1] *= -1
+    P = Xz @ W
+
+    # Human-readable BIPOLAR axis labels: each PC is a spectrum between two
+    # poles. Name each pole from the single strongest loading on that side,
+    # so both ends always read clearly ("bigger ↔ smaller", never "—").
+    POLE = {  # (positive-direction word, negative-direction word)
+        "log_enroll": ("bigger", "smaller"),
+        "growth5": ("growing", "shrinking"),
+        "rev_per_student": ("better-funded", "leaner-funded"),
+        "local_share": ("property-tax-funded", "state-funded"),
+    }
+    def axis_label(k):
+        pos = max(range(len(FEATS)), key=lambda i: W[i, k])
+        neg = min(range(len(FEATS)), key=lambda i: W[i, k])
+        return f"{POLE[FEATS[neg]][1]} ← → {POLE[FEATS[pos]][0]}"
+
+    # Neighbor indices (top 6 by rank) from the committed edge list, so the
+    # map can draw each district's ego network.
+    edges = pd.read_csv("docs/similarity_edges.csv",
+                        dtype={"district_number": str, "peer_number": str})
+    idx = {d: i for i, d in enumerate(cur.district_number)}
+    nbrs = [[] for _ in range(len(cur))]
+    for r in edges[edges["rank"] <= 6].itertuples():
+        if r.district_number in idx and r.peer_number in idx:
+            nbrs[idx[r.district_number]].append(idx[r.peer_number])
+
+    # Recently-flagged layer: revenue drop or enrollment decline in the
+    # last two data years (same definition as the usage simulation).
+    recent = df[df.year >= latest - 2].sort_values(["district_number", "year"]).copy()
+    g = recent.groupby("district_number")
+    rev_prev = g["all_funds_total_operating_revenue"].shift(1)
+    enr_prev = g["fall_survey_enrollment"].shift(1)
+    flagged = set(recent[
+        ((recent.all_funds_total_operating_revenue - rev_prev) / rev_prev < -0.15)
+        | ((recent.fall_survey_enrollment - enr_prev) / enr_prev < -0.10)
+    ]["district_number"])
+
     spend = (cur.all_funds_total_disbursements / cur.fall_survey_enrollment).round(0)
     nodes = [{
         "d": r.district_number,
@@ -60,12 +104,19 @@ def build_map(df, latest):
         "y": round(float(P[i, 1]), 3),
         "e": int(r.fall_survey_enrollment),
         "s": None if np.isnan(spend.iloc[i]) else int(spend.iloc[i]),
+        "k": nbrs[i],
+        "f": 1 if r.district_number in flagged else 0,
     } for i, r in enumerate(cur.itertuples())]
     var = vals[order[:2]] / vals.sum()
     meta = {"year": latest, "pc_variance": [round(float(v), 3) for v in var],
-            "features": FEATS}
+            "features": FEATS,
+            "x_label": axis_label(0), "y_label": axis_label(1),
+            "flagged_count": len(flagged)}
     json.dump({"meta": meta, "nodes": nodes}, open("static/map_data.json", "w"))
     print(f"map: {len(nodes)} nodes, PC1+PC2 explain {var.sum():.0%} of variance")
+    print(f"  x → {meta['x_label']}")
+    print(f"  y → {meta['y_label']}")
+    print(f"  recently flagged: {len(flagged)} districts")
 
 
 def flag_cooccurrence(df):

@@ -22,11 +22,27 @@ Which anomaly types travel together, measured as lift over independence:
 
 `static/map_data.json` → rendered at `/map`. Every district plotted by PCA
 of the exogenous feature space (log enrollment, 5-yr growth,
-revenue/student, local-tax share). PC1+PC2 capture **70%** of variance:
-PC1 reads roughly as *scale + local wealth*, PC2 as *growth trajectory*.
-Nearby dots = structurally similar districts; color = spending per student,
-so spending patterns can be *seen against* structure rather than mixed
-into it.
+revenue/student, local-tax share). PC1+PC2 capture **70%** of variance,
+and the axes are canonicalized every rebuild (sign-fixed so the layout is
+stable) and labeled as bipolar spectrums straight from the loadings:
+
+- **Horizontal:** *leaner-funded ← → bigger*
+- **Vertical:** *state-funded ← → growing*
+
+Nearby dots = structurally similar districts; color = spending per student
+(quintiles), so spending patterns are *seen against* structure rather than
+mixed into it. Interactions (all client-side, no dependencies):
+
+- **Hover** lights up a district's k-NN **ego network** — actual graph
+  edges drawn to its six nearest peers, everything else dimmed.
+- **Click** pins a selection panel (enrollment, spend, flag status,
+  clickable neighbor list that re-centers the view) and deep-links via
+  `?d=<district_number>`.
+- Scroll/pinch to **zoom**, drag to **pan**; retina-crisp
+  (devicePixelRatio-aware) canvas; "⚠ Flagged only" isolates the 183
+  districts flagged in the last two data years.
+- The dashboard's "🗺 State map" button deep-links to the current
+  district, opening the map zoomed onto it.
 
 ## 3. Temporal drift (2015 → 2025)
 
