@@ -17,6 +17,31 @@ Entry template:
 
 ---
 
+## 2026-07-23 — Peer comparison upgraded to a district similarity graph (live)
+
+**What changed:** New k-NN similarity graph (1,202 nodes, k=12, 14,424
+edges) built by `scripts/build_similarity_graph.py`; edges committed at
+`docs/similarity_edges.csv` and loaded into new `district_similarity`
+table (`sql/create_similarity_table.sql`). `GET /district/{id}/peers` now
+walks the graph (fallback: enrollment window; response has `basis`
+field). Deployed + verified live: Dallas peers = Houston, Austin,
+Northside, Frisco, Plano.
+
+**Why (the graph-engineering insight):** peers must be matched on
+EXOGENOUS features (log enrollment, 5-yr growth, revenue/student,
+local-tax share) — never on outcome metrics like spending, or the
+benchmark becomes circular ("districts that spend like you spend like
+you"). Enrollment-only matching missed funding structure; the graph
+captures it.
+
+**Gotchas:** rebuild + reload the graph after each annual TEA refresh
+(documented in script + SQL comments). PostgREST upsert used
+`Prefer: resolution=merge-duplicates` so reloads are idempotent.
+
+**Open items:** credential rotation (user), review draft PR #2.
+
+---
+
 ## 2026-07-23 — PR #1 merged to master
 
 **What changed:** Merged PR #1 (all audit + launch + dashboard work) into
