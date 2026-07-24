@@ -17,6 +17,33 @@ Entry template:
 
 ---
 
+## 2026-07-24 — 10x polish: interactive similarity map (edges, ego networks, zoom)
+
+**What changed:** Rewrote `static/map.html` into a real graph
+visualization. `scripts/graph_insights.py` now emits per-node neighbor
+indices (top-6 from the committed edge list), canonicalized + bipolar-
+labeled PCA axes, and a recent-flag layer into `static/map_data.json`.
+Map features: ego-network edges drawn on hover/pin, click-to-pin
+selection panel with clickable re-centering neighbor list, zoom
+(scroll/pinch) + pan (drag), devicePixelRatio-aware retina rendering,
+dollar-valued quintile legend, "Flagged only" layer (183 districts),
+deep-link `/map?d=<district>`, dashboard button deep-links to current
+district. 30 tests green; deployed + verified live.
+
+**Why:** "Polish 10x" on the graph work. Prior map was a plain scatter
+that hid the graph's edges, was blurry on high-DPI, and had unlabeled
+axes (wasting PCA's interpretability). Axes now read as Texas-finance
+spectrums: "leaner-funded ↔ bigger", "state-funded ↔ growing".
+
+**Gotchas:** PCA sign is arbitrary — canonicalized (fix log_enroll
+loading positive on PC1, growth5 positive on PC2) so the layout is
+stable across rebuilds. Deploy payload must include static/map.html +
+static/map_data.json. Rerun graph_insights.py after each TEA refresh.
+
+**Open items:** credential rotation (user), review draft PR #2.
+
+---
+
 ## 2026-07-24 — Graph insight suite live: turnarounds, statewide map, co-occurrence
 
 **What changed:** `scripts/graph_insights.py` (deterministic) produces:
