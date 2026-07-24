@@ -48,6 +48,7 @@ def test_health_degraded_without_db(client):
     "/benchmarks",
     "/district/057905/peers",
     "/district/057905/breakdown",
+    "/district/057905/turnarounds",
 ])
 def test_data_endpoints_return_503_without_db(client, path):
     res = client.get(path)

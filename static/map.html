@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>Texas ISD Similarity Map</title>
+<style>
+  :root { --ink:#1a1a1a; --ink-2:#55534e; --muted:#8b897f; --hairline:#e9e8e3;
+          --wash:#f7f7f5; --blue:#2a78d6; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:#fff; color:var(--ink);
+         font-family: system-ui,-apple-system,"Segoe UI",sans-serif; line-height:1.5; }
+  .shell { max-width: 1080px; margin: 0 auto; padding: 0 1.5rem 3rem; }
+  header { display:flex; flex-wrap:wrap; gap:.75rem; align-items:baseline;
+           justify-content:space-between; padding:1.6rem 0 .5rem; }
+  .brand { font-weight:700; }
+  .brand a { color:var(--ink-2); font-weight:400; font-size:.85rem; margin-left:.6rem; text-decoration:none; }
+  .eyebrow { font-size:.72rem; letter-spacing:.14em; text-transform:uppercase;
+             color:var(--muted); font-weight:600; margin:1rem 0 .3rem; }
+  h1 { font-size:1.32rem; margin:0 0 .3rem; letter-spacing:-.015em; }
+  .support { color:var(--ink-2); font-size:.92rem; max-width:44rem; margin:0 0 1rem; }
+  .mapwrap { position:relative; border:1px solid var(--hairline); border-radius:12px; overflow:hidden; }
+  canvas { display:block; width:100%; height:auto; cursor:crosshair; }
+  .tooltip { position:absolute; pointer-events:none; background:var(--ink); color:#fff;
+             border-radius:6px; padding:.35rem .65rem; font-size:.8rem; display:none;
+             white-space:nowrap; z-index:5; }
+  .legend { display:flex; gap:1.4rem; align-items:center; font-size:.8rem;
+            color:var(--ink-2); margin-top:.7rem; flex-wrap:wrap; }
+  .ramp { display:inline-block; width:120px; height:10px; border-radius:5px;
+          background: linear-gradient(90deg,#cde2fb,#2a78d6,#0d366b); vertical-align:middle; }
+  input[type=search] { padding:.45rem .7rem; font:inherit; border:1px solid var(--hairline);
+          border-radius:8px; min-width:220px; }
+  .cite { font-size:.76rem; color:var(--muted); margin-top:.8rem; max-width:46rem; }
+  .cite a { color:var(--ink-2); }
+</style>
+</head>
+<body>
+<div class="shell">
+  <header>
+    <div class="brand">Texas ISD Finances<a href="/">← back to the dashboard</a></div>
+    <input type="search" id="find" placeholder="Highlight a district…" aria-label="Highlight district">
+  </header>
+  <div class="eyebrow">The statewide similarity map · fiscal <span id="yr"></span></div>
+  <h1>Every Texas district, placed by what it IS — colored by what it SPENDS</h1>
+  <p class="support">Each dot is one of <span id="count"></span> districts. Position comes from
+  structure only — size, growth trajectory, funding capacity, local-tax share — so neighbors on
+  this map are true peers. Color shows spending per student. When similar-looking districts have
+  very different colors, that's where the interesting questions live. Hover any dot; click to
+  open that district's dashboard.</p>
+  <div class="mapwrap">
+    <canvas id="map" width="1040" height="640"></canvas>
+    <div class="tooltip" id="tip"></div>
+  </div>
+  <div class="legend">
+    <span>Dot size = enrollment</span>
+    <span><span class="ramp"></span> spend/student: low → high (by quintile)</span>
+    <span id="hl" style="color:var(--blue);font-weight:600"></span>
+  </div>
+  <p class="cite">Positions: PCA of the exogenous feature space (2 components ≈ 70% of variance) —
+  built by <code>scripts/graph_insights.py</code>. Source: TEA Summarized PEIMS Actual Financial
+  Data · <a href="/docs">API</a> · <a href="/">dashboard</a>. This is an independent transparency
+  tool, not an official TEA product.</p>
+</div>
+<script>
+const cv = document.getElementById('map'), ctx = cv.getContext('2d');
+const tip = document.getElementById('tip');
+let nodes = [], hits = [], highlight = null;
+const RAMP = ['#cde2fb','#86b6ef','#3987e5','#1c5cab','#0d366b'];
+
+function draw() {
+  const W = cv.width, H = cv.height, pad = 40;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle = '#fff'; ctx.fillRect(0,0,W,H);
+  const xs = nodes.map(n=>n.x), ys = nodes.map(n=>n.y);
+  const x0=Math.min(...xs), x1=Math.max(...xs), y0=Math.min(...ys), y1=Math.max(...ys);
+  const sx = v => pad + (W-2*pad)*(v-x0)/(x1-x0);
+  const sy = v => H-pad - (H-2*pad)*(v-y0)/(y1-y0);
+  const spends = nodes.map(n=>n.s).filter(s=>s!=null).sort((a,b)=>a-b);
+  const q = p => spends[Math.floor(p*(spends.length-1))];
+  const qs = [q(.2),q(.4),q(.6),q(.8)];
+  const color = s => s==null ? '#ddd' : RAMP[qs.filter(t=>s>t).length];
+  hits = [];
+  for (const n of nodes.slice().sort((a,b)=>b.e-a.e)) {
+    const r = Math.max(2, Math.sqrt(n.e)/28);
+    const X = sx(n.x), Y = sy(n.y);
+    ctx.beginPath(); ctx.arc(X, Y, r, 0, 7);
+    ctx.fillStyle = color(n.s); ctx.globalAlpha = .82; ctx.fill(); ctx.globalAlpha = 1;
+    if (highlight && n.n.toUpperCase().includes(highlight)) {
+      ctx.lineWidth = 2.5; ctx.strokeStyle = '#1a1a1a'; ctx.stroke();
+    }
+    hits.push({X, Y, r: Math.max(r,6), n});
+  }
+}
+cv.addEventListener('mousemove', e => {
+  const rect = cv.getBoundingClientRect();
+  const mx = (e.clientX-rect.left) * cv.width/rect.width;
+  const my = (e.clientY-rect.top) * cv.height/rect.height;
+  let best = null, bd = 1e9;
+  for (const h of hits) {
+    const d = (h.X-mx)**2 + (h.Y-my)**2;
+    if (d < h.r*h.r*4 && d < bd) { bd = d; best = h; }
+  }
+  if (!best) { tip.style.display='none'; cv.style.cursor='crosshair'; cv._sel=null; return; }
+  cv._sel = best.n;
+  cv.style.cursor = 'pointer';
+  tip.innerHTML = `<strong>${best.n.n}</strong> · ${best.n.e.toLocaleString()} students` +
+    (best.n.s ? ` · $${best.n.s.toLocaleString()}/student` : '');
+  tip.style.display = 'block';
+  tip.style.left = Math.min(e.clientX-rect.left+14, rect.width-260)+'px';
+  tip.style.top = Math.max(e.clientY-rect.top-38, 0)+'px';
+});
+cv.addEventListener('mouseleave', () => { tip.style.display='none'; });
+cv.addEventListener('click', () => {
+  if (!cv._sel) return;
+  localStorage.setItem('tisd_district', JSON.stringify({num: cv._sel.d, name: cv._sel.n}));
+  location.href = '/';
+});
+document.getElementById('find').addEventListener('input', e => {
+  highlight = e.target.value.trim().toUpperCase() || null;
+  document.getElementById('hl').textContent = highlight ? `highlighting "${e.target.value.trim()}"` : '';
+  draw();
+});
+fetch('/map-data').then(r=>r.json()).then(d => {
+  nodes = d.nodes;
+  document.getElementById('yr').textContent = d.meta.year;
+  document.getElementById('count').textContent = nodes.length.toLocaleString();
+  draw();
+}).catch(()=>{ document.querySelector('.support').textContent = 'Map data unavailable right now.'; });
+</script>
+</body>
+</html>

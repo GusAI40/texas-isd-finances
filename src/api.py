@@ -418,6 +418,107 @@ async def get_district_breakdown(request: Request, district_number: str):
         return [dict(r) for r in rows]
 
 
+def _runs(rows, pred):
+    """Consecutive runs of rows satisfying pred → list of (start_year, end_year)."""
+    runs, start, prev = [], None, None
+    for r in rows:
+        if pred(r):
+            if start is None:
+                start = r["year"]
+            prev = r["year"]
+        else:
+            if start is not None:
+                runs.append((start, prev))
+                start = None
+    if start is not None:
+        runs.append((start, prev))
+    return runs
+
+
+@app.get("/district/{district_number}/turnarounds", tags=["Districts"])
+async def get_district_turnarounds(request: Request, district_number: str):
+    """Walk the similarity graph and find structural peers that reversed a
+    sustained deficit (>=2 deficit years then >=2 surplus years) or a
+    sustained enrollment decline (>=3 down years then >=2 up years).
+    See docs/GRAPH_INSIGHTS.md."""
+    pool = get_pool(request)
+    async with pool.acquire() as conn:
+        peers = await conn.fetch("""
+            SELECT s.peer_number, f.district_name, f.year, f.total_revenue,
+                   f.total_spend, f.enrollment
+            FROM district_similarity s
+            JOIN v_finance_summary f ON f.district_number = s.peer_number
+            WHERE s.district_number = $1
+              AND f.total_revenue IS NOT NULL AND f.total_spend IS NOT NULL
+            ORDER BY s.peer_number, f.year
+        """, district_number)
+        if not peers:
+            return {"turnarounds": [], "peers_scanned": 0}
+
+        by_peer: Dict[str, List[Any]] = {}
+        names: Dict[str, str] = {}
+        for r in peers:
+            by_peer.setdefault(r["peer_number"], []).append(r)
+            names[r["peer_number"]] = r["district_name"]
+
+        results = []
+        for pid, rows in by_peer.items():
+            deficits = _runs(rows, lambda r: r["total_spend"] > r["total_revenue"])
+            latest_year = rows[-1]["year"]
+            for (d0, d1) in deficits:
+                if d1 - d0 + 1 >= 2 and d1 < latest_year - 1:
+                    after = [r for r in rows if r["year"] > d1]
+                    if len(after) >= 2 and all(
+                            r["total_spend"] <= r["total_revenue"] for r in after[:2]):
+                        results.append({
+                            "district_number": pid, "district_name": names[pid],
+                            "type": "deficit_reversal",
+                            "struggled": f"{d0}-{d1}",
+                            "recovered_since": d1 + 1,
+                        })
+                        break
+            enr = [r for r in rows if r["enrollment"]]
+            declines = _runs(
+                [{"year": b["year"], "down": b["enrollment"] < a["enrollment"]}
+                 for a, b in zip(enr, enr[1:])],
+                lambda r: r["down"])
+            for (d0, d1) in declines:
+                if d1 - d0 + 1 >= 3 and d1 < latest_year - 1:
+                    after = [b for a, b in zip(enr, enr[1:]) if b["year"] > d1]
+                    if len(after) >= 2:
+                        pairs = [b for b in after[:2]]
+                        idx0 = next(i for i, r in enumerate(enr) if r["year"] == pairs[0]["year"])
+                        if all(enr[idx0 + k]["enrollment"] > enr[idx0 + k - 1]["enrollment"]
+                               for k in range(len(pairs))):
+                            results.append({
+                                "district_number": pid, "district_name": names[pid],
+                                "type": "enrollment_reversal",
+                                "struggled": f"{d0}-{d1}",
+                                "recovered_since": d1 + 1,
+                            })
+                            break
+        return {"turnarounds": results, "peers_scanned": len(by_peer)}
+
+
+@app.get("/map", include_in_schema=False)
+async def similarity_map():
+    """Serve the statewide similarity map page."""
+    page = STATIC_DIR / "map.html"
+    if page.exists():
+        return FileResponse(page)
+    raise HTTPException(status_code=404, detail="Map not available")
+
+
+@app.get("/map-data", tags=["Districts"])
+async def similarity_map_data():
+    """Precomputed 2D similarity-map coordinates (PCA of the exogenous
+    feature space; see scripts/graph_insights.py)."""
+    data = STATIC_DIR / "map_data.json"
+    if data.exists():
+        return FileResponse(data, media_type="application/json")
+    raise HTTPException(status_code=404, detail="Map data not built")
+
+
 @app.get("/sample-queries", tags=["NLP"])
 async def get_sample_queries():
     """Get sample natural language queries"""

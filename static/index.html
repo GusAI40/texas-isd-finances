@@ -158,6 +158,7 @@
   <header class="top">
     <div class="brand">Texas ISD Finances<span class="tag">TEA data · fiscal 2009–2025</span></div>
     <div class="hbtns">
+      <button onclick="location.href='/map'">🗺 State map</button>
       <button id="btn-tour">Tutorial</button>
       <button id="btn-disclaimer">Disclaimer</button>
       <button id="btn-print" title="Print or save as PDF">Print</button>
@@ -263,6 +264,17 @@
         grants trip these checks for perfectly good reasons. Each card shows the actual numbers so you can judge.</p>
       <div id="flaglist"></div>
       <div class="cite" id="flags-cite"></div>
+    </section>
+
+    <hr class="rule">
+    <section id="turnaround-section" class="hidden">
+      <div class="eyebrow">Proof it's doable</div>
+      <h2 class="action" id="turnaround-title"></h2>
+      <p class="support">Found by scanning the 17-year history of your structurally similar
+        districts for sustained problems that later reversed. Worth a phone call — they solved
+        a problem shaped like yours.</p>
+      <div id="turnaroundlist"></div>
+      <div class="cite" id="turnaround-cite"></div>
     </section>
 
     <hr class="rule">
@@ -402,19 +414,22 @@ async function loadDashboard() {
   if (!d) return;
   $('dash').classList.remove('hidden');
   try {
-    const [summary, peers, flags, breakdown] = await Promise.all([
+    const [summary, peers, flags, breakdown, turnarounds] = await Promise.all([
       api('/district/' + encodeURIComponent(d.num) + '/summary'),
       api('/district/' + encodeURIComponent(d.num) + '/peers'),
       api('/anomalies?district_number=' + encodeURIComponent(d.num) + '&limit=50'),
       api('/district/' + encodeURIComponent(d.num) + '/breakdown'),
+      api('/district/' + encodeURIComponent(d.num) + '/turnarounds').catch(() => ({turnarounds: []})),
     ]);
     state.summary = summary; state.peers = peers; state.flags = flags; state.breakdown = breakdown;
+    state.turnarounds = turnarounds;
     renderAll();
     $('dash').scrollIntoView({ block: 'start' });
   } catch (e) { /* banner shown */ }
 }
 function renderAll() {
   renderExec(); renderKPIs(); renderTrend(); renderPeers(); renderMoney(); renderFlags();
+  renderTurnarounds();
   ['kpi-cite', 'trend-cite', 'peers-cite', 'flags-cite'].forEach(c => cite(c));
   cite('money-cite', 'function-code groupings listed under Disclaimer');
   $('btn-uncompare').classList.toggle('hidden', !state.compare);
@@ -742,6 +757,28 @@ function renderFlags() {
     }).join('<br>');
     return `<div class="flagcard"><strong>Fiscal ${f.year}</strong><br>${items}</div>`;
   }).join('');
+}
+
+/* ---------- turnarounds (similarity-graph walk) ---------- */
+function renderTurnarounds() {
+  const t = state.turnarounds?.turnarounds || [];
+  const sec = $('turnaround-section');
+  if (!t.length) { sec.classList.add('hidden'); return; }
+  sec.classList.remove('hidden');
+  const nDef = t.filter(x => x.type === 'deficit_reversal').length;
+  const nEnr = t.filter(x => x.type === 'enrollment_reversal').length;
+  const parts = [];
+  if (nDef) parts.push(`${nDef} reversed a multi-year deficit`);
+  if (nEnr) parts.push(`${nEnr} reversed an enrollment slide`);
+  $('turnaround-title').textContent =
+    `Among districts like yours, ${parts.join(' and ')}`;
+  $('turnaroundlist').innerHTML = t.map(x =>
+    `<div class="flagcard ok"><strong>${x.district_name}</strong> — ` +
+    (x.type === 'deficit_reversal'
+      ? `ran deficits ${x.struggled}, back in surplus since ${x.recovered_since}.`
+      : `lost enrollment ${x.struggled}, growing again since ${x.recovered_since}.`) +
+    `</div>`).join('');
+  cite('turnaround-cite');
 }
 
 /* ---------- ask ---------- */
