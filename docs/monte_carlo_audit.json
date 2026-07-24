@@ -1,0 +1,93 @@
+{
+  "seed": 20260724,
+  "latest_year": 2025,
+  "archetype_stability": {
+    "bootstraps": 40,
+    "mean_stability": 0.696,
+    "median_stability": 0.65,
+    "pct_below_0.6": 38.4,
+    "n_unstable": 461,
+    "least_stable": [
+      "039905",
+      "174901",
+      "206902",
+      "007901",
+      "144903",
+      "169906",
+      "098903",
+      "145907"
+    ]
+  },
+  "threshold_sensitivity": {
+    "trials": 200,
+    "base_flag_events": 1296,
+    "mean_under_jitter": 1481.3,
+    "std_under_jitter": 501.2,
+    "swing_pct": 33.8,
+    "range": [
+      757,
+      2863
+    ]
+  },
+  "live_coverage": {
+    "summary": {
+      "ok": 50,
+      "err": 0,
+      "empty": 0,
+      "p50_ms": 300,
+      "p95_ms": 394
+    },
+    "peers": {
+      "ok": 50,
+      "err": 0,
+      "empty": 0,
+      "p50_ms": 321,
+      "p95_ms": 373
+    },
+    "breakdown": {
+      "ok": 50,
+      "err": 0,
+      "empty": 0,
+      "p50_ms": 297,
+      "p95_ms": 355
+    },
+    "turnarounds": {
+      "ok": 43,
+      "err": 0,
+      "empty": 7,
+      "p50_ms": 295,
+      "p95_ms": 413
+    },
+    "anomalies": {
+      "ok": 45,
+      "err": 2,
+      "empty": 3,
+      "p50_ms": 301,
+      "p95_ms": 397
+    },
+    "_sample": 50
+  },
+  "data_completeness": {
+    "enrollment": {
+      "missing_or_zero": 0,
+      "pct": 0.0
+    },
+    "revenue": {
+      "missing_or_zero": 0,
+      "pct": 0.0
+    },
+    "spending": {
+      "missing_or_zero": 0,
+      "pct": 0.0
+    },
+    "instruction": {
+      "missing_or_zero": 0,
+      "pct": 0.0
+    },
+    "local_tax": {
+      "missing_or_zero": 186,
+      "pct": 15.5
+    },
+    "_districts": 1202
+  }
+}
