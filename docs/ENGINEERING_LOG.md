@@ -17,6 +17,34 @@ Entry template:
 
 ---
 
+## 2026-07-24 — Graph insight suite live: turnarounds, statewide map, co-occurrence
+
+**What changed:** `scripts/graph_insights.py` (deterministic) produces:
+PCA similarity-map coordinates (`static/map_data.json`, PC1+PC2 = 70%
+variance), flag co-occurrence analysis, and temporal drift. New routes:
+`/map` (explorable canvas map of all 1,202 districts — hover, search
+highlight, click-through), `/map-data`, and
+`GET /district/{id}/turnarounds` (graph walk finding peers that reversed
+>=2-year deficits or >=3-year enrollment slides). Dashboard shows a
+"Proof it's doable" section when peers have turnarounds, plus a State map
+header link. Findings in `docs/GRAPH_INSIGHTS.md`. 30 tests green.
+Deployed + verified live, including positive turnaround hits (South San
+Antonio ISD enrollment reversal; Centerville ISD deficit reversal).
+
+**Why:** Graph-lens roadmap items user approved with "Do it". Headline
+analytical finding: revenue_drop + enrollment_decline co-occur at 6.1x
+lift — enrollment decline is the leading indicator of fiscal stress.
+Temporal drift shipped as analysis only (top movers are small-district
+volatility; needs size-weighting to be a feature) — honest scope call.
+
+**Gotchas:** Deploy payload must now include static/map.html and
+static/map_data.json. Rerun graph_insights.py + build_similarity_graph.py
+after each TEA refresh.
+
+**Open items:** credential rotation (user), review draft PR #2.
+
+---
+
 ## 2026-07-23 — Peer comparison upgraded to a district similarity graph (live)
 
 **What changed:** New k-NN similarity graph (1,202 nodes, k=12, 14,424
