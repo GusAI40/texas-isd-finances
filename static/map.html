@@ -63,6 +63,8 @@
     <div class="brand">Texas ISD Finances<a href="/">← dashboard</a></div>
     <div class="toolbar">
       <input type="search" id="find" placeholder="Find a district…" aria-label="Find district" autocomplete="off">
+      <button class="chip" id="mode-spend" aria-pressed="true" title="Color dots by spending per student">Color: spending</button>
+      <button class="chip" id="mode-arche" aria-pressed="false" title="Color dots by structural archetype">Color: archetype</button>
       <button class="chip" id="toggle-flags" aria-pressed="false" title="Ring districts flagged in the last 2 years">⚠ Flagged only</button>
       <button class="chip" id="reset" title="Reset zoom">Reset view</button>
     </div>
@@ -84,6 +86,8 @@
       <div id="panel-body" style="display:none">
         <h3 id="p-name"></h3>
         <div class="sub" id="p-id"></div>
+        <div class="kv"><span>Archetype</span><b id="p-arche"></b></div>
+        <div class="kv"><span>Typicality</span><b id="p-typ"></b></div>
         <div class="kv"><span>Enrollment</span><b id="p-enr"></b></div>
         <div class="kv"><span>Spend / student</span><b id="p-spend"></b></div>
         <div class="kv"><span>Recent flag</span><b id="p-flag"></b></div>
@@ -93,11 +97,12 @@
     </aside>
   </div>
 
-  <div class="legend">
+  <div class="legend" id="legend-spend">
     <span><span class="swatch"><i style="background:#cde2fb"></i><i style="background:#86b6ef"></i><i style="background:#3987e5"></i><i style="background:#1c5cab"></i><i style="background:#0d366b"></i></span>spend/student, low → high <span id="ramp-vals" style="color:var(--muted)"></span></span>
     <span>dot size = enrollment</span>
     <span><span class="dotflag"></span>ringed = flagged in last 2 yrs</span>
   </div>
+  <div class="legend" id="legend-arche" style="display:none"></div>
   <p class="cite">Horizontal axis: <b id="ax">…</b> &nbsp;·&nbsp; vertical axis: <b id="ay">…</b> &nbsp;
     (principal components of the exogenous feature space; together ≈ <span id="var"></span> of structural variance).
     Built by <code>scripts/graph_insights.py</code>; edges from the k-NN similarity graph
@@ -109,7 +114,7 @@ const cv = document.getElementById('map'), ctx = cv.getContext('2d');
 const wrap = document.getElementById('wrap'), tip = document.getElementById('tip');
 const RAMP = ['#cde2fb','#86b6ef','#3987e5','#1c5cab','#0d366b'];
 let nodes = [], meta = {}, qs = [], view = {k:1, x:0, y:0}, hover = null, pinned = null;
-let flaggedOnly = false, findTerm = '';
+let flaggedOnly = false, findTerm = '', colorMode = 'spend';
 let bounds = null, dpr = Math.min(window.devicePixelRatio || 1, 2);
 
 function resize() {
@@ -127,7 +132,10 @@ function project(n) {
            Y: (by(n.y) - H/2) * view.k + H/2 + view.y*dpr };
 }
 function radius(n) { return Math.max(2.2, Math.sqrt(n.e)/26) * dpr * Math.min(view.k, 2.2); }
-function color(s) { return s==null ? '#d6d4cc' : RAMP[qs.filter(t=>s>t).length]; }
+function color(n) {
+  if (colorMode === 'archetype') return (meta.archetypes[n.c] || {}).color || '#d6d4cc';
+  return n.s==null ? '#d6d4cc' : RAMP[qs.filter(t=>n.s>t).length];
+}
 
 function draw() {
   if (!nodes.length) return;
@@ -163,7 +171,7 @@ function draw() {
     const dim = focusSet && !focusSet.has(n.i);
     const match = findTerm && n.n.toUpperCase().includes(findTerm);
     ctx.globalAlpha = dim ? .12 : .88;
-    ctx.beginPath(); ctx.arc(p.X, p.Y, r, 0, 7); ctx.fillStyle = color(n.s); ctx.fill();
+    ctx.beginPath(); ctx.arc(p.X, p.Y, r, 0, 7); ctx.fillStyle = color(n); ctx.fill();
     if (n.f) { ctx.globalAlpha = dim?.2:.95; ctx.lineWidth = 1.6*dpr; ctx.strokeStyle = '#d9534f'; ctx.stroke(); }
     if (match || (focus && n.i===focus.i)) { ctx.globalAlpha=1; ctx.lineWidth=2.4*dpr; ctx.strokeStyle='#1a1a1a'; ctx.stroke(); }
     ctx.globalAlpha = 1;
@@ -236,6 +244,10 @@ function showPanel(n) {
   document.getElementById('panel-body').style.display='block';
   document.getElementById('p-name').textContent = n.n;
   document.getElementById('p-id').textContent = 'District ' + n.d;
+  const a = meta.archetypes[n.c] || {};
+  document.getElementById('p-arche').textContent = a.name || '—';
+  document.getElementById('p-typ').textContent = n.t >= 60
+    ? `${n.t}th pct — archetypal` : n.t <= 15 ? `${n.t}th pct — outlier` : `${n.t}th pct`;
   document.getElementById('p-enr').textContent = n.e.toLocaleString();
   document.getElementById('p-spend').textContent = n.s ? '$'+n.s.toLocaleString() : '—';
   document.getElementById('p-flag').textContent = n.f ? '⚠ yes' : 'no';
@@ -260,6 +272,16 @@ function hidePanel() {
   history.replaceState(null,'', location.pathname);
 }
 
+function setMode(m) {
+  colorMode = m;
+  document.getElementById('mode-spend').setAttribute('aria-pressed', m==='spend');
+  document.getElementById('mode-arche').setAttribute('aria-pressed', m==='archetype');
+  document.getElementById('legend-spend').style.display = m==='spend' ? 'flex' : 'none';
+  document.getElementById('legend-arche').style.display = m==='archetype' ? 'flex' : 'none';
+  draw();
+}
+document.getElementById('mode-spend').addEventListener('click', ()=>setMode('spend'));
+document.getElementById('mode-arche').addEventListener('click', ()=>setMode('archetype'));
 document.getElementById('find').addEventListener('input', e => { findTerm = e.target.value.trim().toUpperCase(); draw(); });
 document.getElementById('toggle-flags').addEventListener('click', e => {
   flaggedOnly = !flaggedOnly; e.target.setAttribute('aria-pressed', flaggedOnly); draw();
@@ -283,6 +305,9 @@ fetch('/map-data').then(r=>r.json()).then(d => {
   document.getElementById('ay').textContent = meta.y_label;
   document.getElementById('var').textContent = Math.round((meta.pc_variance[0]+meta.pc_variance[1])*100)+'%';
   document.getElementById('ramp-vals').textContent = `($${q(.2).toLocaleString()} → $${q(.8).toLocaleString()})`;
+  document.getElementById('legend-arche').innerHTML = meta.archetypes.map(a =>
+    `<span><span class="dotarche" style="display:inline-block;width:11px;height:11px;border-radius:50%;background:${a.color};vertical-align:middle;margin-right:.35rem"></span>${a.name} <span style="color:var(--muted)">(${a.count})</span></span>`
+  ).join('');
   resize();
   // deep link ?d=057905
   const want = new URLSearchParams(location.search).get('d');

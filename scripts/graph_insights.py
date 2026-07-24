@@ -26,6 +26,46 @@ import pandas as pd
 FEATS = ["log_enroll", "growth5", "rev_per_student", "local_share"]
 
 
+def _kmeans(Xz, k, seed=0, iters=100):
+    """Deterministic k-means (k-means++ init, fixed seed) — no sklearn dep."""
+    rng = np.random.default_rng(seed)
+    n = len(Xz)
+    centers = [int(rng.integers(n))]
+    for _ in range(k - 1):
+        d2 = np.min([((Xz - Xz[c]) ** 2).sum(1) for c in centers], axis=0)
+        centers.append(int(rng.choice(n, p=d2 / d2.sum())))
+    C = Xz[centers].copy()
+    lab = np.zeros(n, dtype=int)
+    for _ in range(iters):
+        lab = np.argmin(((Xz[:, None] - C[None]) ** 2).sum(2), axis=1)
+        newC = np.array([Xz[lab == j].mean(0) if (lab == j).any() else C[j]
+                         for j in range(k)])
+        if np.allclose(newC, C):
+            break
+        C = newC
+    return lab, C
+
+
+def _archetype_name(med_enroll, med_growth, med_rev, med_local):
+    """Name an archetype from its median stats (real, interpretable, and
+    stable across rebuilds), using Texas-scale enrollment breakpoints."""
+    size = ("Small" if med_enroll < 500 else "Mid-size" if med_enroll < 2500
+            else "Large" if med_enroll < 10000 else "Very large")
+    traits = []
+    if med_growth > 0.15:
+        traits.append("fast-growing")
+    elif med_growth < -0.08:
+        traits.append("shrinking")
+    if med_local > 0.50:
+        traits.append("property-wealthy")
+    elif med_local < 0.12:
+        traits.append("state-funded")
+    if med_rev > 22000 and len(traits) < 2:
+        traits.append("high-revenue")
+    tail = " · ".join(traits[:2]) if traits else "stable"
+    return f"{size} · {tail}"
+
+
 def features_for_year(df, year):
     cur = df[df.year == year].copy()
     cur = cur[(cur.fall_survey_enrollment > 0)
@@ -85,6 +125,33 @@ def build_map(df, latest):
         if r.district_number in idx and r.peer_number in idx:
             nbrs[idx[r.district_number]].append(idx[r.peer_number])
 
+    # Typicality = in-degree centrality in the directed k-NN graph (how many
+    # districts name this one a nearest neighbor). High = archetypal/central;
+    # zero = structural outlier. Expressed as a 0-100 percentile.
+    indeg = np.zeros(len(cur))
+    for r in edges[edges["rank"] <= 8].itertuples():
+        if r.peer_number in idx:
+            indeg[idx[r.peer_number]] += 1
+    typ = (100 * (indeg.argsort().argsort() / (len(indeg) - 1))).round().astype(int)
+
+    # Archetypes: deterministic k-means (k=6) on the z-scored exogenous
+    # features. The graph gives structure; k-means gives a small labeled
+    # taxonomy of Texas district *types*. Seeded → identical every rebuild.
+    arche, centroids = _kmeans(Xz, 6, seed=0)
+    ARCHE_COLORS = ["#2a78d6", "#008300", "#e87ba4", "#eda100", "#1baf7a", "#eb6834"]
+    arche_meta = []
+    for j in range(6):
+        m = cur[arche == j]
+        me = int(m.fall_survey_enrollment.median())
+        mg = round(float(m.growth5.median()), 3)
+        mr = int((m.all_funds_total_operating_revenue / m.fall_survey_enrollment).median())
+        ml = round(float(m.local_share.median()), 3)
+        arche_meta.append({
+            "id": j, "color": ARCHE_COLORS[j], "count": int((arche == j).sum()),
+            "name": _archetype_name(me, mg, mr, ml),
+            "med_enroll": me, "med_growth": mg, "med_rev": mr, "med_local": ml,
+        })
+
     # Recently-flagged layer: revenue drop or enrollment decline in the
     # last two data years (same definition as the usage simulation).
     recent = df[df.year >= latest - 2].sort_values(["district_number", "year"]).copy()
@@ -106,12 +173,15 @@ def build_map(df, latest):
         "s": None if np.isnan(spend.iloc[i]) else int(spend.iloc[i]),
         "k": nbrs[i],
         "f": 1 if r.district_number in flagged else 0,
+        "c": int(arche[i]),
+        "t": int(typ[i]),
     } for i, r in enumerate(cur.itertuples())]
     var = vals[order[:2]] / vals.sum()
     meta = {"year": latest, "pc_variance": [round(float(v), 3) for v in var],
             "features": FEATS,
             "x_label": axis_label(0), "y_label": axis_label(1),
-            "flagged_count": len(flagged)}
+            "flagged_count": len(flagged),
+            "archetypes": arche_meta}
     json.dump({"meta": meta, "nodes": nodes}, open("static/map_data.json", "w"))
     print(f"map: {len(nodes)} nodes, PC1+PC2 explain {var.sum():.0%} of variance")
     print(f"  x → {meta['x_label']}")

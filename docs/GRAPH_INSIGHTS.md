@@ -44,6 +44,36 @@ mixed into it. Interactions (all client-side, no dependencies):
 - The dashboard's "🗺 State map" button deep-links to the current
   district, opening the map zoomed onto it.
 
+### Archetypes & typicality (the structural layer)
+
+Two graph-native analyses now ride on the map:
+
+**Six archetypes** — the 1,202 districts cluster (deterministic k-means,
+seed 0, on the z-scored exogenous features) into a small labeled taxonomy,
+named from each cluster's median stats so labels stay stable across
+rebuilds:
+
+| Archetype | Count | Median enrollment | Growth | Local-tax share |
+|---|---|---|---|---|
+| Mid-size · shrinking · state-funded | 234 | 1,079 | −9% | 6% |
+| Mid-size · property-wealthy | 174 | 619 | −4% | 62% |
+| Mid-size · fast-growing · state-funded | 99 | 1,806 | +50% | 0% |
+| Mid-size · stable | 346 | 518 | ~0% | 25% |
+| Small · shrinking · high-revenue | 76 | 127 | −13% | 28% |
+| Large · stable | 273 | 7,749 | −1% | 37% |
+
+Toggle **"Color: archetype"** on the map to paint by type (each gets a
+distinct hue + a counted legend); the fast-growing suburban cluster and
+the property-wealthy cluster separate visibly.
+
+**Typicality = in-degree centrality.** Each district's score is how many
+other districts name it a nearest neighbor in the directed k-NN graph,
+expressed as a 0–100 percentile. High = an *archetype* (many districts
+look like it); near-zero = a *structural outlier* (few or none do). Shown
+in the map's selection panel. This is a genuine graph metric, not a
+restatement of size — a mid-size district in a dense region scores higher
+than an equally-sized district in a sparse corner of the feature space.
+
 ## 3. Temporal drift (2015 → 2025)
 
 Distance each district moved in state-relative feature space over a
