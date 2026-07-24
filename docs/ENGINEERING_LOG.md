@@ -17,6 +17,42 @@ Entry template:
 
 ---
 
+## 2026-07-24 — Multi-team audit + Monte Carlo robustness sim (scorecard)
+
+**What changed:** Ran 5 parallel audit-team subagents (backend, data/graph
+science, frontend/UX, security/ops, docs/business) + a quantitative Monte
+Carlo (`scripts/monte_carlo_audit.py`, seed 20260724). Results in
+`docs/AUDIT_SCORECARD.md` + `docs/monte_carlo_audit.json`. Scores (1-11):
+backend 7, frontend 7, data-science 6, security 6, docs/business 5;
+blended ~6.2.
+
+**Why:** User asked to identify patterns/gaps/blindspots and score
+everything with parallel teams. No fixes applied yet — this is assessment.
+
+**Key findings (verified, not opinion):**
+- 🔴 SECURITY: NLP path uses the privileged pooler role; RLS doesn't bind
+  owners and include_tables only limits reflection → "read-only" is
+  prompt-convention only, prompt-injection could mutate data. Documented
+  mitigation SUPABASE_READONLY_URL does NOT exist in env_template.txt.
+- 🔴 /query rate limit trusts spoofable X-Forwarded-For + per-instance →
+  uncapped paid-OpenAI abuse (compounds unrotated-key item).
+- MC corroborated: 38.4% archetype instability (k=6 silhouette 0.226 <
+  k=4's 0.290); anomaly thresholds swing ±34% under ±5pp; local_tax 15.5%
+  missing conflated by fillna(0); peers include rev/student (corr 0.65
+  with spend) so "exogenous" claim is half-true.
+- FRONTEND: map 100% broken on touch + keyboard + screen-reader (WCAG
+  1.1.1/2.1.1 fail).
+- DOC DRIFT (confirmed): CLAUDE.md says both 24 and 30 tests (real: 30);
+  AUDIT.md still says 2008-2024; README lists 8 of 14 endpoints; blueprint
+  docs (REPO_MAP etc.) stranded on unmerged PR #2 branch.
+
+**Open items:** the 6 prioritized fixes in AUDIT_SCORECARD.md (top: RO DB
+role for NLP; threadpool+timeout /query; map touch/a11y; instrument
+analytics; re-select k; reconcile doc drift). Plus standing: rotate creds,
+review PR #2. None applied yet — awaiting go.
+
+---
+
 ## 2026-07-24 — 10x graph polish v2: archetypes + typicality centrality (live)
 
 **What changed:** `scripts/graph_insights.py` now clusters districts into
