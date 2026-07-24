@@ -17,6 +17,34 @@ Entry template:
 
 ---
 
+## 2026-07-24 — 10x graph polish v2: archetypes + typicality centrality (live)
+
+**What changed:** `scripts/graph_insights.py` now clusters districts into
+6 archetypes (deterministic k-means, seed 0, on z-scored exogenous
+features; named from median stats) and computes typicality = in-degree
+centrality in the directed k-NN graph (0-100 percentile). Emitted per
+node as `c`/`t` plus archetype metadata in `static/map_data.json`. Map
+gains a "Color: spending / Color: archetype" toggle with a counted named
+legend, and the selection panel shows archetype + typicality. Deployed +
+verified live (6 archetypes, typicality spans 0-100).
+
+**Why:** "Polish 10x" — the map positioned nodes but never revealed the
+graph's structure. Archetypes turn 1,202 dots into a labeled taxonomy of
+Texas district types; in-degree centrality gives a genuine "how typical
+is this district" score (archetype vs structural outlier), distinct from
+size.
+
+**Gotchas:** k-means over-fragments if done as label-propagation
+communities on mutual-kNN (got 31); k=6 k-means on the embedding is the
+right grain for a *labeled* taxonomy. Archetype names come from median
+enrollment/growth/local-share (interpretable, stable) not z-score
+thresholds (which lumped everything "Mid-size"). Rerun graph_insights.py
+after each TEA refresh.
+
+**Open items:** credential rotation (user), review draft PR #2.
+
+---
+
 ## 2026-07-24 — 10x polish: interactive similarity map (edges, ego networks, zoom)
 
 **What changed:** Rewrote `static/map.html` into a real graph
