@@ -58,3 +58,6 @@ build/
 # Backup files
 *.bak
 *.backup
+
+# Vercel CLI link (contains project/org ids)
+.vercel/

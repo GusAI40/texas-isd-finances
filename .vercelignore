@@ -1,0 +1,17 @@
+# Keep the deploy payload small. Without this the CLI uploads data/ (~19 MB of
+# source CSVs) on every deploy, which is slow enough to time out.
+# Only what the running service needs should ship: api/, src/, static/.
+data/
+docs/
+scripts/
+tests/
+sql/
+.github/
+.claude/
+*.xlsx
+*.xls
+*.csv
+*.png
+*.ipynb
+Dockerfile
+render.yaml
