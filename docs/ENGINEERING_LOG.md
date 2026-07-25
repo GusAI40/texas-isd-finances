@@ -17,6 +17,65 @@ Entry template:
 
 ---
 
+## 2026-07-25 — Guided dollar (macro→micro→atom) + landing page rebuilt from a browser audit
+
+**What changed:** ⚠️ **Committed and pushed but NOT DEPLOYED** — see Gotchas.
+
+(a) *Guided dollar.* New `GET /district/{id}/dollar` is now the single
+definition of the 100-penny dollar for every client: largest-remainder
+shares (always exactly 100), peer + statewide median shares rescaled to a
+whole dollar, and dollars-at-stake from median dollars *per student* so
+they stay real money. `static/index.html` renders it as: hover/tap/focus
+any penny → a guide panel giving contents in plain English, TEA codes,
+peer + state comparison and the annual dollar difference; click → an atom
+card with a 17-year share sparkline against the peer line, sub-components,
+and the question a board member or reporter should ask; a TEXAS ›
+DISTRICT › CATEGORY zoom ladder; three stacked 100¢ bars (you / peers /
+all Texas). Two categories the old client-side split buried in the
+residual — safety & technology, community services — are now named.
+
+(b) *Landing page.* Audited live in headless Chromium and rebuilt: the
+7-step tour no longer auto-opens over the page; real hero with the
+statewide total in the headline; the hero *shows* the live statewide
+dollar (new `GET /dollar/texas`, pooled — no rescaling needed); quick-pick
+chips from `/stats.largest_districts` plus type-ahead; hero collapses once
+a district is picked; serif display face against the sans body; district
+names title-cased on entry to state; header count now read from `/stats`.
+
+**Why:** User asked for hover guidance and a macro→micro→atom path that
+answers the questions only this data can answer, then asked for a browser
+audit of the landing page. The audit found the first impression was a grey
+modal over a search box — no headline, no number, no picture — in an 892px
+column on a 1440px screen, with 1,202 vs 1,310 districts contradicting
+each other between header and stats.
+
+**Gotchas:**
+- 🔴 **Deploys are not automatic from this branch.** Pushing produced no
+  new deployment (polled 4 min; `/district/{id}/dollar` still 404s live).
+  Earlier deploys this session used the user's Vercel PAT, since shredded;
+  the Vercel MCP tools need interactive approval. Everything above is on
+  the branch and unverified in production.
+- Headless Chromium cannot TLS through the agent proxy (`ERR_CONNECTION_RESET`,
+  no relay failure logged). Workaround that worked: a local plain-HTTP
+  harness on 127.0.0.1 serving the working-tree HTML and proxying the API
+  server-side, with `/dollar` computed by importing the real functions from
+  `src.api` — which validated the endpoint math on live data before deploy.
+  Chromium path is `/opt/pw-browsers/chromium-1194/chrome-linux/chrome`.
+- Penny grid: dimming at .18 opacity destroyed the grid's shape, and
+  `transform:scale()` on the highlighted squares made neighbours collide.
+  Use ~.3 opacity and an outline instead.
+- skills.sh pages for the five requested skills are discovery stubs, not
+  skill text; only `anthropics/skills/frontend-design` returned usable
+  principles. Installing them needs an interactive session.
+
+**Open items:** unchanged, plus: get this deployed and re-verify live;
+map keyboard/screen-reader path. Still open: credential rotation
+(user-side, 🔴), read-only DB role for NLP, `/query` threadpool + timeout,
+real rate limiting, analytics, Supabase idle-pause keep-alive, PR #2
+awaiting review — do not merge.
+
+---
+
 ## 2026-07-25 — Phones can use the map; portal renamed "Texas ISD Financial Resource Guide"
 
 **What changed:** Two shipped pieces, both deployed and verified live.
