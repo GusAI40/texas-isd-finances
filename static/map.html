@@ -75,7 +75,7 @@
       <input type="search" id="find" placeholder="Type your district, press Enter…" aria-label="Find your district" autocomplete="off">
       <button class="chip" id="mode-spend" aria-pressed="true" title="Color dots by spending per student">Color: spending</button>
       <button class="chip" id="mode-arche" aria-pressed="false" title="Color dots by structural archetype">Color: archetype</button>
-      <button class="chip" id="toggle-flags" aria-pressed="false" title="Ring districts flagged in the last 2 years">⚠ Flagged only</button>
+      <button class="chip" id="toggle-flags" aria-pressed="false" title="Ring districts flagged in the last 2 years">Flagged only</button>
       <button class="chip" id="reset" title="Reset zoom">Reset view</button>
     </div>
   </header>
@@ -90,7 +90,7 @@
     The <strong>darker the blue, the more it spends per student</strong>.</p>
     <p><strong>So what?</strong> When two dots sit right next to each other but one is pale and one is dark,
     two very similar districts are spending very differently. <em>That's a question worth asking.</em></p>
-    <p class="tryit">👉 <strong>Try this:</strong> type your district's name in the box above and press Enter —
+    <p class="tryit"><strong>Try this:</strong> type your district's name in the box above and press Enter —
     we'll find its seat and show you who's sitting next to it.
     <span class="mobonly">On a phone: <strong>tap a dot</strong> to open it, <strong>drag</strong> to move around,
     <strong>pinch</strong> to zoom in.</span></p>
@@ -132,7 +132,7 @@
     Independent transparency tool, not an official TEA product. <a href="/docs">API</a> · <a href="/">dashboard</a>.</p>
 
   <footer style="color:var(--muted);font-size:.8rem;padding:1.2rem 0 2.5rem;max-width:46rem">
-    <p style="margin:0 0 .8rem"><strong>🤖 AI disclosure:</strong> This portal uses artificial intelligence.
+    <p style="margin:0 0 .8rem"><strong>AI disclosure:</strong> This portal uses artificial intelligence.
       Groupings, headlines, plain-English summaries, and peer comparisons are generated automatically by
       algorithms and AI language models. <strong>AI can be wrong.</strong> Verify any figure that matters
       against the underlying data or
@@ -143,8 +143,8 @@
       advice. District-level aggregates only — no student, family, or personnel data.</p>
     <div style="border-top:1px solid var(--hairline);padding-top:1rem;display:flex;flex-wrap:wrap;gap:.4rem 1.4rem;align-items:baseline">
       <span style="font-weight:700;color:var(--ink);font-size:.95rem">Technology Automation Group — TAG ai</span>
-      <span>📞 <a href="tel:+18398882424" style="color:var(--ink-2);font-weight:600">839-888-2424</a> — speak to one of our AI assistants</span>
-      <span>🌐 <a href="https://ubntag.com" target="_blank" rel="noopener" style="color:var(--ink-2);font-weight:600">ubntag.com</a></span>
+      <span><a href="tel:+18398882424" style="color:var(--ink-2);font-weight:600">839-888-2424</a> — speak to one of our AI assistants</span>
+      <span><a href="https://ubntag.com" target="_blank" rel="noopener" style="color:var(--ink-2);font-weight:600">ubntag.com</a></span>
     </div>
   </footer>
 </div>
@@ -152,6 +152,11 @@
 const cv = document.getElementById('map'), ctx = cv.getContext('2d');
 const wrap = document.getElementById('wrap'), tip = document.getElementById('tip');
 const RAMP = ['#cde2fb','#86b6ef','#3987e5','#1c5cab','#0d366b'];
+const _ACRONYMS = /\b(Isd|Cisd|Csd|Msd|Jjaep|Esc|Llc|Inc|Kipp|Nyos|Yes|Idea|Basis|Ut)\b/g;
+const titleCase = s => (s || '').toLowerCase()
+  .replace(/(^|[\s('/-])([a-z])/g, (_m, a, b) => a + b.toUpperCase())
+  .replace(_ACRONYMS, m => m.toUpperCase())
+  .replace(/\bMc([a-z])/g, (_m, c) => 'Mc' + c.toUpperCase());
 let nodes = [], meta = {}, qs = [], view = {k:1, x:0, y:0}, hover = null, pinned = null, landmarks = [];
 let flaggedOnly = false, findTerm = '', colorMode = 'spend';
 let bounds = null, dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -300,7 +305,7 @@ cv.addEventListener('mousemove', e => {
   hover = hit;
   if (hit) {
     tip.innerHTML = `<strong>${hit.n.n}</strong> · ${hit.n.e.toLocaleString()} students`
-      + (hit.n.s ? ` · $${hit.n.s.toLocaleString()}/student` : '') + (hit.n.f ? ' · ⚠ flagged' : '');
+      + (hit.n.s ? ` · $${hit.n.s.toLocaleString()}/student` : '') + (hit.n.f ? ' · flagged' : '');
     tip.style.display = 'block';
     const rect = cv.getBoundingClientRect();
     tip.style.left = Math.min((cx/cv.width)*rect.width + 14, rect.width-260) + 'px';
@@ -385,7 +390,7 @@ function showPanel(n) {
     ? `${n.t}th pct — archetypal` : n.t <= 15 ? `${n.t}th pct — outlier` : `${n.t}th pct`;
   document.getElementById('p-enr').textContent = n.e.toLocaleString();
   document.getElementById('p-spend').textContent = n.s ? '$'+n.s.toLocaleString() : '—';
-  document.getElementById('p-flag').textContent = n.f ? '⚠ yes' : 'no';
+  document.getElementById('p-flag').textContent = n.f ? 'yes' : 'no';
   document.getElementById('p-nbrs').innerHTML = n.k.map(j => {
     const m = nodes[j];
     return `<button data-i="${j}">${m.n} · $${(m.s||0).toLocaleString()}/st</button>`;
@@ -399,8 +404,9 @@ function showPanel(n) {
     localStorage.setItem('tisd_district', JSON.stringify({num:n.d, name:n.n}));
     location.href = '/';
   };
-  // Plain-English sentence — what this seat actually means
-  const a = meta.archetypes[n.c] || {};
+  // Plain-English sentence — what this seat actually means. `a` is the
+  // archetype already resolved above; re-declaring it here was a SyntaxError
+  // that stopped this entire script from parsing.
   const nb = n.k.map(j => nodes[j]).filter(Boolean);
   const withSpend = nb.filter(m => m.s != null);
   const nbMed = withSpend.length
@@ -417,7 +423,7 @@ function showPanel(n) {
     `It has <b>${n.e.toLocaleString()} students</b>` +
     (n.s ? ` and spends <b>$${n.s.toLocaleString()} per student</b> — ${cmp}.` : '.') +
     (nb.length ? ` Its closest matches: <b>${nb.slice(0,3).map(m=>m.n).join(', ')}</b>.` : '') +
-    (n.f ? ` ⚠️ Its numbers moved unusually in the last two years — worth a look.` : '') +
+    (n.f ? ` Its numbers moved unusually in the last two years — worth a look.` : '') +
     ` <a href="/" onclick="localStorage.setItem('tisd_district',JSON.stringify({num:'${n.d}',name:${JSON.stringify(n.n)}}))">See its full story →</a>`;
   history.replaceState(null,'', '?d='+n.d);
 }
@@ -462,7 +468,9 @@ window.addEventListener('resize', resize);
 
 fetch('/map-data').then(r=>r.json()).then(d => {
   meta = d.meta;
-  nodes = d.nodes.map((n,i)=>({...n, i}));
+  // TEA ships names in all caps; title-case once here so the canvas labels,
+  // the panel, the readout and the search all agree — and match the dashboard.
+  nodes = d.nodes.map((n,i)=>({...n, i, n: titleCase(n.n)}));
   bounds = {
     x0: Math.min(...nodes.map(n=>n.x)), x1: Math.max(...nodes.map(n=>n.x)),
     y0: Math.min(...nodes.map(n=>n.y)), y1: Math.max(...nodes.map(n=>n.y)),
@@ -491,7 +499,14 @@ fetch('/map-data').then(r=>r.json()).then(d => {
   const want = new URLSearchParams(location.search).get('d');
   if (want) { const n = nodes.find(x=>x.d===want); if (n){ pinned={i:n.i,n}; showPanel(n); view.k=3;
     const p=project(n); view.x -= (p.X-cv.width/2)/dpr; view.y -= (p.Y-cv.height/2)/dpr; draw(); } }
-}).catch(()=>{ document.querySelector('.support').textContent = 'Map data unavailable right now.'; });
+}).catch(err => {
+  // There is no `.support` element on this page — the old handler threw here
+  // and swallowed the real failure. Show the message where a reader will see it.
+  console.error('map data failed', err);
+  const ro = document.getElementById('readout');
+  ro.style.display = 'block';
+  ro.textContent = 'The map data could not be loaded right now. Please try again in a moment.';
+});
 </script>
 </body>
 </html>
