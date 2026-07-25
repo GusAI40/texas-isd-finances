@@ -502,6 +502,41 @@ def _dollar_shares(row) -> Optional[Dict[str, float]]:
     return shares
 
 
+@app.get("/dollar/texas", tags=["General"])
+async def get_texas_dollar(request: Request):
+    """The whole state's dollar, pooled: every category summed across every
+    district and divided by total spending. Unlike the per-district peer bars
+    this needs no rescaling — it is one real dollar made of real dollars."""
+    pool = get_pool(request)
+    async with pool.acquire() as conn:
+        year = await conn.fetchval("SELECT MAX(year) FROM v_spending_breakdown")
+        cols = sorted({c for _k, _l, cc, _d, _co in _DOLLAR_CATEGORIES for c in cc})
+        sums = ", ".join(f"SUM(COALESCE(b.{c},0)) AS {c}" for c in cols)
+        row = await conn.fetchrow(f"""
+            SELECT {sums}, SUM(f.total_spend) AS total_spend,
+                   SUM(f.enrollment) AS enrollment, COUNT(*) AS districts
+            FROM v_spending_breakdown b
+            JOIN v_finance_summary f ON f.district_number = b.district_number AND f.year = b.year
+            WHERE b.year = $1 AND f.enrollment > 0 AND f.total_spend > 0
+        """, year)
+        shares = _dollar_shares(row)
+        if shares is None:
+            raise HTTPException(status_code=503, detail="Statewide totals unavailable")
+        cents = _to_pennies(shares)
+        amounts = _cat_amounts(row)
+        total = float(row["total_spend"])
+        amounts[_OTHER[0]] = max(0.0, total - sum(amounts.values()))
+        labels = {k: (lbl, desc, codes) for k, lbl, _c, desc, codes in _DOLLAR_CATEGORIES}
+        labels[_OTHER[0]] = (_OTHER[1], _OTHER[2], _OTHER[3])
+        parts = [{"key": k, "label": labels[k][0], "contents": labels[k][1],
+                  "codes": labels[k][2], "cents": cents[k], "amount": round(amounts[k])}
+                 for k in shares]
+        parts.sort(key=lambda p: (p["key"] == _OTHER[0], -p["cents"]))
+        return {"year": year, "districts": row["districts"], "students": row["enrollment"],
+                "total_spend": round(total), "per_student": round(total / float(row["enrollment"])),
+                "parts": parts}
+
+
 @app.get("/district/{district_number}/dollar", tags=["Districts"])
 async def get_district_dollar(request: Request, district_number: str):
     """Where one dollar goes, as 100 pennies — for this district, for its
@@ -896,7 +931,14 @@ async def get_stats(request: Request):
             FROM v_finance_summary
         """)
 
-        return dict(stats)
+        # The biggest districts, so a first-time visitor has somewhere to click
+        # instead of an empty search box.
+        largest = await conn.fetch("""
+            SELECT district_number, district_name, enrollment FROM v_finance_summary
+            WHERE year = $1 AND enrollment > 0 ORDER BY enrollment DESC LIMIT 6
+        """, stats["end_year"])
+
+        return {**dict(stats), "largest_districts": [dict(r) for r in largest]}
 
 
 @app.get("/health", tags=["General"])

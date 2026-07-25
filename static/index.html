@@ -154,12 +154,52 @@
     border:1px solid var(--hairline); background:#fff; color:var(--ink-2);
   }
   .lensbar button[aria-pressed=true] { background:var(--ink); color:#fff; border-color:var(--ink); }
+  /* ---- Hero ----
+     Display face is a serif on purpose: this is a public record, and it should
+     read like one rather than like every other dashboard. Body stays sans. */
+  h1.hero-h, h2.action, .bignum, .guide .gbig, .atom h3 {
+    font-family: ui-serif, Georgia, "Iowan Old Style", "Times New Roman", serif;
+  }
+  h1.hero-h {
+    font-size: clamp(1.9rem, 3.8vw, 2.9rem); line-height: 1.14; letter-spacing: -.02em;
+    font-weight: 600; margin: .25rem 0 .9rem; max-width: 20em; text-wrap: balance;
+  }
+  .hero-num { color: var(--blue); white-space: nowrap; }
+  .nowrap { white-space: nowrap; }
+  .hero-row { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 2.8rem; align-items: start; }
+  .hero-sub { color: var(--ink-2); font-size: .95rem; max-width: 42rem; margin: 0 0 1.8rem; }
+  .finder { max-width: 30rem; }
+  .finder-lab { display:block; font-size:.74rem; letter-spacing:.09em; text-transform:uppercase;
+                color:var(--muted); font-weight:700; margin-bottom:.4rem; }
+  .chips { display:flex; flex-wrap:wrap; gap:.4rem; margin-top:.85rem; }
+  .chips button {
+    font:inherit; font-size:.83rem; padding:.34rem .8rem; border-radius:99px; cursor:pointer;
+    border:1px solid var(--hairline); background:#fff; color:var(--ink-2);
+  }
+  .chips button:hover { border-color:var(--ink); color:var(--ink); }
+  .chips button.ghost { border-style:dashed; color:var(--muted); }
+  .hero-fig { margin:0; }
+  .hero-fig .pennies { max-width:100%; margin:.2rem 0 .7rem; }
+  .hero-fig .pennies i { cursor:default; }
+  .hero-fig figcaption { font-size:.83rem; color:var(--ink-2); }
+  .hero-fig figcaption b { color:var(--ink); }
+  .tx-legend { display:flex; flex-wrap:wrap; gap:.3rem .9rem; margin-top:.7rem; font-size:.79rem; color:var(--muted); }
+  .tx-legend span { display:inline-flex; align-items:center; gap:.3rem; }
+  .tx-legend i { width:9px; height:9px; border-radius:2px; display:inline-block; }
+  .tx-legend .rest { font-style:italic; }
+  /* once a district is chosen the hero steps out of the way */
+  .hero.compact .hero-row { grid-template-columns: 1fr; }
+  .hero.compact .eyebrow, .hero.compact h1.hero-h, .hero.compact .hero-sub,
+  .hero.compact .hero-fig { display: none; }
+  @media (max-width: 860px) {
+    .hero-row { grid-template-columns: 1fr; gap: 1.8rem; }
+  }
   /* ---- The dollar: 100 pennies, guided ---- */
   .pennies { display:grid; grid-template-columns:repeat(20,1fr); gap:3px; max-width:520px; margin:.9rem 0 .6rem; }
   .pennies i { display:block; aspect-ratio:1; border-radius:2px; cursor:pointer;
                transition:opacity .12s ease, transform .12s ease; }
-  .pennies.focusing i { opacity:.18; }
-  .pennies.focusing i.on { opacity:1; transform:scale(1.12); }
+  .pennies.focusing i { opacity:.3; }
+  .pennies.focusing i.on { opacity:1; box-shadow:0 0 0 1.5px var(--ink); }
   .penny-legend { display:flex; flex-wrap:wrap; gap:.35rem .5rem; font-size:.85rem; color:var(--ink-2); }
   .penny-legend button {
     font:inherit; display:inline-flex; align-items:center; gap:.35rem; cursor:pointer;
@@ -170,6 +210,7 @@
   .penny-legend button[aria-pressed=true] { background:var(--ink); color:#fff; border-color:var(--ink); }
   .penny-legend i { width:11px; height:11px; border-radius:2px; display:inline-block; flex:none; }
   .penny-legend b { font-variant-numeric:tabular-nums; }
+  .penny-legend .tiny-note { flex-basis:100%; font-size:.78rem; color:var(--muted); padding:.2rem .45rem; }
   /* zoom ladder: Texas → district → category */
   .ladder { display:flex; flex-wrap:wrap; align-items:center; gap:.25rem;
             font-size:.78rem; letter-spacing:.02em; color:var(--muted); margin:.1rem 0 .9rem; }
@@ -245,18 +286,30 @@
   <div class="warnbar" id="dbwarn">The database is not reachable right now. If this persists,
     the project may be paused — an administrator can wake it in the Supabase dashboard.</div>
 
-  <section id="picker-section">
-    <div class="eyebrow">Start here</div>
-    <h2 class="action" id="picker-title">Which district's story do you want to see?</h2>
-    <p class="support">One shared, plain-English place to understand how any Texas school district spends
-      public money — built for parents, taxpayers, boosters, business owners, reporters, trustees, and
-      administrators alike. Type a few letters and pick from the list; we'll remember your district on
-      this device.</p>
-    <div class="row">
-      <input type="search" id="search" placeholder="e.g. Dallas, Katy, Alamo Heights…" aria-label="Search districts">
-      <button class="primary" id="searchbtn">Search</button>
+  <section id="picker-section" class="hero">
+    <div class="eyebrow">Every dollar · every district · 2009–2025</div>
+    <h1 class="hero-h" id="picker-title">Texas school districts spend
+      <span class="hero-num" id="hero-num">public money</span> a year. Here is where every penny goes.</h1>
+    <p class="hero-sub" id="hero-sub">One plain-English record of how every Texas school district spends
+      public money — for parents, taxpayers, boosters, business owners, reporters, trustees and
+      administrators alike. Official state figures, nothing modelled, a source on every number.</p>
+    <div class="hero-row">
+      <div class="finder">
+        <label class="finder-lab" for="search" id="finder-lab">Find your district</label>
+        <div class="row">
+          <input type="search" id="search" placeholder="Start typing — Dallas, Katy, Alamo Heights…"
+                 autocomplete="off" aria-label="Search districts">
+          <button class="primary" id="searchbtn">Show me</button>
+        </div>
+        <ul class="results" id="results"></ul>
+        <div class="chips" id="quickpick"></div>
+      </div>
+      <figure class="hero-fig">
+        <div class="pennies" id="tx-pennies" role="img"
+             aria-label="The statewide dollar shown as 100 pennies by category"></div>
+        <figcaption id="tx-cap">Loading the statewide dollar…</figcaption>
+      </figure>
     </div>
-    <ul class="results" id="results"></ul>
   </section>
 
   <div id="dash" class="hidden">
@@ -448,10 +501,10 @@
     <div class="eyebrow">Statewide context</div>
     <h2 class="action" id="state-title">Texas at a glance</h2>
     <div class="kpis">
-      <div class="kpi"><div class="label">Districts</div><div class="value" id="t-districts">—</div></div>
-      <div class="kpi"><div class="label">Years covered</div><div class="value" id="t-years">—</div></div>
-      <div class="kpi"><div class="label">Records</div><div class="value" id="t-records">—</div></div>
-      <div class="kpi"><div class="label">Median spend / student</div><div class="value" id="t-med">—</div>
+      <div class="kpi"><div class="label">Districts</div><div class="value nowrap" id="t-districts">—</div></div>
+      <div class="kpi"><div class="label">Years</div><div class="value nowrap" id="t-years">—</div></div>
+      <div class="kpi"><div class="label">Records</div><div class="value nowrap" id="t-records">—</div></div>
+      <div class="kpi"><div class="label">Median per student</div><div class="value nowrap" id="t-med">—</div>
         <div class="plain">Half of districts spend more, half less.</div></div>
     </div>
   </section>
@@ -580,6 +633,12 @@ const fmtMoney = v => v == null ? '—' : '$' + Math.round(v).toLocaleString();
 const fmtNum = v => v == null ? '—' : Number(v).toLocaleString();
 const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
 const pct = (a, b) => b ? Math.round(100 * (a - b) / b) : null;
+/* TEA ships district names in all caps. Shouting at a parent is not a design
+   choice, so names are title-cased for display the moment they enter state —
+   the district NUMBER is what every citation and API call actually uses. */
+const titleCase = s => (s || '').toLowerCase()
+  .replace(/(^|[\s('/-])([a-z])/g, (_m, a, b) => a + b.toUpperCase())
+  .replace(/\b(Isd|Csd|Msd|Jjaep|Esc|Aea)\b/g, m => m.toUpperCase());
 
 const state = { district: null, summary: [], benchmarks: [], peers: null, flags: [], breakdown: [],
                 metric: 'spend', compare: null, compareSummary: [], lens: 'parent',
@@ -639,9 +698,15 @@ function renderDollar() {
     for (let i = 0; i < p.cents; i++) cells += `<i data-k="${p.key}" style="background:${p.color}"></i>`;
   });
   $('pennies').innerHTML = cells;
-  $('penny-legend').innerHTML = d.parts.map(p =>
+  // A category worth less than a penny gets no square, so it gets no legend row
+  // either — it is named underneath instead of sitting there reading "0¢".
+  const shown = d.parts.filter(p => p.cents > 0);
+  const tiny = d.parts.filter(p => p.cents === 0 && p.amount > 0);
+  $('penny-legend').innerHTML = shown.map(p =>
     `<button type="button" data-k="${p.key}" aria-pressed="${state.dollarPin === p.key}">` +
-    `<i style="background:${p.color}"></i>${p.name} <b>${p.cents}¢</b></button>`).join('');
+    `<i style="background:${p.color}"></i>${p.name} <b>${p.cents}¢</b></button>`).join('') +
+    (tiny.length ? `<span class="tiny-note">Under 1¢ each: ` +
+      tiny.map(p => `${p.name} (${fmtMoney(p.amount)})`).join(', ') + `</span>` : '');
   renderCmpBars(d);
   renderLadder();
   renderAtom();
@@ -971,8 +1036,8 @@ async function doSearch(inputId, listId, onPick) {
     for (const r of rows) {
       const li = document.createElement('li');
       const b = document.createElement('button');
-      b.textContent = r.district_name + ' (' + r.district_number + ')';
-      b.onclick = () => onPick(r.district_number, r.district_name);
+      b.textContent = titleCase(r.district_name) + ' (' + r.district_number + ')';
+      b.onclick = () => onPick(r.district_number, titleCase(r.district_name));
       li.appendChild(b); list.appendChild(li);
     }
   } catch (e) { list.innerHTML = '<li class="cite">Search unavailable right now.</li>'; }
@@ -983,7 +1048,8 @@ async function selectDistrict(num, name) {
   state.compare = null; state.compareSummary = [];
   state.dollar = null; state.dollarPin = null; state.dollarHover = null;
   $('results').innerHTML = ''; $('search').value = '';
-  $('picker-title').textContent = 'Look up a different district';
+  $('picker-section').classList.add('compact');
+  $('finder-lab').textContent = 'Look up a different district';
   await loadDashboard();
 }
 async function selectCompare(num, name) {
@@ -1196,7 +1262,7 @@ function renderPeers() {
   const me = p.district;
   const rows = [{ ...me, me: true }, ...p.peers].sort((a, b) => b.spend_per_student - a.spend_per_student);
   const rank = rows.findIndex(r => r.me) + 1;
-  $('peers-title').textContent = `${me.district_name} ranks #${rank} of ${rows.length} similar-size districts on per-student spending`;
+  $('peers-title').textContent = `${titleCase(me.district_name)} ranks #${rank} of ${rows.length} similar-size districts on per-student spending`;
   $('peers-why').textContent = p.basis === 'similarity_graph'
     ? `Your ${p.peers.length} most structurally similar Texas districts — matched on size, enrollment trajectory, and funding profile (not on spending itself, so this comparison stays fair), fiscal ${me.year}. Your bar is blue; the dashed line is the state median.`
     : `The ${p.peers.length} Texas districts closest to your enrollment (${fmtNum(Math.round(me.enrollment * 0.5))}–${fmtNum(me.enrollment * 2)} students), fiscal ${me.year}. Your bar is blue; the dashed line is the state median.`;
@@ -1212,7 +1278,7 @@ function renderPeers() {
   rows.forEach((r, i) => {
     const yy = m.t + i * rowH;
     const w = x(+r.spend_per_student) - m.l;
-    out += `<text x="${m.l - 8}" y="${yy + rowH / 2 + 4}" text-anchor="end" font-size="11" fill="${r.me ? css('--ink') : css('--muted')}" ${r.me ? 'font-weight="700"' : ''}>${trunc(r.district_name, 30)}</text>`;
+    out += `<text x="${m.l - 8}" y="${yy + rowH / 2 + 4}" text-anchor="end" font-size="11" fill="${r.me ? css('--ink') : css('--muted')}" ${r.me ? 'font-weight="700"' : ''}>${trunc(titleCase(r.district_name), 30)}</text>`;
     out += `<rect data-i="${i}" x="${m.l}" y="${yy + 4}" width="${Math.max(w, 1)}" height="${rowH - 9}" rx="4" fill="${r.me ? css('--blue') : css('--hairline')}"/>`;
     out += `<text x="${x(+r.spend_per_student) + 6}" y="${yy + rowH / 2 + 4}" font-size="11" fill="${r.me ? css('--blue') : css('--muted')}" ${r.me ? 'font-weight="700"' : ''}>${fmtMoney(r.spend_per_student)}</text>`;
   });
@@ -1223,7 +1289,7 @@ function renderPeers() {
     const t = e.target.closest('[data-i]');
     if (!t) { tip.style.display = 'none'; return; }
     const r = rows[+t.dataset.i];
-    tip.textContent = `${r.district_name} · ${fmtNum(r.enrollment)} students · ${fmtMoney(r.spend_per_student)}/student`;
+    tip.textContent = `${titleCase(r.district_name)} · ${fmtNum(r.enrollment)} students · ${fmtMoney(r.spend_per_student)}/student`;
     tip.style.display = 'block';
     const rc = svg.getBoundingClientRect();
     tip.style.left = Math.min(e.clientX - rc.left + 14, rc.width - 260) + 'px';
@@ -1440,7 +1506,7 @@ function renderTurnarounds() {
   $('turnaround-title').textContent =
     `Among districts like yours, ${parts.join(' and ')}`;
   $('turnaroundlist').innerHTML = t.map(x =>
-    `<div class="flagcard ok"><strong>${x.district_name}</strong> — ` +
+    `<div class="flagcard ok"><strong>${titleCase(x.district_name)}</strong> — ` +
     (x.type === 'deficit_reversal'
       ? `ran deficits ${x.struggled}, back in surplus since ${x.recovered_since}.`
       : `lost enrollment ${x.struggled}, growing again since ${x.recovered_since}.`) +
@@ -1533,10 +1599,57 @@ function closeSheets() {
 }
 
 /* ---------- statewide + boot ---------- */
+/* ---------- the hero: show the product, don't describe it ---------- */
+const fmtBig = v => v >= 1e9 ? '$' + (v / 1e9).toFixed(1) + ' billion'
+                : v >= 1e6 ? '$' + Math.round(v / 1e6) + ' million' : fmtMoney(v);
+function renderTexasDollar(tx) {
+  if (!tx || !tx.parts) return;
+  $('hero-num').textContent = fmtBig(tx.total_spend);
+  $('tx-pennies').innerHTML = tx.parts.map(p =>
+    Array(p.cents).fill(`<i style="background:${DOLLAR_COLORS[p.key] || '#c9c7be'}"></i>`).join('')).join('');
+  const top = tx.parts[0], debt = tx.parts.find(p => p.key === 'debt');
+  $('tx-cap').innerHTML =
+    `<b>The Texas dollar, fiscal ${tx.year}.</b> Every one of the ${fmtNum(tx.districts)} districts pooled ` +
+    `together: ${top.cents}¢ of every dollar goes to ${top.label.toLowerCase()}` +
+    (debt ? `, ${debt.cents}¢ to paying off past building bonds` : '') +
+    `. That is ${fmtMoney(tx.per_student)} per student across ${fmtNum(tx.students)} students. ` +
+    `Search a district to see how its dollar is different.` +
+    `<div class="tx-legend">` + tx.parts.filter(p => p.cents > 0).slice(0, 6).map(p =>
+      `<span><i style="background:${DOLLAR_COLORS[p.key] || '#c9c7be'}"></i>${p.label} ${p.cents}¢</span>`
+    ).join('') + `<span class="rest">…and the rest</span></div>`;
+}
+function renderQuickPicks(largest) {
+  const el = $('quickpick');
+  if (!el || !largest || !largest.length) return;
+  el.innerHTML = largest.map(d =>
+    `<button type="button" data-num="${d.district_number}" data-name="${titleCase(d.district_name)}">` +
+    `${titleCase(d.district_name).replace(/ ISD$/, '')}</button>`).join('') +
+    `<button type="button" class="ghost" id="chip-random">Surprise me</button>` +
+    `<button type="button" class="ghost" id="chip-map">See all on the state map</button>` +
+    (localStorage.getItem('tisd_toured') ? ''
+      : `<button type="button" class="ghost" id="chip-tour">New here? 60-second tour</button>`);
+  el.querySelectorAll('button[data-num]').forEach(b =>
+    b.onclick = () => selectDistrict(b.dataset.num, b.dataset.name));
+  $('chip-map').onclick = () => { location.href = '/map'; };
+  if ($('chip-tour')) $('chip-tour').onclick = () => tourShow(0);
+  $('chip-random').onclick = async () => {
+    try {
+      const all = await api('/districts?limit=500');
+      const r = all[Math.floor(Math.random() * all.length)];
+      selectDistrict(r.district_number, titleCase(r.district_name));
+    } catch (e) { /* banner shown */ }
+  };
+}
+
 async function loadStatewide() {
   try {
-    const [s, bm] = await Promise.all([api('/stats'), api('/benchmarks')]);
+    const [s, bm, tx] = await Promise.all([
+      api('/stats'), api('/benchmarks'), api('/dollar/texas').catch(() => null)]);
     state.benchmarks = bm;
+    renderTexasDollar(tx);
+    renderQuickPicks(s.largest_districts);
+    document.querySelector('.brand .tag').textContent =
+      `Official TEA data · fiscal ${s.start_year}–${s.end_year} · ${fmtNum(s.total_districts)} districts`;
     $('t-districts').textContent = fmtNum(s.total_districts);
     $('t-years').textContent = s.start_year + '–' + s.end_year;
     $('t-records').textContent = fmtNum(s.total_records);
@@ -1549,6 +1662,13 @@ async function loadStatewide() {
 
 $('searchbtn').onclick = () => doSearch('search', 'results', selectDistrict);
 $('search').addEventListener('keydown', e => { if (e.key === 'Enter') doSearch('search', 'results', selectDistrict); });
+/* type-ahead: two letters is enough to start showing districts — no button press */
+let _typeAhead;
+$('search').addEventListener('input', () => {
+  clearTimeout(_typeAhead);
+  if ($('search').value.trim().length < 2) { $('results').innerHTML = ''; return; }
+  _typeAhead = setTimeout(() => doSearch('search', 'results', selectDistrict), 250);
+});
 $('csearchbtn').onclick = () => doSearch('csearch', 'cresults', selectCompare);
 $('csearch').addEventListener('keydown', e => { if (e.key === 'Enter') doSearch('csearch', 'cresults', selectCompare); });
 $('askbtn').onclick = ask;
@@ -1623,10 +1743,10 @@ function slug() { return (state.district?.name || 'district').replace(/\W+/g, '_
   if (saved) {
     const { num, name } = JSON.parse(saved);
     state.district = { num, name };
-    $('picker-title').textContent = 'Look up a different district';
+    $('picker-section').classList.add('compact');
+    $('finder-lab').textContent = 'Look up a different district';
     await loadDashboard();
   }
-  if (!localStorage.getItem('tisd_toured')) tourShow(0);
 })();
 </script>
 </body>
