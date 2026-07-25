@@ -55,12 +55,14 @@ ruff check . && python -m pytest -q       # 24 tests, all must pass
 curl -s https://texas-isd-finances.vercel.app/health
 ```
 
-## Current Status (updated 2026-07-23 — keep this a snapshot, history goes in the log)
+## Current Status (updated 2026-07-25 — keep this a snapshot, history goes in the log)
 
 - ✅ Live in production, all endpoints verified including end-to-end NLP.
-- ✅ Admin dashboard v3 live: white-minimalist McKinsey/SWD design, action titles, exec summary, MECE breakdown, compare mode, PNG/CSV exports, /query rate limit. Demand-weighted grade ≈3.96/4.0.
-- ✅ Three audit rounds complete (`AUDIT.md`); 30 tests green; CI enforces ruff+pytest.
+- ✅ Public portal is now the **Texas ISD Financial Resource Guide**: white-minimalist McKinsey/SWD design, penny-of-the-dollar visual, 6 audience lenses, share cards, Methods & citation section, AI disclosure + TAG footer.
+- ✅ `static/map.html` ("seating chart" of all 1,202 districts) works on phones — pan/pinch/tap; landmarks + named neighborhoods + plain axes.
+- ✅ Three audit rounds + Monte Carlo audit complete (`AUDIT.md`, `docs/AUDIT_SCORECARD.md`); 32 tests green; CI enforces ruff+pytest.
 - 🔴 OPEN: user must rotate credentials pasted into chat on 2026-07-22 (OpenAI/GitHub/Hetzner/Anthropic etc.); OpenAI key in Vercel env needs updating after rotation.
+- 🟡 OPEN hardening: read-only DB role for NLP; `/query` needs threadpool+timeout; real rate limiting; analytics; map keyboard/SR path; PR #2 awaiting user review (do not merge).
 - 🟡 WATCH: Supabase free tier pauses after ~7 days idle → portal shows "database not connected" until woken in dashboard. Vercel Hobby is non-commercial; upgrade both if pursuing revenue.
 
 ## Key docs

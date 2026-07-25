@@ -17,6 +17,62 @@ Entry template:
 
 ---
 
+## 2026-07-25 — Phones can use the map; portal renamed "Texas ISD Financial Resource Guide"
+
+**What changed:** Two shipped pieces, both deployed and verified live.
+
+(a) `static/map.html` — full touch support. Added `touchstart` /
+`touchmove` / `touchend` handlers: one-finger drag pans, two-finger pinch
+zooms (clamped `k` to 1–14), a tap that doesn't drag opens the district.
+Moved `touch-action:none` off `.mapwrap` and onto `canvas` alone so the
+page still scrolls normally around the map. `resize()` now uses a portrait
+aspect on narrow screens (`h = w * 1.05` under 560px, `w * 0.62` above) —
+a 16:10 letterbox on a phone was ~120px tall. Added a `.mobonly` gesture
+hint line.
+
+(b) `static/index.html` — Resource Guide framing. Brand renamed to
+"Texas ISD Financial Resource Guide" (subtitle: official TEA data ·
+fiscal 2009–2025 · 1,202 districts); intro rewritten to name every
+audience by name. New **Methods & citation** section with four
+collapsible blocks: where the data comes from (loaded unchanged from TEA
+— no estimating, no modeling), how each number is calculated (per-student
+divisor, why our total exceeds the nationally-quoted per-pupil figure,
+the exact TEA function codes behind each category, why peer matching
+excludes spending, what each flag threshold means), known limits — read
+before citing, and a copy-paste citation with retrieval date.
+
+**Why:** User: "then fix it! I want this to become the Texas ISD Financial
+Resource Guide where it becomes such a resource guide that it starts to be
+used for decisions to develop new policies." Two things blocked that. The
+map was 100% non-functional on phones — no touch handlers at all, so the
+audience most likely to arrive from a social link (parents, boosters) hit
+a dead screen. And nobody cites a source that won't show its work: a
+policy-grade reference has to state its provenance, its arithmetic, and
+its limits in the same breath as its numbers.
+
+**Gotchas:**
+- `touch-action:none` on the wrapper killed page scroll around the map —
+  it must be scoped to the canvas element only.
+- Mouse and touch handlers both fire on hybrid devices; the touch path
+  tracks its own `touchStart` state and calls `preventDefault()` inside a
+  `{ passive:false }` listener, which is required or Chrome ignores it.
+- The "known limits" block is deliberately blunt (no HVAC/technology
+  isolation possible, fiscal-year timing differences, overlapping
+  categories, the AI answer box can be wrong). Underselling here is the
+  only thing that makes the rest citable.
+
+**Open items:** unchanged plus map keyboard/screen-reader path (canvas has
+no SR alternative; search-based access exists). Still open: credential
+rotation (user-side, 🔴), dedicated read-only DB role for the NLP path,
+`/query` needs `run_in_threadpool` + `asyncio.wait_for` (today it blocks
+the event loop and can 200 on failure), real rate limiting
+(X-Forwarded-For is spoofable), privacy-friendly analytics, DB keep-alive
+against the Supabase free-tier 7-day idle pause, insight percentile/rank
+context, PR #2 (`docs/complete-repo-blueprint`) awaiting user review —
+do not merge.
+
+---
+
 ## 2026-07-24 — Map rewritten for humans (landmarks, neighborhoods, plain axes)
 
 **What changed:** `static/map.html` reframed from an analyst scatter into
