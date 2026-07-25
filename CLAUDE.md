@@ -40,8 +40,15 @@ read-only Postgres views on Supabase. MIT-licensed, built for public use.
 - **Setup order is import-first**: `scripts/prepare_data.py` →
   `scripts/import_to_supabase.py` (creates the 140-col table) → run
   `sql/create_tables.sql` (adds PK/indexes/views/matview/RLS/grants).
-- **Vercel deploys swap in `requirements-vercel.txt`** as requirements.txt
-  (runtime deps incl. NLP; no pandas/matplotlib — bundle cap 500 MB).
+- **Vercel builds with `uv` from the `[project]` table in `pyproject.toml`**
+  (runtime deps only; no pandas/matplotlib — bundle cap 500 MB).
+  `requirements-vercel.txt` mirrors it. Pre-flight any deploy with
+  `uv lock --dry-run`; a missing `[project]` table fails every build.
+- **Commits must be authored by a Vercel team seat holder.** Vercel Pro
+  bills per seat and returns `BLOCKED` /`TEAM_ACCESS_REQUIRED` for deploys
+  whose git author has no seat — it looks like a build failure and isn't.
+  Keep `git config user.email` on the repo owner; `Co-Authored-By` records
+  the AI author.
 - **After any data import**: `REFRESH MATERIALIZED VIEW v_anomaly_flags;`
 - Local sandbox note: direct Postgres (port 5432/6543) may be blocked in
   the remote dev container — use the Supabase Management API
