@@ -17,6 +17,37 @@ Entry template:
 
 ---
 
+## 2026-07-24 — Actionable-intelligence engine live (peer-benchmarked $ findings)
+
+**What changed:** New `GET /district/{id}/insights` + top-of-dashboard
+"Actionable Intelligence" section. For each district it compares
+operating/instruction/admin/facilities/debt per student and payroll/
+contracted share against its SIMILARITY-GRAPH peers, fires only material
+deviations (>20% AND >$100k/yr), quantifies each in $/year, ranks by
+magnitude, returns top 6. Dashboard renders ranked cards ("<metric>: X%
+above peers · $Y/year above peers") colored concern-vs-strength, framed as
+review targets not verdicts. 32 tests green. Deployed + verified live:
+Dallas debt 34% above = $128M/yr, admin 44% = $71.5M/yr; Houston admin 89%
+= $181M/yr; San Antonio 4 findings.
+
+**Why:** User asked for "actionable intelligence." This turns raw numbers
+into decisions and is the app's most defensible feature — it leans on the
+exogenous peer graph (the unique asset) to say "where you differ from
+districts genuinely like you, in dollars."
+
+**Gotchas:** admin = fct21+fct23+fct41_92 combined; large-district
+deviations can be big and real but the copy hedges ("questions, not
+verdicts"). Materiality floor (20% AND $100k) keeps tiny districts from
+spamming findings; needs >=4 peers with data or returns empty. Endpoint
+joins 3 views + district_similarity per request — fast enough (p95 <500ms).
+
+**Open items:** unchanged — labeling fix (operating vs total per-student),
+launch-hardening (rate limit, RO role, map a11y, analytics), rotate creds,
+PR #2. Next data candidates researched: Urban Institute API (#1),
+USAC E-rate (#2) — see prior turn; not yet ingested.
+
+---
+
 ## 2026-07-24 — Tier-1 data enrichment (object + program dimensions) live + data roadmap
 
 **What changed:** Surfaced two spending dimensions the summarized data
