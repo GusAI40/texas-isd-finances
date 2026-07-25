@@ -51,9 +51,21 @@ read-only Postgres views on Supabase. MIT-licensed, built for public use.
 ## Verify before claiming anything works
 
 ```bash
-ruff check . && python -m pytest -q       # 24 tests, all must pass
+ruff check . && python -m pytest -q       # 35 tests, all must pass
 curl -s https://texas-isd-finances.vercel.app/health
 ```
+
+**Static pages need their own check — a 200 response proves nothing.** A
+`const` redeclaration once killed `static/map.html` entirely while the page
+still served 200 and grepped fine. Always parse the script, and render it:
+
+```bash
+python3 -c "import re;s=open('static/map.html').read();\
+open('/tmp/m.js','w').write(re.findall(r'<script>(.*?)</script>',s,re.S)[-1])"
+node --check /tmp/m.js                    # repeat for static/index.html
+```
+
+Never verify a UI change by grepping the served HTML for strings.
 
 ## Current Status (updated 2026-07-25 — keep this a snapshot, history goes in the log)
 

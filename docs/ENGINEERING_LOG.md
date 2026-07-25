@@ -19,7 +19,20 @@ Entry template:
 
 ## 2026-07-25 — Guided dollar (macro→micro→atom) + landing page rebuilt from a browser audit
 
-**What changed:** ⚠️ **Committed and pushed but NOT DEPLOYED** — see Gotchas.
+**What changed:** **Committed and pushed but NOT DEPLOYED** — see Gotchas.
+
+(0) 🔴 **`static/map.html` has been completely broken in production since
+2026-07-24.** It declared `const a` twice in the same function scope — a
+hard SyntaxError, so the whole script never parsed: no canvas, no panel,
+no search. Introduced in `04a4385` and shipped, because that deploy was
+"verified" by grepping the served HTML for strings, which proves bytes
+arrived and nothing more. **Never verify a JS change by grepping HTML.**
+Fixed and confirmed in a real browser (canvas sizes and draws, search
+pins, panel and readout populate, no page errors). Its `.catch()` also
+wrote to a `.support` element that does not exist on that page, so any
+data failure threw inside the catch and hid the cause — now reports into
+`#readout`. Emoji removed from both pages; district names title-cased on
+the map too.
 
 (a) *Guided dollar.* New `GET /district/{id}/dollar` is now the single
 definition of the 100-penny dollar for every client: largest-remainder
@@ -61,6 +74,10 @@ each other between header and stats.
   server-side, with `/dollar` computed by importing the real functions from
   `src.api` — which validated the endpoint math on live data before deploy.
   Chromium path is `/opt/pw-browsers/chromium-1194/chrome-linux/chrome`.
+- **A page can serve 200 and still be entirely dead.** Extract the
+  `<script>` block and `node --check` it in CI, and render the page in
+  headless Chromium against the local harness before claiming a UI works.
+  Both pages now parse clean; add this to the verify step in CLAUDE.md.
 - Penny grid: dimming at .18 opacity destroyed the grid's shape, and
   `transform:scale()` on the highlighted squares made neighbours collide.
   Use ~.3 opacity and an outline instead.
