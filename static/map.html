@@ -55,6 +55,14 @@
   .dotflag { display:inline-block; width:10px; height:10px; border-radius:50%; border:2px solid var(--flag); vertical-align:middle; margin-right:.3rem; }
   .cite { font-size:.76rem; color:var(--muted); margin-top:.8rem; max-width:48rem; }
   .cite a { color:var(--ink-2); }
+  .explainer { max-width:44rem; margin:0 0 1rem; }
+  .explainer p { font-size:.94rem; color:var(--ink-2); margin:0 0 .55rem; }
+  .explainer .tryit { color:var(--ink); background:var(--wash); border-radius:8px; padding:.6rem .85rem; margin-top:.7rem; }
+  .readout {
+    background:var(--wash); border-radius:10px; padding:.85rem 1.05rem; margin:.7rem 0 0;
+    font-size:.95rem; max-width:44rem; display:none;
+  }
+  .readout b { color:var(--ink); }
 </style>
 </head>
 <body>
@@ -62,19 +70,27 @@
   <header>
     <div class="brand">Texas ISD Finances<a href="/">← dashboard</a></div>
     <div class="toolbar">
-      <input type="search" id="find" placeholder="Find a district…" aria-label="Find district" autocomplete="off">
+      <input type="search" id="find" placeholder="Type your district, press Enter…" aria-label="Find your district" autocomplete="off">
       <button class="chip" id="mode-spend" aria-pressed="true" title="Color dots by spending per student">Color: spending</button>
       <button class="chip" id="mode-arche" aria-pressed="false" title="Color dots by structural archetype">Color: archetype</button>
       <button class="chip" id="toggle-flags" aria-pressed="false" title="Ring districts flagged in the last 2 years">⚠ Flagged only</button>
       <button class="chip" id="reset" title="Reset zoom">Reset view</button>
     </div>
   </header>
-  <div class="eyebrow">Statewide similarity map · fiscal <span id="yr"></span> · <span id="count"></span> districts</div>
-  <h1>Every Texas district, placed by what it <em>is</em> — colored by what it <em>spends</em></h1>
-  <p class="support">Position comes from structure only (size, growth, funding profile), so neighbors are true peers.
-    <strong>Hover</strong> to light up a district's nearest-neighbor network; <strong>click</strong> to inspect;
-    scroll or pinch to zoom, drag to pan. When adjacent dots have very different colors, similar districts are
-    spending very differently — that's where the questions live.</p>
+  <div class="eyebrow">Statewide map · fiscal <span id="yr"></span> · <span id="count"></span> districts</div>
+  <h1>A seating chart for every school district in Texas</h1>
+  <div class="explainer">
+    <p><strong>What am I looking at?</strong> Imagine every school district in Texas walked into one giant
+    gymnasium and sat down next to the districts most like them. Big city districts sat together. Small country
+    districts sat together. Fast-growing suburbs found each other.</p>
+    <p><strong>That's this picture.</strong> Each dot is one district. <strong>Dots that sit near each other are
+    alike</strong> — same size, same growth, same kind of funding. The <strong>bigger the dot, the more students</strong>.
+    The <strong>darker the blue, the more it spends per student</strong>.</p>
+    <p><strong>So what?</strong> When two dots sit right next to each other but one is pale and one is dark,
+    two very similar districts are spending very differently. <em>That's a question worth asking.</em></p>
+    <p class="tryit">👉 <strong>Try this:</strong> type your district's name in the box above — we'll find its seat
+    and show you who's sitting next to it.</p>
+  </div>
 
   <div class="stage">
     <div class="mapwrap" id="wrap">
@@ -97,10 +113,12 @@
     </aside>
   </div>
 
+  <div class="readout" id="readout"></div>
+
   <div class="legend" id="legend-spend">
-    <span><span class="swatch"><i style="background:#cde2fb"></i><i style="background:#86b6ef"></i><i style="background:#3987e5"></i><i style="background:#1c5cab"></i><i style="background:#0d366b"></i></span>spend/student, low → high <span id="ramp-vals" style="color:var(--muted)"></span></span>
-    <span>dot size = enrollment</span>
-    <span><span class="dotflag"></span>ringed = flagged in last 2 yrs</span>
+    <span><span class="swatch"><i style="background:#cde2fb"></i><i style="background:#86b6ef"></i><i style="background:#3987e5"></i><i style="background:#1c5cab"></i><i style="background:#0d366b"></i></span>pale = spends less per student, dark = spends more <span id="ramp-vals" style="color:var(--muted)"></span></span>
+    <span>bigger dot = more students</span>
+    <span><span class="dotflag"></span>red ring = numbers moved unusually recently</span>
   </div>
   <div class="legend" id="legend-arche" style="display:none"></div>
   <p class="cite">Horizontal axis: <b id="ax">…</b> &nbsp;·&nbsp; vertical axis: <b id="ay">…</b> &nbsp;
@@ -130,7 +148,7 @@
 const cv = document.getElementById('map'), ctx = cv.getContext('2d');
 const wrap = document.getElementById('wrap'), tip = document.getElementById('tip');
 const RAMP = ['#cde2fb','#86b6ef','#3987e5','#1c5cab','#0d366b'];
-let nodes = [], meta = {}, qs = [], view = {k:1, x:0, y:0}, hover = null, pinned = null;
+let nodes = [], meta = {}, qs = [], view = {k:1, x:0, y:0}, hover = null, pinned = null, landmarks = [];
 let flaggedOnly = false, findTerm = '', colorMode = 'spend';
 let bounds = null, dpr = Math.min(window.devicePixelRatio || 1, 2);
 
@@ -168,6 +186,36 @@ function draw() {
   ctx.strokeStyle = '#efeee9'; ctx.lineWidth = 1*dpr;
   ctx.beginPath(); ctx.moveTo(0,o.Y); ctx.lineTo(W,o.Y); ctx.moveTo(o.X,0); ctx.lineTo(o.X,H); ctx.stroke();
 
+  // PLAIN-ENGLISH axis labels drawn right on the map (landmarks, not jargon)
+  ctx.fillStyle = '#a8a69d'; ctx.font = `600 ${12*dpr}px system-ui,sans-serif`;
+  ctx.textAlign = 'left';   ctx.fillText('← smaller districts', 12*dpr, H - 12*dpr);
+  ctx.textAlign = 'right';  ctx.fillText('bigger districts →', W - 12*dpr, H - 12*dpr);
+  ctx.save();
+  ctx.translate(14*dpr, H/2); ctx.rotate(-Math.PI/2); ctx.textAlign = 'center';
+  ctx.fillText('shrinking  ←→  growing', 0, 0);
+  ctx.restore();
+  ctx.textAlign = 'left';
+
+  // NEIGHBORHOOD labels — name the clusters so the picture has districts of its own
+  if (!focus && meta.archetypes) {
+    const cen = meta.archetypes.map(() => ({sx:0, sy:0, n:0}));
+    for (const n of nodes) { const c = cen[n.c]; if (c) { c.sx += n.x; c.sy += n.y; c.n++; } }
+    ctx.textAlign = 'center';
+    cen.forEach((c, j) => {
+      if (!c.n) return;
+      const p = project({x: c.sx/c.n, y: c.sy/c.n});
+      if (p.X < 60*dpr || p.X > W-60*dpr || p.Y < 30*dpr || p.Y > H-40*dpr) return;
+      const label = (meta.archetypes[j].name || '').replace(/ · /g, ' · ');
+      ctx.font = `700 ${13.5*dpr}px system-ui,sans-serif`;
+      ctx.fillStyle = 'rgba(255,255,255,.82)';
+      const w = ctx.measureText(label).width;
+      ctx.fillRect(p.X - w/2 - 7*dpr, p.Y - 12*dpr, w + 14*dpr, 20*dpr);
+      ctx.fillStyle = '#6b6960';
+      ctx.fillText(label, p.X, p.Y + 3*dpr);
+    });
+    ctx.textAlign = 'left';
+  }
+
   // edges of the focused ego network
   if (focus) {
     ctx.strokeStyle = '#8fb4e6'; ctx.lineWidth = 1.4*dpr; ctx.globalAlpha = .7;
@@ -194,11 +242,34 @@ function draw() {
     ctx.globalAlpha = 1;
     hitList.push({p, r: Math.max(r, 7*dpr), n});
   }
+  // LANDMARKS — always label the districts everyone recognizes, like city
+  // names on a road map, so the picture has anchors instead of anonymous dots
+  if (!flaggedOnly) {
+    ctx.textAlign = 'center';
+    ctx.font = `600 ${11.5*dpr}px system-ui,sans-serif`;
+    for (const n of landmarks) {
+      if (focus && focus.i === n.i) continue;
+      const p = project(n), r = radius(n);
+      if (p.X < 0 || p.X > W || p.Y < 0 || p.Y > H) continue;
+      const short = n.n.replace(/ ISD$/, '');
+      const w = ctx.measureText(short).width;
+      ctx.fillStyle = 'rgba(255,255,255,.85)';
+      ctx.fillRect(p.X - w/2 - 4*dpr, p.Y - r - 16*dpr, w + 8*dpr, 15*dpr);
+      ctx.fillStyle = '#3d3b36';
+      ctx.fillText(short, p.X, p.Y - r - 5*dpr);
+    }
+    ctx.textAlign = 'left';
+  }
+
   // label the focused node
   if (focus) {
     const p = project(focus.n);
-    ctx.font = `${13*dpr}px system-ui,sans-serif`; ctx.fillStyle = '#1a1a1a'; ctx.textAlign='center';
-    ctx.fillText(focus.n.n, p.X, p.Y - radius(focus.n) - 6*dpr);
+    ctx.font = `700 ${14*dpr}px system-ui,sans-serif`; ctx.textAlign='center';
+    const w = ctx.measureText(focus.n.n).width;
+    ctx.fillStyle = 'rgba(255,255,255,.9)';
+    ctx.fillRect(p.X - w/2 - 5*dpr, p.Y - radius(focus.n) - 22*dpr, w + 10*dpr, 20*dpr);
+    ctx.fillStyle = '#1a1a1a';
+    ctx.fillText(focus.n.n, p.X, p.Y - radius(focus.n) - 7*dpr);
   }
 }
 let hitList = [];
@@ -281,12 +352,46 @@ function showPanel(n) {
     localStorage.setItem('tisd_district', JSON.stringify({num:n.d, name:n.n}));
     location.href = '/';
   };
+  // Plain-English sentence — what this seat actually means
+  const a = meta.archetypes[n.c] || {};
+  const nb = n.k.map(j => nodes[j]).filter(Boolean);
+  const withSpend = nb.filter(m => m.s != null);
+  const nbMed = withSpend.length
+    ? withSpend.map(m => m.s).sort((x, y) => x - y)[Math.floor(withSpend.length / 2)] : null;
+  const cmp = (n.s != null && nbMed)
+    ? (n.s > nbMed * 1.05 ? `<b>more than</b> most of them` :
+       n.s < nbMed * 0.95 ? `<b>less than</b> most of them` : `<b>about the same as</b> them`)
+    : 'about the same as them';
+  const ro = document.getElementById('readout');
+  ro.style.display = 'block';
+  ro.innerHTML =
+    `<b>${n.n}</b> is sitting in the <b>“${a.name || 'Texas'}”</b> section — ` +
+    `${a.count ? a.count + ' districts' : 'districts'} across Texas that look like it. ` +
+    `It has <b>${n.e.toLocaleString()} students</b>` +
+    (n.s ? ` and spends <b>$${n.s.toLocaleString()} per student</b> — ${cmp}.` : '.') +
+    (nb.length ? ` Its closest matches: <b>${nb.slice(0,3).map(m=>m.n).join(', ')}</b>.` : '') +
+    (n.f ? ` ⚠️ Its numbers moved unusually in the last two years — worth a look.` : '') +
+    ` <a href="/" onclick="localStorage.setItem('tisd_district',JSON.stringify({num:'${n.d}',name:${JSON.stringify(n.n)}}))">See its full story →</a>`;
   history.replaceState(null,'', '?d='+n.d);
 }
 function hidePanel() {
   document.getElementById('panel-empty').style.display='block';
   document.getElementById('panel-body').style.display='none';
+  document.getElementById('readout').style.display='none';
   history.replaceState(null,'', location.pathname);
+}
+// Typing a name should FIND your seat — not just tint a dot
+function findAndPin() {
+  if (!findTerm) return;
+  const hit = nodes.filter(n => n.n.toUpperCase().includes(findTerm))
+                   .sort((a,b) => b.e - a.e)[0];
+  if (!hit) return;
+  pinned = {i: hit.i, n: hit}; showPanel(hit);
+  view.k = Math.max(view.k, 3.2);
+  draw();
+  const p = project(hit);
+  view.x -= (p.X - cv.width/2)/dpr; view.y -= (p.Y - cv.height/2)/dpr;
+  draw();
 }
 
 function setMode(m) {
@@ -300,6 +405,8 @@ function setMode(m) {
 document.getElementById('mode-spend').addEventListener('click', ()=>setMode('spend'));
 document.getElementById('mode-arche').addEventListener('click', ()=>setMode('archetype'));
 document.getElementById('find').addEventListener('input', e => { findTerm = e.target.value.trim().toUpperCase(); draw(); });
+document.getElementById('find').addEventListener('keydown', e => { if (e.key === 'Enter') findAndPin(); });
+document.getElementById('find').addEventListener('change', findAndPin);
 document.getElementById('toggle-flags').addEventListener('click', e => {
   flaggedOnly = !flaggedOnly; e.target.setAttribute('aria-pressed', flaggedOnly); draw();
 });
@@ -313,6 +420,13 @@ fetch('/map-data').then(r=>r.json()).then(d => {
     x0: Math.min(...nodes.map(n=>n.x)), x1: Math.max(...nodes.map(n=>n.x)),
     y0: Math.min(...nodes.map(n=>n.y)), y1: Math.max(...nodes.map(n=>n.y)),
   };
+  // landmarks: the biggest districts, spread out so labels don't collide
+  const bySize = nodes.slice().sort((a,b)=>b.e-a.e);
+  landmarks = [];
+  for (const n of bySize) {
+    if (landmarks.length >= 14) break;
+    if (landmarks.every(m => Math.hypot(m.x-n.x, m.y-n.y) > 0.55)) landmarks.push(n);
+  }
   const sp = nodes.map(n=>n.s).filter(s=>s!=null).sort((a,b)=>a-b);
   const q = p => sp[Math.floor(p*(sp.length-1))];
   qs = [q(.2),q(.4),q(.6),q(.8)];
