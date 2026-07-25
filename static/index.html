@@ -195,6 +195,17 @@
     </section>
 
     <hr class="rule">
+    <section id="insights-section" class="hidden">
+      <div class="eyebrow">Actionable intelligence</div>
+      <h2 class="action" id="insights-title"></h2>
+      <p class="support">Where this district <em>materially</em> differs from the districts most structurally
+        like it (same size, growth, and funding profile) — each gap quantified in dollars per year and ranked
+        by size. These are review targets and questions, not verdicts.</p>
+      <div id="insightlist"></div>
+      <div class="cite" id="insights-cite"></div>
+    </section>
+
+    <hr class="rule">
     <section id="trend-section">
       <div class="eyebrow">Trends · 17 years</div>
       <h2 class="action" id="trend-title"></h2>
@@ -442,22 +453,23 @@ async function loadDashboard() {
   if (!d) return;
   $('dash').classList.remove('hidden');
   try {
-    const [summary, peers, flags, breakdown, turnarounds, detail] = await Promise.all([
+    const [summary, peers, flags, breakdown, turnarounds, detail, insights] = await Promise.all([
       api('/district/' + encodeURIComponent(d.num) + '/summary'),
       api('/district/' + encodeURIComponent(d.num) + '/peers'),
       api('/anomalies?district_number=' + encodeURIComponent(d.num) + '&limit=50'),
       api('/district/' + encodeURIComponent(d.num) + '/breakdown'),
       api('/district/' + encodeURIComponent(d.num) + '/turnarounds').catch(() => ({turnarounds: []})),
       api('/district/' + encodeURIComponent(d.num) + '/spending-detail').catch(() => []),
+      api('/district/' + encodeURIComponent(d.num) + '/insights').catch(() => ({insights: []})),
     ]);
     state.summary = summary; state.peers = peers; state.flags = flags; state.breakdown = breakdown;
-    state.turnarounds = turnarounds; state.detail = detail;
+    state.turnarounds = turnarounds; state.detail = detail; state.insights = insights;
     renderAll();
     $('dash').scrollIntoView({ block: 'start' });
   } catch (e) { /* banner shown */ }
 }
 function renderAll() {
-  renderExec(); renderKPIs(); renderTrend(); renderPeers(); renderMoney(); renderFlags();
+  renderExec(); renderInsights(); renderKPIs(); renderTrend(); renderPeers(); renderMoney(); renderFlags();
   renderObject(); renderProgram(); renderTurnarounds();
   ['kpi-cite', 'trend-cite', 'peers-cite', 'flags-cite'].forEach(c => cite(c));
   cite('money-cite', 'function-code groupings listed under Disclaimer');
@@ -786,6 +798,34 @@ function renderFlags() {
     }).join('<br>');
     return `<div class="flagcard"><strong>Fiscal ${f.year}</strong><br>${items}</div>`;
   }).join('');
+}
+
+/* ---------- actionable intelligence (peer-benchmarked findings) ---------- */
+function renderInsights() {
+  const data = state.insights || {};
+  const items = data.insights || [];
+  const sec = $('insights-section');
+  if (!items.length) { sec.classList.add('hidden'); return; }
+  sec.classList.remove('hidden');
+  const n = items.length;
+  $('insights-title').textContent =
+    `${n} place${n > 1 ? 's' : ''} ${state.district.name} stands out from districts like it`;
+  $('insightlist').innerHTML = items.map(it => {
+    const up = it.direction === 'above';
+    // "above peers" is red for cost lines, green for instruction share
+    const goodWhenHigh = it.metric === 'Classroom instruction';
+    const bad = up !== goodWhenHigh;
+    const cls = bad ? '' : 'ok';
+    const arrow = up ? '▲' : '▼';
+    const val = it.unit.includes('per student') ? fmtMoney(it.your_value) : (it.your_value * 100).toFixed(1) + '%';
+    const pm = it.unit.includes('per student') ? fmtMoney(it.peer_median) : (it.peer_median * 100).toFixed(1) + '%';
+    return `<div class="flagcard ${cls}">
+      <strong>${it.metric}: ${Math.abs(it.pct_vs_peers)}% ${it.direction} peers</strong>
+      &nbsp;<span style="font-weight:650">${it.annual_dollars_vs_peers}</span><br>
+      <span class="nums">You: ${val} ${it.unit} · peer median: ${pm}.</span> ${arrow} ${it.finding}
+    </div>`;
+  }).join('');
+  cite('insights-cite', `benchmarked against ${data.peer_count} structural peers, fiscal ${data.year}`);
 }
 
 /* ---------- object + program breakdowns (shared bar renderer) ---------- */

@@ -500,6 +500,138 @@ async def get_district_turnarounds(request: Request, district_number: str):
         return {"turnarounds": results, "peers_scanned": len(by_peer)}
 
 
+# Actionable-intelligence metric definitions. Each is compared against the
+# district's SIMILARITY-GRAPH peers (apples-to-apples), expressed in dollars.
+# kind "per_student": value = num/enrollment, impact = (value-peer_med)*enroll
+# kind "share": value = num/base, impact = (value-peer_med)*base
+_INSIGHT_METRICS = [
+    {"key": "operating", "label": "Operating spending", "kind": "per_student",
+     "num": "total_operating", "unit": "per student",
+     "high": "Higher total operating cost per student than peers — worth confirming what it buys.",
+     "low": "Leaner operating cost per student than peers."},
+    {"key": "instruction", "label": "Classroom instruction", "kind": "share",
+     "num": "classroom_instruction", "base": "total_operating",
+     "high": "A larger share reaches classrooms than peers — a strength.",
+     "low": "A smaller share reaches classrooms than peers — worth asking where the rest goes."},
+    {"key": "admin", "label": "Leadership & administration", "kind": "per_student",
+     "num": "leadership_admin", "unit": "per student",
+     "high": "Administrative overhead per student runs above peers — a common review target.",
+     "low": "Administrative overhead per student runs below peers."},
+    {"key": "facilities", "label": "Facilities & maintenance", "kind": "per_student",
+     "num": "facilities_maintenance", "unit": "per student",
+     "high": "Facilities cost per student is above peers — could be older buildings or an efficiency gap.",
+     "low": "Facilities & maintenance cost per student is below peers."},
+    {"key": "debt", "label": "Debt service", "kind": "per_student",
+     "num": "debt_service", "unit": "per student",
+     "high": "Debt payments per student are heavier than peers — check the bond schedule.",
+     "low": "Debt payments per student are lighter than peers."},
+    {"key": "payroll", "label": "Payroll share of operating", "kind": "share",
+     "num": "obj_payroll", "base": "obj_total",
+     "high": "A higher share goes to payroll than peers — less flexible budget.",
+     "low": "A lower share goes to payroll than peers — more spent on outside services/supplies."},
+    {"key": "contracted", "label": "Contracted (outsourced) services", "kind": "share",
+     "num": "obj_contracted", "base": "obj_total",
+     "high": "More is outsourced to contractors than peers — a procurement review target.",
+     "low": "Less is outsourced than peers."},
+]
+
+
+@app.get("/district/{district_number}/insights", tags=["Districts"])
+async def get_district_insights(request: Request, district_number: str):
+    """Actionable intelligence: where this district materially differs from
+    its similarity-graph peers, each finding quantified in dollars and ranked
+    by magnitude. Peers come from the exogenous k-NN graph so the comparison
+    is apples-to-apples."""
+    import statistics
+
+    pool = get_pool(request)
+    async with pool.acquire() as conn:
+        year = await conn.fetchval(
+            "SELECT MAX(year) FROM v_finance_summary WHERE district_number = $1", district_number)
+        if year is None:
+            raise HTTPException(status_code=404, detail="District not found")
+
+        rows = await conn.fetch("""
+            WITH cohort AS (
+                SELECT $1::text AS d, 0 AS peer
+                UNION ALL
+                SELECT peer_number, 1 FROM district_similarity WHERE district_number = $1
+            )
+            SELECT f.district_number, f.district_name, f.enrollment, c.peer,
+                   f.spend_per_student, f.total_revenue, f.total_spend,
+                   b.total_operating, b.classroom_instruction, b.leadership_admin,
+                   b.facilities_maintenance, b.debt_service,
+                   d.obj_payroll, d.obj_contracted, d.obj_total
+            FROM cohort c
+            JOIN v_finance_summary f ON f.district_number = c.d AND f.year = $2
+            LEFT JOIN v_spending_breakdown b ON b.district_number = c.d AND b.year = $2
+            LEFT JOIN v_spending_detail d ON d.district_number = c.d AND d.year = $2
+            WHERE f.enrollment > 0
+        """, district_number, year)
+
+        me = next((dict(r) for r in rows if r["peer"] == 0), None)
+        peers = [dict(r) for r in rows if r["peer"] == 1]
+        if me is None or len(peers) < 4:
+            return {"year": year, "peer_count": len(peers), "insights": [],
+                    "note": "Not enough comparable peers for benchmarking."}
+
+        enroll = me["enrollment"]
+
+        def value_of(row, m):
+            num = row.get(m["num"])
+            if num is None:
+                return None
+            if m["kind"] == "per_student":
+                e = row.get("enrollment")
+                return num / e if e else None
+            base = row.get(m["base"])
+            return num / base if base else None
+
+        insights = []
+        for m in _INSIGHT_METRICS:
+            mine = value_of(me, m)
+            pvals = [v for v in (value_of(p, m) for p in peers) if v is not None]
+            if mine is None or len(pvals) < 4:
+                continue
+            pmed = statistics.median(pvals)
+            if pmed <= 0:
+                continue
+            dev = (mine - pmed) / pmed
+            if abs(dev) < 0.20:  # materiality: within 20% of peers → not notable
+                continue
+            if m["kind"] == "per_student":
+                impact = (mine - pmed) * enroll
+            else:
+                impact = (mine - pmed) * (me.get(m["base"]) or 0)
+            if abs(impact) < 100000:  # dollar materiality floor
+                continue
+            direction = "above" if dev > 0 else "below"
+            insights.append({
+                "metric": m["label"],
+                "your_value": round(mine, 2),
+                "peer_median": round(pmed, 2),
+                "unit": m.get("unit", "share of operating"),
+                "pct_vs_peers": round(dev * 100, 0),
+                "direction": direction,
+                "dollar_impact": round(impact),
+                "annual_dollars_vs_peers":
+                    f"${abs(round(impact)):,}/year {'above' if impact > 0 else 'below'} peers",
+                "finding": m["high"] if dev > 0 else m["low"],
+            })
+
+        insights.sort(key=lambda x: -abs(x["dollar_impact"]))
+        total_swing = sum(i["dollar_impact"] for i in insights if i["metric"] != "Classroom instruction")
+        return {
+            "district_number": district_number,
+            "district_name": me["district_name"],
+            "year": year,
+            "peer_count": len(peers),
+            "enrollment": enroll,
+            "net_variance_vs_peers": round(total_swing),
+            "insights": insights[:6],
+        }
+
+
 @app.get("/district/{district_number}/spending-detail", tags=["Districts"])
 async def get_district_spending_detail(request: Request, district_number: str):
     """Two more spending dimensions the summarized data already carries:
