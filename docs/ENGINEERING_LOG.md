@@ -17,6 +17,39 @@ Entry template:
 
 ---
 
+## 2026-07-24 — "The dollar" + audience lenses + AI disclosure + TAG contact (live)
+
+**What changed:** (1) AI disclosure + data disclaimer + Technology
+Automation Group / TAG ai contact (839-888-2424, ubntag.com) in the footer
+of BOTH portal pages (index.html, map.html). (2) "Your dollar" hero: total
+district spending rendered as 100 colored pennies by category, with a
+computed headline ("Of every dollar X spends, N cents goes to classroom
+teaching"). (3) Six audience lenses (parent / taxpayer-grandparent /
+booster / business / press / admin) that re-narrate the SAME numbers for
+the reader; choice persists in localStorage. (4) One-tap 1200x630
+shareable social PNG with penny grid + TAG branding. 32 tests green,
+deployed, verified live on both pages.
+
+**Why:** User asked for a Steve Jobs "touch of magic" and universal
+comprehension (single mother, 81-year-old grandad, superintendent, coach,
+booster, press). The Jobs move is making the abstract concrete: pennies
+are a unit everyone owns. Lenses solve "one dashboard can't speak to
+everyone" without forking the data — same honest numbers, different
+narration.
+
+**Gotchas:** Pennies use LARGEST-REMAINDER rounding so they always sum to
+exactly 100 (naive rounding gives 99 or 101). The dollar is of TOTAL
+spending (not operating) deliberately — it visually explains why
+per-student totals look high (Dallas FY2025: 33c classroom, 23c
+construction, 15c debt). renderExec was slimmed to delegate to
+lensStory(); dead locals removed.
+
+**Open items:** unchanged — launch-hardening (real rate limit, RO DB role,
+map touch/a11y, analytics), rotate creds, PR #2 review, operating-vs-total
+per-student labeling on the KPI tile.
+
+---
+
 ## 2026-07-24 — Actionable-intelligence engine live (peer-benchmarked $ findings)
 
 **What changed:** New `GET /district/{id}/insights` + top-of-dashboard
