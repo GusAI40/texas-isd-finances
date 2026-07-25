@@ -154,13 +154,65 @@
     border:1px solid var(--hairline); background:#fff; color:var(--ink-2);
   }
   .lensbar button[aria-pressed=true] { background:var(--ink); color:#fff; border-color:var(--ink); }
-  /* ---- The dollar: 100 pennies ---- */
+  /* ---- The dollar: 100 pennies, guided ---- */
   .pennies { display:grid; grid-template-columns:repeat(20,1fr); gap:3px; max-width:520px; margin:.9rem 0 .6rem; }
-  .pennies i { display:block; aspect-ratio:1; border-radius:2px; }
-  .penny-legend { display:flex; flex-wrap:wrap; gap:.5rem 1.1rem; font-size:.85rem; color:var(--ink-2); }
-  .penny-legend span { display:inline-flex; align-items:center; gap:.35rem; }
-  .penny-legend i { width:11px; height:11px; border-radius:2px; display:inline-block; }
+  .pennies i { display:block; aspect-ratio:1; border-radius:2px; cursor:pointer;
+               transition:opacity .12s ease, transform .12s ease; }
+  .pennies.focusing i { opacity:.18; }
+  .pennies.focusing i.on { opacity:1; transform:scale(1.12); }
+  .penny-legend { display:flex; flex-wrap:wrap; gap:.35rem .5rem; font-size:.85rem; color:var(--ink-2); }
+  .penny-legend button {
+    font:inherit; display:inline-flex; align-items:center; gap:.35rem; cursor:pointer;
+    border:1px solid transparent; background:none; color:var(--ink-2);
+    padding:.18rem .45rem; border-radius:99px; transition:background .12s, border-color .12s;
+  }
+  .penny-legend button:hover, .penny-legend button:focus-visible { background:var(--wash); border-color:var(--hairline); }
+  .penny-legend button[aria-pressed=true] { background:var(--ink); color:#fff; border-color:var(--ink); }
+  .penny-legend i { width:11px; height:11px; border-radius:2px; display:inline-block; flex:none; }
   .penny-legend b { font-variant-numeric:tabular-nums; }
+  /* zoom ladder: Texas → district → category */
+  .ladder { display:flex; flex-wrap:wrap; align-items:center; gap:.25rem;
+            font-size:.78rem; letter-spacing:.02em; color:var(--muted); margin:.1rem 0 .9rem; }
+  .ladder button { font:inherit; border:0; background:none; color:var(--ink-2);
+                   cursor:pointer; padding:.15rem .35rem; border-radius:5px; }
+  .ladder button:hover { background:var(--wash); color:var(--ink); }
+  .ladder .here { color:var(--ink); font-weight:700; padding:.15rem .35rem; }
+  .ladder .sep { color:var(--faint); }
+  /* guided layout: grid on the left, the guide panel on the right */
+  .dollar-lay { display:grid; grid-template-columns:minmax(0,520px) minmax(0,1fr); gap:1.6rem; align-items:start; }
+  @media (max-width:780px) { .dollar-lay { grid-template-columns:1fr; gap:1rem; } }
+  .guide { background:var(--wash); border-radius:12px; padding:1rem 1.15rem; min-height:190px; }
+  .guide .rest { color:var(--muted); font-size:.88rem; }
+  .guide .gcat { display:flex; align-items:center; gap:.45rem; font-weight:700; color:var(--ink); }
+  .guide .gcat i { width:13px; height:13px; border-radius:3px; display:inline-block; }
+  .guide .gbig { font-size:2.1rem; font-weight:700; letter-spacing:-.02em; line-height:1.1; margin:.25rem 0 .1rem; }
+  .guide .gsub { font-size:.86rem; color:var(--ink-2); font-variant-numeric:tabular-nums; }
+  .guide .gwhat { font-size:.85rem; color:var(--ink-2); margin:.6rem 0 .1rem; }
+  .guide .gcodes { font-size:.74rem; color:var(--faint); }
+  .guide .gstake { font-size:.88rem; color:var(--ink); margin:.65rem 0 0; }
+  .guide .gstake b { font-variant-numeric:tabular-nums; }
+  .guide .ghint { font-size:.78rem; color:var(--muted); margin-top:.6rem; }
+  /* three 100¢ bars: you / similar districts / all Texas */
+  .cmpbars { margin:1.3rem 0 .2rem; max-width:760px; }
+  .cmprow { display:grid; grid-template-columns:8.5rem minmax(0,1fr) 3.2rem; align-items:center;
+            gap:.6rem; margin-bottom:.4rem; }
+  .cmprow .lab { font-size:.8rem; color:var(--ink-2); text-align:right; }
+  .cmprow .val { font-size:.82rem; color:var(--ink); font-variant-numeric:tabular-nums; }
+  .bar { display:flex; height:16px; border-radius:4px; overflow:hidden; background:var(--hairline); }
+  .bar span { display:block; height:100%; transition:opacity .12s ease; }
+  .cmpbars.focusing .bar span { opacity:.16; }
+  .cmpbars.focusing .bar span.on { opacity:1; }
+  .cmpnote { font-size:.78rem; color:var(--muted); margin-top:.5rem; max-width:44rem; }
+  /* atom: the pinned deep dive */
+  .atom { border-left:3px solid var(--blue); background:var(--wash); border-radius:0 12px 12px 0;
+          padding:1.1rem 1.3rem; margin:1.4rem 0 .2rem; max-width:760px; }
+  .atom h3 { margin:0 0 .5rem; font-size:1.02rem; line-height:1.35; }
+  .atom p { font-size:.88rem; color:var(--ink-2); margin:.45rem 0; }
+  .atom .spark { margin:.7rem 0 .2rem; }
+  .atom .comps { display:flex; flex-wrap:wrap; gap:.4rem 1.4rem; font-size:.85rem;
+                 color:var(--ink-2); font-variant-numeric:tabular-nums; margin:.5rem 0 0; }
+  .atom .closebtn { font:inherit; font-size:.8rem; border:1px solid var(--hairline); background:#fff;
+                    color:var(--ink-2); border-radius:99px; padding:.25rem .7rem; cursor:pointer; }
   .bignum { font-size:clamp(2.1rem,6vw,3.1rem); font-weight:700; letter-spacing:-.03em; line-height:1.05; }
   .bignum small { font-size:1rem; font-weight:400; color:var(--ink-2); letter-spacing:0; }
   /* ---- Footer ---- */
@@ -236,8 +288,17 @@
       <div class="eyebrow">Your dollar</div>
       <h2 class="action" id="dollar-title"></h2>
       <p class="support" id="dollar-support"></p>
-      <div class="pennies" id="pennies" role="img" aria-label="One operating dollar shown as 100 pennies by category"></div>
-      <div class="penny-legend" id="penny-legend"></div>
+      <nav class="ladder" id="ladder" aria-label="How far in you are: state, district, category"></nav>
+      <div class="dollar-lay">
+        <div>
+          <div class="pennies" id="pennies" role="img" aria-label="One dollar of spending shown as 100 pennies by category"></div>
+          <div class="penny-legend" id="penny-legend" role="group"
+               aria-label="Spending categories — choose one to explore it"></div>
+        </div>
+        <aside class="guide" id="guide" aria-live="polite"></aside>
+      </div>
+      <div class="cmpbars" id="cmpbars"></div>
+      <div id="atom" class="atom hidden"></div>
       <div class="exports">
         <button class="quiet" id="btn-share">📷 Save this as a shareable image</button>
       </div>
@@ -419,6 +480,12 @@
         <p><strong>Spending categories</strong> group TEA function codes: classroom instruction (11, 95, 12, 13),
           leadership &amp; administration (21, 23, 41, 92), student support (31–33), transportation (34), food
           (35), extracurricular (36), facilities (51), safety &amp; technology (52, 53), community services (61).</p>
+        <p><strong>The 100-penny dollar</strong> splits total spending into whole cents by the
+          largest-remainder method, so the squares always sum to exactly 100 — no penny is invented or lost.
+          The "similar districts" and "all Texas" bars show the <em>median share</em> in each category across
+          those districts, rescaled to a whole dollar (medians of separate categories do not add to $1 on
+          their own). The dollars-at-stake figures do <em>not</em> use those rescaled shares — they use median
+          dollars <em>per student</em> multiplied by this district's enrollment, so they are real money.</p>
         <p><strong>Peer districts</strong> are the most structurally similar districts statewide, matched on
           size, enrollment trajectory, and funding profile — deliberately <em>not</em> on spending, so that
           comparing spending stays meaningful.</p>
@@ -515,59 +582,245 @@ const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).
 const pct = (a, b) => b ? Math.round(100 * (a - b) / b) : null;
 
 const state = { district: null, summary: [], benchmarks: [], peers: null, flags: [], breakdown: [],
-                metric: 'spend', compare: null, compareSummary: [], lens: 'parent' };
+                metric: 'spend', compare: null, compareSummary: [], lens: 'parent',
+                dollar: null, dollarPin: null, dollarHover: null };
 
-/* ===== The dollar: every dollar the district spends, as 100 pennies ===== */
-const DOLLAR_COLORS = ['#2a78d6', '#8fb4e6', '#55534e', '#8b897f', '#b8b6ad', '#eb6834', '#1baf7a', '#c9c7be'];
+/* ===== The dollar: every dollar the district spends, as 100 pennies =====
+   Shares, peer/statewide medians and dollars-at-stake all come from
+   GET /district/{id}/dollar so this page, the share card and any other client
+   tell one story from one definition. Colours are keyed to the CATEGORY, not
+   its rank, so a category looks the same in every district you open. */
+const DOLLAR_COLORS = {
+  classroom: '#2a78d6', debt: '#8fb4e6', construction: '#55534e', admin: '#8b897f',
+  facilities: '#b8b6ad', transport_food: '#eb6834', support: '#1baf7a',
+  extracurricular: '#c9a227', safety_tech: '#7a5cc7', community: '#d98cae', other: '#c9c7be',
+};
+/* The question each category is really about — what a board member, reporter or
+   parent should ask the district once they can see the number. */
+const DOLLAR_QUESTIONS = {
+  classroom: 'Ask the board what share of any new money goes to teacher pay and classroom materials — and how that share has moved over the last five years.',
+  debt: 'Ask which bond elections created this payment, what year it comes off the books, and what the remaining debt works out to per student.',
+  construction: 'Ask which projects this is building, whether they are on budget, and how much they will add to future upkeep and staffing costs.',
+  admin: 'Ask how many central-office and campus-office positions this funds, and how that headcount compares with districts of the same size.',
+  facilities: 'Ask for the deferred-maintenance backlog and how much of this is utilities — the part a district can actually reduce.',
+  transport_food: 'Ask how much of transportation the state reimburses, and whether the meal program covers its own costs.',
+  support: 'Ask for the student-to-counselor and student-to-nurse ratios, and how they compare with the ratios the state recommends.',
+  extracurricular: 'Ask what share of students take part, and how much of this is offset by gate receipts, booster clubs and participation fees.',
+  safety_tech: 'Ask the district to split security from technology. This dataset combines them; the district\'s own budget does not.',
+  community: 'Ask which community programs this funds and who they serve.',
+  other: 'Ask the district\'s finance office for the detail behind this residual — it is what the published function codes do not itemise.',
+};
 function dollarParts() {
-  const b = (state.breakdown || [])[state.breakdown.length - 1];
-  const s = state.summary.filter(r => r.total_spend > 0);
-  const cur = s[s.length - 1];
-  if (!b || !cur) return null;
-  const total = +cur.total_spend;
-  const raw = [
-    { name: 'Classroom teaching', v: +b.classroom_instruction || 0 },
-    { name: 'Buildings & upkeep', v: +b.facilities_maintenance || 0 },
-    { name: 'Debt payments', v: +b.debt_service || 0 },
-    { name: 'Construction', v: +b.capital_projects || 0 },
-    { name: 'Principals & administration', v: +b.leadership_admin || 0 },
-    { name: 'Sports & activities', v: +b.extracurricular || 0 },
-    { name: 'Counselors, nurses & support', v: +b.student_support || 0 },
-    { name: 'Buses & meals', v: (+b.transportation || 0) + (+b.food_service || 0) },
-  ].filter(p => p.v > 0).sort((a, b2) => b2.v - a.v);
-  const named = raw.reduce((t, p) => t + p.v, 0);
-  const parts = raw.slice();
-  const other = Math.max(0, total - named);
-  if (other > 0) parts.push({ name: 'Everything else', v: other });
-  // exact 100 pennies via largest-remainder
-  const exact = parts.map(p => 100 * p.v / total);
-  const floor = exact.map(Math.floor);
-  let left = 100 - floor.reduce((a, b3) => a + b3, 0);
-  const order = exact.map((e, i) => [e - floor[i], i]).sort((a, b4) => b4[0] - a[0]);
-  const cents = floor.slice();
-  for (let i = 0; i < left; i++) cents[order[i % order.length][1]]++;
-  return { parts: parts.map((p, i) => ({ ...p, cents: cents[i], color: DOLLAR_COLORS[i % DOLLAR_COLORS.length] })),
-           total, year: cur.year, enrollment: cur.enrollment, perStudent: +cur.spend_per_student };
+  const d = state.dollar;
+  if (!d || !d.parts || !d.parts.length) return null;
+  return {
+    parts: d.parts.map(p => ({ ...p, name: p.label, v: p.amount, color: DOLLAR_COLORS[p.key] || '#c9c7be' })),
+    total: d.total_spend, year: d.year, enrollment: d.enrollment, perStudent: d.per_student,
+  };
 }
+function partOf(k) { const d = dollarParts(); return d ? d.parts.find(p => p.key === k) : null; }
+
 function renderDollar() {
   const d = dollarParts();
   const sec = $('dollar-section');
   if (!d) { sec.classList.add('hidden'); return; }
   sec.classList.remove('hidden');
-  const classroom = d.parts.find(p => p.name === 'Classroom teaching');
+  const classroom = d.parts.find(p => p.key === 'classroom');
   $('dollar-title').textContent =
     `Of every dollar ${state.district.name} spends, ${classroom ? classroom.cents : 0}¢ goes to classroom teaching`;
   $('dollar-support').innerHTML =
     `Fiscal ${d.year}. The district spent <strong>${fmtMoney(d.total)}</strong> in total — ` +
     `<strong>${fmtMoney(d.perStudent)} per student</strong> across ${fmtNum(d.enrollment)} students. ` +
     `Each square below is one penny out of that dollar. This is <em>everything</em> the district spent, ` +
-    `including debt payments and construction — which is why it's higher than the "per-pupil" number you may have seen elsewhere.`;
+    `including debt payments and construction — which is why it's higher than the "per-pupil" number you may have seen elsewhere. ` +
+    `<strong>Point at a square</strong> (or tap one) to see what it buys and how it compares.`;
   let cells = '';
-  d.parts.forEach(p => { for (let i = 0; i < p.cents; i++) cells += `<i style="background:${p.color}" title="${p.name}"></i>`; });
+  d.parts.forEach(p => {
+    for (let i = 0; i < p.cents; i++) cells += `<i data-k="${p.key}" style="background:${p.color}"></i>`;
+  });
   $('pennies').innerHTML = cells;
   $('penny-legend').innerHTML = d.parts.map(p =>
-    `<span><i style="background:${p.color}"></i>${p.name} <b>${p.cents}¢</b></span>`).join('');
+    `<button type="button" data-k="${p.key}" aria-pressed="${state.dollarPin === p.key}">` +
+    `<i style="background:${p.color}"></i>${p.name} <b>${p.cents}¢</b></button>`).join('');
+  renderCmpBars(d);
+  renderLadder();
+  renderAtom();
+  focusCat(state.dollarPin);
   cite('dollar-cite');
+}
+
+/* ---- macro: the same dollar for this district, its peers, and all of Texas ---- */
+function renderCmpBars(d) {
+  const raw = state.dollar;
+  const rows = [
+    ['This district', 'cents'],
+    [`Similar districts (${raw.peer_count})`, 'peer_cents'],
+    [`All Texas (${fmtNum(raw.state_count)})`, 'state_cents'],
+  ].filter(([, f]) => d.parts.some(p => p[f] != null));
+  const bar = f => '<div class="bar">' + d.parts.map(p =>
+    `<span data-k="${p.key}" style="background:${p.color};width:${p[f] || 0}%"></span>`).join('') + '</div>';
+  $('cmpbars').innerHTML =
+    `<div class="cite" id="cmphead">Share of every dollar — you, districts like you, and the whole state</div>` +
+    rows.map(([lab, f]) =>
+      `<div class="cmprow"><div class="lab">${lab}</div>${bar(f)}` +
+      `<div class="val" data-f="${f}"></div></div>`).join('') +
+    `<div class="cmpnote">"Similar districts" are this district's structural peers — matched on size, ` +
+    `enrollment trend and funding capacity, never on how they spend, so the comparison isn't circular. ` +
+    `Peer and statewide bars are the median share in each category, rescaled to a whole dollar.</div>`;
+  setCmpValues(null);
+}
+function setCmpValues(k) {
+  const p = k ? partOf(k) : null;
+  $('cmphead').textContent = p
+    ? `${p.name} — share of every dollar`
+    : 'Share of every dollar — you, districts like you, and the whole state';
+  document.querySelectorAll('#cmpbars .val').forEach(el => {
+    el.textContent = p && p[el.dataset.f] != null ? p[el.dataset.f] + '¢' : '';
+  });
+}
+
+/* ---- the guide: what the pointer is resting on ---- */
+function focusCat(k) {
+  const g = $('pennies'), c = $('cmpbars');
+  g.classList.toggle('focusing', !!k);
+  c.classList.toggle('focusing', !!k);
+  g.querySelectorAll('i').forEach(el => el.classList.toggle('on', el.dataset.k === k));
+  c.querySelectorAll('.bar span').forEach(el => el.classList.toggle('on', el.dataset.k === k));
+  setCmpValues(k);
+  $('guide').innerHTML = guideHTML(k);
+}
+function hoverCat(k) { state.dollarHover = k; focusCat(k || state.dollarPin); }
+function guideHTML(k) {
+  const d = dollarParts();
+  if (!d) return '';
+  const p = k ? d.parts.find(x => x.key === k) : null;
+  if (!p) {
+    return `<div class="rest"><strong>Start anywhere.</strong> Point at any square — or tap one on a phone, ` +
+      `or use the buttons under the grid — and this panel will tell you what that penny pays for, ` +
+      `how it compares with districts like this one and with all of Texas, and what the difference is ` +
+      `worth in real dollars. Click to open the full detail.</div>`;
+  }
+  const cmp = [];
+  if (p.peer_cents != null) cmp.push(`districts like this one put <b>${p.peer_cents}¢</b> here`);
+  if (p.state_cents != null) cmp.push(`Texas as a whole, <b>${p.state_cents}¢</b>`);
+  const v = p.dollars_vs_peers;
+  let stake = '';
+  if (v != null) {
+    const per = Math.abs(v) / d.enrollment;
+    stake = per < 25
+      ? `That is within a rounding difference of similar districts.`
+      : `That is <b>${fmtMoney(Math.abs(v))} ${v > 0 ? 'more' : 'less'} a year</b> than similar ` +
+        `districts spend here — about <b>${fmtMoney(per)} per student</b>.`;
+  }
+  const trend = p.cents_prev != null && state.dollar.prev_year
+    ? `Was ${p.cents_prev}¢ in ${state.dollar.prev_year}. ` : '';
+  return `<div class="gcat"><i style="background:${p.color}"></i>${p.name}</div>` +
+    `<div class="gbig">${p.cents}¢</div>` +
+    `<div class="gsub">${fmtMoney(p.amount)} total · ${fmtMoney(p.per_student)} per student</div>` +
+    `<div class="gwhat"><strong>What's counted here:</strong> ${p.contents}</div>` +
+    `<div class="gcodes">${p.codes}</div>` +
+    (cmp.length ? `<div class="gstake">For comparison, ${cmp.join('; ')}. ${stake}</div>`
+                : (stake ? `<div class="gstake">${stake}</div>` : '')) +
+    `<div class="ghint">${trend}${state.dollarPin === k ? 'Open below ↓' : 'Click for the full detail ↓'}</div>`;
+}
+
+/* ---- atom: the pinned category, all the way down ---- */
+function pinCat(k) {
+  state.dollarPin = (state.dollarPin === k) ? null : k;
+  document.querySelectorAll('#penny-legend button').forEach(b =>
+    b.setAttribute('aria-pressed', String(b.dataset.k === state.dollarPin)));
+  renderLadder();
+  renderAtom();
+  focusCat(state.dollarHover || state.dollarPin);
+  if (state.dollarPin) $('atom').scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+}
+function catHistory(p) {
+  const totals = {};
+  state.summary.forEach(r => { if (r.total_spend > 0) totals[r.year] = +r.total_spend; });
+  const named = (state.dollar.parts || []).flatMap(x => x.columns || []);
+  const out = [];
+  (state.breakdown || []).forEach(b => {
+    const t = totals[b.year];
+    if (!t) return;
+    const v = p.columns && p.columns.length
+      ? p.columns.reduce((s, c) => s + (+b[c] || 0), 0)
+      : Math.max(0, t - named.reduce((s, c) => s + (+b[c] || 0), 0));
+    out.push({ year: b.year, share: 100 * v / t });
+  });
+  return out;
+}
+function sparkSVG(hist, ref, color) {
+  if (hist.length < 3) return '';
+  const W = 460, H = 78, pad = 8;
+  const vals = hist.map(h => h.share).concat(ref != null ? [ref] : []);
+  const lo = Math.min(...vals), hi = Math.max(...vals), span = (hi - lo) || 1;
+  const x = i => pad + i * (W - 2 * pad) / (hist.length - 1);
+  const y = v => H - pad - 12 - (v - lo) / span * (H - 2 * pad - 12);
+  const pts = hist.map((h, i) => `${x(i).toFixed(1)},${y(h.share).toFixed(1)}`).join(' ');
+  const last = hist[hist.length - 1];
+  return `<svg class="spark" viewBox="0 0 ${W} ${H}" width="100%" height="78" preserveAspectRatio="none"
+      role="img" aria-label="Share of every dollar from ${hist[0].year} to ${last.year}">` +
+    (ref != null ? `<line x1="${pad}" y1="${y(ref).toFixed(1)}" x2="${W - pad}" y2="${y(ref).toFixed(1)}"
+        stroke="#8b897f" stroke-dasharray="4 4" stroke-width="1"/>` : '') +
+    `<polyline fill="none" stroke="${color}" stroke-width="2.4" stroke-linejoin="round" points="${pts}"/>` +
+    `<circle cx="${x(hist.length - 1).toFixed(1)}" cy="${y(last.share).toFixed(1)}" r="3.6" fill="${color}"/>` +
+    `<text x="${pad}" y="${H - 2}" font-size="11" fill="#8b897f">${hist[0].year}</text>` +
+    `<text x="${W - pad}" y="${H - 2}" font-size="11" fill="#8b897f" text-anchor="end">${last.year}</text>` +
+    (ref != null ? `<text x="${W - pad}" y="${(y(ref) - 4).toFixed(1)}" font-size="11" fill="#8b897f"
+        text-anchor="end">similar districts</text>` : '') + `</svg>`;
+}
+function renderAtom() {
+  const el = $('atom');
+  const p = state.dollarPin ? partOf(state.dollarPin) : null;
+  if (!p) { el.classList.add('hidden'); el.innerHTML = ''; return; }
+  el.classList.remove('hidden');
+  const d = dollarParts();
+  const v = p.dollars_vs_peers;
+  const per = v != null ? Math.abs(v) / d.enrollment : null;
+  const material = per != null && per >= 25;
+  const diff = p.peer_cents != null ? p.cents - p.peer_cents : null;
+  const title = !material
+    ? `${state.district.name}'s ${p.name.toLowerCase()} spending is in line with similar districts`
+    : diff
+      ? `${state.district.name} puts ${Math.abs(diff)}¢ ${diff > 0 ? 'more' : 'less'} of every dollar into ` +
+        `${p.name.toLowerCase()} than similar districts — ${fmtMoney(Math.abs(v))} a year`
+      : `${state.district.name} spends ${fmtMoney(Math.abs(v))} a year ` +
+        `${v > 0 ? 'more' : 'less'} on ${p.name.toLowerCase()} than similar districts`;
+  const hist = catHistory(p);
+  const first = hist[0], last = hist[hist.length - 1];
+  const trend = hist.length >= 3
+    ? `Its share of the dollar went from <strong>${first.share.toFixed(1)}¢</strong> in ${first.year} to ` +
+      `<strong>${last.share.toFixed(1)}¢</strong> in ${last.year}.` : '';
+  const comps = (p.components || []).length
+    ? `<div class="comps">` + p.components.map(c =>
+        `<span>${c.label}: <strong>${fmtMoney(c.amount)}</strong></span>`).join('') + `</div>` : '';
+  el.innerHTML =
+    `<h3>${title}</h3>` +
+    `<p><strong>What's counted here:</strong> ${p.contents} <span class="cite">(${p.codes})</span></p>` +
+    comps +
+    `<p><strong>${fmtMoney(p.amount)}</strong> in fiscal ${d.year} — <strong>${fmtMoney(p.per_student)} per student</strong>.` +
+    (p.peer_per_student != null ? ` Similar districts: ${fmtMoney(p.peer_per_student)} per student.` : '') +
+    (p.state_per_student != null ? ` All Texas: ${fmtMoney(p.state_per_student)} per student.` : '') + `</p>` +
+    sparkSVG(hist, p.peer_cents, p.color) +
+    (trend ? `<p>${trend}</p>` : '') +
+    `<p><strong>Question worth asking:</strong> ${DOLLAR_QUESTIONS[p.key] || ''}</p>` +
+    `<button class="closebtn" type="button" id="atom-close">✕ Close this category</button>`;
+  $('atom-close').onclick = () => pinCat(state.dollarPin);
+}
+
+/* ---- the zoom ladder: state → district → category ---- */
+function renderLadder() {
+  const d = state.dollar;
+  if (!d) return;
+  const p = state.dollarPin ? partOf(state.dollarPin) : null;
+  const parts = [`<button type="button" id="lad-state">TEXAS · ${fmtNum(d.state_count)} districts</button>`,
+                 `<span class="sep">›</span>`];
+  parts.push(p ? `<button type="button" id="lad-dist">${state.district.name.toUpperCase()}</button>`
+               : `<span class="here">${state.district.name.toUpperCase()}</span>`);
+  if (p) parts.push(`<span class="sep">›</span><span class="here">${p.name.toUpperCase()}</span>`);
+  $('ladder').innerHTML = parts.join('');
+  $('lad-state').onclick = () => $('cmpbars').scrollIntoView({ block: 'center', behavior: 'smooth' });
+  if ($('lad-dist')) $('lad-dist').onclick = () => pinCat(state.dollarPin);
 }
 
 /* ===== Audience lenses: same honest numbers, told for who you are ===== */
@@ -728,6 +981,7 @@ async function selectDistrict(num, name) {
   localStorage.setItem('tisd_district', JSON.stringify({ num, name }));
   state.district = { num, name };
   state.compare = null; state.compareSummary = [];
+  state.dollar = null; state.dollarPin = null; state.dollarHover = null;
   $('results').innerHTML = ''; $('search').value = '';
   $('picker-title').textContent = 'Look up a different district';
   await loadDashboard();
@@ -746,7 +1000,7 @@ async function loadDashboard() {
   if (!d) return;
   $('dash').classList.remove('hidden');
   try {
-    const [summary, peers, flags, breakdown, turnarounds, detail, insights] = await Promise.all([
+    const [summary, peers, flags, breakdown, turnarounds, detail, insights, dollar] = await Promise.all([
       api('/district/' + encodeURIComponent(d.num) + '/summary'),
       api('/district/' + encodeURIComponent(d.num) + '/peers'),
       api('/anomalies?district_number=' + encodeURIComponent(d.num) + '&limit=50'),
@@ -754,9 +1008,11 @@ async function loadDashboard() {
       api('/district/' + encodeURIComponent(d.num) + '/turnarounds').catch(() => ({turnarounds: []})),
       api('/district/' + encodeURIComponent(d.num) + '/spending-detail').catch(() => []),
       api('/district/' + encodeURIComponent(d.num) + '/insights').catch(() => ({insights: []})),
+      api('/district/' + encodeURIComponent(d.num) + '/dollar').catch(() => null),
     ]);
     state.summary = summary; state.peers = peers; state.flags = flags; state.breakdown = breakdown;
     state.turnarounds = turnarounds; state.detail = detail; state.insights = insights;
+    state.dollar = dollar;
     renderAll();
     $('dash').scrollIntoView({ block: 'start' });
   } catch (e) { /* banner shown */ }
@@ -1300,6 +1556,19 @@ $('question').addEventListener('keydown', e => { if (e.key === 'Enter') ask(); }
 $('btn-print').onclick = () => window.print();
 $('btn-map').onclick = () => { location.href = state.district ? '/map?d=' + encodeURIComponent(state.district.num) : '/map'; };
 $('btn-share').onclick = shareCard;
+
+/* Guided dollar: pointer, touch and keyboard all reach the same panel.
+   Listeners live on the containers, which persist across re-renders. */
+const catOf = e => { const t = e.target.closest('[data-k]'); return t ? t.dataset.k : null; };
+$('pennies').addEventListener('mousemove', e => { const k = catOf(e); if (k !== state.dollarHover) hoverCat(k); });
+$('pennies').addEventListener('mouseleave', () => hoverCat(null));
+$('pennies').addEventListener('click', e => { const k = catOf(e); if (k) pinCat(k); });
+$('penny-legend').addEventListener('mouseover', e => { const k = catOf(e); if (k) hoverCat(k); });
+$('penny-legend').addEventListener('mouseleave', () => hoverCat(null));
+$('penny-legend').addEventListener('focusin', e => { const k = catOf(e); if (k) hoverCat(k); });
+$('penny-legend').addEventListener('click', e => { const k = catOf(e); if (k) pinCat(k); });
+$('cmpbars').addEventListener('mousemove', e => { const k = catOf(e); if (k !== state.dollarHover) hoverCat(k); });
+$('cmpbars').addEventListener('mouseleave', () => hoverCat(null));
 (function citation() {
   const today = new Date().toISOString().slice(0, 10);
   const txt = `Texas ISD Financial Resource Guide. Data: Texas Education Agency, Summarized PEIMS ` +

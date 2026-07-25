@@ -136,6 +136,7 @@ async def api_info():
             "nlp_query": "POST /query",
             "districts": "GET /districts",
             "district_summary": "GET /district/{district_number}/summary",
+            "district_dollar": "GET /district/{district_number}/dollar",
             "anomalies": "GET /anomalies",
             "sample_queries": "GET /sample-queries",
             "stats": "GET /stats",
@@ -416,6 +417,207 @@ async def get_district_breakdown(request: Request, district_number: str):
         if not rows:
             raise HTTPException(status_code=404, detail="District not found")
         return [dict(r) for r in rows]
+
+
+# ---------------------------------------------------------------------------
+# The dollar: one district's spending as 100 pennies, with the same 100
+# pennies for its structural peers and for Texas as a whole. Computed here,
+# not in the browser, so the portal, the share card and any future client all
+# tell the same story from one definition.
+#
+# Each entry: (key, label, source columns, plain-English contents, TEA codes).
+# ---------------------------------------------------------------------------
+_DOLLAR_CATEGORIES = [
+    ("classroom", "Classroom teaching", ("classroom_instruction",),
+     "Teachers' pay and benefits, classroom materials, school libraries and media "
+     "specialists, and training for teachers.", "TEA functions 11, 12, 13"),
+    ("debt", "Debt payments", ("debt_service",),
+     "Principal and interest on bonds voters approved in past elections — mostly for "
+     "buildings that are already standing.", "TEA object 6500"),
+    ("construction", "Construction", ("capital_projects",),
+     "New buildings, major renovations, land, and large equipment purchases.",
+     "TEA object 6600"),
+    ("admin", "Principals & administration", ("leadership_admin",),
+     "Principals and assistant principals, campus front offices, the superintendent's "
+     "office, and central business functions.", "TEA functions 21, 23, 41, 92"),
+    ("facilities", "Buildings & upkeep", ("facilities_maintenance",),
+     "Custodians, electricity and water, groundskeeping, and the repairs that keep "
+     "buildings open.", "TEA function 51"),
+    ("transport_food", "Buses & meals", ("transportation", "food_service"),
+     "School buses, routes and drivers, plus cafeterias and the food served in them.",
+     "TEA functions 34, 35"),
+    ("support", "Counselors, nurses & support", ("student_support",),
+     "Counselors, social workers, and school nurses.", "TEA functions 31, 32, 33"),
+    ("extracurricular", "Sports & activities", ("extracurricular",),
+     "Athletics, band, UIL academics, clubs, and other activities outside class time.",
+     "TEA function 36"),
+    ("safety_tech", "Safety & technology", ("safety_technology",),
+     "Campus security and policing, plus the district's computers, networks, and data "
+     "systems. (Technology cannot be separated from security in this dataset.)",
+     "TEA functions 52, 53"),
+    ("community", "Community services", ("community_services",),
+     "Programs the district runs for the wider community, such as adult education and "
+     "parent outreach.", "TEA function 61"),
+]
+_COLUMN_LABELS = {
+    "transportation": "School buses",
+    "food_service": "Cafeterias & food",
+}
+_OTHER = ("other", "Everything else",
+          "Everything the function codes above do not capture — including transfers "
+          "between funds and smaller categories TEA does not break out separately.",
+          "residual: total spending minus the categories above")
+
+
+def _cat_amounts(row) -> Dict[str, float]:
+    """Category dollar amounts for one breakdown row."""
+    return {k: sum(float(row[c] or 0) for c in cols)
+            for k, _lbl, cols, _desc, _codes in _DOLLAR_CATEGORIES}
+
+
+def _to_pennies(shares: Dict[str, float]) -> Dict[str, int]:
+    """Fractional shares (summing to <=1) → integer cents summing to exactly 100,
+    using the largest-remainder method so no penny is invented or lost."""
+    keys = list(shares)
+    exact = [100.0 * shares[k] for k in keys]
+    cents = [int(e) for e in exact]
+    left = 100 - sum(cents)
+    order = sorted(range(len(keys)), key=lambda i: -(exact[i] - int(exact[i])))
+    for i in range(max(0, left)):
+        cents[order[i % len(order)]] += 1
+    return dict(zip(keys, cents))
+
+
+def _dollar_shares(row) -> Optional[Dict[str, float]]:
+    """One district's spending as fractional shares of its total, incl. residual."""
+    total = float(row["total_spend"] or 0)
+    if total <= 0:
+        return None
+    amts = _cat_amounts(row)
+    named = sum(amts.values())
+    if named > total * 1.02:  # categories exceed the stated total → unusable row
+        return None
+    shares = {k: v / total for k, v in amts.items()}
+    shares[_OTHER[0]] = max(0.0, (total - named) / total)
+    return shares
+
+
+@app.get("/district/{district_number}/dollar", tags=["Districts"])
+async def get_district_dollar(request: Request, district_number: str):
+    """Where one dollar goes, as 100 pennies — for this district, for its
+    structural peers, and for Texas as a whole, with the dollar amount at stake
+    in each category if the district spent at the peer rate.
+
+    Peer shares are the MEDIAN share across peer districts, renormalised to 100
+    pennies (medians of separate categories do not sum to a whole dollar on
+    their own). Dollars at stake use median dollars *per student*, so they are
+    real money, not renormalised."""
+    import statistics
+
+    pool = get_pool(request)
+    async with pool.acquire() as conn:
+        year = await conn.fetchval("""
+            SELECT MAX(b.year) FROM v_spending_breakdown b
+            JOIN v_finance_summary f ON f.district_number = b.district_number AND f.year = b.year
+            WHERE b.district_number = $1 AND f.enrollment > 0 AND f.total_spend > 0
+        """, district_number)
+        if year is None:
+            raise HTTPException(status_code=404, detail="District not found or has no usable data")
+
+        rows = await conn.fetch("""
+            SELECT b.*, f.enrollment, f.total_spend,
+                   EXISTS (SELECT 1 FROM district_similarity s
+                           WHERE s.district_number = $1 AND s.peer_number = b.district_number)
+                       AS is_peer
+            FROM v_spending_breakdown b
+            JOIN v_finance_summary f ON f.district_number = b.district_number AND f.year = b.year
+            WHERE b.year = $2 AND f.enrollment > 0 AND f.total_spend > 0
+        """, district_number, year)
+
+        me = next((r for r in rows if r["district_number"] == district_number), None)
+        my_shares = _dollar_shares(me) if me is not None else None
+        if my_shares is None:
+            raise HTTPException(status_code=404, detail="District not found or has no usable data")
+
+        prev = await conn.fetchrow("""
+            SELECT b.*, f.total_spend FROM v_spending_breakdown b
+            JOIN v_finance_summary f ON f.district_number = b.district_number AND f.year = b.year
+            WHERE b.district_number = $1 AND b.year = $2 AND f.total_spend > 0
+        """, district_number, year - 5)
+        prev_shares = _dollar_shares(prev) if prev is not None else None
+
+        enroll = float(me["enrollment"])
+        total = float(me["total_spend"])
+        peers = [r for r in rows if r["is_peer"] and r["district_number"] != district_number]
+
+        def cohort_stats(cohort):
+            """(median share per category, median dollars per student per category)."""
+            shares, per_student = {}, {}
+            parsed = [(_dollar_shares(r), r) for r in cohort]
+            parsed = [(s, r) for s, r in parsed if s]
+            if len(parsed) < 4:
+                return None, None
+            keys = list(my_shares)
+            for k in keys:
+                shares[k] = statistics.median(s[k] for s, _ in parsed)
+            for k, _lbl, cols, _d, _c in _DOLLAR_CATEGORIES:
+                per_student[k] = statistics.median(
+                    sum(float(r[c] or 0) for c in cols) / float(r["enrollment"]) for _, r in parsed)
+            tot = sum(shares.values()) or 1.0
+            return _to_pennies({k: v / tot for k, v in shares.items()}), per_student
+
+        peer_cents, peer_ps = cohort_stats(peers)
+        state_cents, state_ps = cohort_stats(rows)
+
+        my_cents = _to_pennies(my_shares)
+        prev_cents = _to_pennies(prev_shares) if prev_shares else None
+        labels = {k: (lbl, desc, codes) for k, lbl, _c, desc, codes in _DOLLAR_CATEGORIES}
+        labels[_OTHER[0]] = (_OTHER[1], _OTHER[2], _OTHER[3])
+        columns = {k: list(cols) for k, _l, cols, _d, _c in _DOLLAR_CATEGORIES}
+        columns[_OTHER[0]] = []
+        amounts = _cat_amounts(me)
+        amounts[_OTHER[0]] = max(0.0, total - sum(amounts.values()))
+
+        parts = []
+        for key in my_shares:
+            lbl, desc, codes = labels[key]
+            mine_ps = amounts[key] / enroll
+            ppl = (peer_ps or {}).get(key)
+            cols = columns[key]
+            parts.append({
+                "key": key,
+                "label": lbl,
+                "contents": desc,
+                "codes": codes,
+                "columns": cols,
+                "components": [{"label": _COLUMN_LABELS.get(c, c),
+                                "amount": round(float(me[c] or 0))} for c in cols]
+                              if len(cols) > 1 else [],
+                "amount": round(amounts[key]),
+                "per_student": round(mine_ps),
+                "cents": my_cents[key],
+                "cents_prev": prev_cents[key] if prev_cents else None,
+                "peer_cents": (peer_cents or {}).get(key),
+                "state_cents": (state_cents or {}).get(key),
+                "peer_per_student": round(ppl) if ppl is not None else None,
+                "state_per_student": (round((state_ps or {}).get(key))
+                                      if (state_ps or {}).get(key) is not None else None),
+                "dollars_vs_peers": round((mine_ps - ppl) * enroll) if ppl is not None else None,
+            })
+        parts.sort(key=lambda p: (p["key"] == _OTHER[0], -p["cents"]))
+
+        return {
+            "district_number": district_number,
+            "district_name": me["district_name"],
+            "year": year,
+            "prev_year": (year - 5) if prev_cents else None,
+            "enrollment": me["enrollment"],
+            "total_spend": round(total),
+            "per_student": round(total / enroll),
+            "peer_count": len(peers),
+            "state_count": len(rows),
+            "parts": parts,
+        }
 
 
 def _runs(rows, pred):
