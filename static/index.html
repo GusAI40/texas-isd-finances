@@ -635,10 +635,14 @@ const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).
 const pct = (a, b) => b ? Math.round(100 * (a - b) / b) : null;
 /* TEA ships district names in all caps. Shouting at a parent is not a design
    choice, so names are title-cased for display the moment they enter state —
-   the district NUMBER is what every citation and API call actually uses. */
+   the district NUMBER is what every citation and API call actually uses.
+   Acronyms and the Mc- prefix are restored afterwards: every one below was
+   checked against all 1,202 district names in the data, not guessed at. */
+const _ACRONYMS = /\b(Isd|Cisd|Csd|Msd|Jjaep|Esc|Llc|Inc|Kipp|Nyos|Yes|Idea|Basis|Ut)\b/g;
 const titleCase = s => (s || '').toLowerCase()
   .replace(/(^|[\s('/-])([a-z])/g, (_m, a, b) => a + b.toUpperCase())
-  .replace(/\b(Isd|Csd|Msd|Jjaep|Esc|Aea)\b/g, m => m.toUpperCase());
+  .replace(_ACRONYMS, m => m.toUpperCase())
+  .replace(/\bMc([a-z])/g, (_m, c) => 'Mc' + c.toUpperCase());
 
 const state = { district: null, summary: [], benchmarks: [], peers: null, flags: [], breakdown: [],
                 metric: 'spend', compare: null, compareSummary: [], lens: 'parent',
