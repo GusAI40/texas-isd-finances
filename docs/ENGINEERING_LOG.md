@@ -17,6 +17,58 @@ Entry template:
 
 ---
 
+## 2026-07-25 — TEA Snapshot ingested: the project now has outcomes, students and teachers
+
+**What changed:** `scripts/ingest_tea_snapshot.py` (self-downloading) and
+`scripts/analyze_outcomes.py`, plus `docs/WHAT_A_DOLLAR_BUYS.md` and
+`docs/findings_outcomes.json`. 19,441 district-years, 44 fields, 2009–2024.
+
+**Where the data comes from:** TEA Snapshot "District and Charter Detail".
+The download page is a form, not links — `POST` to
+`https://rptsvr1.tea.texas.gov/perfreport/snapshot/push.cgi` with
+`level=district`, `set=<2-digit year>`, `suf=.dat|.lyt`. Years 1995–2024 are
+available. `.lyt` is the layout/definition file and you need it.
+
+**Why this is the unlock:** PEIMS says where money GOES. Snapshot adds who
+the students are (% econ disadvantaged, emergent bilingual, special ed),
+the workforce (teacher salary, students per teacher, experience, **turnover**),
+the tax base (taxable value per pupil, adopted tax rate, % revenue state/
+federal), and outcomes (STAAR, graduation, attendance, accountability
+rating). Joined on district_number + year.
+
+**Headline findings** (associations, not causation — see the doc):
+- Student need explains **33.4%** of the STAAR spread between districts;
+  spending per student adds **0.0%** on top of it.
+- Same control applied to every lever: **teacher turnover explains 10.12%**
+  of what need leaves unexplained, vs **0.01%** for spending per student.
+  Teacher experience and % new teachers rank 2nd and 3rd. Every money
+  variable is near the bottom.
+- Richest fifth of districts by property value spend **15% more** per
+  student than the poorest fifth while serving 19 points less economic
+  disadvantage; the poorest fifth carries **28% teacher turnover**.
+
+**Gotchas:**
+- **Map fields by layout DESCRIPTION, never by column name.** TEA embeds the
+  reporting year in every variable (`DDA00A001S24R` vs `DDA00A001S18R`) and
+  renames measures. Name-based mapping silently returns nothing.
+- Older years call the key `COUNTY-DISTRICT NUMBER`, not `DISTRICT NUMBER`;
+  ELL is `ENGLISH LANGUAGE LEARNERS` pre-2018 and `ENGLISH LEARNERS` after.
+  The first pass silently produced **0 rows for 2009–2012** because of this.
+- **Testing standard breaks at 2018** (phase-in satisfactory → "Approaches").
+  The ingest stamps `test_standard` per row. No trend line may cross it.
+- No accountability ratings in 2023/24 (litigation); no STAAR before 2013;
+  2020–21 are pandemic years.
+- FERPA-masked cells (`.`, `-1`, `*`) are **missing, not zero**.
+- Join validates at 94.1%, and TEA's own operating-spend-per-pupil agrees
+  with ours to a median 2.9% (different enrollment denominators — don't mix
+  the two sources inside one calculation).
+- `data/*.csv` is gitignored, so the ingest downloads its own inputs.
+
+**Open items:** surface this in the product — none of it is in the API or UI
+yet. Everything from the previous entry still applies, deploy included.
+
+---
+
 ## 2026-07-25 — Guided dollar (macro→micro→atom) + landing page rebuilt from a browser audit
 
 **What changed:** **Committed and pushed but NOT DEPLOYED** — see Gotchas.
