@@ -17,6 +17,37 @@ Entry template:
 
 ---
 
+## 2026-07-24 — Tier-1 data enrichment (object + program dimensions) live + data roadmap
+
+**What changed:** Surfaced two spending dimensions the summarized data
+already carried but the dashboard never showed. New `v_spending_detail`
+view (`sql/create_detail_view.sql`), `GET /district/{id}/spending-detail`,
+two dashboard sections (object: payroll/contracted/supplies/other —
+sums to operating total, 100% populated; program: regular/special-ed/
+compensatory/bilingual/career-tech/gifted/athletics — 89-100%). Shared
+`barChart()` renderer. `docs/DATA_ROADMAP.md` scopes Tier-2 (detailed
+PEIMS function×object) and Tier-3 (vendor/check-register pilot — the only
+path to real HVAC/technology numbers). 31 tests green; deployed + verified
+(Dallas: 81% payroll, 12.3% special-ed).
+
+**Why:** User asked whether HVAC/technology are inferable. Answer: no — the
+summarized data's granularity ceiling is function+object+program, never a
+named HVAC or total-tech line. Delivered the max the loaded data allows
+(object+program) and documented the data layers needed to go deeper.
+
+**Gotchas:** HVAC lives inside function 51 (plant maintenance & ops, also
+utilities/custodial/repairs) — not separable without vendor data.
+"Technology" is smeared across fct53 (IT-ops only), instruction devices,
+capital, and E-rate — no single line. Program % overlaps object % (a
+special-ed salary is both) — dashboard caption says so explicitly to avoid
+double-count confusion. Rerun nothing extra; view is over base table.
+
+**Open items:** unchanged — labeling fix (operating vs total per-student)
+still recommended; launch-hardening list (rate limit, RO role, map a11y,
+analytics); rotate creds; PR #2 review.
+
+---
+
 ## 2026-07-24 — Multi-team audit + Monte Carlo robustness sim (scorecard)
 
 **What changed:** Ran 5 parallel audit-team subagents (backend, data/graph
