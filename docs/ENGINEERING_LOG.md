@@ -17,6 +17,36 @@ Entry template:
 
 ---
 
+## 2026-07-24 — Map rewritten for humans (landmarks, neighborhoods, plain axes)
+
+**What changed:** `static/map.html` reframed from an analyst scatter into
+"A seating chart for every school district in Texas." Added: plain-English
+"What am I looking at?" explainer; NEIGHBORHOOD labels (the 6 archetype
+clusters named in place on the canvas); LANDMARK labels (14 largest
+districts, spread-filtered to avoid collisions) so the picture has
+recognizable anchors; plain axis labels drawn on canvas ("smaller
+districts ← → bigger", "shrinking ←→ growing"); search now finds/zooms/
+pins a district on Enter and writes a full-sentence readout naming its
+section, size, spending vs neighbors, and closest matches; legend in human
+words. 32 tests green; deployed + verified live.
+
+**Why:** User looked at the map and said "I can't decipher this... would a
+mom understand?" Correct — it was 1,202 anonymous dots with PCA jargon
+axes. A real map has landmarks; ours had none. This was the one screen
+that failed the universal-comprehension test.
+
+**Gotchas:** Neighborhood labels are suppressed while a district is
+focused (otherwise they fight the ego-network). Landmark labels are
+skipped in "Flagged only" mode and drawn with white backing rects for
+legibility over dots. Landmark spread filter uses data-space distance
+>0.55 so labels don't stack in the dense big-district corner.
+
+**Open items:** unchanged — launch-hardening (rate limit, RO DB role, map
+TOUCH support + keyboard a11y still outstanding, analytics), rotate creds,
+PR #2 review, operating-vs-total per-student KPI labeling.
+
+---
+
 ## 2026-07-24 — "The dollar" + audience lenses + AI disclosure + TAG contact (live)
 
 **What changed:** (1) AI disclosure + data disclaimer + Technology
