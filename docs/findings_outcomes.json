@@ -1,0 +1,296 @@
+{
+  "joined_district_years": 19382,
+  "years": [
+    2009,
+    2024
+  ],
+  "variance": {
+    "test_all_approaches": {
+      "n": 13212,
+      "r2_need_only": 0.3339,
+      "r2_spend_only": 0.0059,
+      "r2_both": 0.334,
+      "r2_spend_after_need": 0.0001,
+      "raw_corr_spend_outcome": -0.0766
+    },
+    "grad_rate_4yr": {
+      "n": 12646,
+      "r2_need_only": 0.0833,
+      "r2_spend_only": 0.0,
+      "r2_both": 0.093,
+      "r2_spend_after_need": 0.0087,
+      "raw_corr_spend_outcome": -0.0039
+    },
+    "attendance_rate": {
+      "n": 14383,
+      "r2_need_only": 0.0807,
+      "r2_spend_only": 0.0099,
+      "r2_both": 0.0816,
+      "r2_spend_after_need": 0.0008,
+      "raw_corr_spend_outcome": -0.0997
+    }
+  },
+  "equity_by_wealth_quintile": [
+    {
+      "taxable_value_per_pupil": "poorest 20%",
+      "districts": 241,
+      "median_value_per_pupil": 0.0,
+      "median_spend": 14281.1,
+      "median_econ_disadv": 77.0,
+      "median_teacher_pay": 57042.0,
+      "median_turnover": 27.6
+    },
+    {
+      "taxable_value_per_pupil": "2nd",
+      "districts": 240,
+      "median_value_per_pupil": 338718.5,
+      "median_spend": 14363.03,
+      "median_econ_disadv": 68.05,
+      "median_teacher_pay": 56336.5,
+      "median_turnover": 19.8
+    },
+    {
+      "taxable_value_per_pupil": "middle",
+      "districts": 241,
+      "median_value_per_pupil": 514196.0,
+      "median_spend": 13576.96,
+      "median_econ_disadv": 62.4,
+      "median_teacher_pay": 55819.0,
+      "median_turnover": 20.2
+    },
+    {
+      "taxable_value_per_pupil": "4th",
+      "districts": 240,
+      "median_value_per_pupil": 730521.5,
+      "median_spend": 14370.63,
+      "median_econ_disadv": 59.7,
+      "median_teacher_pay": 56694.0,
+      "median_turnover": 20.6
+    },
+    {
+      "taxable_value_per_pupil": "richest 20%",
+      "districts": 241,
+      "median_value_per_pupil": 1400763.0,
+      "median_spend": 16471.98,
+      "median_econ_disadv": 57.6,
+      "median_teacher_pay": 57699.0,
+      "median_turnover": 20.8
+    }
+  ],
+  "workforce_correlations": {
+    "pay_vs_turnover": -0.1444,
+    "turnover_vs_econ_disadv": 0.2683,
+    "pay_vs_spend": 0.2516,
+    "turnover_vs_result": -0.3984
+  },
+  "levers_after_need": [
+    {
+      "lever": "teacher turnover rate",
+      "n": 13144,
+      "raw_corr": -0.394,
+      "explains_after_need_pct": 10.12
+    },
+    {
+      "lever": "% teachers with <=5 yrs experience",
+      "n": 13193,
+      "raw_corr": -0.375,
+      "explains_after_need_pct": 7.97
+    },
+    {
+      "lever": "teacher average experience",
+      "n": 13193,
+      "raw_corr": 0.318,
+      "explains_after_need_pct": 6.79
+    },
+    {
+      "lever": "% of spending on instruction",
+      "n": 13171,
+      "raw_corr": 0.233,
+      "explains_after_need_pct": 2.13
+    },
+    {
+      "lever": "students per teacher",
+      "n": 13192,
+      "raw_corr": -0.102,
+      "explains_after_need_pct": 1.7
+    },
+    {
+      "lever": "average teacher salary",
+      "n": 13183,
+      "raw_corr": 0.066,
+      "explains_after_need_pct": 0.86
+    },
+    {
+      "lever": "spending per student",
+      "n": 13212,
+      "raw_corr": -0.077,
+      "explains_after_need_pct": 0.01
+    }
+  ],
+  "overperformers_below_median_spend": [
+    {
+      "district_name": "TEXHOMA ISD",
+      "pct_econ_disadv": 68.2,
+      "spend_per_student": 11178.11,
+      "spend_pctile": 7.23,
+      "test_all_approaches": 98.0,
+      "expected": 71.87,
+      "gap": 26.13,
+      "district_number": "211901"
+    },
+    {
+      "district_name": "RISE ACADEMY",
+      "pct_econ_disadv": 86.4,
+      "spend_per_student": 10528.1,
+      "spend_pctile": 3.49,
+      "test_all_approaches": 91.0,
+      "expected": 67.03,
+      "gap": 23.97,
+      "district_number": "152802"
+    },
+    {
+      "district_name": "MUMFORD ISD",
+      "pct_econ_disadv": 69.2,
+      "spend_per_student": 10515.09,
+      "spend_pctile": 3.32,
+      "test_all_approaches": 97.0,
+      "expected": 73.68,
+      "gap": 23.32,
+      "district_number": "198906"
+    },
+    {
+      "district_name": "AMIGOS POR VIDA-FRIENDS FOR LIFE PUB CHTR SCH",
+      "pct_econ_disadv": 98.4,
+      "spend_per_student": 12040.26,
+      "spend_pctile": 17.11,
+      "test_all_approaches": 86.0,
+      "expected": 64.29,
+      "gap": 21.71,
+      "district_number": "101819"
+    },
+    {
+      "district_name": "HOUSTON GATEWAY ACADEMY INC",
+      "pct_econ_disadv": 88.5,
+      "spend_per_student": 9954.04,
+      "spend_pctile": 1.58,
+      "test_all_approaches": 86.0,
+      "expected": 67.73,
+      "gap": 18.27,
+      "district_number": "101828"
+    },
+    {
+      "district_name": "PITTSBURG ISD",
+      "pct_econ_disadv": 77.2,
+      "spend_per_student": 13743.28,
+      "spend_pctile": 40.45,
+      "test_all_approaches": 87.0,
+      "expected": 68.97,
+      "gap": 18.03,
+      "district_number": "032902"
+    },
+    {
+      "district_name": "ALIEF MONTESSORI COMMUNITY SCHOOL",
+      "pct_econ_disadv": 76.8,
+      "spend_per_student": 9940.51,
+      "spend_pctile": 1.5,
+      "test_all_approaches": 87.0,
+      "expected": 70.58,
+      "gap": 16.42,
+      "district_number": "101815"
+    },
+    {
+      "district_name": "INGRAM ISD",
+      "pct_econ_disadv": 66.1,
+      "spend_per_student": 13937.39,
+      "spend_pctile": 42.94,
+      "test_all_approaches": 88.0,
+      "expected": 72.31,
+      "gap": 15.69,
+      "district_number": "133904"
+    },
+    {
+      "district_name": "PEWITT CISD",
+      "pct_econ_disadv": 73.1,
+      "spend_per_student": 13867.86,
+      "spend_pctile": 42.19,
+      "test_all_approaches": 85.0,
+      "expected": 69.88,
+      "gap": 15.12,
+      "district_number": "172905"
+    },
+    {
+      "district_name": "FARWELL ISD",
+      "pct_econ_disadv": 61.4,
+      "spend_per_student": 14408.2,
+      "spend_pctile": 50.0,
+      "test_all_approaches": 90.0,
+      "expected": 75.12,
+      "gap": 14.88,
+      "district_number": "185902"
+    },
+    {
+      "district_name": "EUSTACE ISD",
+      "pct_econ_disadv": 71.5,
+      "spend_per_student": 13082.78,
+      "spend_pctile": 31.56,
+      "test_all_approaches": 85.0,
+      "expected": 70.12,
+      "gap": 14.88,
+      "district_number": "107905"
+    },
+    {
+      "district_name": "HILLSBORO ISD",
+      "pct_econ_disadv": 73.2,
+      "spend_per_student": 14371.46,
+      "spend_pctile": 49.0,
+      "test_all_approaches": 84.0,
+      "expected": 69.76,
+      "gap": 14.24,
+      "district_number": "109904"
+    },
+    {
+      "district_name": "DUBLIN ISD",
+      "pct_econ_disadv": 72.7,
+      "spend_per_student": 13579.29,
+      "spend_pctile": 38.12,
+      "test_all_approaches": 86.0,
+      "expected": 71.93,
+      "gap": 14.07,
+      "district_number": "072902"
+    },
+    {
+      "district_name": "EHRHART SCHOOL",
+      "pct_econ_disadv": 85.2,
+      "spend_per_student": 12722.87,
+      "spend_pctile": 25.91,
+      "test_all_approaches": 82.0,
+      "expected": 68.0,
+      "gap": 14.0,
+      "district_number": "123805"
+    },
+    {
+      "district_name": "HOUSTON HEIGHTS HIGH SCHOOL",
+      "pct_econ_disadv": 86.0,
+      "spend_per_student": 14266.75,
+      "spend_pctile": 47.09,
+      "test_all_approaches": 79.0,
+      "expected": 65.52,
+      "gap": 13.48,
+      "district_number": "101821"
+    }
+  ],
+  "expectation_model": {
+    "year": 2024,
+    "r2": 0.4227,
+    "n": 1204,
+    "predictors": [
+      "pct_econ_disadv",
+      "pct_emergent_bilingual",
+      "pct_special_ed"
+    ]
+  },
+  "gap_by_spend_quartile": {
+    "top_quartile": -0.6,
+    "bottom_quartile": -1.08
+  }
+}
