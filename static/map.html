@@ -30,8 +30,8 @@
   .stage { display:grid; grid-template-columns: 1fr 260px; gap:1rem; align-items:start; }
   @media (max-width: 760px){ .stage { grid-template-columns:1fr; } }
   .mapwrap { position:relative; border:1px solid var(--hairline); border-radius:12px; overflow:hidden;
-             background:var(--wash); touch-action:none; }
-  canvas { display:block; width:100%; height:auto; cursor:grab; }
+             background:var(--wash); }
+  canvas { display:block; width:100%; height:auto; cursor:grab; touch-action:none; }
   canvas.grabbing { cursor:grabbing; }
   .tooltip { position:absolute; pointer-events:none; background:var(--ink); color:#fff;
              border-radius:6px; padding:.35rem .65rem; font-size:.8rem; display:none;
@@ -58,6 +58,8 @@
   .explainer { max-width:44rem; margin:0 0 1rem; }
   .explainer p { font-size:.94rem; color:var(--ink-2); margin:0 0 .55rem; }
   .explainer .tryit { color:var(--ink); background:var(--wash); border-radius:8px; padding:.6rem .85rem; margin-top:.7rem; }
+  .mobonly { display:none; }
+  @media (max-width:760px){ .mobonly { display:inline; } }
   .readout {
     background:var(--wash); border-radius:10px; padding:.85rem 1.05rem; margin:.7rem 0 0;
     font-size:.95rem; max-width:44rem; display:none;
@@ -88,8 +90,10 @@
     The <strong>darker the blue, the more it spends per student</strong>.</p>
     <p><strong>So what?</strong> When two dots sit right next to each other but one is pale and one is dark,
     two very similar districts are spending very differently. <em>That's a question worth asking.</em></p>
-    <p class="tryit">👉 <strong>Try this:</strong> type your district's name in the box above — we'll find its seat
-    and show you who's sitting next to it.</p>
+    <p class="tryit">👉 <strong>Try this:</strong> type your district's name in the box above and press Enter —
+    we'll find its seat and show you who's sitting next to it.
+    <span class="mobonly">On a phone: <strong>tap a dot</strong> to open it, <strong>drag</strong> to move around,
+    <strong>pinch</strong> to zoom in.</span></p>
   </div>
 
   <div class="stage">
@@ -153,7 +157,8 @@ let flaggedOnly = false, findTerm = '', colorMode = 'spend';
 let bounds = null, dpr = Math.min(window.devicePixelRatio || 1, 2);
 
 function resize() {
-  const w = wrap.clientWidth, h = Math.round(w * 0.62);
+  // taller aspect on phones so the map is usable in portrait
+  const w = wrap.clientWidth, h = Math.round(w * (w < 560 ? 1.05 : 0.62));
   cv.style.height = h + 'px';
   cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
   draw();
@@ -326,6 +331,48 @@ cv.addEventListener('mousedown', e => { dragging=true; moved=false; cv.classList
   dragStart={x:e.clientX,y:e.clientY,vx:view.x,vy:view.y}; });
 window.addEventListener('mouseup', e => { if(dragging){ dragging=false; cv.classList.remove('grabbing');
   if (Math.abs(e.clientX-dragStart.x)+Math.abs(e.clientY-dragStart.y) > 4) moved=true; setTimeout(()=>moved=false,0);} });
+
+/* ---- TOUCH: pan, pinch-zoom, tap-to-open. Most visitors are on a phone. ---- */
+let touchStart = null, touchMoved = false;
+function touchXY(t) {
+  const r = cv.getBoundingClientRect();
+  return [(t.clientX - r.left) * cv.width / r.width, (t.clientY - r.top) * cv.height / r.height];
+}
+cv.addEventListener('touchstart', e => {
+  touchMoved = false;
+  if (e.touches.length === 1) {
+    touchStart = { mode:'pan', x:e.touches[0].clientX, y:e.touches[0].clientY, vx:view.x, vy:view.y };
+  } else if (e.touches.length === 2) {
+    const dx = e.touches[0].clientX - e.touches[1].clientX;
+    const dy = e.touches[0].clientY - e.touches[1].clientY;
+    touchStart = { mode:'pinch', dist: Math.hypot(dx, dy) || 1, k: view.k };
+  }
+}, { passive:true });
+cv.addEventListener('touchmove', e => {
+  if (!touchStart) return;
+  e.preventDefault();
+  if (touchStart.mode === 'pan' && e.touches.length === 1) {
+    const dx = e.touches[0].clientX - touchStart.x, dy = e.touches[0].clientY - touchStart.y;
+    if (Math.abs(dx) + Math.abs(dy) > 6) touchMoved = true;
+    view.x = touchStart.vx + dx; view.y = touchStart.vy + dy;
+    draw();
+  } else if (touchStart.mode === 'pinch' && e.touches.length === 2) {
+    touchMoved = true;
+    const dx = e.touches[0].clientX - e.touches[1].clientX;
+    const dy = e.touches[0].clientY - e.touches[1].clientY;
+    view.k = Math.max(1, Math.min(14, touchStart.k * (Math.hypot(dx, dy) / touchStart.dist)));
+    draw();
+  }
+}, { passive:false });
+cv.addEventListener('touchend', e => {
+  if (touchStart && !touchMoved && e.changedTouches.length) {
+    const [cx, cy] = touchXY(e.changedTouches[0]);
+    const hit = pickAt(cx, cy);
+    if (hit) { pinned = hit; showPanel(hit.n); } else { pinned = null; hidePanel(); }
+    draw();
+  }
+  touchStart = null;
+}, { passive:true });
 
 function showPanel(n) {
   document.getElementById('panel-empty').style.display='none';
