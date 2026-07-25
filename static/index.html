@@ -257,6 +257,34 @@
     </section>
 
     <hr class="rule">
+    <section id="object-section">
+      <div class="eyebrow">What the money buys</div>
+      <h2 class="action" id="object-title"></h2>
+      <p class="support">Operating spending by <em>object</em> — the kind of thing purchased, regardless of
+        which department spent it. Schools are people-intensive, so payroll dominates almost everywhere;
+        the interesting signal is how much goes to outside <em>contracted services</em> instead.</p>
+      <div class="chartwrap">
+        <svg id="objchart" width="100%" height="150" role="img" aria-label="Spending by object"></svg>
+        <div class="tooltip" id="objtip"></div>
+      </div>
+      <div class="cite" id="object-cite"></div>
+    </section>
+
+    <hr class="rule">
+    <section id="program-section">
+      <div class="eyebrow">Who the money serves</div>
+      <h2 class="action" id="program-title"></h2>
+      <p class="support">Program spending by student group. These overlap the categories above (a special-ed
+        teacher's salary is both "payroll" and "special education") — this view answers "how much reaches
+        each population," not a separate pot of money. Blank = the district reported none separately.</p>
+      <div class="chartwrap">
+        <svg id="progchart" width="100%" height="230" role="img" aria-label="Spending by program"></svg>
+        <div class="tooltip" id="progtip"></div>
+      </div>
+      <div class="cite" id="program-cite"></div>
+    </section>
+
+    <hr class="rule">
     <section id="flags-section">
       <div class="eyebrow">Anomaly check</div>
       <h2 class="action" id="flags-title"></h2>
@@ -414,22 +442,23 @@ async function loadDashboard() {
   if (!d) return;
   $('dash').classList.remove('hidden');
   try {
-    const [summary, peers, flags, breakdown, turnarounds] = await Promise.all([
+    const [summary, peers, flags, breakdown, turnarounds, detail] = await Promise.all([
       api('/district/' + encodeURIComponent(d.num) + '/summary'),
       api('/district/' + encodeURIComponent(d.num) + '/peers'),
       api('/anomalies?district_number=' + encodeURIComponent(d.num) + '&limit=50'),
       api('/district/' + encodeURIComponent(d.num) + '/breakdown'),
       api('/district/' + encodeURIComponent(d.num) + '/turnarounds').catch(() => ({turnarounds: []})),
+      api('/district/' + encodeURIComponent(d.num) + '/spending-detail').catch(() => []),
     ]);
     state.summary = summary; state.peers = peers; state.flags = flags; state.breakdown = breakdown;
-    state.turnarounds = turnarounds;
+    state.turnarounds = turnarounds; state.detail = detail;
     renderAll();
     $('dash').scrollIntoView({ block: 'start' });
   } catch (e) { /* banner shown */ }
 }
 function renderAll() {
   renderExec(); renderKPIs(); renderTrend(); renderPeers(); renderMoney(); renderFlags();
-  renderTurnarounds();
+  renderObject(); renderProgram(); renderTurnarounds();
   ['kpi-cite', 'trend-cite', 'peers-cite', 'flags-cite'].forEach(c => cite(c));
   cite('money-cite', 'function-code groupings listed under Disclaimer');
   $('btn-uncompare').classList.toggle('hidden', !state.compare);
@@ -757,6 +786,75 @@ function renderFlags() {
     }).join('<br>');
     return `<div class="flagcard"><strong>Fiscal ${f.year}</strong><br>${items}</div>`;
   }).join('');
+}
+
+/* ---------- object + program breakdowns (shared bar renderer) ---------- */
+function barChart(svgId, tipId, items, total, highlightIdx) {
+  const svg = $(svgId), tip = $(tipId);
+  const shown = items.filter(it => it.v > 0);
+  if (!shown.length || !total) { svg.innerHTML = ''; return; }
+  const W = svg.clientWidth || 900, rowH = 30, m = { t: 4, r: 96, l: 210 };
+  const H = m.t + shown.length * rowH + 6;
+  svg.setAttribute('height', H); svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  const vMax = Math.max(...shown.map(s => s.v)) * 1.05;
+  let out = '';
+  shown.forEach((c, i) => {
+    const yy = m.t + i * rowH, w = (W - m.l - m.r) * (c.v / vMax);
+    const hi = i === highlightIdx;
+    out += `<text x="${m.l - 8}" y="${yy + rowH / 2 + 4}" text-anchor="end" font-size="11.5" fill="${hi ? css('--ink') : css('--muted')}" ${hi ? 'font-weight="700"' : ''}>${c.name}</text>`;
+    out += `<rect data-i="${i}" x="${m.l}" y="${yy + 6}" width="${Math.max(w, 2)}" height="${rowH - 12}" rx="4" fill="${hi ? css('--blue') : css('--hairline')}"/>`;
+    out += `<text x="${m.l + Math.max(w, 2) + 8}" y="${yy + rowH / 2 + 4}" font-size="11.5" fill="${hi ? css('--blue') : css('--muted')}" ${hi ? 'font-weight="700"' : ''}>${(100 * c.v / total).toFixed(1)}%</text>`;
+  });
+  svg.innerHTML = out;
+  svg.onmousemove = e => {
+    const t = e.target.closest('[data-i]');
+    if (!t) { tip.style.display = 'none'; return; }
+    const c = shown[+t.dataset.i];
+    tip.textContent = `${c.name}: ${fmtMoney(c.v)} (${(100 * c.v / total).toFixed(1)}%)`;
+    tip.style.display = 'block';
+    const rc = svg.getBoundingClientRect();
+    tip.style.left = Math.min(e.clientX - rc.left + 14, rc.width - 260) + 'px';
+    tip.style.top = (e.clientY - rc.top - 34) + 'px';
+  };
+  svg.onmouseleave = () => { tip.style.display = 'none'; };
+}
+function renderObject() {
+  const rows = state.detail || [];
+  const cur = rows[rows.length - 1];
+  if (!cur) { $('object-section').style.display = 'none'; return; }
+  $('object-section').style.display = 'block';
+  const items = [
+    { name: 'Payroll (people)', v: +cur.obj_payroll || 0 },
+    { name: 'Contracted services', v: +cur.obj_contracted || 0 },
+    { name: 'Supplies & materials', v: +cur.obj_supplies || 0 },
+    { name: 'Other operating', v: +cur.obj_other || 0 },
+  ];
+  const total = +cur.obj_total;
+  const payPct = Math.round(100 * (+cur.obj_payroll) / total);
+  $('object-title').textContent = `${payPct}¢ of every operating dollar goes to payroll`;
+  barChart('objchart', 'objtip', items, total, 0);
+  cite('object-cite');
+}
+function renderProgram() {
+  const rows = state.detail || [];
+  const cur = rows[rows.length - 1];
+  if (!cur || !(+cur.prog_total)) { $('program-section').style.display = 'none'; return; }
+  $('program-section').style.display = 'block';
+  const items = [
+    { name: 'Regular education', v: +cur.prog_regular || 0 },
+    { name: 'Special education', v: +cur.prog_special_ed || 0 },
+    { name: 'Compensatory (at-risk)', v: +cur.prog_compensatory || 0 },
+    { name: 'Bilingual / ESL', v: +cur.prog_bilingual || 0 },
+    { name: 'Career & technical', v: +cur.prog_career_tech || 0 },
+    { name: 'Gifted & talented', v: +cur.prog_gifted || 0 },
+    { name: 'Athletics', v: +cur.prog_athletics || 0 },
+  ].sort((a, b) => b.v - a.v);
+  const total = +cur.prog_total;
+  const sped = items.find(i => i.name === 'Special education');
+  const spedPct = sped ? Math.round(100 * sped.v / total) : 0;
+  $('program-title').textContent = `${spedPct}% of program spending reaches special education`;
+  barChart('progchart', 'progtip', items, total, items.findIndex(i => i.name === 'Special education'));
+  cite('program-cite');
 }
 
 /* ---------- turnarounds (similarity-graph walk) ---------- */

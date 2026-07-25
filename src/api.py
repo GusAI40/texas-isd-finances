@@ -500,6 +500,24 @@ async def get_district_turnarounds(request: Request, district_number: str):
         return {"turnarounds": results, "peers_scanned": len(by_peer)}
 
 
+@app.get("/district/{district_number}/spending-detail", tags=["Districts"])
+async def get_district_spending_detail(request: Request, district_number: str):
+    """Two more spending dimensions the summarized data already carries:
+    OBJECT (what was bought — payroll/contracted/supplies/other, sums to
+    operating) and PROGRAM (who it served — regular/special-ed/bilingual/
+    career-tech/gifted/compensatory/athletics), every year."""
+    pool = get_pool(request)
+    async with pool.acquire() as conn:
+        rows = await conn.fetch("""
+            SELECT * FROM v_spending_detail
+            WHERE district_number = $1 AND obj_total > 0
+            ORDER BY year
+        """, district_number)
+        if not rows:
+            raise HTTPException(status_code=404, detail="District not found")
+        return [dict(r) for r in rows]
+
+
 @app.get("/map", include_in_schema=False)
 async def similarity_map():
     """Serve the statewide similarity map page."""
