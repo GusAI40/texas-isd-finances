@@ -61,3 +61,5 @@ build/
 
 # Vercel CLI link (contains project/org ids)
 .vercel/
+.vercel
+.env*

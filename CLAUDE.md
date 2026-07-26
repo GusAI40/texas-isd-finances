@@ -16,6 +16,7 @@ read-only Postgres views on Supabase. MIT-licensed, built for public use.
 
 | Thing | Value |
 |---|---|
+| Vercel team | **TAG-ai** (`tag-ai-projects`) — NOT GOAT-UIX. Two teams each hold a project named `texas-isd-finances`; only the TAG-ai one owns `txisd.dev`. Always `--scope tag-ai-projects`. `vercel link` rewrites `vercel.json` and the project framework — `cat vercel.json` after. |
 | Live portal | **https://txisd.dev** — the custom domain, use it everywhere. `texas-isd-finances.vercel.app` also resolves but is the prototype URL and must not appear in pages, docs or citations (a test enforces this). Vercel project `texas-isd-finances`, account `tag-ai`. |
 | API docs | https://txisd.dev/docs |
 | Health check | `GET /health` → expect `{"status":"healthy","database":"connected"}` |
@@ -109,7 +110,7 @@ proxy), run `scratchpad/liveproxy.py` and point Playwright at
 - 🔴 OPEN: user must rotate credentials pasted into chat on 2026-07-22 (OpenAI/GitHub/Hetzner/Anthropic etc.); OpenAI key in Vercel env needs updating after rotation.
 - 🟡 OPEN hardening: read-only DB role for NLP is the last one left; 518 KB `/geomap` payload on mobile; PR #2 awaiting user review (do not merge).
 - ✅ **Economics layer** — `/district/{id}/economics` + `/economics/texas`, served from `static/economics_data.json` (no DB). What you pay (tax bill on a $300k home, what leaves under recapture), where it goes (teaching vs buildings vs debt — **debt sits OUTSIDE TEA's operating total, compose don't subtract**), what each lever actually bought (within-district first differences, 3-yr, clustered SEs), and who does better (matched persistent outperformers). `scripts/ingest_tea_property.py` + `scripts/build_economics_data.py`.
-- ⏳ COMMITTED BUT NOT DEPLOYED (`fc294cd` and later): CSP + security headers, `/query` threadpool + 45s timeout + global 60/window ceiling, `<details>` table twin on both maps. Needs a Vercel token to reach production.
+- ✅ **All of the above is LIVE** (deployed 2026-07-26): security headers, `/query` threadpool+timeout+global cap, table twins, property/tax/recapture ingest, economics layer.
 - 🟡 WATCH: Supabase free tier pauses after ~7 days idle → portal shows "database not connected" until woken in dashboard. Vercel Hobby is non-commercial; upgrade both if pursuing revenue.
 
 ## Key docs

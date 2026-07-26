@@ -17,6 +17,49 @@ Entry template:
 
 ---
 
+## 2026-07-26 — Deployed. And the two Vercel traps that nearly sent it to the wrong place
+
+**What changed:** everything from `fc294cd` through `c6be292` is now LIVE on
+https://txisd.dev. Verified: `/economics/texas`, `/district/{id}/economics`,
+`/outcomes`, `/geomap`, `/map` all 200; all five security headers present on
+`/`; `/docs` still 200 with no CSP; the economics section rendered in a real
+browser against production with 3 macro series, 5 lever intervals, 6 peer rows,
+a 17-row table twin, zero page errors, and the turnover correction in place.
+
+**Gotchas — both would have looked like success:**
+
+1. **There are TWO Vercel teams and TWO projects named `texas-isd-finances`.**
+   `vercel link --project texas-isd-finances` without the right scope resolved
+   to team **GOAT-UIX** and *created a brand-new project there*, which deployed
+   green and served nothing. `txisd.dev` is attached to the **TAG-ai** team
+   (`tag-ai-projects`, `team_hLW8yrUTYNGt9CiRY4IMMSet`), project
+   `prj_Q86h3ZufDMLk7bsyYOj7FP3S9Wqg`. The confusion is real: the Supabase org
+   is called GOAT-UIX while the Vercel account is TAG-ai. **A deployment
+   reporting "ready" proves nothing — check the project's domain list.** The
+   stray project was deleted.
+2. **`vercel link` REWRITES `vercel.json`.** CLI 57 detected "services" and
+   injected a `services` block with `buildCommand: pip install -r
+   requirements.txt`. That is the full local dev set — pandas, matplotlib,
+   statsmodels — and would have blown the 500 MB bundle cap that
+   `requirements-vercel.txt` and the `[project]` table exist to avoid. It also
+   flipped the PROJECT's framework setting server-side to `services`, which
+   then failed every deploy with "no services are declared" until it was PATCHed
+   back to `fastapi` via the REST API. Always `cat vercel.json` after linking.
+
+Also removed the now-redundant top-level `functions` block from `vercel.json`:
+CLI 57 rejects it alongside service detection, and every path its `excludeFiles`
+listed is already covered by `.vercelignore`.
+
+**Open items:**
+- 🔴 **Rotate the three PATs pasted in chat** (Vercel/Supabase/GitHub, both
+  2026-07-22 and 2026-07-25). The Vercel one was used for this deploy and then
+  shredded; `.vercel/` and `.env.local` were removed.
+- ⏭️ Bond election data analysed but NOT built in — the per-district bond
+  history section is the next feature.
+- 🟡 Read-only DB role for NLP; 1.6 MB `economics_data.json`; 518 KB `/geomap`.
+
+---
+
 ## 2026-07-26 — The economics layer, and the bond data that closes the stadium question
 
 **What changed:** commits `325e9f9` and `5c05564` (pushed, **still not deployed**).
