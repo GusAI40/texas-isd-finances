@@ -1,6 +1,7 @@
 """
 FastAPI service for Texas School Finance Data Portal
 """
+import asyncio
 import json
 import os
 import time
@@ -12,6 +13,7 @@ from typing import Any, Dict, List, Optional
 import asyncpg
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Query, Request
+from fastapi.concurrency import run_in_threadpool
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, PlainTextResponse, Response
 from pydantic import BaseModel, Field
@@ -76,6 +78,32 @@ app.add_middleware(
     allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
+
+@app.middleware("http")
+async def security_headers(request: Request, call_next):
+    """Baseline hardening. Only HSTS was present before this.
+
+    The CSP allows inline script and style because both pages are
+    self-contained single files by design — no build step, no bundler, nothing
+    to audit but the file itself. It still blocks any EXTERNAL script or frame,
+    which is what actually matters for a page that renders public data.
+    """
+    resp = await call_next(request)
+    if request.url.path.startswith(("/docs", "/redoc", "/openapi.json")):
+        return resp                      # Swagger UI loads its assets from a CDN
+    resp.headers.setdefault("X-Content-Type-Options", "nosniff")
+    resp.headers.setdefault("X-Frame-Options", "SAMEORIGIN")
+    resp.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
+    resp.headers.setdefault("Permissions-Policy", "geolocation=(self), camera=(), microphone=()")
+    resp.headers.setdefault(
+        "Content-Security-Policy",
+        "default-src 'self'; script-src 'self' 'unsafe-inline'; "
+        "style-src 'self' 'unsafe-inline'; img-src 'self' data:; "
+        "connect-src 'self'; frame-ancestors 'self'; base-uri 'self'; "
+        "form-action 'self'",
+    )
+    return resp
+
 
 # The NLP engine needs an OpenAI key and a database connection, so it is
 # created lazily on first use rather than at import time.
@@ -154,16 +182,28 @@ async def api_info():
 _RATE_LIMIT = int(os.getenv("QUERY_RATE_LIMIT", "10"))  # requests
 _RATE_WINDOW = 60.0  # seconds
 _rate_buckets: Dict[str, List[float]] = {}
+# X-Forwarded-For is client-supplied and therefore spoofable, so the per-IP
+# limit alone cannot bound cost — one attacker can present a new IP per
+# request. This global ceiling is the actual spend guard; the per-IP limit
+# just keeps one honest user from hogging it.
+_GLOBAL_LIMIT = int(os.getenv("QUERY_GLOBAL_LIMIT", "60"))  # per window, all callers
+_global_hits: List[float] = []
 
 
 def _rate_limited(ip: str) -> bool:
     now = time.monotonic()
+    global _global_hits
+    _global_hits = [t for t in _global_hits if now - t < _RATE_WINDOW]
+    if len(_global_hits) >= _GLOBAL_LIMIT:
+        return True
+
     bucket = [t for t in _rate_buckets.get(ip, []) if now - t < _RATE_WINDOW]
     if len(bucket) >= _RATE_LIMIT:
         _rate_buckets[ip] = bucket
         return True
     bucket.append(now)
     _rate_buckets[ip] = bucket
+    _global_hits.append(now)
     if len(_rate_buckets) > 10000:  # bound memory
         _rate_buckets.clear()
     return False
@@ -193,7 +233,20 @@ async def nlp_query(request: NLPQueryRequest, http_request: Request):
             status_code=503,
             detail="NLP engine not configured. Set OPENAI_API_KEY and SUPABASE_DB_URL.",
         )
-    result = engine.query(request.question)
+    # engine.query() is synchronous and can take ~10s. Awaiting it directly
+    # blocked the event loop, so one slow question stalled every other request
+    # on the instance. Off to a worker thread, with a hard ceiling so a hung
+    # model call cannot pin a thread forever.
+    try:
+        result = await asyncio.wait_for(
+            run_in_threadpool(engine.query, request.question),
+            timeout=float(os.getenv("QUERY_TIMEOUT_SECONDS", "45")),
+        )
+    except asyncio.TimeoutError:
+        raise HTTPException(
+            status_code=504,
+            detail="That question took too long to answer. Try a narrower one.",
+        )
     return NLPQueryResponse(**result)
 
 

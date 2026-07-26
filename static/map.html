@@ -59,6 +59,17 @@
   .explainer { max-width:44rem; margin:0 0 1rem; }
   .explainer p { font-size:.94rem; color:var(--ink-2); margin:0 0 .55rem; }
   .explainer .tryit { color:var(--ink); background:var(--wash); border-radius:8px; padding:.6rem .85rem; margin-top:.7rem; }
+  .a11y { margin:.9rem 0 0; }
+  .a11y summary { cursor:pointer; font-size:.85rem; color:var(--ink-2); padding:.35rem 0; }
+  .a11y summary:focus-visible { outline:2px solid var(--blue); outline-offset:3px; }
+  .a11y-scroll { max-height:22rem; overflow:auto; border:1px solid var(--hairline); border-radius:10px; }
+  .a11y table { border-collapse:collapse; width:100%; font-size:.82rem; }
+  .a11y caption { text-align:left; padding:.5rem .7rem; color:var(--muted); font-size:.78rem; }
+  .a11y th, .a11y td { text-align:right; padding:.3rem .6rem; border-bottom:1px solid var(--hairline);
+                       font-variant-numeric:tabular-nums; white-space:nowrap; }
+  .a11y th:first-child, .a11y td:first-child { text-align:left; }
+  .a11y thead th { position:sticky; top:0; background:#fff; border-bottom:1px solid var(--ink); }
+  .a11y td a { color:var(--blue); }
   .mobonly { display:none; }
   @media (max-width:760px){ .mobonly { display:inline; } }
   .readout {
@@ -119,6 +130,14 @@
   </div>
 
   <div class="readout" id="readout"></div>
+
+  <details class="a11y" id="a11y">
+    <summary>Read this map as a table (keyboard and screen-reader friendly)</summary>
+    <p class="support" id="a11y-note"></p>
+    <div class="a11y-scroll">
+      <table id="a11y-table"><caption id="a11y-cap"></caption></table>
+    </div>
+  </details>
 
   <div class="legend" id="legend-spend">
     <span><span class="swatch"><i style="background:#cde2fb"></i><i style="background:#86b6ef"></i><i style="background:#3987e5"></i><i style="background:#1c5cab"></i><i style="background:#0d366b"></i></span>pale = spends less per student, dark = spends more <span id="ramp-vals" style="color:var(--muted)"></span></span>
@@ -467,6 +486,33 @@ document.getElementById('toggle-flags').addEventListener('click', e => {
 document.getElementById('reset').addEventListener('click', () => { view={k:1,x:0,y:0}; pinned=null; hidePanel(); draw(); });
 window.addEventListener('resize', resize);
 
+/* The canvas is unreachable by keyboard or screen reader, and always will be.
+   Rather than bolt fake focus onto pixels, publish the same data as a real
+   table — readable, linkable and copyable by anyone. */
+function renderA11yTable() {
+  const arche = {};
+  (meta.archetypes || []).forEach((a, i) => { arche[i] = a.name; });
+  const rows = nodes.slice().sort((a, b) => (b.s ?? -1) - (a.s ?? -1));
+  document.getElementById('a11y-note').textContent =
+    'Every district on the map, listed highest spending per student first. ' +
+    'The picture is a drawing of this table; the numbers are identical.';
+  // The caption is a child of the table, so it has to be written in the same
+  // innerHTML assignment — setting it first and then assigning innerHTML wipes it.
+  const cap = `<caption id="a11y-cap">${rows.length.toLocaleString()} Texas school ` +
+    `districts, fiscal ${meta.year}. Seats are placed by structural similarity, ` +
+    `not geography.</caption>`;
+  const head = '<thead><tr><th scope="col">District</th><th scope="col">Section</th>' +
+    '<th scope="col">Students</th><th scope="col">Spending / student</th>' +
+    '<th scope="col">Recent flag</th></tr></thead>';
+  const body = rows.map(n =>
+    `<tr><td><a href="/?d=${n.d}">${n.n}</a></td>` +
+    `<td>${arche[n.c] || '—'}</td>` +
+    `<td>${n.e == null ? '—' : Number(n.e).toLocaleString()}</td>` +
+    `<td>${n.s == null ? '—' : '$' + Math.round(n.s).toLocaleString()}</td>` +
+    `<td>${n.f ? 'yes' : 'no'}</td></tr>`).join('');
+  document.getElementById('a11y-table').innerHTML = cap + head + `<tbody>${body}</tbody>`;
+}
+
 fetch('/map-data').then(r=>r.json()).then(d => {
   meta = d.meta;
   // TEA ships names in all caps; title-case once here so the canvas labels,
@@ -495,6 +541,7 @@ fetch('/map-data').then(r=>r.json()).then(d => {
   document.getElementById('legend-arche').innerHTML = meta.archetypes.map(a =>
     `<span><span class="dotarche" style="display:inline-block;width:11px;height:11px;border-radius:50%;background:${a.color};vertical-align:middle;margin-right:.35rem"></span>${a.name} <span style="color:var(--muted)">(${a.count})</span></span>`
   ).join('');
+  renderA11yTable();
   resize();
   // deep link ?d=057905
   const want = new URLSearchParams(location.search).get('d');

@@ -67,6 +67,17 @@
   .readout { background:var(--wash); border-radius:10px; padding:.85rem 1.05rem; margin:.8rem 0 0;
              font-size:.95rem; max-width:46rem; display:none; }
   .readout b { color:var(--ink); }
+  .a11y { margin:.9rem 0 0; max-width:1180px; }
+  .a11y summary { cursor:pointer; font-size:.85rem; color:var(--ink-2); padding:.35rem 0; }
+  .a11y summary:focus-visible { outline:2px solid var(--blue); outline-offset:3px; }
+  .a11y-scroll { max-height:22rem; overflow:auto; border:1px solid var(--hairline); border-radius:10px; }
+  .a11y table { border-collapse:collapse; width:100%; font-size:.82rem; }
+  .a11y caption { text-align:left; padding:.5rem .7rem; color:var(--muted); font-size:.78rem; }
+  .a11y th, .a11y td { text-align:right; padding:.3rem .6rem; border-bottom:1px solid var(--hairline);
+                       font-variant-numeric:tabular-nums; white-space:nowrap; }
+  .a11y th:first-child, .a11y td:first-child { text-align:left; }
+  .a11y thead th { position:sticky; top:0; background:#fff; border-bottom:1px solid var(--ink); }
+  .a11y td a { color:var(--blue); }
   .mobonly { display:none; }
   @media (max-width:760px){ .mobonly { display:inline; } }
 </style>
@@ -116,6 +127,14 @@
       </div>
     </aside>
   </div>
+
+  <details class="a11y" id="a11y">
+    <summary>Read this map as a table (keyboard and screen-reader friendly)</summary>
+    <p class="support" id="a11y-note"></p>
+    <div class="a11y-scroll">
+      <table id="a11y-table"><caption id="a11y-cap"></caption></table>
+    </div>
+  </details>
 
   <div class="legend" id="legend"></div>
   <div class="readout" id="readout"></div>
@@ -289,6 +308,35 @@ function showPanel(id) {
             `Same labour market, same economy — a question worth asking.`
           : `None of its neighbours serving similar students retains teachers markedly better.`);
 }
+/* The canvas is unreachable by keyboard or screen reader, and always will be.
+   Rather than bolt fake focus onto pixels, publish the same data as a real
+   table — sortable by nothing, but readable, linkable and copyable by anyone. */
+function renderA11yTable() {
+  const rows = ids.map(id => ({ id, d: geo.d[id], m: geo.d[id].m || {} }))
+    .filter(r => r.m.t != null)
+    .sort((a, b) => b.m.t - a.m.t);
+  $('a11y-note').textContent =
+    `Every district on the map, listed highest teacher turnover first. ` +
+    `The map is a picture of this table; the numbers are identical.`;
+  // The caption is a child of the table, so it has to be written in the same
+  // innerHTML assignment — setting it first and then assigning innerHTML wipes it.
+  const cap = `<caption id="a11y-cap">${rows.length.toLocaleString()} Texas school ` +
+    `districts with a published turnover rate, fiscal 2024. Charter districts have ` +
+    `no boundary and are not included.</caption>`;
+  const head = `<thead><tr><th scope="col">District</th><th scope="col">Students</th>` +
+    `<th scope="col">Teacher turnover</th><th scope="col">Spending / student</th>` +
+    `<th scope="col">Economically disadvantaged</th><th scope="col">vs predicted result</th>` +
+    `</tr></thead>`;
+  const body = rows.map(r =>
+    `<tr><td><a href="/?d=${r.id}">${r.d.n}</a></td>` +
+    `<td>${r.m.e == null ? '—' : Number(r.m.e).toLocaleString()}</td>` +
+    `<td>${r.m.t}%</td>` +
+    `<td>${r.m.s == null ? '—' : '$' + Math.round(r.m.s).toLocaleString()}</td>` +
+    `<td>${r.m.p == null ? '—' : r.m.p + '%'}</td>` +
+    `<td>${r.m.g == null ? '—' : (r.m.g > 0 ? '+' : '') + r.m.g + ' pts'}</td></tr>`).join('');
+  $('a11y-table').innerHTML = cap + head + `<tbody>${body}</tbody>`;
+}
+
 function renderLegend() {
   const M = METRICS[metric];
   const ramp = (M.diverge ? DIVERGE : RAMP).map(c => `<i style="background:${c}"></i>`).join('');
@@ -436,7 +484,7 @@ fetch('/district-geo').then(r => r.json()).then(d => {
     const [a,b] = k.split('|');
     (adj[a] = adj[a] || []).push(b); (adj[b] = adj[b] || []).push(a);
   }
-  renderLegend(); resize();
+  renderA11yTable(); renderLegend(); resize();
   const want = new URLSearchParams(location.search).get('d');
   if (want && d.d[want]) focusOn(want);
 }).catch(err => {

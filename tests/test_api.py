@@ -108,6 +108,35 @@ def test_outcomes_served_without_a_database(client):
     assert client.get("/district/999999/outcomes").status_code == 404
 
 
+def test_security_headers_present(client):
+    """Only HSTS was set before. A public data site should not be framable,
+    sniffable, or able to load third-party script."""
+    h = client.get("/").headers
+    assert h["X-Content-Type-Options"] == "nosniff"
+    assert h["X-Frame-Options"] == "SAMEORIGIN"
+    assert "strict-origin" in h["Referrer-Policy"]
+    csp = h["Content-Security-Policy"]
+    assert "default-src 'self'" in csp and "frame-ancestors 'self'" in csp
+    # /docs must stay usable — Swagger UI pulls its assets from a CDN
+    assert "Content-Security-Policy" not in client.get("/docs").headers
+
+
+def test_query_has_a_global_spend_ceiling():
+    """X-Forwarded-For is spoofable, so a per-IP limit alone cannot bound cost.
+    A caller presenting a fresh IP every time must still hit a wall."""
+    from src import api as api_mod
+
+    api_mod._rate_buckets.clear()
+    api_mod._global_hits.clear()
+    allowed = 0
+    for i in range(api_mod._GLOBAL_LIMIT * 3):
+        if not api_mod._rate_limited(f"198.51.100.{i % 250}.{i}"):
+            allowed += 1
+    assert allowed <= api_mod._GLOBAL_LIMIT
+    api_mod._rate_buckets.clear()
+    api_mod._global_hits.clear()
+
+
 def test_robots_and_sitemap(client):
     """Search engines must be able to find the district pages. The dashboard
     renders districts client-side from ?d=, so without a sitemap they are
@@ -134,6 +163,22 @@ def test_no_stale_prototype_domain_in_pages():
     for name in ("index.html", "geomap.html", "map.html"):
         text = (Path("static") / name).read_text()
         assert "texas-isd-finances.vercel.app" not in text, name
+
+
+def test_maps_ship_a_table_twin():
+    """Both maps draw to a canvas, which no keyboard or screen reader can enter.
+    Each must publish the same data as a real table. The styles alone once
+    shipped without the markup, so check for all three parts."""
+    from pathlib import Path
+
+    for name in ("geomap.html", "map.html"):
+        text = (Path("static") / name).read_text()
+        assert '<details class="a11y"' in text, f"{name}: no table twin markup"
+        assert "function renderA11yTable()" in text, f"{name}: no render function"
+        assert "renderA11yTable();" in text, f"{name}: render function never called"
+        # the caption must be written with the rest of the table, not before it
+        assert "$('a11y-cap').textContent" not in text, name
+        assert "getElementById('a11y-cap').textContent" not in text, name
 
 
 def test_pennies_always_sum_to_one_hundred():
