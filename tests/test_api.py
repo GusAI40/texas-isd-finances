@@ -165,6 +165,52 @@ def test_no_stale_prototype_domain_in_pages():
         assert "texas-isd-finances.vercel.app" not in text, name
 
 
+def test_economics_served_without_a_database(client):
+    """Like outcomes, the economics layer is precomputed, so it must answer with
+    no database configured — it is the only thing on the page a taxpayer can
+    check against their own tax statement."""
+    res = client.get("/district/165901/economics")
+    if res.status_code == 503:
+        pytest.skip("economics_data.json not built in this checkout")
+    body = res.json()
+    a = body["allocation"]
+    # debt service sits outside TEA's operating total, so the parts compose
+    assert a["instruction_per_student"] + a["other_operating_per_student"] == \
+        a["operating_per_student"]
+    assert a["operating_per_student"] + a["debt_per_student"] == a["total_per_student"]
+    # a tax bill that is present must be internally consistent
+    if body["tax"]:
+        t = body["tax"]
+        assert t["mo_rate"] + t["is_rate"] == pytest.approx(t["total_rate"], abs=1e-4)
+        assert 0 <= t["leaves_district"] <= t["bill_on_home"]
+    assert client.get("/district/999999/economics").status_code == 404
+
+
+def test_economics_effects_carry_confidence_intervals(client):
+    """An effect size without an interval invites the reader to treat noise as a
+    finding — the spending effect in particular straddles zero and the page must
+    be able to say so."""
+    res = client.get("/economics/texas")
+    if res.status_code == 503:
+        pytest.skip("economics_data.json not built in this checkout")
+    mp = res.json()["micro"]["marginal_product"]
+    assert mp["n_districts"] > 500 and mp["horizon_years"] >= 1
+    for lever, e in mp["effects"].items():
+        assert e["ci_low"] <= e["per_unit"] <= e["ci_high"], lever
+
+
+def test_charter_districts_are_not_counted_as_data_quality_failures(client):
+    """A charter levies no property tax, so it has no rate by nature. Folding
+    those into the withheld-for-QA count would overstate our own error rate."""
+    res = client.get("/economics/texas")
+    if res.status_code == 503:
+        pytest.skip("economics_data.json not built in this checkout")
+    meta = res.json()["meta"]
+    assert meta["no_tax_jurisdiction"] > 100        # Texas has ~295 charters
+    assert meta["tax_figures_withheld_qa"] < 50     # genuine disagreements are rare
+    assert meta["split_half_reliability"] > 0.5     # the score must actually repeat
+
+
 def test_maps_ship_a_table_twin():
     """Both maps draw to a canvas, which no keyboard or screen reader can enter.
     Each must publish the same data as a real table. The styles alone once

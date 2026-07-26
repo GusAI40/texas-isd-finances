@@ -167,6 +167,8 @@ async def api_info():
             "district_summary": "GET /district/{district_number}/summary",
             "district_dollar": "GET /district/{district_number}/dollar",
             "district_outcomes": "GET /district/{district_number}/outcomes",
+            "district_economics": "GET /district/{district_number}/economics",
+            "texas_economics": "GET /economics/texas",
             "anomalies": "GET /anomalies",
             "sample_queries": "GET /sample-queries",
             "stats": "GET /stats",
@@ -976,6 +978,61 @@ async def get_district_outcomes(district_number: str):
     if rec is None:
         raise HTTPException(status_code=404, detail="District not in the outcomes dataset")
     return {"meta": data["meta"], **rec}
+
+
+_economics_cache: Optional[Dict[str, Any]] = None
+
+
+def _economics() -> Optional[Dict[str, Any]]:
+    global _economics_cache
+    if _economics_cache is None:
+        path = STATIC_DIR / "economics_data.json"
+        if not path.exists():
+            return None
+        with path.open() as fh:
+            _economics_cache = json.load(fh)
+    return _economics_cache
+
+
+@app.get("/district/{district_number}/economics", tags=["Districts"])
+async def get_district_economics(district_number: str):
+    """What you pay, where it goes, what it buys, and who does better.
+
+    Four things a tax statement cannot tell you: the school tax on a $300,000
+    home in this district and how much of it leaves under recapture; how the
+    budget splits between teaching and servicing debt, including that debt in
+    teacher-equivalents; how reliably this district beats what its student need
+    predicts, measured over eleven years rather than one; and the named
+    districts of the same size and student need that do so more reliably.
+
+    `tax` is null for charters, which levy no property tax, and for any
+    district where two independent estimates of its tax base disagree by more
+    than 25% — a wrong number on someone's tax bill is worse than no number.
+    """
+    data = _economics()
+    if data is None:
+        raise HTTPException(status_code=503,
+                            detail="Economics data not built. Run scripts/build_economics_data.py")
+    rec = data["districts"].get(district_number)
+    if rec is None:
+        raise HTTPException(status_code=404, detail="District not in the economics dataset")
+    return {"meta": data["meta"], "micro": data["micro"], **rec}
+
+
+@app.get("/economics/texas", tags=["Statewide"])
+async def get_texas_economics():
+    """The statewide series behind every district page.
+
+    Per-student spending in constant dollars beside nominal, the split of the
+    school tax rate between operating and debt over nineteen years, recapture
+    by year and how concentrated it is, and the measured return on each lever
+    a district actually controls. Serves with no database.
+    """
+    data = _economics()
+    if data is None:
+        raise HTTPException(status_code=503,
+                            detail="Economics data not built. Run scripts/build_economics_data.py")
+    return {"meta": data["meta"], "macro": data["macro"], "micro": data["micro"]}
 
 
 @app.get("/robots.txt", include_in_schema=False)

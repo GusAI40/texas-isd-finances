@@ -40,6 +40,64 @@
     --good: #006300;
     --bad: #c23934;
   }
+  /* Economics section. Categorical hues are fixed by role and never cycled:
+     blue = teaching, orange = buildings and debt, green = everything else.
+     The set passes the colour-vision separation checks against a white
+     surface, and every series is also directly labelled, so nothing on this
+     page is identified by colour alone. */
+  :root {
+    --c-teach: #2a78d6;
+    --c-debt:  #eb6834;
+    --c-other: #2f8f6f;
+  }
+  .econ-h { font-size: 1.05rem; margin: 2.2rem 0 .3rem; letter-spacing: -.01em; }
+  .econ-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1.2rem 0 0; }
+  @media (max-width: 700px) { .econ-grid { grid-template-columns: 1fr; } }
+  .econ-card { border: 1px solid var(--hairline); border-radius: 12px; padding: 1rem 1.1rem; }
+  .econ-card h4 { margin: 0 0 .15rem; font-size: .8rem; text-transform: uppercase;
+    letter-spacing: .06em; color: var(--muted); font-weight: 600; }
+  .econ-big { font-size: 2.1rem; font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .econ-sub { color: var(--ink-2); font-size: .9rem; margin-top: .35rem; }
+  .econ-split { display: flex; height: 26px; border-radius: 5px; overflow: hidden; margin: .7rem 0 .3rem; }
+  .econ-split i { display: block; height: 100%; }
+  .econ-split i + i { margin-left: 2px; }        /* 2px surface gap between fills */
+  .econ-legend { display: flex; flex-wrap: wrap; gap: .3rem 1.1rem; font-size: .82rem;
+    color: var(--ink-2); margin: .2rem 0 .5rem; }
+  .econ-legend span { display: inline-flex; align-items: center; gap: .35rem; }
+  .econ-legend i { width: 11px; height: 11px; border-radius: 3px; display: inline-block; }
+  .econ-fig { margin: .5rem 0 0; }
+  .chartwrap { overflow-x: auto; }
+  /* On a phone these must SCROLL, not shrink — a 700-unit viewBox squeezed into
+     360px renders the axis type at about 5px, which is unreadable. The wrapper
+     scrolls instead, and the table twin below is the non-scrolling path. */
+  .econ-fig svg { display: block; width: 100%; height: auto; min-width: 620px; }
+  .econ-fig .grid { stroke: var(--hairline); stroke-width: 1; }
+  .econ-fig .axis { stroke: var(--faint); stroke-width: 1; }
+  .econ-fig text { font: 11px system-ui, sans-serif; fill: var(--ink-2); }
+  .econ-fig .lbl { font-weight: 600; }
+  .econ-fig .tick { fill: var(--muted); }
+  .econ-peers { border: 1px solid var(--hairline); border-radius: 12px; overflow-x: auto; margin-top: .6rem; }
+  .econ-peers table { border-collapse: collapse; width: 100%; font-size: .87rem; }
+  .econ-peers th, .econ-peers td { padding: .5rem .7rem; text-align: right;
+    border-bottom: 1px solid var(--hairline); white-space: nowrap; }
+  .econ-peers th:first-child, .econ-peers td:first-child { text-align: left; }
+  .econ-peers thead th { background: var(--wash); font-size: .78rem; text-transform: uppercase;
+    letter-spacing: .05em; color: var(--muted); }
+  .econ-peers tr.you td { background: #f4f8fd; font-weight: 600; }
+  .econ-peers td a { color: var(--blue); }
+  .econ-note { font-size: .85rem; color: var(--ink-2); margin: .5rem 0 0; }
+  .a11y { margin: 1.2rem 0 0; }
+  .a11y summary { cursor: pointer; font-size: .85rem; color: var(--ink-2); padding: .35rem 0; }
+  .a11y summary:focus-visible { outline: 2px solid var(--blue); outline-offset: 3px; }
+  .a11y-scroll { max-height: 22rem; overflow: auto; border: 1px solid var(--hairline); border-radius: 10px; }
+  .a11y table { border-collapse: collapse; width: 100%; font-size: .82rem; }
+  .a11y caption { text-align: left; padding: .5rem .7rem; color: var(--muted); font-size: .78rem; }
+  .a11y th, .a11y td { text-align: right; padding: .3rem .6rem; border-bottom: 1px solid var(--hairline); }
+  .a11y th:first-child, .a11y td:first-child { text-align: left; }
+  .a11y thead th { position: sticky; top: 0; background: #fff; border-bottom: 1px solid var(--ink); }
+  .econ-tip { position: absolute; pointer-events: none; background: var(--ink); color: #fff;
+    padding: .4rem .55rem; border-radius: 6px; font-size: .78rem; line-height: 1.35;
+    opacity: 0; transition: opacity .12s; z-index: 30; white-space: nowrap; }
   * { box-sizing: border-box; }
   html { scroll-behavior: smooth; }
   body {
@@ -514,6 +572,43 @@
     </section>
 
     <hr class="rule">
+    <section id="econ-section" class="hidden">
+      <div class="eyebrow">What you pay, and what it buys</div>
+      <h2 class="action" id="econ-title"></h2>
+      <p class="support" id="econ-support"></p>
+
+      <div class="econ-grid">
+        <div class="econ-card" id="econ-bill"></div>
+        <div class="econ-card" id="econ-alloc"></div>
+      </div>
+
+      <h3 class="econ-h">Where the money actually went, statewide</h3>
+      <p class="support" id="econ-macro-support"></p>
+      <figure class="econ-fig">
+        <div class="econ-legend" id="econ-macro-legend"></div>
+        <div class="chartwrap"><svg id="econ-macro" role="img" aria-labelledby="econ-macro-cap"></svg></div>
+        <figcaption id="econ-macro-cap" class="cite"></figcaption>
+      </figure>
+
+      <h3 class="econ-h">What each lever actually bought</h3>
+      <p class="support" id="econ-lever-support"></p>
+      <figure class="econ-fig">
+        <div class="chartwrap"><svg id="econ-levers" role="img" aria-labelledby="econ-lever-cap"></svg></div>
+        <figcaption id="econ-lever-cap" class="cite"></figcaption>
+      </figure>
+
+      <h3 class="econ-h">Districts like yours that do better — reliably</h3>
+      <p class="support" id="econ-peers-support"></p>
+      <div class="econ-peers" id="econ-peers"></div>
+
+      <details class="a11y" id="econ-a11y">
+        <summary>Read every figure on this page as a table</summary>
+        <div class="a11y-scroll"><table id="econ-table"></table></div>
+      </details>
+      <div class="cite" id="econ-cite"></div>
+    </section>
+
+    <hr class="rule">
     <section id="insights-section" class="hidden">
       <div class="eyebrow">Actionable intelligence</div>
       <h2 class="action" id="insights-title"></h2>
@@ -824,7 +919,8 @@ const titleCase = s => (s || '').toLowerCase()
 
 const state = { district: null, summary: [], benchmarks: [], peers: null, flags: [], breakdown: [],
                 metric: 'spend', compare: null, compareSummary: [], lens: 'parent',
-                dollar: null, dollarPin: null, dollarHover: null, outcomes: null, txDollar: null };
+                dollar: null, dollarPin: null, dollarHover: null, outcomes: null, txDollar: null,
+                econ: null, econTexas: null };
 
 /* ===== The dollar: every dollar the district spends, as 100 pennies =====
    Shares, peer/statewide medians and dollars-at-stake all come from
@@ -1201,6 +1297,11 @@ function renderOutcomes() {
     `<p>Each measure below is tested the same way: after accounting for who a district teaches, how much of ` +
     `the remaining difference in STAAR results does it explain? <strong>Whether experienced teachers stay ` +
     `predicts results far better than the size of the budget.</strong></p>` +
+    `<p class="support" style="margin:.4rem 0 .8rem"><strong>Read this as a description, not a lever.</strong> ` +
+    `It compares different districts to each other, so it cannot tell you what happens if <em>your</em> district ` +
+    `changes one of these. When we instead compare districts to <em>themselves</em> over time, every one of ` +
+    `these effects is far smaller &mdash; under a point of STAAR even for a large change. ` +
+    `<a href="#econ-section">See what each lever actually bought &darr;</a></p>` +
     `<div class="bars">` + Object.entries(L).sort((a, b) => b[1] - a[1]).map(([k, v]) =>
       `<div class="lrow ${v < 1 ? 'dim' : ''}"><span>${names[k] || k}</span>` +
       `<i style="width:${Math.max(1.5, 100 * v / top)}%"></i><b>${v}%</b></div>`).join('') +
@@ -1436,6 +1537,7 @@ async function selectDistrict(num, name) {
   state.district = { num, name };
   state.compare = null; state.compareSummary = [];
   state.dollar = null; state.dollarPin = null; state.dollarHover = null; state.outcomes = null;
+  state.econ = null;
   $('results').innerHTML = ''; $('search').value = '';
   document.documentElement.classList.add('has-district');
   await loadDashboard();
@@ -1454,7 +1556,7 @@ async function loadDashboard() {
   if (!d) return;
   $('dash').classList.remove('hidden');
   try {
-    const [summary, peers, flags, breakdown, turnarounds, detail, insights, dollar, outcomes] = await Promise.all([
+    const [summary, peers, flags, breakdown, turnarounds, detail, insights, dollar, outcomes, econ] = await Promise.all([
       api('/district/' + encodeURIComponent(d.num) + '/summary'),
       api('/district/' + encodeURIComponent(d.num) + '/peers'),
       api('/anomalies?district_number=' + encodeURIComponent(d.num) + '&limit=50'),
@@ -1464,6 +1566,7 @@ async function loadDashboard() {
       api('/district/' + encodeURIComponent(d.num) + '/insights').catch(() => ({insights: []})),
       api('/district/' + encodeURIComponent(d.num) + '/dollar').catch(() => null),
       api('/district/' + encodeURIComponent(d.num) + '/outcomes').catch(() => null),
+      api('/district/' + encodeURIComponent(d.num) + '/economics').catch(() => null),
     ]);
     // The name may be a placeholder when arriving from a shared ?d= link.
     const realName = summary.find(r => r.district_name)?.district_name;
@@ -1473,14 +1576,14 @@ async function loadDashboard() {
     }
     state.summary = summary; state.peers = peers; state.flags = flags; state.breakdown = breakdown;
     state.turnarounds = turnarounds; state.detail = detail; state.insights = insights;
-    state.dollar = dollar; state.outcomes = outcomes;
+    state.dollar = dollar; state.outcomes = outcomes; state.econ = econ;
     renderAll();
     $('dash').scrollIntoView({ block: 'start' });
   } catch (e) { /* banner shown */ }
 }
 function renderAll() {
   renderTicker();
-  renderExec(); renderDollar(); renderOutcomes(); renderInsights(); renderKPIs(); renderTrend(); renderPeers();
+  renderExec(); renderDollar(); renderOutcomes(); renderEconomics(); renderInsights(); renderKPIs(); renderTrend(); renderPeers();
   renderMoney(); renderFlags(); renderObject(); renderProgram(); renderTurnarounds();
   ['kpi-cite', 'trend-cite', 'peers-cite', 'flags-cite'].forEach(c => cite(c));
   cite('money-cite', 'function-code groupings listed under Disclaimer');
@@ -1792,6 +1895,268 @@ function renderFlags() {
 }
 
 /* ---------- actionable intelligence (peer-benchmarked findings) ---------- */
+/* ===== Economics: what you pay, where it goes, what it buys, who does better =====
+   Every chart here is inline SVG. The page ships under a CSP that allows no
+   external script, and a charting library would be more bytes than the data. */
+const ECON_C = { teach: '#2a78d6', debt: '#eb6834', other: '#2f8f6f' };
+const money = n => '$' + Math.round(n).toLocaleString();
+
+function econTip() {
+  let t = document.querySelector('.econ-tip');
+  if (!t) { t = document.createElement('div'); t.className = 'econ-tip'; document.body.appendChild(t); }
+  return t;
+}
+function bindTip(el, html) {
+  el.addEventListener('pointerenter', ev => {
+    const t = econTip(); t.innerHTML = html; t.style.opacity = '1';
+    const r = ev.target.getBoundingClientRect();
+    t.style.left = (window.scrollX + r.left + r.width / 2 - t.offsetWidth / 2) + 'px';
+    t.style.top = (window.scrollY + r.top - t.offsetHeight - 8) + 'px';
+  });
+  el.addEventListener('pointerleave', () => { econTip().style.opacity = '0'; });
+}
+
+/* Multi-series line chart. One y-axis only — the three series are all dollars
+   per student, so they belong on the same scale and the comparison between
+   them IS the point. */
+function lineChart(svg, series, opts) {
+  const W = 700, H = 250, m = { t: 14, r: 96, b: 26, l: 52 };
+  const xs = series[0].pts.map(p => p[0]);
+  const all = series.flatMap(s => s.pts.map(p => p[1]));
+  const y1 = Math.max(...all) * 1.06, y0 = 0;
+  const X = v => m.l + (v - xs[0]) / (xs[xs.length - 1] - xs[0]) * (W - m.l - m.r);
+  const Y = v => H - m.b - (v - y0) / (y1 - y0) * (H - m.t - m.b);
+  let g = '';
+  for (let i = 0; i <= 4; i++) {
+    const v = y0 + (y1 - y0) * i / 4;
+    g += `<line class="grid" x1="${m.l}" y1="${Y(v).toFixed(1)}" x2="${W - m.r}" y2="${Y(v).toFixed(1)}"/>`
+      + `<text class="tick" x="${m.l - 7}" y="${(Y(v) + 3.5).toFixed(1)}" text-anchor="end">$${Math.round(v / 1000)}k</text>`;
+  }
+  xs.forEach((x, i) => {
+    if (i % Math.ceil(xs.length / 6) && i !== xs.length - 1) return;
+    g += `<text class="tick" x="${X(x).toFixed(1)}" y="${H - 8}" text-anchor="middle">${x}</text>`;
+  });
+  series.forEach(s => {
+    const d = s.pts.map((p, i) => (i ? 'L' : 'M') + X(p[0]).toFixed(1) + ',' + Y(p[1]).toFixed(1)).join(' ');
+    g += `<path d="${d}" fill="none" stroke="${s.color}" stroke-width="2" stroke-linejoin="round"/>`;
+    const last = s.pts[s.pts.length - 1];
+    // direct label at the line end: identity never depends on colour alone
+    g += `<text class="lbl" x="${X(last[0]) + 8}" y="${(Y(last[1]) + 4).toFixed(1)}" fill="${s.color}">${s.name}</text>`;
+    s.pts.forEach(p => {
+      g += `<circle cx="${X(p[0]).toFixed(1)}" cy="${Y(p[1]).toFixed(1)}" r="9" fill="transparent"`
+        + ` data-tip="${s.name} ${p[0]}: ${money(p[1])} per student"/>`;
+    });
+  });
+  g += `<line class="axis" x1="${m.l}" y1="${H - m.b}" x2="${W - m.r}" y2="${H - m.b}"/>`;
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  svg.innerHTML = g;
+  svg.querySelectorAll('[data-tip]').forEach(c => bindTip(c, c.getAttribute('data-tip')));
+}
+
+/* Effect sizes with confidence intervals. A dot-and-interval is the honest
+   form here — a bar would imply the estimate is the whole story and hide
+   that several of these intervals comfortably contain zero. */
+function effectChart(svg, rows) {
+  // Labels sit ABOVE each interval rather than in a left-hand column. A label
+  // column wide enough for this text ate a third of the viewBox, which on a
+  // phone pushed the data itself off-screen behind a scroll.
+  const W = 560, rowH = 46, m = { t: 26, r: 18, b: 50, l: 18 };
+  const H = m.t + rows.length * rowH + m.b;
+  const lo = Math.min(...rows.map(r => r.lo), 0), hi = Math.max(...rows.map(r => r.hi), 0);
+  const pad = (hi - lo) * 0.1 || 0.1;
+  const X = v => m.l + (v - (lo - pad)) / ((hi + pad) - (lo - pad)) * (W - m.l - m.r);
+  let g = `<line class="axis" x1="${X(0).toFixed(1)}" y1="${m.t - 8}" x2="${X(0).toFixed(1)}" y2="${H - m.b + 6}" stroke-dasharray="3 3"/>`
+    + `<text class="tick" x="${X(0).toFixed(1)}" y="${m.t - 13}" text-anchor="middle">no effect</text>`;
+  const step = 0.5, from = Math.ceil((lo - pad) / step) * step;
+  for (let v = from; v <= hi + pad + 1e-9; v += step) {
+    g += `<text class="tick" x="${X(v).toFixed(1)}" y="${H - 28}" text-anchor="middle">`
+      + `${v > 0 ? '+' : ''}${(+v.toFixed(1))}</text>`;
+  }
+  g += `<text class="tick" x="${(W / 2).toFixed(1)}" y="${H - 8}" text-anchor="middle">`
+    + `change in STAAR points</text>`;
+  rows.forEach((r, i) => {
+    const top = m.t + i * rowH, y = top + 30;
+    const crosses = r.lo <= 0 && r.hi >= 0;
+    const col = crosses ? 'var(--muted)' : (r.mid > 0 ? ECON_C.teach : ECON_C.debt);
+    g += `<text class="lbl" x="${m.l}" y="${top + 13}">${r.label}`
+      + `<tspan class="tick" font-weight="400"> &nbsp;${r.mid > 0 ? '+' : ''}${r.mid.toFixed(2)}`
+      + `${crosses ? ' &mdash; no measurable effect' : ''}</tspan></text>`
+      + `<line x1="${X(r.lo).toFixed(1)}" y1="${y}" x2="${X(r.hi).toFixed(1)}" y2="${y}" stroke="${col}" stroke-width="2"/>`
+      + `<circle cx="${X(r.mid).toFixed(1)}" cy="${y}" r="5" fill="${col}" stroke="#fff" stroke-width="2"/>`
+      + `<rect x="0" y="${top}" width="${W}" height="${rowH}" fill="transparent"`
+      + ` data-tip="${r.label}: ${r.mid > 0 ? '+' : ''}${r.mid.toFixed(2)} points (95% CI ${r.lo.toFixed(2)} to ${r.hi.toFixed(2)})${crosses ? ' &mdash; cannot be told apart from zero' : ''}"/>`;
+  });
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  svg.innerHTML = g;
+  svg.querySelectorAll('[data-tip]').forEach(c => bindTip(c, c.getAttribute('data-tip')));
+}
+
+function renderEconomics() {
+  const e = state.econ, sec = $('econ-section');
+  if (!e) { sec.classList.add('hidden'); return; }
+  sec.classList.remove('hidden');
+  const nm = e.district_name || state.district.name;
+  $('econ-title').textContent = 'What ' + nm + ' costs you, and what it buys.';
+
+  /* ---- what you pay ---- */
+  const t = e.tax, a = e.allocation;
+  if (t) {
+    const keeps = t.bill_on_home - t.leaves_district;
+    $('econ-support').textContent =
+      'School taxes on a ' + money(t.home_value) + ' home here run ' + money(t.bill_on_home) +
+      ' a year' + (t.leaves_district > 0
+        ? ', and ' + money(t.leaves_district) + ' of that leaves the district under recapture.'
+        : '. None of it leaves the district.');
+    $('econ-bill').innerHTML =
+      '<h4>Your school tax, on a ' + money(t.home_value) + ' home</h4>' +
+      '<div class="econ-big">' + money(t.bill_on_home) + '<span style="font-size:1rem;font-weight:400;color:var(--muted)"> / year</span></div>' +
+      (t.leaves_district > 0
+        ? '<div class="econ-split"><i style="background:' + ECON_C.teach + ';width:' +
+          (keeps / t.bill_on_home * 100).toFixed(1) + '%"></i><i style="background:' + ECON_C.debt +
+          ';width:' + (t.leaves_district / t.bill_on_home * 100).toFixed(1) + '%"></i></div>' +
+          '<div class="econ-legend"><span><i style="background:' + ECON_C.teach + '"></i>stays here ' +
+          money(keeps) + '</span><span><i style="background:' + ECON_C.debt + '"></i>leaves ' +
+          money(t.leaves_district) + '</span></div>'
+        : '') +
+      '<div class="econ-sub">Rate ' + t.total_rate.toFixed(4) + ' per $100 &mdash; ' +
+      t.mo_rate.toFixed(4) + ' operating, ' + t.is_rate.toFixed(4) + ' debt.</div>';
+  } else {
+    $('econ-support').textContent =
+      'This district levies no property tax of its own, so there is no tax bill to show. Everything below still applies.';
+    $('econ-bill').innerHTML = '<h4>Your school tax</h4><div class="econ-sub">' +
+      'Charter districts levy no property tax, so there is no rate and no bill. ' +
+      'They are funded through the state formula instead.</div>';
+  }
+
+  /* ---- where it goes ---- */
+  // debt service is outside TEA's operating total, so the parts are composed
+  const other = a.other_operating_per_student;
+  const tot = a.instruction_per_student + a.debt_per_student + other;
+  const pc = v => (v / tot * 100).toFixed(1) + '%';
+  $('econ-alloc').innerHTML =
+    '<h4>Where each student&rsquo;s ' + money(a.total_per_student) + ' goes</h4>' +
+    '<div class="econ-split">' +
+    '<i style="background:' + ECON_C.teach + ';width:' + pc(a.instruction_per_student) + '"></i>' +
+    '<i style="background:' + ECON_C.debt + ';width:' + pc(a.debt_per_student) + '"></i>' +
+    '<i style="background:' + ECON_C.other + ';width:' + pc(other) + '"></i></div>' +
+    '<div class="econ-legend">' +
+    '<span><i style="background:' + ECON_C.teach + '"></i>teaching ' + money(a.instruction_per_student) + '</span>' +
+    '<span><i style="background:' + ECON_C.debt + '"></i>buildings &amp; debt ' + money(a.debt_per_student) + '</span>' +
+    '<span><i style="background:' + ECON_C.other + '"></i>everything else ' + money(other) + '</span></div>' +
+    '<div class="econ-sub">That is <b>' + a.cents_on_debt_per_dollar_taught + ' cents on debt for every dollar taught</b>' +
+    (a.teachers_equivalent_of_debt
+      ? ' &mdash; the annual debt payment costs what ' + a.teachers_equivalent_of_debt.toLocaleString() +
+        ' teacher salaries would.' : '.') + '</div>';
+
+  /* ---- macro: the statewide series ---- */
+  const M = state.econTexas;
+  if (M) {
+    const sp = M.macro.spending.filter(r => r.year >= 2009);
+    const f = sp[0], l = sp[sp.length - 1];
+    const pct = (a2, b2) => ((b2 / a2 - 1) * 100).toFixed(0);
+    $('econ-macro-support').innerHTML =
+      'Adjusted for inflation, Texas spends about the same per student as it did in ' + f.year +
+      ' (' + money(f.spend_per_student_real) + ' &rarr; ' + money(l.spend_per_student_real) + ', ' +
+      pct(f.spend_per_student_real, l.spend_per_student_real) + '%). But <b>teaching fell ' +
+      Math.abs(pct(f.instruction_per_student_real, l.instruction_per_student_real)) + '%</b> while <b>debt service rose ' +
+      pct(f.debt_per_student_real, l.debt_per_student_real) + '%</b>. Nominal spending rose ' +
+      pct(f.spend_per_student_nominal, l.spend_per_student_nominal) + '% over the same years &mdash; ' +
+      'the difference is inflation.';
+    $('econ-macro-legend').innerHTML =
+      '<span><i style="background:' + ECON_C.other + '"></i>total spending</span>' +
+      '<span><i style="background:' + ECON_C.teach + '"></i>teaching</span>' +
+      '<span><i style="background:' + ECON_C.debt + '"></i>buildings &amp; debt</span>';
+    lineChart($('econ-macro'), [
+      { name: 'total', color: ECON_C.other, pts: sp.map(r => [r.year, r.spend_per_student_real]) },
+      { name: 'teaching', color: ECON_C.teach, pts: sp.map(r => [r.year, r.instruction_per_student_real]) },
+      { name: 'debt', color: ECON_C.debt, pts: sp.map(r => [r.year, r.debt_per_student_real]) },
+    ]);
+    $('econ-macro-cap').textContent =
+      'Per student, all Texas districts, enrolment-weighted, in constant 2024 dollars (CPI-U). ' +
+      'Source: TEA Summarized PEIMS, fiscal ' + f.year + '–' + l.year + '.';
+  }
+
+  /* ---- what each lever bought ---- */
+  const mp = e.micro && e.micro.marginal_product;
+  if (mp) {
+    const E = mp.effects, S = (k, mult) => ({
+      mid: E[k].per_unit * mult, lo: E[k].ci_low * mult, hi: E[k].ci_high * mult,
+    });
+    const rows = [
+      Object.assign({ label: 'Spend $2,000 more per student' }, S('operating_per_pupil', 2000)),
+      Object.assign({ label: 'Raise average teacher pay $5,000' }, S('avg_teacher_salary', 5000)),
+      Object.assign({ label: 'Cut teacher turnover by 10 points' }, S('teacher_turnover_pct', -10)),
+      Object.assign({ label: 'Cut class size by 2 students' }, S('students_per_teacher', -2)),
+      Object.assign({ label: 'Shift 5% more of budget to teaching' }, S('pct_spend_instruction', 5)),
+    ];
+    // an interval that crosses zero must not be re-sorted as if it ranked
+    rows.sort((x, y) => y.mid - x.mid);
+    $('econ-lever-support').innerHTML =
+      'Each bar is what actually happened when districts changed that lever, measured <b>against themselves</b> over ' +
+      mp.horizon_years + ' years (' + mp.n_windows.toLocaleString() + ' windows across ' +
+      mp.n_districts.toLocaleString() + ' districts). Where the line crosses &ldquo;no effect,&rdquo; ' +
+      'the change bought nothing we can distinguish from zero. For scale, the gap between a low-poverty ' +
+      'and a high-poverty district is about 19 points.';
+    effectChart($('econ-levers'), rows);
+    $('econ-lever-cap').textContent =
+      'Change in STAAR percent-at-approaches. Within-district first differences with year effects and ' +
+      'standard errors clustered by district; test-standard changes excluded. Observational, not an experiment: ' +
+      'this removes everything about a district that does not change, but not something that changed at the same time.';
+  }
+
+  /* ---- who does better ---- */
+  const w = e.who_does_better || [], rel = e.reliability;
+  if (rel) {
+    $('econ-peers-support').innerHTML = w.length
+      ? 'These districts carry your size and your share of students in poverty, and have beaten what their ' +
+        'students&rsquo; circumstances predict for ' + rel.years_measured + ' years running &mdash; not once, reliably ' +
+        '(the measure repeats at r&nbsp;=&nbsp;' + (state.econTexas ? state.econTexas.meta.split_half_reliability : 0.91) +
+        ' across independent years). They are the phone calls worth making.'
+      : 'No district of this size and student need beat expectations more reliably than this one over ' +
+        rel.years_measured + ' years.';
+    const row = (n, name, st, pv, sc, tn, sp, you) =>
+      '<tr' + (you ? ' class="you"' : '') + '><td>' + (you ? '<b>' + name + '</b> &mdash; you'
+        : '<a href="/?d=' + n + '">' + name + '</a>') + '</td><td>' + st.toLocaleString() + '</td><td>' +
+      (pv == null ? '&mdash;' : pv.toFixed(0) + '%') + '</td><td>' + (sc > 0 ? '+' : '') + sc.toFixed(1) +
+      '</td><td>' + (tn == null ? '&mdash;' : tn.toFixed(1) + '%') + '</td><td>' +
+      (sp == null ? '&mdash;' : money(sp)) + '</td></tr>';
+    $('econ-peers').innerHTML = '<table><thead><tr><th>District</th><th>Students</th><th>% poor</th>' +
+      '<th>Beats prediction</th><th>Turnover</th><th>$ / student</th></tr></thead><tbody>' +
+      w.map(x => row(x.district_number, x.name, x.students, x.pct_poor, x.beats_by, x.turnover, x.spend_per_student)).join('') +
+      row(e.district_number, nm, e.students, (e.own || {}).pct_poor, rel.score,
+            (e.own || {}).turnover, a.operating_per_student, true) +
+      '</tbody></table>';
+  } else {
+    $('econ-peers-support').textContent =
+      'This district does not have enough years of comparable results to score reliably.';
+    $('econ-peers').innerHTML = '';
+  }
+
+  renderEconTable();
+  $('econ-cite').innerHTML =
+    'Sources: TEA Summarized PEIMS (fiscal 2009&ndash;2025), TEA/Comptroller certified property values, ' +
+    'TEA adopted tax rates, TEA recapture paid by district, TEA Snapshot. ' +
+    'Tax figures are withheld where two independent estimates of a district&rsquo;s tax base disagree by more than 25%. ' +
+    'TEA does not itemise facilities, so &ldquo;buildings &amp; debt&rdquo; covers all of them together &mdash; ' +
+    'a stadium cannot be separated from a roof without the district&rsquo;s own bond documents.';
+}
+
+/* The charts are SVG, which a screen reader cannot walk. Publish the same
+   numbers as a real table rather than bolting fake semantics onto paths. */
+function renderEconTable() {
+  const M = state.econTexas, e = state.econ;
+  if (!M || !e) { $('econ-table').innerHTML = ''; return; }
+  const sp = M.macro.spending.filter(r => r.year >= 2009);
+  let h = '<caption>Statewide per-student spending in constant 2024 dollars, and this district&rsquo;s ' +
+    'position. Identical to the figures drawn above.</caption>' +
+    '<thead><tr><th scope="col">Year</th><th scope="col">Total</th><th scope="col">Teaching</th>' +
+    '<th scope="col">Buildings &amp; debt</th></tr></thead><tbody>';
+  h += sp.map(r => '<tr><td>' + r.year + '</td><td>' + money(r.spend_per_student_real) + '</td><td>' +
+    money(r.instruction_per_student_real) + '</td><td>' + money(r.debt_per_student_real) + '</td></tr>').join('');
+  h += '</tbody>';
+  $('econ-table').innerHTML = h;
+}
+
 function renderInsights() {
   const data = state.insights || {};
   const items = data.insights || [];
@@ -2063,10 +2428,14 @@ function renderQuickPicks(largest) {
 
 async function loadStatewide() {
   try {
-    const [s, bm, tx] = await Promise.all([
-      api('/stats'), api('/benchmarks'), api('/dollar/texas').catch(() => null)]);
+    const [s, bm, tx, txEcon] = await Promise.all([
+      api('/stats'), api('/benchmarks'), api('/dollar/texas').catch(() => null),
+      api('/economics/texas').catch(() => null)]);
+    // NOTE: /stats and /benchmarks are deliberately un-caught — the dashboard
+    // cannot render without them. Everything optional is caught individually so
+    // one slow extra never costs the page its statewide figures.
     state.benchmarks = bm;
-    state.txDollar = tx;
+    state.txDollar = tx; state.econTexas = txEcon;
   renderTexasDollar(tx);
   renderTicker();
     renderQuickPicks(s.largest_districts);

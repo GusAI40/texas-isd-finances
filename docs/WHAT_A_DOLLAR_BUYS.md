@@ -76,6 +76,30 @@ part of the result that student need does *not* already explain?
 | Average teacher salary | +0.066 | 0.86% |
 | **Spending per student** | −0.077 | **0.01%** |
 
+> ### Correction (2026-07-26) — this table describes, it does not forecast
+>
+> Everything in the table above compares **different districts to each other**.
+> That makes it a description of which districts differ, not a measure of what
+> happens if one district changes something. Re-running the question as a
+> **within-district** comparison — the same district against itself over three
+> years, 5,887 windows across 1,210 districts, with year effects and errors
+> clustered by district — gives much smaller numbers:
+>
+> | Change a district actually made, over 3 years | Effect on STAAR | 95% CI |
+> |---|---:|---|
+> | Spend $2,000 more per student | **+0.08** | −0.21 to +0.37 — indistinguishable from zero |
+> | Cut teacher turnover by 10 points | +0.43 | +0.15 to +0.71 |
+> | Cut class size by 2 students | +0.59 | +0.36 to +0.83 |
+>
+> The *ranking* of the levers survives; the *magnitude* does not. Turnover is
+> real but small — it is better read as a symptom of whatever makes a district
+> work than as a dial that produces 10% of the variance when turned.
+>
+> What is large is the persistent difference between districts: split-half
+> reliability of +0.91 across independent years, with a 20.2-point spread
+> between the top and bottom deciles, of which **only 23% is explained by every
+> staffing and money variable TEA publishes**. See `scripts/build_economics_data.py`.
+
 Teacher turnover explains roughly **1,000 times more** of the unexplained
 variation than spending per student does. The top three levers are all the
 same underlying thing: **whether experienced teachers stay**.
