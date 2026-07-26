@@ -40,6 +40,30 @@
     --good: #006300;
     --bad: #c23934;
   }
+  /* Bond story. Storytelling-with-data discipline: grey is the default and
+     carries context, one accent carries the point being made, and every chart
+     title states the finding rather than naming the topic. */
+  :root { --c-yes: #2a78d6; --c-no: #b8b6ad; --c-focus: #eb6834; }
+  .bond-detail { border: 1px solid var(--hairline); border-left: 3px solid var(--c-yes);
+    border-radius: 0 10px 10px 0; padding: .8rem 1rem; margin: .4rem 0 0; min-height: 3.4rem;
+    background: var(--wash); font-size: .9rem; }
+  .bond-detail .bd-h { font-weight: 700; }
+  .bond-detail .bd-m { color: var(--ink-2); }
+  .bond-detail.none { border-left-color: var(--faint); color: var(--muted); }
+  .bond-detail.lost { border-left-color: var(--c-focus); }
+  .bond-key { display: flex; flex-wrap: wrap; gap: .3rem 1.2rem; font-size: .82rem;
+    color: var(--ink-2); margin: .1rem 0 .4rem; }
+  .bond-key span { display: inline-flex; align-items: center; gap: .35rem; }
+  .bond-bundle { display: grid; grid-template-columns: repeat(3, 1fr); gap: .8rem; margin-top: .6rem; }
+  @media (max-width: 700px) { .bond-bundle { grid-template-columns: 1fr; } }
+  .bond-bundle .bb { border: 1px solid var(--hairline); border-radius: 12px; padding: .9rem 1rem; }
+  .bond-bundle .bb.hi { border-color: var(--c-focus); background: #fdf5f1; }
+  .bond-bundle .bb h5 { margin: 0 0 .3rem; font-size: .82rem; text-transform: uppercase;
+    letter-spacing: .05em; color: var(--muted); font-weight: 600; }
+  .bond-bundle .bb .pct { font-size: 1.9rem; font-weight: 700; letter-spacing: -.02em; line-height: 1.05; }
+  .bond-bundle .bb .cap { color: var(--ink-2); font-size: .85rem; margin-top: .25rem; }
+  .bond-close { border-top: 1px solid var(--hairline); margin-top: 1.6rem; padding-top: 1rem;
+    font-size: 1.02rem; }
   /* Economics section. Categorical hues are fixed by role and never cycled:
      blue = teaching, orange = buildings and debt, green = everything else.
      The set passes the colour-vision separation checks against a white
@@ -608,6 +632,52 @@
       <div class="cite" id="econ-cite"></div>
     </section>
 
+
+    <hr class="rule">
+    <section id="bond-section" class="hidden">
+      <div class="eyebrow">The debt you voted for</div>
+      <h2 class="action" id="bond-bigidea"></h2>
+      <p class="support" id="bond-lede"></p>
+
+      <!-- BEAT 1 — your own ballot history -->
+      <h3 class="econ-h" id="bond-b1-title"></h3>
+      <p class="support" id="bond-b1-sub"></p>
+      <figure class="econ-fig">
+        <div class="chartwrap"><svg id="bond-timeline" role="img" aria-labelledby="bond-b1-cap"></svg></div>
+        <figcaption id="bond-b1-cap" class="cite"></figcaption>
+      </figure>
+      <div class="bond-detail" id="bond-detail"></div>
+
+      <!-- BEAT 2 — what voters actually back -->
+      <h3 class="econ-h" id="bond-b2-title"></h3>
+      <p class="support" id="bond-b2-sub"></p>
+      <figure class="econ-fig">
+        <div class="chartwrap"><svg id="bond-purpose" role="img" aria-labelledby="bond-b2-cap"></svg></div>
+        <figcaption id="bond-b2-cap" class="cite"></figcaption>
+      </figure>
+
+      <!-- BEAT 3 — the shift -->
+      <h3 class="econ-h" id="bond-b3-title"></h3>
+      <p class="support" id="bond-b3-sub"></p>
+      <figure class="econ-fig">
+        <div class="chartwrap"><svg id="bond-era" role="img" aria-labelledby="bond-b3-cap"></svg></div>
+        <figcaption id="bond-b3-cap" class="cite"></figcaption>
+      </figure>
+
+      <!-- BEAT 4 — what actually gets approved -->
+      <h3 class="econ-h" id="bond-b4-title"></h3>
+      <p class="support" id="bond-b4-sub"></p>
+      <div class="bond-bundle" id="bond-bundle"></div>
+
+      <p class="bond-close" id="bond-close"></p>
+
+      <details class="a11y" id="bond-a11y">
+        <summary>Read every bond election in this district as a table</summary>
+        <div class="a11y-scroll"><table id="bond-table"></table></div>
+      </details>
+      <div class="cite" id="bond-cite"></div>
+    </section>
+
     <hr class="rule">
     <section id="insights-section" class="hidden">
       <div class="eyebrow">Actionable intelligence</div>
@@ -920,7 +990,7 @@ const titleCase = s => (s || '').toLowerCase()
 const state = { district: null, summary: [], benchmarks: [], peers: null, flags: [], breakdown: [],
                 metric: 'spend', compare: null, compareSummary: [], lens: 'parent',
                 dollar: null, dollarPin: null, dollarHover: null, outcomes: null, txDollar: null,
-                econ: null, econTexas: null };
+                econ: null, econTexas: null, bonds: null };
 
 /* ===== The dollar: every dollar the district spends, as 100 pennies =====
    Shares, peer/statewide medians and dollars-at-stake all come from
@@ -1537,7 +1607,7 @@ async function selectDistrict(num, name) {
   state.district = { num, name };
   state.compare = null; state.compareSummary = [];
   state.dollar = null; state.dollarPin = null; state.dollarHover = null; state.outcomes = null;
-  state.econ = null;
+  state.econ = null; state.bonds = null;
   $('results').innerHTML = ''; $('search').value = '';
   document.documentElement.classList.add('has-district');
   await loadDashboard();
@@ -1556,7 +1626,7 @@ async function loadDashboard() {
   if (!d) return;
   $('dash').classList.remove('hidden');
   try {
-    const [summary, peers, flags, breakdown, turnarounds, detail, insights, dollar, outcomes, econ] = await Promise.all([
+    const [summary, peers, flags, breakdown, turnarounds, detail, insights, dollar, outcomes, econ, bonds] = await Promise.all([
       api('/district/' + encodeURIComponent(d.num) + '/summary'),
       api('/district/' + encodeURIComponent(d.num) + '/peers'),
       api('/anomalies?district_number=' + encodeURIComponent(d.num) + '&limit=50'),
@@ -1567,6 +1637,7 @@ async function loadDashboard() {
       api('/district/' + encodeURIComponent(d.num) + '/dollar').catch(() => null),
       api('/district/' + encodeURIComponent(d.num) + '/outcomes').catch(() => null),
       api('/district/' + encodeURIComponent(d.num) + '/economics').catch(() => null),
+      api('/district/' + encodeURIComponent(d.num) + '/bonds').catch(() => null),
     ]);
     // The name may be a placeholder when arriving from a shared ?d= link.
     const realName = summary.find(r => r.district_name)?.district_name;
@@ -1576,14 +1647,14 @@ async function loadDashboard() {
     }
     state.summary = summary; state.peers = peers; state.flags = flags; state.breakdown = breakdown;
     state.turnarounds = turnarounds; state.detail = detail; state.insights = insights;
-    state.dollar = dollar; state.outcomes = outcomes; state.econ = econ;
+    state.dollar = dollar; state.outcomes = outcomes; state.econ = econ; state.bonds = bonds;
     renderAll();
     $('dash').scrollIntoView({ block: 'start' });
   } catch (e) { /* banner shown */ }
 }
 function renderAll() {
   renderTicker();
-  renderExec(); renderDollar(); renderOutcomes(); renderEconomics(); renderInsights(); renderKPIs(); renderTrend(); renderPeers();
+  renderExec(); renderDollar(); renderOutcomes(); renderEconomics(); renderBonds(); renderInsights(); renderKPIs(); renderTrend(); renderPeers();
   renderMoney(); renderFlags(); renderObject(); renderProgram(); renderTurnarounds();
   ['kpi-cite', 'trend-cite', 'peers-cite', 'flags-cite'].forEach(c => cite(c));
   cite('money-cite', 'function-code groupings listed under Disclaimer');
@@ -2155,6 +2226,227 @@ function renderEconTable() {
     money(r.instruction_per_student_real) + '</td><td>' + money(r.debt_per_student_real) + '</td></tr>').join('');
   h += '</tbody>';
   $('econ-table').innerHTML = h;
+}
+
+/* ===== The bond story ==========================================================
+   Four beats, in order: what your district asked you for -> what voters back ->
+   how that changed -> what actually passes. Every chart title states the
+   finding, not the topic. Grey carries context; one accent carries the point.
+   Nothing here is a model — these are ballots, with dates and vote counts. */
+const BOND_C = { yes: '#2a78d6', no: '#b8b6ad', focus: '#eb6834' };
+const usd = n => n == null ? '—'
+  : n >= 1e9 ? '$' + (n / 1e9).toFixed(n / 1e9 < 10 ? 2 : 1) + 'B'
+  : n >= 1e6 ? '$' + Math.round(n / 1e6).toLocaleString() + 'M'
+  : '$' + Math.round(n).toLocaleString();
+
+/* BEAT 1 — the district's own ballot history, as a dot plot over time.
+   Filled + coloured = approved, hollow + grey = rejected: the pass/fail read
+   never depends on colour alone. Area is proportional to the amount asked, so
+   a $400M ask does not look four times a $100M one when it is sixteen. */
+function bondTimeline(svg, elections) {
+  const W = 660, H = 250, m = { t: 18, r: 18, b: 34, l: 54 };
+  const yrs = elections.map(e => e.year);
+  const x0 = Math.min(...yrs) - 1, x1 = Math.max(...yrs) + 1;
+  const amts = elections.map(e => e.amount || 0);
+  const aMax = Math.max(...amts, 1);
+  const X = v => m.l + (v - x0) / (x1 - x0 || 1) * (W - m.l - m.r);
+  const Y = v => H - m.b - (v / aMax) * (H - m.t - m.b);
+  const R = v => 4 + Math.sqrt(Math.max(v, 0) / aMax) * 14;
+  let g = '';
+  for (let i = 0; i <= 3; i++) {
+    const v = aMax * i / 3;
+    g += `<line class="grid" x1="${m.l}" y1="${Y(v).toFixed(1)}" x2="${W - m.r}" y2="${Y(v).toFixed(1)}"/>`
+      + `<text class="tick" x="${m.l - 8}" y="${(Y(v) + 3.5).toFixed(1)}" text-anchor="end">${usd(v)}</text>`;
+  }
+  const span = x1 - x0, stepY = span > 40 ? 10 : span > 18 ? 5 : 2;
+  for (let y = Math.ceil(x0 / stepY) * stepY; y <= x1; y += stepY) {
+    g += `<text class="tick" x="${X(y).toFixed(1)}" y="${H - 12}" text-anchor="middle">${y}</text>`;
+  }
+  elections.forEach((e, i) => {
+    const cx = X(e.year), cy = Y(e.amount || 0), r = R(e.amount || 0);
+    g += e.passed
+      ? `<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${r.toFixed(1)}" fill="${BOND_C.yes}" fill-opacity=".85" stroke="#fff" stroke-width="2"/>`
+      : `<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${r.toFixed(1)}" fill="#fff" stroke="${BOND_C.focus}" stroke-width="2" stroke-dasharray="3 2"/>`;
+    g += `<circle class="bond-hit" data-i="${i}" cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" `
+      + `r="${Math.max(r, 15).toFixed(1)}" fill="transparent" style="cursor:pointer"/>`;
+  });
+  g += `<line class="axis" x1="${m.l}" y1="${H - m.b}" x2="${W - m.r}" y2="${H - m.b}"/>`;
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  svg.innerHTML = g;
+  svg.querySelectorAll('.bond-hit').forEach(c => {
+    const show = () => bondDetail(elections[+c.dataset.i]);
+    c.addEventListener('pointerenter', show);
+    c.addEventListener('click', show);
+  });
+}
+
+function bondDetail(e) {
+  const box = $('bond-detail');
+  if (!e) { box.className = 'bond-detail none'; box.textContent =
+    'Hover or tap any circle above to see what that bond was for and how the vote went.'; return; }
+  const tot = (e.for || 0) + (e.against || 0);
+  const share = tot ? Math.round((e.for || 0) / tot * 100) : null;
+  box.className = 'bond-detail' + (e.passed ? '' : ' lost');
+  box.innerHTML =
+    `<div class="bd-h">${new Date(e.date + 'T00:00:00').toLocaleDateString('en-US',
+      { year: 'numeric', month: 'long', day: 'numeric' })} — ${usd(e.amount)} for ${e.purpose}</div>` +
+    `<div class="bd-m">${e.passed ? 'Approved' : '<b>Rejected</b>'}` +
+    (tot ? ` — ${(e.for || 0).toLocaleString()} for, ${(e.against || 0).toLocaleString()} against` +
+      ` (${share}% yes).` : ' — the vote tally was not reliably recorded for this election.') +
+    (e.passed ? ' You are still paying this off.' : ' It was never issued.') + '</div>';
+}
+
+/* BEAT 2 — pass rate by stated purpose. Bars are grey except athletics, which
+   is the point being made. Sorted by pass rate so the ranking IS the shape. */
+function bondPurpose(svg, rows) {
+  const data = rows.filter(r => r.props >= 30).sort((a, b) => b.pass_rate - a.pass_rate);
+  const W = 620, rowH = 40, m = { t: 8, r: 20, b: 30, l: 20 };
+  const H = m.t + data.length * rowH + m.b;
+  const X = v => m.l + v / 100 * (W - m.l - m.r);
+  let g = '';
+  data.forEach((r, i) => {
+    const top = m.t + i * rowH, y = top + 22, hi = r.category === 'athletics';
+    const col = hi ? BOND_C.focus : BOND_C.no;
+    g += `<text class="lbl" x="${m.l}" y="${top + 12}" ${hi ? `fill="${BOND_C.focus}"` : ''}>`
+      + `${r.category}<tspan class="tick" font-weight="400"> · ${r.props.toLocaleString()} on the ballot</tspan></text>`
+      + `<rect x="${m.l}" y="${y}" width="${(X(r.pass_rate) - m.l).toFixed(1)}" height="11" rx="4" fill="${col}"/>`
+      + `<text class="lbl" x="${(X(r.pass_rate) + 7).toFixed(1)}" y="${y + 10}" ${hi ? `fill="${BOND_C.focus}"` : ''}>`
+      + `${Math.round(r.pass_rate)}%</text>`;
+  });
+  g += `<line class="axis" x1="${m.l}" y1="${H - m.b + 4}" x2="${X(100).toFixed(1)}" y2="${H - m.b + 4}"/>`
+    + `<text class="tick" x="${m.l}" y="${H - m.b + 18}">0%</text>`
+    + `<text class="tick" x="${X(100).toFixed(1)}" y="${H - m.b + 18}" text-anchor="end">100% approved</text>`;
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  svg.innerHTML = g;
+}
+
+/* BEAT 3 — the shift. Two things move in opposite directions, and they are in
+   different units, so this is deliberately NOT a dual axis: the ask is drawn as
+   bars and the approval rate is stated as a number on each bar. */
+function bondEra(svg, eras) {
+  const W = 620, H = 230, m = { t: 26, r: 18, b: 46, l: 18 };
+  const maxA = Math.max(...eras.map(e => e.asked));
+  const bw = (W - m.l - m.r) / eras.length;
+  let g = '';
+  eras.forEach((e, i) => {
+    const h = (e.asked / maxA) * (H - m.t - m.b);
+    const x = m.l + i * bw + bw * 0.16, w = bw * 0.68, y = H - m.b - h;
+    const last = i === eras.length - 1;
+    g += `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${w.toFixed(1)}" height="${h.toFixed(1)}" rx="4" `
+      + `fill="${last ? BOND_C.focus : BOND_C.no}"/>`
+      + `<text class="lbl" x="${(x + w / 2).toFixed(1)}" y="${(y - 7).toFixed(1)}" text-anchor="middle" `
+      + `${last ? `fill="${BOND_C.focus}"` : ''}>${usd(e.asked)} asked</text>`
+      + `<text class="tick" x="${(x + w / 2).toFixed(1)}" y="${H - m.b + 16}" text-anchor="middle">${e.era}</text>`
+      + `<text class="lbl" x="${(x + w / 2).toFixed(1)}" y="${H - m.b + 32}" text-anchor="middle" `
+      + `${last ? `fill="${BOND_C.focus}"` : ''}>${Math.round(e.pass_rate)}% approved</text>`;
+  });
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  svg.innerHTML = g;
+}
+
+function renderBonds() {
+  const b = state.bonds, sec = $('bond-section');
+  if (!b || !b.elections || !b.elections.length) { sec.classList.add('hidden'); return; }
+  sec.classList.remove('hidden');
+  const nm = state.district.name, t = b.totals, C = b.context;
+
+  // The one-sentence big idea, tied to the money already shown above.
+  const ec = state.econ && state.econ.allocation;
+  $('bond-bigidea').textContent =
+    'The fastest-growing part of your school tax bill is debt — and you voted for it.';
+  $('bond-lede').innerHTML =
+    (ec ? `Of every dollar ${nm} spends, <b>${usd(ec.debt_per_student)} per student goes to buildings and debt</b> ` +
+          `rather than teaching. ` : '') +
+    'None of that debt was imposed on you. Every dollar of it went on a ballot with a stated purpose, ' +
+    'and someone counted the votes. Here is that record.';
+
+  // BEAT 1
+  $('bond-b1-title').textContent =
+    `${nm} has asked voters for ${usd(t.asked)} since ${t.first_year}. They approved ${Math.round((t.approved_share || 0) * 100)}% of it.`;
+  $('bond-b1-sub').innerHTML =
+    `${t.props} propositions, ${t.passed} carried and ${t.props - t.passed} rejected. ` +
+    `Each circle is one ballot measure &mdash; <b style="color:${BOND_C.yes}">solid blue for approved</b>, ` +
+    `<b style="color:${BOND_C.focus}">dashed outline for rejected</b>, sized by the amount asked. ` +
+    `<b>Hover or tap one</b> to see what it was for and how your neighbours voted.`;
+  bondTimeline($('bond-timeline'), b.elections);
+  bondDetail(null);
+  $('bond-b1-cap').textContent =
+    `Bond elections held by ${nm}, ${t.first_year}–${t.last_year}. Amounts as asked, in the dollars of their year.`;
+
+  // BEAT 2
+  const ath = C.by_purpose.find(r => r.category === 'athletics') || {};
+  const bld = C.by_purpose.find(r => r.category === 'buildings & other') || {};
+  $('bond-b2-title').textContent =
+    `Texans approve classrooms ${Math.round(bld.pass_rate)}% of the time. Stadiums, fewer than half.`;
+  $('bond-b2-sub').innerHTML =
+    `Across ${b.meta.propositions.toLocaleString()} propositions since ${b.meta.first_year}, voters are not ` +
+    `indifferent about what they are borrowing for. Athletics is the one category they reject more often than ` +
+    `they approve: <b>${C.stadium.props} propositions naming a stadium specifically passed just ` +
+    `${Math.round(C.stadium.pass_rate)}% of the time.</b>`;
+  bondPurpose($('bond-purpose'), C.by_purpose);
+  $('bond-b2-cap').textContent =
+    'Categories with at least 30 propositions. Purpose is free text written by hundreds of districts over 66 years; ' +
+    'a proposition reading "School Building & Gymnasium" counts under athletics, so athletics is an upper bound.';
+
+  // BEAT 3
+  const first = C.by_era[0], last = C.by_era[C.by_era.length - 1], prev = C.by_era[C.by_era.length - 2];
+  $('bond-b3-title').textContent =
+    `Districts asked for more since ${last.start} than in all of the ${prev.start}s — and approval hit a ${b.meta.last_year - b.meta.first_year}-year low.`;
+  $('bond-b3-sub').innerHTML =
+    `In ${first.era}, ${Math.round(first.pass_rate)}% of school bonds passed. In ${last.era}, ` +
+    `${Math.round(last.pass_rate)}% did &mdash; while the amount on the ballot rose to ${usd(last.asked)} in just ` +
+    `${last.end - last.start + 1} years. <b>This is the other half of the story your tax bill tells:</b> the state ` +
+    `compressed the operating rate districts control, districts turned to borrowing, and voters started saying no.`;
+  bondEra($('bond-era'), C.by_era);
+  $('bond-b3-cap').textContent =
+    'Amounts are as asked, not inflation-adjusted — a 1958 dollar and a 2024 dollar are both "asked" but are not ' +
+    'comparable, which is why the approval rate beneath each bar is the measure to read across eras.';
+
+  // BEAT 4
+  const B = C.bundling, alone = B.athletics_alone, bund = B.athletics_with_buildings, sch = B.buildings_alone;
+  $('bond-b4-title').textContent =
+    'Put a stadium on the ballot by itself and it is a coin flip. Attach it to classrooms and the odds jump — so does the price.';
+  $('bond-b4-sub').innerHTML =
+    'This is the single most useful thing to know before your district&rsquo;s next election. Bundling lifts the ' +
+    `pass rate by <b>${Math.round(bund.pass_rate - alone.pass_rate)} points</b> and takes the typical ask from ` +
+    `<b>${usd(alone.median_ask)} to ${usd(bund.median_ask)}</b>. A voter who wants classrooms often cannot vote ` +
+    'for them without also voting for the field house.';
+  const card = (h, r, cap, hi) =>
+    `<div class="bb${hi ? ' hi' : ''}"><h5>${h}</h5><div class="pct"${hi ? ` style="color:${BOND_C.focus}"` : ''}>` +
+    `${Math.round(r.pass_rate)}%</div><div class="cap">${cap}<br>${r.props.toLocaleString()} on the ballot · ` +
+    `typical ask ${usd(r.median_ask)}</div></div>`;
+  $('bond-bundle').innerHTML =
+    card('Athletics on its own', alone, 'pass', false) +
+    card('Athletics bundled with classrooms', bund, 'pass', true) +
+    card('Classrooms on their own', sch, 'pass', false);
+
+  // the close: hand the reader something to do
+  $('bond-close').innerHTML =
+    `<b>So what?</b> The next time ${nm} puts a bond on the ballot, two questions decide what you are actually ` +
+    `voting on: <b>what is bundled into this proposition</b>, and <b>what it adds to the debt you are already ` +
+    `paying</b>. Both are answerable before you vote — the wording is on the ballot, and the debt is in the ` +
+    `chart above.`;
+
+  renderBondTable(b);
+  $('bond-cite').innerHTML =
+    `Source: Texas ISD bond election results, ${b.meta.first_year}&ndash;${b.meta.last_year}, ` +
+    `${b.meta.propositions.toLocaleString()} decided propositions matched to TEA district numbers at ` +
+    `${b.meta.matched_pct}%. Cancelled and unreported elections are excluded. ` +
+    `TEA&rsquo;s own financial data does not itemise facilities, so the ballot is the only public record of ` +
+    `what school debt was for.`;
+}
+
+function renderBondTable(b) {
+  const rows = b.elections.slice().reverse().map(e =>
+    `<tr><td>${e.date}</td><td>${e.purpose}</td><td>${usd(e.amount)}</td>` +
+    `<td>${e.passed ? 'Approved' : 'Rejected'}</td>` +
+    `<td>${e.for == null ? '—' : e.for.toLocaleString()}</td>` +
+    `<td>${e.against == null ? '—' : e.against.toLocaleString()}</td></tr>`).join('');
+  $('bond-table').innerHTML =
+    `<caption>Every bond election held by ${b.district_name}, newest first. Identical to the circles above.</caption>` +
+    '<thead><tr><th scope="col">Date</th><th scope="col">Purpose</th><th scope="col">Amount</th>' +
+    '<th scope="col">Result</th><th scope="col">Votes for</th><th scope="col">Votes against</th></tr></thead>' +
+    `<tbody>${rows}</tbody>`;
 }
 
 function renderInsights() {

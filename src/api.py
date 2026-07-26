@@ -169,6 +169,8 @@ async def api_info():
             "district_outcomes": "GET /district/{district_number}/outcomes",
             "district_economics": "GET /district/{district_number}/economics",
             "texas_economics": "GET /economics/texas",
+            "district_bonds": "GET /district/{district_number}/bonds",
+            "texas_bonds": "GET /bonds/texas",
             "anomalies": "GET /anomalies",
             "sample_queries": "GET /sample-queries",
             "stats": "GET /stats",
@@ -1033,6 +1035,63 @@ async def get_texas_economics():
         raise HTTPException(status_code=503,
                             detail="Economics data not built. Run scripts/build_economics_data.py")
     return {"meta": data["meta"], "macro": data["macro"], "micro": data["micro"]}
+
+
+_bonds_cache: Optional[Dict[str, Any]] = None
+
+
+def _bonds() -> Optional[Dict[str, Any]]:
+    global _bonds_cache
+    if _bonds_cache is None:
+        path = STATIC_DIR / "bond_data.json"
+        if not path.exists():
+            return None
+        with path.open() as fh:
+            _bonds_cache = json.load(fh)
+    return _bonds_cache
+
+
+@app.get("/district/{district_number}/bonds", tags=["Districts"])
+async def get_district_bonds(district_number: str):
+    """Every bond this district ever put on a ballot, and how the vote went.
+
+    TEA's financial data can say how much a district spends servicing debt but
+    not what the debt was for — it does not itemise facilities, so a stadium is
+    not separable from a roof. The ballot is the only public record that names
+    what the money bought, with a date and a vote count attached.
+
+    Returns each proposition (date, stated purpose, amount asked, carried or
+    defeated, votes for and against) plus this district's totals, and the
+    statewide context needed to read them.
+    """
+    data = _bonds()
+    if data is None:
+        raise HTTPException(status_code=503,
+                            detail="Bond data not built. Run scripts/build_bond_data.py")
+    rec = data["districts"].get(district_number)
+    if rec is None:
+        raise HTTPException(
+            status_code=404,
+            detail="No bond election on record for this district. Districts that have "
+                   "never gone to the voters for debt have no entry here.")
+    return {"meta": data["meta"], "context": {
+        "by_purpose": data["by_purpose"], "by_era": data["by_era"],
+        "bundling": data["bundling"], "stadium": data["stadium"]}, **rec}
+
+
+@app.get("/bonds/texas", tags=["Statewide"])
+async def get_texas_bonds():
+    """66 years of Texas school bond elections, without the per-district detail.
+
+    Pass rate by stated purpose, the shift in what districts ask for and what
+    voters approve, and what bundling a stadium with classrooms does to both
+    the odds and the size of the ask.
+    """
+    data = _bonds()
+    if data is None:
+        raise HTTPException(status_code=503,
+                            detail="Bond data not built. Run scripts/build_bond_data.py")
+    return {k: v for k, v in data.items() if k != "districts"}
 
 
 @app.get("/robots.txt", include_in_schema=False)

@@ -211,6 +211,55 @@ def test_charter_districts_are_not_counted_as_data_quality_failures(client):
     assert meta["split_half_reliability"] > 0.5     # the score must actually repeat
 
 
+def test_bond_history_served_without_a_database(client):
+    """The ballot is the only public record of what school debt was FOR — TEA
+    does not itemise facilities. It must serve with no database, like outcomes."""
+    res = client.get("/district/165901/bonds")
+    if res.status_code == 503:
+        pytest.skip("bond_data.json not built in this checkout")
+    b = res.json()
+    assert b["elections"], "a district in the payload must have at least one election"
+    t = b["totals"]
+    assert t["passed"] <= t["props"]
+    assert t["approved"] <= t["asked"]
+    for e in b["elections"]:
+        assert isinstance(e["passed"], bool)
+        # a district with no bond on record is a 404, not an empty list
+    assert client.get("/district/999999/bonds").status_code == 404
+
+
+def test_implausible_vote_tallies_are_not_published(client):
+    """A fifth of source records show a multi-million-dollar bond as '1 for,
+    0 against'. Those are placeholders, not turnout; printing them would put an
+    obviously false number in front of a reader."""
+    res = client.get("/bonds/texas")
+    if res.status_code == 503:
+        pytest.skip("bond_data.json not built in this checkout")
+    meta = res.json()["meta"]
+    assert 50 < meta["votes_reported_pct"] < 100
+    d = client.get("/district/165901/bonds").json()
+    for e in d["elections"]:
+        if not e["votes_reported"]:
+            assert e["for"] is None and e["against"] is None
+        else:
+            assert (e["for"] or 0) + (e["against"] or 0) >= 20
+
+
+def test_bond_athletics_is_reported_as_an_upper_bound(client):
+    """Propositions bundle, so athletics dollars include classrooms sold
+    alongside. Both the bundled and the alone figure must ship — quoting only
+    the flattering one would be a lie of selection."""
+    res = client.get("/bonds/texas")
+    if res.status_code == 503:
+        pytest.skip("bond_data.json not built in this checkout")
+    body = res.json()
+    b = body["bundling"]
+    assert {"athletics_alone", "athletics_with_buildings", "buildings_alone"} <= set(b)
+    assert any("upper bound" in x for x in body["meta"]["limits"])
+    # the finding itself: bundling helps, and it raises the ask
+    assert b["athletics_with_buildings"]["pass_rate"] > b["athletics_alone"]["pass_rate"]
+
+
 def test_maps_ship_a_table_twin():
     """Both maps draw to a canvas, which no keyboard or screen reader can enter.
     Each must publish the same data as a real table. The styles alone once
