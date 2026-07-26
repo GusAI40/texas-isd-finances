@@ -1,6 +1,7 @@
 """
 FastAPI service for Texas School Finance Data Portal
 """
+import json
 import os
 import time
 from contextlib import asynccontextmanager
@@ -137,6 +138,7 @@ async def api_info():
             "districts": "GET /districts",
             "district_summary": "GET /district/{district_number}/summary",
             "district_dollar": "GET /district/{district_number}/dollar",
+            "district_outcomes": "GET /district/{district_number}/outcomes",
             "anomalies": "GET /anomalies",
             "sample_queries": "GET /sample-queries",
             "stats": "GET /stats",
@@ -885,6 +887,42 @@ async def get_district_spending_detail(request: Request, district_number: str):
         if not rows:
             raise HTTPException(status_code=404, detail="District not found")
         return [dict(r) for r in rows]
+
+
+# Loaded once per warm instance and sliced per request — the file is ~700 KB
+# and identical between annual TEA releases, so re-reading it per call would
+# be pure waste, and shipping the whole thing to the browser worse still.
+_outcomes_cache: Optional[Dict[str, Any]] = None
+
+
+def _outcomes() -> Optional[Dict[str, Any]]:
+    global _outcomes_cache
+    if _outcomes_cache is None:
+        path = STATIC_DIR / "outcomes_data.json"
+        if not path.exists():
+            return None
+        with path.open() as fh:
+            _outcomes_cache = json.load(fh)
+    return _outcomes_cache
+
+
+@app.get("/district/{district_number}/outcomes", tags=["Districts"])
+async def get_district_outcomes(district_number: str):
+    """What the money buys: student population, teaching workforce, and
+    results, each against this district's structural peers and the state.
+
+    Includes how the district scored versus what its student demographics
+    predict. That is a question worth asking about a district, never a verdict
+    on it — the model explains only part of the spread, and the rest is real
+    difference, local context and noise. See docs/WHAT_A_DOLLAR_BUYS.md."""
+    data = _outcomes()
+    if data is None:
+        raise HTTPException(status_code=503,
+                            detail="Outcomes data not built. Run scripts/build_outcomes_data.py")
+    rec = data["districts"].get(district_number)
+    if rec is None:
+        raise HTTPException(status_code=404, detail="District not in the outcomes dataset")
+    return {"meta": data["meta"], **rec}
 
 
 @app.get("/map", include_in_schema=False)

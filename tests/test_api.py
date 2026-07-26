@@ -92,6 +92,22 @@ def test_anomalies_district_filter_validated(client):
     assert res.status_code == 422
 
 
+def test_outcomes_served_without_a_database(client):
+    """Outcomes come from a precomputed static file, so this endpoint must work
+    even with no database configured — unlike every other data endpoint."""
+    res = client.get("/district/043905/outcomes")
+    if res.status_code == 503:
+        pytest.skip("outcomes_data.json not built in this checkout")
+    assert res.status_code == 200
+    body = res.json()
+    assert body["district_number"] == "043905"
+    assert body["meta"]["model_r2"] > 0
+    # peer comparison must be present and structured [own value, peer median]
+    for key, pair in body["measures"].items():
+        assert len(pair) == 2, key
+    assert client.get("/district/999999/outcomes").status_code == 404
+
+
 def test_pennies_always_sum_to_one_hundred():
     """The dollar must never gain or lose a penny to rounding, whatever the mix."""
     from src.api import _to_pennies

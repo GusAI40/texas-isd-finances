@@ -155,6 +155,42 @@
     border:1px solid var(--hairline); background:#fff; color:var(--ink-2);
   }
   .lensbar button[aria-pressed=true] { background:var(--ink); color:#fff; border-color:var(--ink); }
+  /* ---- What the money buys ---- */
+  .whobar { display:flex; flex-wrap:wrap; gap:.5rem .6rem; margin:.2rem 0 1.4rem; }
+  .whobar .who {
+    border:1px solid var(--hairline); border-radius:10px; padding:.5rem .8rem;
+    font-size:.83rem; color:var(--ink-2); background:#fff;
+  }
+  .whobar .who b { color:var(--ink); font-variant-numeric:tabular-nums; }
+  .whobar .who span { color:var(--muted); }
+  .drivers { display:grid; grid-template-columns:repeat(auto-fit,minmax(255px,1fr)); gap:.9rem; max-width:1000px; }
+  .driver { border:1px solid var(--hairline); border-radius:12px; padding:.9rem 1rem; }
+  .driver .dl { font-size:.8rem; color:var(--muted); letter-spacing:.02em; }
+  .driver .dv { font-size:1.7rem; font-weight:700; letter-spacing:-.02em; font-variant-numeric:tabular-nums;
+                margin:.1rem 0 .35rem; line-height:1.1; }
+  .driver .dcmp { font-size:.8rem; color:var(--ink-2); }
+  .driver .dcmp b { font-variant-numeric:tabular-nums; }
+  /* one bar: your value against the peer median, direction-aware */
+  .dbar { position:relative; height:7px; border-radius:4px; background:var(--hairline);
+          margin:.5rem 0 .4rem; overflow:hidden; }
+  .dbar i { position:absolute; top:0; bottom:0; left:0; border-radius:4px; }
+  .dbar u { position:absolute; top:-3px; bottom:-3px; width:2px; background:var(--ink); }
+  .driver.good .dv { color:var(--good); }
+  .driver.watch .dv { color:var(--bad); }
+  .driver .tag { font-size:.72rem; letter-spacing:.06em; text-transform:uppercase; font-weight:700; }
+  .driver.good .tag { color:var(--good); }
+  .driver.watch .tag { color:var(--bad); }
+  .driver.flat .tag { color:var(--muted); }
+  .lever { background:var(--wash); border-radius:12px; padding:1.1rem 1.3rem; margin:1.4rem 0 0;
+           max-width:1000px; font-size:.89rem; color:var(--ink-2); }
+  .lever h4 { margin:0 0 .5rem; font-size:.95rem; color:var(--ink); }
+  .lever .bars { margin:.7rem 0 .3rem; }
+  .lever .lrow { display:grid; grid-template-columns:15rem minmax(0,1fr) 3.6rem; align-items:center;
+                 gap:.6rem; margin-bottom:.28rem; font-size:.82rem; }
+  .lever .lrow i { display:block; height:12px; border-radius:3px; background:var(--blue); }
+  .lever .lrow.dim i { background:var(--faint); }
+  .lever .lrow b { font-variant-numeric:tabular-nums; text-align:right; }
+  @media (max-width:620px){ .lever .lrow { grid-template-columns:9.5rem minmax(0,1fr) 3.2rem; font-size:.76rem; } }
   /* ---- Hero ----
      Display face is a serif on purpose: this is a public record, and it should
      read like one rather than like every other dashboard. Body stays sans. */
@@ -357,6 +393,17 @@
         <button class="quiet" id="btn-share">Save this as an image</button>
       </div>
       <div class="cite" id="dollar-cite"></div>
+    </section>
+
+    <hr class="rule">
+    <section id="outcomes-section" class="hidden">
+      <div class="eyebrow">What the money buys</div>
+      <h2 class="action" id="outcomes-title"></h2>
+      <p class="support" id="outcomes-support"></p>
+      <div class="whobar" id="outcomes-who"></div>
+      <div class="drivers" id="outcomes-drivers"></div>
+      <div class="lever" id="outcomes-lever"></div>
+      <div class="cite" id="outcomes-cite"></div>
     </section>
 
     <hr class="rule">
@@ -647,7 +694,7 @@ const titleCase = s => (s || '').toLowerCase()
 
 const state = { district: null, summary: [], benchmarks: [], peers: null, flags: [], breakdown: [],
                 metric: 'spend', compare: null, compareSummary: [], lens: 'parent',
-                dollar: null, dollarPin: null, dollarHover: null };
+                dollar: null, dollarPin: null, dollarHover: null, outcomes: null };
 
 /* ===== The dollar: every dollar the district spends, as 100 pennies =====
    Shares, peer/statewide medians and dollars-at-stake all come from
@@ -878,6 +925,102 @@ function renderAtom() {
   $('atom-close').onclick = () => pinCat(state.dollarPin);
 }
 
+/* ===== What the money buys: students, teachers, results =====
+   The spending sections answer "where did it go". This answers the question
+   underneath it — for whom, and with what result — and it leads with WHO the
+   district teaches, because that is what makes every comparison below fair. */
+function renderOutcomes() {
+  const o = state.outcomes, sec = $('outcomes-section');
+  if (!o || !o.measures) { sec.classList.add('hidden'); return; }
+  sec.classList.remove('hidden');
+  const M = o.meta.measures, need = o.meta.need_state_medians;
+  const nm = { pct_econ_disadv: 'economically disadvantaged',
+               pct_emergent_bilingual: 'still learning English',
+               pct_special_ed: 'in special education' };
+
+  // --- action title: lead with the result, honestly qualified ---
+  const exp = o.expectation, turn = o.measures.teacher_turnover_pct;
+  let title;
+  if (exp && Math.abs(exp.gap) >= 3) {
+    title = `${state.district.name}'s students score ${Math.abs(exp.gap).toFixed(0)} points ` +
+      `${exp.gap > 0 ? 'above' : 'below'} what its student population predicts`;
+  } else if (exp) {
+    title = `${state.district.name} performs about where its student population predicts`;
+  } else {
+    title = `Who ${state.district.name} teaches, and how its teachers compare`;
+  }
+  $('outcomes-title').textContent = title;
+  $('outcomes-support').innerHTML =
+    `Fiscal ${o.year}. Districts serving more students in poverty score lower on average — so comparing raw ` +
+    `results between districts is unfair and misleading. Everything below is measured against ` +
+    `<strong>${o.peer_count} structurally similar districts</strong> (matched on size, growth and funding ` +
+    `capacity, never on spending) and against all of Texas.` +
+    (exp ? ` The prediction uses only who a district teaches, and explains ` +
+      `${Math.round(exp.model_r2 * 100)}% of the difference between districts — the rest is real difference, ` +
+      `local context and noise. <strong>Treat it as a question, not a verdict.</strong>` : '');
+
+  // --- who the district teaches ---
+  $('outcomes-who').innerHTML = Object.keys(nm).map(k => {
+    const v = o.need[k];
+    if (v == null) return '';
+    const s = need[k];
+    return `<div class="who"><b>${v}%</b> of students ${nm[k]} ` +
+      (s != null ? `<span>· statewide ${s}%</span>` : '') + `</div>`;
+  }).join('');
+
+  // --- the measures that actually move results ---
+  const order = ['teacher_turnover_pct', 'teacher_avg_experience', 'test_all_approaches',
+                 'attendance_rate', 'grad_rate_4yr', 'avg_teacher_salary', 'students_per_teacher'];
+  $('outcomes-drivers').innerHTML = order.filter(k => o.measures[k]).map(k => {
+    const [val, peer] = o.measures[k], def = M[k];
+    const fmtv = v => v == null ? '—'
+      : def.unit === '$' ? fmtMoney(v) : v.toLocaleString() + def.unit;
+    let cls = 'flat', tag = 'in line with peers';
+    if (peer != null && peer !== 0) {
+      const d = (val - peer) / Math.abs(peer);
+      if (Math.abs(d) >= 0.08) {
+        const better = def.higher_is_better ? d > 0 : d < 0;
+        cls = better ? 'good' : 'watch';
+        tag = `${Math.abs(Math.round(d * 100))}% ${d > 0 ? 'higher' : 'lower'} than peers`;
+      }
+    }
+    // bar: own value vs peer median, both scaled to the larger of the two
+    const hi = Math.max(val, peer ?? val) * 1.15 || 1;
+    return `<div class="driver ${cls}">
+      <div class="dl">${def.label}</div>
+      <div class="dv">${fmtv(val)}</div>
+      <div class="dbar"><i style="width:${Math.min(100, 100 * val / hi)}%;background:${
+        cls === 'good' ? 'var(--good)' : cls === 'watch' ? 'var(--bad)' : 'var(--faint)'}"></i>${
+        peer != null ? `<u style="left:${Math.min(99, 100 * peer / hi)}%"></u>` : ''}</div>
+      <div class="tag">${tag}</div>
+      <div class="dcmp">Similar districts <b>${fmtv(peer)}</b> · all Texas <b>${fmtv(def.state_median)}</b></div>
+    </div>`;
+  }).join('');
+
+  // --- the statewide finding that reframes the whole page ---
+  const L = o.meta.lever_strength, top = Math.max(...Object.values(L));
+  const names = { teacher_turnover_pct: 'Teacher turnover', pct_teachers_new: '% teachers with ≤5 yrs',
+                  teacher_avg_experience: 'Teacher experience', pct_spend_instruction: '% spent on instruction',
+                  students_per_teacher: 'Students per teacher', avg_teacher_salary: 'Average teacher salary',
+                  spend_per_student: 'Spending per student' };
+  $('outcomes-lever').innerHTML =
+    `<h4>Across all 1,202 districts and 16 years, this is what tracks results</h4>` +
+    `<p>Each measure below is tested the same way: after accounting for who a district teaches, how much of ` +
+    `the remaining difference in STAAR results does it explain? <strong>Whether experienced teachers stay ` +
+    `predicts results far better than the size of the budget.</strong></p>` +
+    `<div class="bars">` + Object.entries(L).sort((a, b) => b[1] - a[1]).map(([k, v]) =>
+      `<div class="lrow ${v < 1 ? 'dim' : ''}"><span>${names[k] || k}</span>` +
+      `<i style="width:${Math.max(1.5, 100 * v / top)}%"></i><b>${v}%</b></div>`).join('') +
+    `</div><p style="margin:.6rem 0 0;font-size:.8rem;color:var(--muted)">These are associations across ` +
+    `districts, not proof of cause. They say where to look, not what to do. ` +
+    `<a href="https://github.com/GusAI40/texas-isd-finances/blob/master/docs/WHAT_A_DOLLAR_BUYS.md" ` +
+    `target="_blank" rel="noopener">Full method and limits</a>.</p>`;
+
+  $('outcomes-cite').innerHTML = `Source: TEA Snapshot, District &amp; Charter Detail (${o.year}) joined to ` +
+    `TEA Summarized PEIMS Actual Financial Data · district ${o.district_number} · ` +
+    `<a href="https://rptsvr1.tea.texas.gov/perfreport/snapshot/download.html" target="_blank" rel="noopener">original release</a>`;
+}
+
 /* ---- the zoom ladder: state → district → category ---- */
 function renderLadder() {
   const d = state.dollar;
@@ -1051,7 +1194,7 @@ async function selectDistrict(num, name) {
   localStorage.setItem('tisd_district', JSON.stringify({ num, name }));
   state.district = { num, name };
   state.compare = null; state.compareSummary = [];
-  state.dollar = null; state.dollarPin = null; state.dollarHover = null;
+  state.dollar = null; state.dollarPin = null; state.dollarHover = null; state.outcomes = null;
   $('results').innerHTML = ''; $('search').value = '';
   $('picker-section').classList.add('compact');
   $('finder-lab').textContent = 'Look up a different district';
@@ -1071,7 +1214,7 @@ async function loadDashboard() {
   if (!d) return;
   $('dash').classList.remove('hidden');
   try {
-    const [summary, peers, flags, breakdown, turnarounds, detail, insights, dollar] = await Promise.all([
+    const [summary, peers, flags, breakdown, turnarounds, detail, insights, dollar, outcomes] = await Promise.all([
       api('/district/' + encodeURIComponent(d.num) + '/summary'),
       api('/district/' + encodeURIComponent(d.num) + '/peers'),
       api('/anomalies?district_number=' + encodeURIComponent(d.num) + '&limit=50'),
@@ -1080,16 +1223,17 @@ async function loadDashboard() {
       api('/district/' + encodeURIComponent(d.num) + '/spending-detail').catch(() => []),
       api('/district/' + encodeURIComponent(d.num) + '/insights').catch(() => ({insights: []})),
       api('/district/' + encodeURIComponent(d.num) + '/dollar').catch(() => null),
+      api('/district/' + encodeURIComponent(d.num) + '/outcomes').catch(() => null),
     ]);
     state.summary = summary; state.peers = peers; state.flags = flags; state.breakdown = breakdown;
     state.turnarounds = turnarounds; state.detail = detail; state.insights = insights;
-    state.dollar = dollar;
+    state.dollar = dollar; state.outcomes = outcomes;
     renderAll();
     $('dash').scrollIntoView({ block: 'start' });
   } catch (e) { /* banner shown */ }
 }
 function renderAll() {
-  renderExec(); renderDollar(); renderInsights(); renderKPIs(); renderTrend(); renderPeers();
+  renderExec(); renderDollar(); renderOutcomes(); renderInsights(); renderKPIs(); renderTrend(); renderPeers();
   renderMoney(); renderFlags(); renderObject(); renderProgram(); renderTurnarounds();
   ['kpi-cite', 'trend-cite', 'peers-cite', 'flags-cite'].forEach(c => cite(c));
   cite('money-cite', 'function-code groupings listed under Disclaimer');
