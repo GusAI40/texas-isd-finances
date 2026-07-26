@@ -17,6 +17,60 @@ Entry template:
 
 ---
 
+## 2026-07-26 — Named the report, surfaced the map, credited the collaboration
+
+**What changed:** Three things, all live.
+
+1. **The map was live but unfindable.** "Map of Texas" sat in a row of quiet
+   text links beside Print; the owner shipped it and could not find it. It is
+   now the one filled button in the header. **Shipping and surfacing are
+   different jobs** — doing the first is not doing the second.
+2. **Named the work.** Hero eyebrow: "Storytelling with data · a story of
+   Texas ISD", plus a credential band — 17 years of state records, 1,310
+   districts, 20,587 financial records, the annual total, "every number
+   traceable to the State of Texas". **Every figure reads from live data at
+   load**, so it cannot drift when TEA publishes again. First pass got this
+   wrong twice: hardcoded a record count, and fetched the 518 KB boundary
+   file on the landing page purely to count districts. Both removed.
+3. **Collaboration credit** — TAG ai with Michelle Sanchez, Realtor,
+   Coldwell Banker Realty.
+
+**Gotchas / judgement calls on the credit:**
+- Her details came from the `michelle-sanchez-brand` skill, not from chat.
+  Correct form is **"Realtor | Coldwell Banker Realty"** (not "Coldwell
+  Banker Realtor"), and **TREC License #0724260** is included because Texas
+  license holders' public-facing material should carry it.
+- **No unverifiable claims.** The copy states the shared goal that was given;
+  it invents no client anecdote.
+- **Added an independence statement unprompted.** A school-data guide
+  credited to a realtor invites the question "are these numbers picked to
+  sell houses?" Silence leaves it open. Stating that figures are TEA's
+  loaded unchanged, that nothing is ranked or recommended, and that no party
+  influenced any number or method, closes it. Disclosure is what makes the
+  collaboration an asset.
+- **Deliberately did NOT apply her brand chrome** (black header bar, gold
+  accents, CB badge, headshot). Correct for a listing presentation; in a
+  public data report it would read as real estate marketing and spend the
+  exact credibility this report cannot afford. The report keeps its
+  white-minimalist design. Revisit only if she wants a co-branded PDF, which
+  is a different artifact.
+
+**Positioning settled** (for future sessions): TAG ai's angle is *nobody
+trusts a capability deck, everybody trusts a thing they already used.* The
+guide is the demonstration; the footer credit is enough. Leading with TAG
+turns it into vendor content districts will not cite in a board meeting.
+
+**Open items:** 🔴 **rotate the Vercel / Supabase / GitHub PATs pasted
+2026-07-25** — still outstanding, the Vercel one deploys to production.
+Then: read-only DB role for NLP, `/query` threadpool + timeout, real rate
+limiting, analytics, Supabase idle-pause keep-alive, keyboard/SR path for
+both maps, PR #2 review. Product idea with the strongest case: the
+one-paragraph plain-English verdict-free "should I worry?" sentence,
+generated for all 1,205 districts — it serves parents, teachers, taxpayers
+and reporters at once.
+
+---
+
 ## 2026-07-26 — The real map of Texas is live (and it needed no Mapbox)
 
 **What changed:** `/geomap` — 1,005 actual school-district boundaries,
