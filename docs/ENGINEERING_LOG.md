@@ -17,6 +17,48 @@ Entry template:
 
 ---
 
+## 2026-07-26 — "One child": the report at human scale
+
+**What changed:** A card at the top of the outcomes section that divides the
+same figures down to one student, one classroom, one childhood. Plus
+`border_keeps_teachers_better` in `scripts/build_outcomes_data.py`.
+
+**The three beats:**
+- **"$163 a day"** — spending per student over a 180-day year. Billions move
+  nobody; a daily figure for one child does.
+- **"2 of 10 teachers"** — of ten teachers present when a child starts
+  kindergarten, how many would still be there when they leave fifth grade at
+  today's turnover rate, beside the same figure for similar districts.
+  **Nobody has ever handed a parent that number.**
+- **"6 of 10 classmates"** — student poverty as a classroom, not a percentage.
+
+Then the closer: the bordering district teaching similar students that keeps
+its teachers. Rockport-Fulton loses 30.4%; Calhoun County next door, 66.5%
+student poverty vs 60.9%, loses 10.7%.
+
+**Gotchas:**
+- The ten-teacher figure compounds `(1 - turnover)^5`. That **overstates**
+  churn among veterans, because leavers skew new. The caveat is **in the
+  card, not a footnote** — stating it is what makes the number quotable
+  instead of attackable. Do not remove it to tighten the layout.
+- `border_keeps_teachers_better` uses TIGER adjacency (shared boundary
+  vertices), similar poverty within 8 pts, turnover better by >=4 pts.
+  **373 of 1,205** districts have one. Needs `--shapefile` on the outcomes
+  build; without it the field is simply absent and the card degrades.
+- Rebuild order still matters: `build_outcomes_data.py --shapefile ...` then
+  `build_district_geo.py` (which merges the measures).
+- When spot-checking a district in the browser, **use a real district number** —
+  the page trusts the number for data and the stored name for display, so an
+  invented pair renders the wrong name against real figures. Cost me one
+  confusing test.
+
+**Open items:** 🔴 rotate the Vercel/Supabase/GitHub PATs pasted 2026-07-25.
+Then: read-only DB role for NLP, `/query` threadpool + timeout, real rate
+limiting, analytics, Supabase idle-pause keep-alive, keyboard/SR path for
+both maps, PR #2 review.
+
+---
+
 ## 2026-07-26 — Named the report, surfaced the map, credited the collaboration
 
 **What changed:** Three things, all live.
