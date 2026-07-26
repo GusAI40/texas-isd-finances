@@ -51,6 +51,13 @@
     cursor: pointer; padding: .25rem .5rem; border-radius: 6px;
   }
   .hbtns button:hover { background: var(--wash); }
+  /* The map is the most compelling thing here; it was hidden in a row of quiet
+     text links and people could not find it. */
+  .hbtns button.feature {
+    background: var(--blue); color: #fff; font-weight: 600; padding: .3rem .8rem;
+    border-radius: 99px;
+  }
+  .hbtns button.feature:hover { background: #1c5cab; }
   section { padding: 2.6rem 0 0; }
   .eyebrow {
     font-size: .72rem; letter-spacing: .14em; text-transform: uppercase;
@@ -251,7 +258,13 @@
   .hero-num { color: var(--blue); white-space: nowrap; }
   .nowrap { white-space: nowrap; }
   .hero-row { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 2.8rem; align-items: start; }
-  .hero-sub { color: var(--ink-2); font-size: .95rem; max-width: 42rem; margin: 0 0 1.8rem; }
+  .hero-sub { color: var(--ink-2); font-size: .95rem; max-width: 42rem; margin: 0 0 1rem; }
+  .credential {
+    display:flex; flex-wrap:wrap; gap:.4rem 1.4rem; margin:0 0 1.6rem;
+    font-size:.82rem; color:var(--ink-2); border-top:1px solid var(--hairline);
+    border-bottom:1px solid var(--hairline); padding:.7rem 0;
+  }
+  .credential b { color:var(--ink); font-variant-numeric:tabular-nums; }
   .finder { max-width: 30rem; }
   .finder-lab { display:block; font-size:.74rem; letter-spacing:.09em; text-transform:uppercase;
                 color:var(--muted); font-weight:700; margin-bottom:.4rem; }
@@ -365,7 +378,7 @@
   <header class="top">
     <div class="brand">Texas ISD Financial Resource Guide<span class="tag">Official TEA data · fiscal 2009–2025 · 1,202 districts</span></div>
     <div class="hbtns">
-      <button id="btn-geomap">Map of Texas</button>
+      <button id="btn-geomap" class="feature">Map of Texas</button>
       <button id="btn-map">Seating chart</button>
       <button id="btn-tour">Tutorial</button>
       <button id="btn-disclaimer">Disclaimer</button>
@@ -382,12 +395,13 @@
     the project may be paused — an administrator can wake it in the Supabase dashboard.</div>
 
   <section id="picker-section" class="hero">
-    <div class="eyebrow">Every dollar · every district · 2009–2025</div>
+    <div class="eyebrow">Storytelling with data · a story of Texas ISD</div>
     <h1 class="hero-h" id="picker-title">Texas school districts spend
       <span class="hero-num" id="hero-num" style="opacity:.25">$—</span> a year. Here is where every penny goes.</h1>
     <p class="hero-sub" id="hero-sub">One plain-English record of how every Texas school district spends
       public money — for parents, taxpayers, boosters, business owners, reporters, trustees and
       administrators alike. Official state figures, nothing modelled, a source on every number.</p>
+    <div class="credential" id="credential"></div>
     <div class="hero-row">
       <div class="finder">
         <label class="finder-lab" for="search" id="finder-lab"><span class="lbl-new">Find your district</span><span class="lbl-return">Look up a different district</span></label>
@@ -1894,6 +1908,21 @@ function renderTexasDollar(tx) {
     if (c) c.innerHTML = caption;
   });
 }
+/* The credential line: what this report is actually made of. Every figure is
+   read from the data at load, never typed in — if a source grows, this grows. */
+function renderCredential(s, tx) {
+  const el = $('credential');
+  if (!el) return;
+  const bits = [];
+  if (s) {
+    bits.push(`<span><b>${s.end_year - s.start_year + 1}</b> years of state records (${s.start_year}–${s.end_year})</span>`);
+    bits.push(`<span><b>${fmtNum(s.total_districts)}</b> districts</span>`);
+    bits.push(`<span><b>${fmtNum(s.total_records)}</b> financial records</span>`);
+  }
+  if (tx) bits.push(`<span><b>${fmtBig(tx.total_spend)}</b> a year accounted for</span>`);
+  bits.push(`<span>Every number traceable to the State of Texas</span>`);
+  el.innerHTML = bits.join('');
+}
 function renderQuickPicks(largest) {
   const el = $('quickpick');
   if (!el || !largest || !largest.length) return;
@@ -1926,6 +1955,7 @@ async function loadStatewide() {
   renderTexasDollar(tx);
   renderTicker();
     renderQuickPicks(s.largest_districts);
+    renderCredential(s, tx);
     document.querySelector('.brand .tag').textContent =
       `Official TEA data · fiscal ${s.start_year}–${s.end_year} · ${fmtNum(s.total_districts)} districts`;
     $('t-districts').textContent = fmtNum(s.total_districts);
