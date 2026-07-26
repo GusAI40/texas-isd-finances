@@ -17,6 +17,67 @@ Entry template:
 
 ---
 
+## 2026-07-26 — Hardening pass: security headers, a bounded /query, and a table twin for both maps
+
+**What changed:** Commit `fc294cd` on `claude/audit-public-launch-ocd7ra`
+(pushed, **not yet deployed — no Vercel token in this session**).
+
+- `src/api.py`: a `security_headers` middleware setting CSP
+  (`default-src 'self'`, `frame-ancestors 'self'`, `script-src`/`style-src`
+  `'self' 'unsafe-inline'` because the pages inline their script and styles),
+  `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy` and a
+  `Permissions-Policy` allowing geolocation only for `self` (the "find my
+  district" path needs it). `/docs`, `/redoc` and `/openapi.json` return
+  before the headers are set.
+- `src/api.py`: `/query` now runs the LangChain agent through
+  `run_in_threadpool` under `asyncio.wait_for` (`QUERY_TIMEOUT_SECONDS`,
+  default 45) and returns 504 instead of hanging. A global ceiling
+  (`QUERY_GLOBAL_LIMIT`, default 60 per window, `_global_hits`) sits behind
+  the per-IP bucket.
+- `static/geomap.html` and `static/map.html`: a `<details class="a11y">`
+  table twin publishing the same numbers as the canvas — 1,005 rows sorted by
+  teacher turnover on `/geomap`, 1,202 sorted by spending per student on
+  `/map`, every row linking to `/?d=<number>`.
+- `tests/test_api.py`: 41 tests now — added `test_security_headers_present`,
+  `test_query_has_a_global_spend_ceiling`, `test_maps_ship_a_table_twin`.
+
+**Why:** These were the findings graded but not fixed in the previous audit.
+The canvas maps are the centrepiece of the site and were completely
+unreachable by keyboard or screen reader; bolting fake focus onto pixels
+would have been theatre, so the honest fix is to publish the same data as a
+real table. On `/query`, the per-IP limit alone could not bound cost —
+`X-Forwarded-For` is caller-supplied — and the synchronous agent was being
+awaited inline, so one slow question stalled every other request on the
+worker.
+
+**Gotchas:**
+- **`map.html` had the a11y CSS but never the markup or the function.** The
+  styles shipped and looked like the feature was there. `test_maps_ship_a_table_twin`
+  now asserts markup + function + call site on both pages.
+- **Writing `<caption>` before `table.innerHTML` silently wipes it** — the
+  caption is a child of the table. Both pages now emit the caption as part of
+  the same innerHTML string. Only caught by reading the rendered DOM; the
+  source grepped fine and the page threw no error.
+- The local design harness routes are `/map` and `/geomap`, **not**
+  `/map.html` — pointing Playwright at the `.html` paths silently serves
+  `index.html`, and every selector comes back "not found" with no error.
+- Playwright in this container needs
+  `executable_path="/opt/pw-browsers/chromium"`; the bundled headless-shell
+  version it looks for is not installed, and `playwright install` is banned.
+
+**Open items:**
+- 🔴 Rotate the credentials pasted into chat (2026-07-22 and 2026-07-25).
+- ⏳ **Deploy `fc294cd`** — needs a Vercel token; the staged one was shredded
+  after the last deploy and the Vercel MCP server requires approval this
+  session. Verify after: security headers present on `/`, absent on `/docs`,
+  and both `<details>` tables render with 1,005 / 1,202 rows.
+- 🟡 Read-only DB role for the NLP path — the last unfixed hardening finding.
+- 🟡 518 KB `/geomap` payload on mobile.
+- 🟡 Intel gap to close first: **revenue composition** (24 unused columns —
+  "who pays"), then General Fund vs All Funds (67 column pairs).
+
+---
+
 ## 2026-07-26 — Audit: the AI was stating falsehoods, and nothing was findable
 
 **Graded the whole system, then fixed the two failing areas.** Data work

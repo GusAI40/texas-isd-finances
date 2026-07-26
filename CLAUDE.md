@@ -72,7 +72,7 @@ read-only Postgres views on Supabase. MIT-licensed, built for public use.
 ## Verify before claiming anything works
 
 ```bash
-ruff check . && python -m pytest -q       # 38 tests, all must pass
+ruff check . && python -m pytest -q       # 41 tests, all must pass
 curl -s https://txisd.dev/health
 ```
 
@@ -105,9 +105,10 @@ proxy), run `scratchpad/liveproxy.py` and point Playwright at
 - ✅ **"What the money buys" live on every district page** — student need, teacher turnover/experience/salary, STAAR, attendance, graduation, each vs structural peers + state; scored against what demographics predict; statewide lever chart (turnover 10.12% vs spending 0.01%). Data: TEA Snapshot 2009–2024 joined to PEIMS (`scripts/ingest_tea_snapshot.py`, `scripts/build_outcomes_data.py`, `docs/WHAT_A_DOLLAR_BUYS.md`).
 - ✅ Guided dollar (hover/tap → peer + state comparison + dollars at stake), zoom ladder, rebuilt landing page with the live statewide dollar, live-figures ticker under the header.
 - ✅ **`/geomap` — the real map**: 1,005 Census TIGER boundaries joined to TEA numbers, coloured by turnover/spending/poverty/beats-prediction, neighbours outlined, "find my district" via in-browser point-in-polygon. No Mapbox, no API key, location never leaves the device. Covers ~92% of students (charters have no boundary).
-- ✅ Three audit rounds + Monte Carlo audit complete (`AUDIT.md`, `docs/AUDIT_SCORECARD.md`); 32 tests green; CI enforces ruff+pytest.
+- ✅ Three audit rounds + Monte Carlo audit complete (`AUDIT.md`, `docs/AUDIT_SCORECARD.md`); 41 tests green; CI enforces ruff+pytest.
 - 🔴 OPEN: user must rotate credentials pasted into chat on 2026-07-22 (OpenAI/GitHub/Hetzner/Anthropic etc.); OpenAI key in Vercel env needs updating after rotation.
-- 🟡 OPEN hardening: read-only DB role for NLP; `/query` needs threadpool+timeout; real rate limiting; analytics; map keyboard/SR path; PR #2 awaiting user review (do not merge).
+- 🟡 OPEN hardening: read-only DB role for NLP is the last one left; 518 KB `/geomap` payload on mobile; PR #2 awaiting user review (do not merge).
+- ⏳ COMMITTED BUT NOT DEPLOYED (`fc294cd`): CSP + security headers, `/query` threadpool + 45s timeout + global 60/window ceiling, `<details>` table twin on both maps. Needs a Vercel token to reach production.
 - 🟡 WATCH: Supabase free tier pauses after ~7 days idle → portal shows "database not connected" until woken in dashboard. Vercel Hobby is non-commercial; upgrade both if pursuing revenue.
 
 ## Key docs
