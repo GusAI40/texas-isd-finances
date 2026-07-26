@@ -79,13 +79,22 @@ node --check /tmp/m.js                    # repeat for static/index.html
 
 Never verify a UI change by grepping the served HTML for strings.
 
+**Anything above the fold that depends on `localStorage` must be applied
+before first paint** — inline `<script>` in `<head>` setting a class on
+`documentElement`, plus CSS. Doing it in `boot()` causes a visible flash that
+lasts as long as whatever `boot()` awaits first (this shipped once).
+
+To render *production* in a browser (Chromium can't TLS through the agent
+proxy), run `scratchpad/liveproxy.py` and point Playwright at
+`127.0.0.1:8799`.
+
 ## Current Status (updated 2026-07-25 — keep this a snapshot, history goes in the log)
 
 - ✅ Live in production, all endpoints verified including end-to-end NLP.
 - ✅ Public portal is now the **Texas ISD Financial Resource Guide**: white-minimalist McKinsey/SWD design, penny-of-the-dollar visual, 6 audience lenses, share cards, Methods & citation section, AI disclosure + TAG footer.
 - ✅ `static/map.html` ("seating chart" of all 1,202 districts) works on phones — pan/pinch/tap; landmarks + named neighborhoods + plain axes.
 - ✅ **"What the money buys" live on every district page** — student need, teacher turnover/experience/salary, STAAR, attendance, graduation, each vs structural peers + state; scored against what demographics predict; statewide lever chart (turnover 10.12% vs spending 0.01%). Data: TEA Snapshot 2009–2024 joined to PEIMS (`scripts/ingest_tea_snapshot.py`, `scripts/build_outcomes_data.py`, `docs/WHAT_A_DOLLAR_BUYS.md`).
-- ✅ Guided dollar (hover/tap → peer + state comparison + dollars at stake), zoom ladder, rebuilt landing page with the live statewide dollar.
+- ✅ Guided dollar (hover/tap → peer + state comparison + dollars at stake), zoom ladder, rebuilt landing page with the live statewide dollar, live-figures ticker under the header.
 - ✅ Three audit rounds + Monte Carlo audit complete (`AUDIT.md`, `docs/AUDIT_SCORECARD.md`); 32 tests green; CI enforces ruff+pytest.
 - 🔴 OPEN: user must rotate credentials pasted into chat on 2026-07-22 (OpenAI/GitHub/Hetzner/Anthropic etc.); OpenAI key in Vercel env needs updating after rotation.
 - 🟡 OPEN hardening: read-only DB role for NLP; `/query` needs threadpool+timeout; real rate limiting; analytics; map keyboard/SR path; PR #2 awaiting user review (do not merge).

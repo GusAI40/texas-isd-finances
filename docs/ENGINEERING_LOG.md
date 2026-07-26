@@ -17,6 +17,53 @@ Entry template:
 
 ---
 
+## 2026-07-26 — Live-figures ticker, and the hero flash (a real bug) fixed
+
+**What changed:** A scrolling ticker under the header, and the end of the
+"hero appears then vanishes" flash a user reported.
+
+🔴 **The flash was worse than it looked.** `boot()` did
+`await loadStatewide()` **before** reading `localStorage` for a saved
+district, so a returning visitor saw the entire hero — headline, subtitle,
+statewide penny grid — for the length of two API round-trips, then watched
+it disappear when `.compact` was applied. Anything that appears and then
+vanishes reads as broken.
+
+**Fix — do it before first paint, never in `boot()`:** a tiny inline script
+in `<head>` sets `html.has-district` from `localStorage`, and CSS keyed off
+that class hides the hero from frame one. The `Find your district` /
+`Look up a different district` label swap moved out of JS into the same
+class for the same reason. The statewide fetch no longer blocks the district
+load. Verified by sampling the DOM 16 times during load against
+**production**: hero visible in **0 frames** for a returning visitor, and
+still renders for a first-timer.
+
+**Ticker:** built only from figures already computed on the page —
+statewide total and penny split, median teacher turnover and salary, the
+lever finding, and once a district is open its per-student spending, largest
+peer gap in real dollars, score vs prediction, and turnover vs peers. If a
+figure can't be computed the item is omitted; nothing is padded and no
+number is editorialised into a headline. Pace scales with content length
+(~71s live), pauses on hover/focus, drops animation under
+`prefers-reduced-motion`, hidden in print, no horizontal overflow on a
+390px phone.
+
+**Gotchas:**
+- **Anything that depends on `localStorage` for above-the-fold layout must
+  be applied pre-paint**, via `<head>` + a class on `documentElement`. Doing
+  it in `boot()` guarantees a flash, and the flash lasts as long as whatever
+  `boot()` awaits first.
+- The ticker track is rendered **twice** and animates to `translateX(-50%)`
+  — that is what makes the loop seamless. Don't "optimise" the duplicate
+  away.
+
+**Open items:** 🔴 rotate the Vercel/Supabase/GitHub PATs pasted 2026-07-25.
+Then: read-only DB role for NLP, `/query` threadpool + timeout, real rate
+limiting, analytics, Supabase idle-pause keep-alive, map keyboard/SR path,
+outcomes lens on the state map, PR #2 review.
+
+---
+
 ## 2026-07-26 — Loop closed: "what the money buys" is live on every district page
 
 **What changed:** The TEA Snapshot join stopped being a markdown file and
