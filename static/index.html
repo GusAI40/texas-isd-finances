@@ -209,6 +209,25 @@
     .ticker-tag { padding:.4rem .5rem; font-size:.62rem; }
   }
   @media print { .ticker { display:none !important; } }
+  /* ---- One child: the whole report at human scale ---- */
+  .onechild { border:1px solid var(--hairline); border-radius:14px; padding:1.4rem 1.5rem;
+              margin:.2rem 0 1.5rem; max-width:1000px; background:#fff; }
+  .onechild .oh { font-size:.72rem; letter-spacing:.14em; text-transform:uppercase;
+                  color:var(--muted); font-weight:700; margin-bottom:1rem; }
+  .onechild .beats { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:1.6rem; }
+  .onechild .beat .big {
+    font-family:ui-serif,Georgia,"Times New Roman",serif; font-weight:600;
+    font-size:clamp(2rem,4.2vw,2.9rem); line-height:1.05; letter-spacing:-.02em;
+    color:var(--ink); margin:0 0 .3rem;
+  }
+  .onechild .beat .big em { font-style:normal; color:var(--blue); }
+  .onechild .beat p { font-size:.89rem; color:var(--ink-2); margin:0; }
+  .onechild .ask {
+    margin:1.3rem 0 0; padding:.9rem 1.1rem; background:var(--wash); border-radius:10px;
+    font-size:.92rem; color:var(--ink-2);
+  }
+  .onechild .ask b { color:var(--ink); }
+  .onechild .note { font-size:.76rem; color:var(--faint); margin:.9rem 0 0; }
   /* ---- What the money buys ---- */
   .whobar { display:flex; flex-wrap:wrap; gap:.5rem .6rem; margin:.2rem 0 1.4rem; }
   .whobar .who {
@@ -477,6 +496,7 @@
       <div class="eyebrow">What the money buys</div>
       <h2 class="action" id="outcomes-title"></h2>
       <p class="support" id="outcomes-support"></p>
+      <div class="onechild" id="onechild"></div>
       <div class="whobar" id="outcomes-who"></div>
       <div class="drivers" id="outcomes-drivers"></div>
       <div class="lever" id="outcomes-lever"></div>
@@ -1119,6 +1139,9 @@ function renderOutcomes() {
       `${Math.round(exp.model_r2 * 100)}% of the difference between districts — the rest is real difference, ` +
       `local context and noise. <strong>Treat it as a question, not a verdict.</strong>` : '');
 
+  // --- one child: the same numbers at the scale a person actually lives at ---
+  renderOneChild(o);
+
   // --- who the district teaches ---
   $('outcomes-who').innerHTML = Object.keys(nm).map(k => {
     const v = o.need[k];
@@ -1179,6 +1202,53 @@ function renderOutcomes() {
   $('outcomes-cite').innerHTML = `Source: TEA Snapshot, District &amp; Charter Detail (${o.year}) joined to ` +
     `TEA Summarized PEIMS Actual Financial Data · district ${o.district_number} · ` +
     `<a href="https://rptsvr1.tea.texas.gov/perfreport/snapshot/download.html" target="_blank" rel="noopener">original release</a>`;
+}
+
+/* One child. Every figure below is already on this page — this only divides it
+   down to the scale a parent, a teacher or a taxpayer actually experiences. */
+function renderOneChild(o) {
+  const el = $('onechild');
+  if (!el) return;
+  const d = dollarParts();
+  const t = (o.measures?.teacher_turnover_pct || [])[0];
+  const peerT = (o.measures?.teacher_turnover_pct || [])[1];
+  const nb = o.border_keeps_teachers_better;
+  const beats = [];
+
+  if (d && d.perStudent) {
+    // 180 days is the standard Texas school year in minutes-equivalent terms.
+    beats.push(`<div class="beat"><div class="big"><em>${fmtMoney(d.perStudent / 180)}</em> a day</div>
+      <p>That is what ${state.district.name} spends on <strong>one student</strong>, every school day —
+      ${fmtMoney(d.perStudent)} across a 180-day year.</p></div>`);
+  }
+  if (t != null) {
+    const stay = Math.round(Math.pow(1 - t / 100, 5) * 10);
+    const peerStay = peerT != null ? Math.round(Math.pow(1 - peerT / 100, 5) * 10) : null;
+    beats.push(`<div class="beat"><div class="big"><em>${stay} of 10</em> teachers</div>
+      <p>Of ten teachers in the building when a child starts kindergarten, about
+      <strong>${stay}</strong> would still be there when that child leaves fifth grade, if today's
+      ${t}% turnover held steady.
+      ${peerStay != null ? `At similar districts it is about <strong>${peerStay}</strong>.` : ''}</p></div>`);
+  }
+  if (o.need?.pct_econ_disadv != null) {
+    const n = Math.round(o.need.pct_econ_disadv / 10);
+    beats.push(`<div class="beat"><div class="big"><em>${n} of 10</em> classmates</div>
+      <p>About ${n} in every ten students here are counted as economically disadvantaged —
+      the single strongest predictor of results anywhere in this data.</p></div>`);
+  }
+  if (!beats.length) { el.innerHTML = ''; return; }
+
+  el.innerHTML = `<div class="oh">What this means for one child</div>` +
+    `<div class="beats">${beats.join('')}</div>` +
+    (nb ? `<div class="ask">Right across the district line, <b>${titleCase(nb.name)}</b> teaches students
+        with a similar poverty rate (<b>${nb.pct_econ_disadv}%</b> to your <b>${o.need.pct_econ_disadv}%</b>)
+        and loses only <b>${nb.turnover}%</b> of its teachers a year, against <b>${t}%</b> here.
+        Same labour market, same economy. <b>Somebody nearby is keeping their teachers — that is a
+        question worth asking, not a verdict on anyone.</b></div>` : '') +
+    `<p class="note">The ten-teacher figure is an illustration, not a tracked group of people: it
+      assumes today's rate holds for five years and treats every teaching job as equally likely to
+      turn over. In practice newer teachers leave more often, so a long-serving teacher is more
+      likely to stay than this suggests.</p>`;
 }
 
 /* ---- the zoom ladder: state → district → category ---- */

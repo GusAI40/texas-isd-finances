@@ -21,6 +21,51 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+# Optional: bordering districts. A statistical peer can be 400 miles away; the
+# district across the county line shares the labour market, the economy and the
+# weather, which is what makes its numbers hard to explain away.
+try:
+    import shapefile as _shp
+except ImportError:  # pragma: no cover - only needed when --shapefile is used
+    _shp = None
+
+
+def _norm_name(s: str) -> str:
+    import re as _re
+    s = s.lower()
+    for a, b in [("consolidated independent school district", "cisd"),
+                 ("independent school district", "isd"),
+                 ("common school district", "csd"),
+                 ("municipal school district", "msd"),
+                 ("school district", "sd")]:
+        s = s.replace(a, b)
+    return _re.sub(r"\s+", " ", _re.sub(r"[^a-z0-9 ]", " ", s)).strip()
+
+
+def borders_by_name(path):
+    """{normalised district name: [normalised neighbour names]} from TIGER."""
+    from collections import defaultdict
+    r = _shp.Reader(path)
+    flds = [f[0] for f in r.fields[1:]]
+    names = [_norm_name(dict(zip(flds, rec))["NAME"]) for rec in r.records()]
+    vert = defaultdict(set)
+    for i, shp in enumerate(r.shapes()):
+        for x, y in shp.points:
+            vert[(round(x, 6), round(y, 6))].add(i)
+    hits = defaultdict(int)
+    for ds in vert.values():
+        if 1 < len(ds) <= 12:
+            ds = sorted(ds)
+            for a in range(len(ds)):
+                for b in range(a + 1, len(ds)):
+                    hits[(ds[a], ds[b])] += 1
+    out = defaultdict(list)
+    for (a, b), n in hits.items():
+        if n >= 2:
+            out[names[a]].append(names[b])
+            out[names[b]].append(names[a])
+    return out
+
 NEED = ["pct_econ_disadv", "pct_emergent_bilingual", "pct_special_ed"]
 
 # measure -> (label, higher_is_better, unit)
@@ -45,6 +90,7 @@ def main() -> int:
     ap.add_argument("--finance", required=True)
     ap.add_argument("--snapshot", required=True)
     ap.add_argument("--graph", default="static/map_data.json")
+    ap.add_argument("--shapefile", help="tl_YYYY_48_unsd — enables the bordering-district lookup")
     ap.add_argument("--out", default="static/outcomes_data.json")
     args = ap.parse_args()
 
@@ -83,6 +129,15 @@ def main() -> int:
     nodes = graph["nodes"]
     by_num = {n["d"]: n for n in nodes}
 
+    borders = {}
+    if args.shapefile:
+        if _shp is None:
+            raise SystemExit("pyshp is required for --shapefile (pip install pyshp)")
+        borders = borders_by_name(args.shapefile)
+        print(f"borders loaded    : {len(borders):,} districts")
+    by_name = {_norm_name(str(r.get("district_name", ""))): num for num, r in cur.iterrows()} \
+        if False else {_norm_name(str(cur.loc[n, "district_name"])): n for n in cur.index}
+
     out, with_peers = {}, 0
     for num, row in cur.iterrows():
         node = by_num.get(num)
@@ -104,6 +159,25 @@ def main() -> int:
                 continue
             measures[m] = [mine, med(peers[m].tolist()) if len(peers) else None]
 
+        # The bordering district that serves similar students and keeps its
+        # teachers best. Not a ranking — a phone call worth making.
+        nb_best = None
+        my_t, my_p = val("teacher_turnover_pct"), val("pct_econ_disadv")
+        if borders and my_t is not None and my_p is not None:
+            for nb_name in borders.get(_norm_name(str(row.get("district_name", ""))), []):
+                onum = by_name.get(nb_name)
+                if onum is None or onum == num or onum not in cur.index:
+                    continue
+                o = cur.loc[onum]
+                ot, op = o.get("teacher_turnover_pct"), o.get("pct_econ_disadv")
+                if pd.isna(ot) or pd.isna(op):
+                    continue
+                if abs(float(op) - my_p) <= 8 and (my_t - float(ot)) >= 4:
+                    if nb_best is None or float(ot) < nb_best["turnover"]:
+                        nb_best = {"district_number": onum, "name": o.get("district_name"),
+                                   "turnover": round(float(ot), 1),
+                                   "pct_econ_disadv": round(float(op), 1)}
+
         exp = expected.get(num)
         rec = {
             "district_number": num,
@@ -116,6 +190,7 @@ def main() -> int:
             "spend_per_student": val("spend_per_student"),
             "spend_peer_median": med(peers["spend_per_student"].tolist()) if len(peers) else None,
             "spend_state_median": state["spend_per_student"],
+            "border_keeps_teachers_better": nb_best,
         }
         if exp is not None and not pd.isna(exp) and val("test_all_approaches") is not None:
             rec["expectation"] = {
