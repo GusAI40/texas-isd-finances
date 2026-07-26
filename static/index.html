@@ -365,7 +365,8 @@
   <header class="top">
     <div class="brand">Texas ISD Financial Resource Guide<span class="tag">Official TEA data · fiscal 2009–2025 · 1,202 districts</span></div>
     <div class="hbtns">
-      <button id="btn-map">State map</button>
+      <button id="btn-geomap">Map of Texas</button>
+      <button id="btn-map">Seating chart</button>
       <button id="btn-tour">Tutorial</button>
       <button id="btn-disclaimer">Disclaimer</button>
       <button id="btn-print" title="Print or save as PDF">Print</button>
@@ -1900,12 +1901,12 @@ function renderQuickPicks(largest) {
     `<button type="button" data-num="${d.district_number}" data-name="${titleCase(d.district_name)}">` +
     `${titleCase(d.district_name).replace(/ ISD$/, '')}</button>`).join('') +
     `<button type="button" class="ghost" id="chip-random">Surprise me</button>` +
-    `<button type="button" class="ghost" id="chip-map">See all on the state map</button>` +
+    `<button type="button" class="ghost" id="chip-map">See the map of Texas</button>` +
     (localStorage.getItem('tisd_toured') ? ''
       : `<button type="button" class="ghost" id="chip-tour">New here? 60-second tour</button>`);
   el.querySelectorAll('button[data-num]').forEach(b =>
     b.onclick = () => selectDistrict(b.dataset.num, b.dataset.name));
-  $('chip-map').onclick = () => { location.href = '/map'; };
+  $('chip-map').onclick = () => { location.href = '/geomap'; };
   if ($('chip-tour')) $('chip-tour').onclick = () => tourShow(0);
   $('chip-random').onclick = async () => {
     try {
@@ -1952,6 +1953,7 @@ $('askbtn').onclick = ask;
 $('question').addEventListener('keydown', e => { if (e.key === 'Enter') ask(); });
 $('btn-print').onclick = () => window.print();
 $('btn-map').onclick = () => { location.href = state.district ? '/map?d=' + encodeURIComponent(state.district.num) : '/map'; };
+$('btn-geomap').onclick = () => { location.href = state.district ? '/geomap?d=' + encodeURIComponent(state.district.num) : '/geomap'; };
 $('btn-share').onclick = shareCard;
 
 /* Guided dollar: pointer, touch and keyboard all reach the same panel.

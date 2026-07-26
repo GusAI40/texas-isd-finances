@@ -934,6 +934,27 @@ async def similarity_map():
     raise HTTPException(status_code=404, detail="Map not available")
 
 
+@app.get("/geomap", include_in_schema=False)
+async def geomap_page():
+    """The real geographic map of Texas school district boundaries."""
+    page = STATIC_DIR / "geomap.html"
+    if page.exists():
+        return FileResponse(page)
+    raise HTTPException(status_code=404, detail="Map not available")
+
+
+@app.get("/district-geo", tags=["Districts"])
+async def district_geo():
+    """Simplified Texas school-district boundaries (Census TIGER 2024, public
+    domain) joined to TEA district numbers, with the headline measures merged
+    in. Charter districts are absent — they have no geographic boundary."""
+    data = STATIC_DIR / "district_geo.json"
+    if data.exists():
+        return FileResponse(data, media_type="application/json")
+    raise HTTPException(status_code=404,
+                        detail="Boundary data not built. Run scripts/build_district_geo.py")
+
+
 @app.get("/map-data", tags=["Districts"])
 async def similarity_map_data():
     """Precomputed 2D similarity-map coordinates (PCA of the exogenous
