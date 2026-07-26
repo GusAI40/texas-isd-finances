@@ -50,6 +50,11 @@ read-only Postgres views on Supabase. MIT-licensed, built for public use.
   Keep `git config user.email` on the repo owner; `Co-Authored-By` records
   the AI author.
 - **After any data import**: `REFRESH MATERIALIZED VIEW v_anomaly_flags;`
+- **`static/outcomes_data.json` is a committed build artifact** — the API
+  serves it directly and it works with no database. Rebuild it after any new
+  TEA release: `scripts/ingest_tea_snapshot.py --download` then
+  `scripts/build_outcomes_data.py`. `.vercelignore` must never exclude
+  `static/`.
 - Local sandbox note: direct Postgres (port 5432/6543) may be blocked in
   the remote dev container — use the Supabase Management API
   (`POST /v1/projects/{ref}/database/query`) for SQL and PostgREST for bulk
@@ -58,7 +63,7 @@ read-only Postgres views on Supabase. MIT-licensed, built for public use.
 ## Verify before claiming anything works
 
 ```bash
-ruff check . && python -m pytest -q       # 35 tests, all must pass
+ruff check . && python -m pytest -q       # 36 tests, all must pass
 curl -s https://texas-isd-finances.vercel.app/health
 ```
 
@@ -79,6 +84,8 @@ Never verify a UI change by grepping the served HTML for strings.
 - ✅ Live in production, all endpoints verified including end-to-end NLP.
 - ✅ Public portal is now the **Texas ISD Financial Resource Guide**: white-minimalist McKinsey/SWD design, penny-of-the-dollar visual, 6 audience lenses, share cards, Methods & citation section, AI disclosure + TAG footer.
 - ✅ `static/map.html` ("seating chart" of all 1,202 districts) works on phones — pan/pinch/tap; landmarks + named neighborhoods + plain axes.
+- ✅ **"What the money buys" live on every district page** — student need, teacher turnover/experience/salary, STAAR, attendance, graduation, each vs structural peers + state; scored against what demographics predict; statewide lever chart (turnover 10.12% vs spending 0.01%). Data: TEA Snapshot 2009–2024 joined to PEIMS (`scripts/ingest_tea_snapshot.py`, `scripts/build_outcomes_data.py`, `docs/WHAT_A_DOLLAR_BUYS.md`).
+- ✅ Guided dollar (hover/tap → peer + state comparison + dollars at stake), zoom ladder, rebuilt landing page with the live statewide dollar.
 - ✅ Three audit rounds + Monte Carlo audit complete (`AUDIT.md`, `docs/AUDIT_SCORECARD.md`); 32 tests green; CI enforces ruff+pytest.
 - 🔴 OPEN: user must rotate credentials pasted into chat on 2026-07-22 (OpenAI/GitHub/Hetzner/Anthropic etc.); OpenAI key in Vercel env needs updating after rotation.
 - 🟡 OPEN hardening: read-only DB role for NLP; `/query` needs threadpool+timeout; real rate limiting; analytics; map keyboard/SR path; PR #2 awaiting user review (do not merge).

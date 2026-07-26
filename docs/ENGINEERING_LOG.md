@@ -17,6 +17,58 @@ Entry template:
 
 ---
 
+## 2026-07-26 — Loop closed: "what the money buys" is live on every district page
+
+**What changed:** The TEA Snapshot join stopped being a markdown file and
+became the product. New `#outcomes-section` on the district page, above the
+peer insights, plus `GET /district/{id}/outcomes` and
+`scripts/build_outcomes_data.py` → `static/outcomes_data.json`.
+
+**The section, in order (deliberate):**
+1. **Who the district teaches** comes first — % econ disadvantaged, emergent
+   bilingual, special ed, each against the state. Districts serving more
+   students in poverty score lower on average, so leading with this is what
+   makes every comparison beneath it legitimate rather than misleading.
+2. **Seven measures vs peers AND state**: teacher turnover, experience,
+   STAAR, attendance, graduation, salary, students per teacher. Peers come
+   from the same exogenous k-NN graph (`static/map_data.json`) the rest of
+   the site uses, so "vs peers" means one thing everywhere.
+3. **Scored against what its student population predicts**, with the model's
+   42% R² inline and "treat it as a question, not a verdict" in bold.
+4. **The statewide lever chart** — turnover 10.12% vs spending 0.01%.
+
+Pittsburg ISD is the whole thesis on one screen: 77% economically
+disadvantaged, pays teachers *less* than peers ($51k vs $55k), keeps them
+anyway (13.9% turnover vs 24.8%), scores 18 points above prediction.
+
+**Design decisions worth keeping:**
+- Payload is **precomputed static**, not queried — none of it changes between
+  annual TEA releases. Consequence: `/outcomes` works with **no database at
+  all**, which `test_outcomes_served_without_a_database` asserts.
+- Cached per warm instance and **sliced per request**. Shipping all 713 KB to
+  a browser to render one district would be waste.
+- Compact by construction: labels/units/state medians live once in `meta`
+  instead of being repeated 1,205 times (1.7 MB → 713 KB). Per district a
+  measure is just `[own value, peer median]`.
+
+**Gotchas:**
+- Rebuild `static/outcomes_data.json` after any new TEA release — it is a
+  build artifact, and it IS committed (unlike `data/*.csv`) because the API
+  serves it directly.
+- `.vercelignore` must not exclude `static/` or the endpoint 503s in prod.
+- Deploy verified the right way: rendered against **production** through
+  `scratchpad/liveproxy.py`, desktop and phone, no page errors, no
+  horizontal overflow.
+
+**Open items:** 🔴 rotate the Vercel/Supabase/GitHub PATs pasted on
+2026-07-25 — still outstanding, the Vercel one deploys to production.
+Then: read-only DB role for NLP, `/query` threadpool + timeout, real rate
+limiting, analytics, Supabase idle-pause keep-alive, map keyboard/SR path,
+PR #2 review. Product-wise the obvious next step is an outcomes lens on the
+state map (colour by "beats expectation") and a turnover early-warning.
+
+---
+
 ## 2026-07-25 — DEPLOYED. Two failures found: a broken build and a seat block
 
 **What changed:** Everything from this session is live and verified in a real
