@@ -17,6 +17,62 @@ Entry template:
 
 ---
 
+## 2026-07-26 — Audit: the AI was stating falsehoods, and nothing was findable
+
+**Graded the whole system, then fixed the two failing areas.** Data work
+graded A; **AI accuracy D, distribution D.**
+
+🔴 **The answer box was confidently wrong.** Asked "how many districts are
+in the data" it replied *"There are a total of 100 distinct school
+districts."* Truth: 1,310. Asked again in other words: 1,310, correct.
+**Non-deterministic, which is worse — you cannot warn users precisely.**
+
+**Cause was our own system prompt**, which said "Limit results to prevent
+overload (default LIMIT 100)". The agent put `LIMIT 100` on a
+`SELECT DISTINCT` and reported the row count as the total. Replaced with an
+explicit *counting is not limiting* rule (never LIMIT an aggregate; use
+`COUNT(DISTINCT …)`; never present returned-row-count as a total; flag
+possibly-truncated listings) plus the ground truth (1,310 / 20,587 /
+2009–2025) so a contradicting answer is caught before a reader sees it.
+**Verified fixed: same question 5× on production, 1,310 every time.**
+
+**Distribution (why nobody had found it):**
+- **Shared links now work.** `/?d=043905` opens that district on a device
+  that has never seen the site. Before this, every link posted anywhere
+  opened on the *reader's own* saved district — it would have silently
+  broken an entire campaign.
+- `og:`/`twitter:` tags on report and map; shares were bare blue links.
+- `robots.txt` + sitemap of all 1,205 district pages (district views render
+  client-side from `?d=`, so crawlers had no way in). `/query` disallowed —
+  no crawl budget on the paid path.
+- Vercel Web Analytics (no cookies). We had zero usage visibility.
+- **txisd.dev** swept through pages, docs and citations, replacing the
+  vercel.app prototype URL. *That domain existed the whole time and was in
+  neither CLAUDE.md nor this log* — every link handed over for days pointed
+  at the prototype. **Custom domains belong in the boot file.**
+
+**Gotchas:**
+- **`/districts?limit=500` returns the first 500 ALPHABETICALLY.** The first
+  shared-link implementation looked names up there: worked for Frisco (F),
+  silently failed for Pittsburg (P) and ~800 others, which announced
+  themselves as "032902". Now resolved from the `summary` payload
+  `loadDashboard()` already fetches. **A limit is a filter — testing one case
+  inside it proves nothing about cases outside it.**
+- Local harness passed; production caught it. Test across the *range*, not
+  one sample.
+
+**Still open (graded, not fixed):** map keyboard/screen-reader path (C−),
+`/query` threadpool + timeout, read-only DB role, spoofable rate limit,
+no CSP/X-Frame headers, 518 KB geomap payload on mobile.
+
+**Intel still missing, ranked:** revenue composition (24 unused columns —
+answers "who pays", needs no new data) · General Fund vs All Funds (67 unused
+pairs) · campus-level TAPR (parents attend schools, not districts) · teacher
+salary by experience band (likely the mechanism behind the turnover finding)
+· bond schedules · multi-year turnover averages · vendor registers.
+
+---
+
 ## 2026-07-26 — "One child": the report at human scale
 
 **What changed:** A card at the top of the outcomes section that divides the

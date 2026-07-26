@@ -16,7 +16,7 @@ read-only Postgres views on Supabase. MIT-licensed, built for public use.
 
 | Thing | Value |
 |---|---|
-| Live portal | https://txisd.dev (Vercel project `texas-isd-finances`, account `tag-ai`) |
+| Live portal | **https://txisd.dev** — the custom domain, use it everywhere. `texas-isd-finances.vercel.app` also resolves but is the prototype URL and must not appear in pages, docs or citations (a test enforces this). Vercel project `texas-isd-finances`, account `tag-ai`. |
 | API docs | https://txisd.dev/docs |
 | Health check | `GET /health` → expect `{"status":"healthy","database":"connected"}` |
 | Database | Supabase project `texas-isd-finances`, ref `zwhvabkvrexphlskubog`, us-east-1, org "GOAT-UIX" |
@@ -50,6 +50,12 @@ read-only Postgres views on Supabase. MIT-licensed, built for public use.
   Keep `git config user.email` on the repo owner; `Co-Authored-By` records
   the AI author.
 - **After any data import**: `REFRESH MATERIALIZED VIEW v_anomaly_flags;`
+- **The NLP prompt must keep the "counting is not limiting" rule.** It once
+  said "default LIMIT 100", so the agent LIMITed a `SELECT DISTINCT` and
+  answered "100 districts" instead of 1,310 — intermittently. Never let a
+  default LIMIT be described without excluding aggregates.
+- **`/districts?limit=N` returns the first N ALPHABETICALLY**, not a sample.
+  Never resolve a district by scanning it; use the district's own endpoints.
 - **`static/district_geo.json` is a committed build artifact too.** Rebuild
   order after a TEA release: `build_outcomes_data.py` → `build_district_geo.py`
   (the latter merges the former's measures in).
@@ -66,7 +72,7 @@ read-only Postgres views on Supabase. MIT-licensed, built for public use.
 ## Verify before claiming anything works
 
 ```bash
-ruff check . && python -m pytest -q       # 36 tests, all must pass
+ruff check . && python -m pytest -q       # 38 tests, all must pass
 curl -s https://txisd.dev/health
 ```
 
