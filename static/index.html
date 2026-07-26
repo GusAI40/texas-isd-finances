@@ -365,6 +365,11 @@
     display:flex; flex-wrap:wrap; gap:.4rem 1.4rem; align-items:baseline;
   }
   footer .tag .brand { font-weight:700; color:var(--ink); font-size:.95rem; }
+  footer .tag .lic { color:var(--faint); }
+  footer .collab .collab-h { font-size:.72rem; letter-spacing:.14em; text-transform:uppercase;
+                             color:var(--muted); font-weight:700; margin-bottom:.4rem; }
+  footer .collab p { margin:.5rem 0; }
+  footer .collab .indep { border-left:2px solid var(--hairline); padding-left:.8rem; color:var(--muted); }
   footer .tag a { font-weight:600; }
   @media print {
     .hbtns, .tabs, #picker-section, #ask-section, .exports, .warnbar, button, details.tbl { display: none !important; }
@@ -704,10 +709,33 @@
       <a href="https://github.com/GusAI40/texas-isd-finances" target="_blank" rel="noopener">source code</a> ·
       <a href="#" id="open-disc">full data notes</a>.
     </div>
+    <div class="block collab">
+      <div class="collab-h">A collaboration</div>
+      <p>This guide was built by the team at <strong>Technology Automation Group (TAG ai)</strong>
+        together with <strong>Michelle Sanchez</strong>, Realtor, Coldwell Banker Realty, with a
+        shared goal: helping families make better-informed decisions about where they raise their
+        children.</p>
+      <p>Choosing a community is one of the largest financial and personal decisions a family ever
+        makes, and school quality is central to it. Yet the ratings most families rely on largely
+        reflect how wealthy a community already is. This guide exists so that decision can rest on
+        the state's own records instead — the same numbers a school board sees, in plain English,
+        free, for anyone.</p>
+      <p class="indep"><strong>Independence.</strong> Every figure here is the Texas Education
+        Agency's, loaded unchanged. This guide does not rank, recommend, or endorse any district or
+        community, and no party to this collaboration influenced any number, method, or finding.
+        Nothing here is real estate, financial, or investment advice.</p>
+    </div>
     <div class="tag">
       <span class="brand">Technology Automation Group — TAG ai</span>
       <span><a href="tel:+18398882424">839-888-2424</a> — speak to one of our AI assistants</span>
       <span><a href="https://ubntag.com" target="_blank" rel="noopener">ubntag.com</a></span>
+    </div>
+    <div class="tag">
+      <span class="brand">Michelle Sanchez</span>
+      <span>Realtor | Coldwell Banker Realty</span>
+      <span><a href="tel:+19402734848">(940) 273-4848</a></span>
+      <span><a href="https://michellesanchezrealtor.info" target="_blank" rel="noopener">michellesanchezrealtor.info</a></span>
+      <span class="lic">TREC License #0724260</span>
     </div>
   </footer>
 </div>
