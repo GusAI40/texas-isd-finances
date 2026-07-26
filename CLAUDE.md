@@ -16,8 +16,8 @@ read-only Postgres views on Supabase. MIT-licensed, built for public use.
 
 | Thing | Value |
 |---|---|
-| Live portal | https://texas-isd-finances.vercel.app (Vercel project `texas-isd-finances`, account `tag-ai`) |
-| API docs | https://texas-isd-finances.vercel.app/docs |
+| Live portal | https://txisd.dev (Vercel project `texas-isd-finances`, account `tag-ai`) |
+| API docs | https://txisd.dev/docs |
 | Health check | `GET /health` → expect `{"status":"healthy","database":"connected"}` |
 | Database | Supabase project `texas-isd-finances`, ref `zwhvabkvrexphlskubog`, us-east-1, org "GOAT-UIX" |
 | Data loaded | 20,587 rows · 1,310 districts · fiscal 2009–2025 (TEA "Summarized PEIMS Actual Financial Data") |
@@ -67,7 +67,7 @@ read-only Postgres views on Supabase. MIT-licensed, built for public use.
 
 ```bash
 ruff check . && python -m pytest -q       # 36 tests, all must pass
-curl -s https://texas-isd-finances.vercel.app/health
+curl -s https://txisd.dev/health
 ```
 
 **Static pages need their own check — a 200 response proves nothing.** A

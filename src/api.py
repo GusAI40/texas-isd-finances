@@ -13,7 +13,7 @@ import asyncpg
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, PlainTextResponse, Response
 from pydantic import BaseModel, Field
 
 from .sample_queries import SAMPLE_QUERIES
@@ -923,6 +923,34 @@ async def get_district_outcomes(district_number: str):
     if rec is None:
         raise HTTPException(status_code=404, detail="District not in the outcomes dataset")
     return {"meta": data["meta"], **rec}
+
+
+@app.get("/robots.txt", include_in_schema=False)
+async def robots():
+    """Let search engines in, and point them at the district index."""
+    return PlainTextResponse(
+        "User-agent: *\n"
+        "Allow: /\n"
+        "Disallow: /query\n"          # the paid AI path — no crawler budget on it
+        "Sitemap: https://txisd.dev/sitemap.xml\n"
+    )
+
+
+@app.get("/sitemap.xml", include_in_schema=False)
+async def sitemap():
+    """Every district is a page worth finding. Without this, a search for
+    "is <name> ISD good" can never reach us — the district views are rendered
+    client-side from ?d=, so crawlers need to be told they exist."""
+    urls = ["https://txisd.dev/", "https://txisd.dev/geomap", "https://txisd.dev/map",
+            "https://txisd.dev/docs"]
+    data = _outcomes()
+    if data:
+        urls += [f"https://txisd.dev/?d={n}" for n in sorted(data["districts"])]
+    body = ("<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+            "<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">"
+            + "".join(f"<url><loc>{u}</loc></url>" for u in urls)
+            + "</urlset>")
+    return Response(content=body, media_type="application/xml")
 
 
 @app.get("/map", include_in_schema=False)

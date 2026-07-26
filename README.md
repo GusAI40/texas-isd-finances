@@ -4,7 +4,7 @@ A public transparency system for analyzing Texas Independent School District
 financial data (2009–2025), featuring a citizen-friendly web portal, natural
 language querying, and automatic anomaly detection.
 
-🌐 **Live portal:** https://texas-isd-finances.vercel.app
+🌐 **Live portal:** https://txisd.dev
 
 🗺️ **New here?** See [PROJECT_MAP.md](PROJECT_MAP.md) for a visual,
 plain-English map of the whole system.

@@ -5,6 +5,13 @@
 <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iNiIgZmlsbD0iI2ZmZiIvPjxyZWN0IHg9IjUiIHk9IjUiIHdpZHRoPSI5IiBoZWlnaHQ9IjkiIHJ4PSIxLjUiIGZpbGw9IiMyYTc4ZDYiLz48cmVjdCB4PSIxOCIgeT0iNSIgd2lkdGg9IjkiIGhlaWdodD0iOSIgcng9IjEuNSIgZmlsbD0iIzJhNzhkNiIvPjxyZWN0IHg9IjUiIHk9IjE4IiB3aWR0aD0iOSIgaGVpZ2h0PSI5IiByeD0iMS41IiBmaWxsPSIjMmE3OGQ2Ii8+PHJlY3QgeD0iMTgiIHk9IjE4IiB3aWR0aD0iOSIgaGVpZ2h0PSI5IiByeD0iMS41IiBmaWxsPSIjYjhiNmFkIi8+PC9zdmc+">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light">
+<meta name="description" content="Every Texas school district's real boundary, coloured by teacher turnover, spending, student poverty, or how far it beats what its demographics predict.">
+<link rel="canonical" href="https://txisd.dev/geomap">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://txisd.dev/geomap">
+<meta property="og:title" content="The real map of Texas school districts">
+<meta property="og:description" content="Where you live decides which school system you pay for. 1,005 district boundaries, coloured by what actually predicts results.">
+<meta name="twitter:card" content="summary_large_image">
 <title>Texas School Districts — the real map</title>
 <style>
   :root { --ink:#1a1a1a; --ink-2:#55534e; --muted:#8b897f; --faint:#b8b6ad;
@@ -438,5 +445,6 @@ fetch('/district-geo').then(r => r.json()).then(d => {
   ro.textContent = 'The map data could not be loaded right now. Please try again in a moment.';
 });
 </script>
+<script defer src="/_vercel/insights/script.js"></script>
 </body>
 </html>

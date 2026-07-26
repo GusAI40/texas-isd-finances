@@ -892,7 +892,7 @@ before trusting notes, never store secrets.
   API query endpoint.
 - Deployed to Vercel (project `texas-isd-finances`, account `tag-ai`) with
   env vars `SUPABASE_DB_URL` (transaction pooler, port 6543) and
-  `OPENAI_API_KEY`. Live: https://texas-isd-finances.vercel.app
+  `OPENAI_API_KEY`. Live: https://txisd.dev
 - Opened PR #1 (audit branch → master).
 - Shredded all locally staged credentials after deploy.
 

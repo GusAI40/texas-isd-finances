@@ -4,7 +4,7 @@
 The dashboard also has a built-in 60-second guided tour — click **🎓
 Tutorial** in the top-right corner any time.
 
-**The site:** https://texas-isd-finances.vercel.app
+**The site:** https://txisd.dev
 
 ## 1. Pick your district (10 seconds)
 

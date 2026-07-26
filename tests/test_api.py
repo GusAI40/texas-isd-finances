@@ -108,6 +108,34 @@ def test_outcomes_served_without_a_database(client):
     assert client.get("/district/999999/outcomes").status_code == 404
 
 
+def test_robots_and_sitemap(client):
+    """Search engines must be able to find the district pages. The dashboard
+    renders districts client-side from ?d=, so without a sitemap they are
+    invisible no matter how good the data is."""
+    r = client.get("/robots.txt")
+    assert r.status_code == 200
+    assert "Sitemap: https://txisd.dev/sitemap.xml" in r.text
+    assert "Disallow: /query" in r.text          # don't spend crawl budget on the paid path
+
+    s = client.get("/sitemap.xml")
+    assert s.status_code == 200
+    assert s.headers["content-type"].startswith("application/xml")
+    assert "https://txisd.dev/geomap" in s.text
+    # every district in the outcomes payload should be linkable
+    if "?d=" in s.text:
+        assert s.text.count("<loc>") > 1000
+
+
+def test_no_stale_prototype_domain_in_pages():
+    """Shared links and citations must point at txisd.dev, not the vercel.app
+    prototype URL — those are what get screenshotted and quoted."""
+    from pathlib import Path
+
+    for name in ("index.html", "geomap.html", "map.html"):
+        text = (Path("static") / name).read_text()
+        assert "texas-isd-finances.vercel.app" not in text, name
+
+
 def test_pennies_always_sum_to_one_hundred():
     """The dollar must never gain or lose a penny to rounding, whatever the mix."""
     from src.api import _to_pennies

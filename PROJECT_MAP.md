@@ -117,5 +117,5 @@ private tours, and event rentals pay the bills.
 | Code (GitHub) | https://github.com/GusAI40/texas-isd-finances |
 | Audit branch | [`claude/audit-public-launch-ocd7ra`](https://github.com/GusAI40/texas-isd-finances/tree/claude/audit-public-launch-ocd7ra) |
 | Database | Supabase project `texas-isd-finances` (`zwhvabkvrexphlskubog`, us-east-1) — 20,587 records live |
-| Live site | **https://texas-isd-finances.vercel.app** (Vercel, production) |
+| Live site | **https://txisd.dev** (Vercel, production) |
 | Raw data source | Texas Education Agency (TEA) summarized financial data, 2009–2025 |

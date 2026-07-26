@@ -28,8 +28,8 @@ Read, in order:
    trust git over the log if they disagree (then fix the log).
 4. Live health, because documents can lie but production can't:
    ```bash
-   curl -s -m 20 https://texas-isd-finances.vercel.app/health
-   curl -s -m 20 https://texas-isd-finances.vercel.app/stats
+   curl -s -m 20 https://txisd.dev/health
+   curl -s -m 20 https://txisd.dev/stats
    ```
    `{"status":"healthy"}` + real stats = all systems go. `degraded` or a
    timeout = investigate before anything else (first suspect: Supabase free
