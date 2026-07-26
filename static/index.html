@@ -1465,6 +1465,12 @@ async function loadDashboard() {
       api('/district/' + encodeURIComponent(d.num) + '/dollar').catch(() => null),
       api('/district/' + encodeURIComponent(d.num) + '/outcomes').catch(() => null),
     ]);
+    // The name may be a placeholder when arriving from a shared ?d= link.
+    const realName = summary.find(r => r.district_name)?.district_name;
+    if (realName) {
+      state.district.name = titleCase(realName);
+      localStorage.setItem('tisd_district', JSON.stringify(state.district));
+    }
     state.summary = summary; state.peers = peers; state.flags = flags; state.breakdown = breakdown;
     state.turnarounds = turnarounds; state.detail = detail; state.insights = insights;
     state.dollar = dollar; state.outcomes = outcomes;
@@ -2165,15 +2171,10 @@ function slug() { return (state.district?.name || 'district').replace(/\W+/g, '_
     const { num, name } = JSON.parse(saved);
     state.district = { num, name };
     document.documentElement.classList.add('has-district');
-    if (linked) {
-      // A shared link carries only the number. Resolve the real name before
-      // rendering, or the page announces itself as "043905".
-      try {
-        const hits = await api('/districts?search=&limit=500');
-        const m = hits.find(h => h.district_number === linked);
-        if (m) state.district.name = titleCase(m.district_name);
-      } catch (e) { /* falls back to the number rather than failing to load */ }
-    }
+    // A shared link carries only the number; the real name is resolved from
+    // the data loadDashboard() already fetches. An earlier version listed
+    // /districts?limit=500 and looked the number up there — which silently
+    // failed for every district past the 500th alphabetically.
     await loadDashboard();
   }
   await statewide;
