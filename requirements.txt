@@ -24,3 +24,5 @@ pydantic>=2.7.0
 matplotlib>=3.8.0
 seaborn>=0.13.0
 plotly>=5.18.0
+
+pyshp>=2.3.0  # Census TIGER shapefile reader (offline scripts only)

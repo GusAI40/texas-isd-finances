@@ -1,0 +1,17 @@
+{
+  "seed": 20260726,
+  "visitors": 100000,
+  "districts": 1008,
+  "student_coverage_pct": 91.6,
+  "sees_new_neighbour_pct": 100.0,
+  "no_peer_overlap_pct": 64.7,
+  "has_better_neighbour_pct": 7.3,
+  "median_turnover_gap": 10.2,
+  "crowded_area_pct": 77.6,
+  "median_neighbours": 5.0,
+  "median_neighbours_also_peers": 0.0,
+  "thresholds": {
+    "similar_poverty_pts": 6.0,
+    "better_turnover_pts": 8.0
+  }
+}
