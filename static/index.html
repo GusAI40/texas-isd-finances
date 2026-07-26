@@ -4,9 +4,11 @@
 <meta charset="utf-8">
 <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iNiIgZmlsbD0iI2ZmZiIvPjxyZWN0IHg9IjUiIHk9IjUiIHdpZHRoPSI5IiBoZWlnaHQ9IjkiIHJ4PSIxLjUiIGZpbGw9IiMyYTc4ZDYiLz48cmVjdCB4PSIxOCIgeT0iNSIgd2lkdGg9IjkiIGhlaWdodD0iOSIgcng9IjEuNSIgZmlsbD0iIzJhNzhkNiIvPjxyZWN0IHg9IjUiIHk9IjE4IiB3aWR0aD0iOSIgaGVpZ2h0PSI5IiByeD0iMS41IiBmaWxsPSIjMmE3OGQ2Ii8+PHJlY3QgeD0iMTgiIHk9IjE4IiB3aWR0aD0iOSIgaGVpZ2h0PSI5IiByeD0iMS41IiBmaWxsPSIjYjhiNmFkIi8+PC9zdmc+">
 <script>
-  /* Returning visitors get the compact finder, not the hero. This runs before
-     first paint — doing it in boot() meant the hero stayed on screen for two
-     API round-trips and then vanished, which read as a bug. */
+  /* Sets html.has-district before first paint so the finder's label reads
+     "Look up a different district" from the very first frame. Anything
+     above the fold that depends on localStorage has to be decided here —
+     doing it in boot() once left the hero on screen for two API round-trips
+     and then removed it, which read as a bug. */
   try { if (localStorage.getItem('tisd_district'))
           document.documentElement.classList.add('has-district'); } catch (e) {}
 </script>
@@ -265,30 +267,19 @@
   .hero-fig .pennies i { cursor:default; }
   .hero-fig figcaption { font-size:.83rem; color:var(--ink-2); }
   .hero-fig figcaption b { color:var(--ink); }
-  /* the statewide copy sits in a two-column layout of its own */
-  .statewide-fig { max-width:520px; margin:.2rem 0 1.6rem; }
-  @media (min-width:900px) {
-    #statewide-section { display:grid; grid-template-columns:minmax(0,520px) minmax(0,1fr);
-                         gap:2.4rem; align-items:start; }
-    #statewide-section .eyebrow, #statewide-section h2 { grid-column:1 / -1; }
-    .statewide-fig { margin-bottom:0; }
-  }
   .tx-legend { display:flex; flex-wrap:wrap; gap:.3rem .9rem; margin-top:.7rem; font-size:.79rem; color:var(--muted); }
   .tx-legend span { display:inline-flex; align-items:center; gap:.3rem; }
   .tx-legend i { width:9px; height:9px; border-radius:2px; display:inline-block; }
   .tx-legend .rest { font-style:italic; }
   /* once a district is chosen the hero steps out of the way */
-  .hero.compact .hero-row, html.has-district .hero-row { grid-template-columns: 1fr; }
-  /* Scoped to .hero on purpose: an unscoped `.hero-fig` here also hid the
-     statewide copy of this figure further down the page. */
-  html.has-district .hero > .eyebrow, html.has-district .hero h1.hero-h,
-  html.has-district .hero .hero-sub, html.has-district .hero .hero-fig { display: none; }
-  /* label text swaps by class too — setting it in JS flashed the wrong copy */
+  /* The hero stays put on every visit — it carries the statewide dollar, which
+     is the clearest statement of what this site is. Only the finder's label
+     changes for someone who already has a district saved, and it changes via
+     this class (set before first paint) rather than in JS, which flashed the
+     wrong copy. */
   .lbl-return { display: none; }
   html.has-district .lbl-new { display: none; }
   html.has-district .lbl-return { display: inline; }
-  .hero.compact .eyebrow, .hero.compact h1.hero-h, .hero.compact .hero-sub,
-  .hero.compact .hero-fig { display: none; }
   @media (max-width: 860px) {
     .hero-row { grid-template-columns: 1fr; gap: 1.8rem; }
   }
@@ -614,11 +605,6 @@
   <section id="statewide-section">
     <div class="eyebrow">Statewide context</div>
     <h2 class="action" id="state-title">Texas at a glance</h2>
-    <figure class="hero-fig statewide-fig">
-      <div class="pennies" id="tx-pennies-2" role="img"
-           aria-label="The statewide dollar shown as 100 pennies by category"></div>
-      <figcaption id="tx-cap-2"></figcaption>
-    </figure>
     <div class="kpis">
       <div class="kpi"><div class="label">Districts</div><div class="value nowrap" id="t-districts">—</div></div>
       <div class="kpi"><div class="label">Years</div><div class="value nowrap" id="t-years">—</div></div>
@@ -1327,7 +1313,6 @@ async function selectDistrict(num, name) {
   state.compare = null; state.compareSummary = [];
   state.dollar = null; state.dollarPin = null; state.dollarHover = null; state.outcomes = null;
   $('results').innerHTML = ''; $('search').value = '';
-  $('picker-section').classList.add('compact');
   document.documentElement.classList.add('has-district');
   await loadDashboard();
 }
@@ -2035,7 +2020,6 @@ function slug() { return (state.district?.name || 'district').replace(/\W+/g, '_
   if (saved) {
     const { num, name } = JSON.parse(saved);
     state.district = { num, name };
-    $('picker-section').classList.add('compact');
     await loadDashboard();
   }
   await statewide;
