@@ -3,6 +3,13 @@
 <head>
 <meta charset="utf-8">
 <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iNiIgZmlsbD0iI2ZmZiIvPjxyZWN0IHg9IjUiIHk9IjUiIHdpZHRoPSI5IiBoZWlnaHQ9IjkiIHJ4PSIxLjUiIGZpbGw9IiMyYTc4ZDYiLz48cmVjdCB4PSIxOCIgeT0iNSIgd2lkdGg9IjkiIGhlaWdodD0iOSIgcng9IjEuNSIgZmlsbD0iIzJhNzhkNiIvPjxyZWN0IHg9IjUiIHk9IjE4IiB3aWR0aD0iOSIgaGVpZ2h0PSI5IiByeD0iMS41IiBmaWxsPSIjMmE3OGQ2Ii8+PHJlY3QgeD0iMTgiIHk9IjE4IiB3aWR0aD0iOSIgaGVpZ2h0PSI5IiByeD0iMS41IiBmaWxsPSIjYjhiNmFkIi8+PC9zdmc+">
+<script>
+  /* Returning visitors get the compact finder, not the hero. This runs before
+     first paint — doing it in boot() meant the hero stayed on screen for two
+     API round-trips and then vanished, which read as a bug. */
+  try { if (localStorage.getItem('tisd_district'))
+          document.documentElement.classList.add('has-district'); } catch (e) {}
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light">
 <title>Texas ISD Finances — District Dashboard</title>
@@ -155,6 +162,44 @@
     border:1px solid var(--hairline); background:#fff; color:var(--ink-2);
   }
   .lensbar button[aria-pressed=true] { background:var(--ink); color:#fff; border-color:var(--ink); }
+  /* ---- Ticker: computed figures, continuously cycling ----
+     Every item is a real number from the data on this page. Nothing here is a
+     headline someone wrote; if a figure cannot be computed the item is not
+     shown. Pauses on hover/focus, and stops entirely for reduced-motion. */
+  .ticker {
+    display:flex; align-items:stretch; gap:0; margin:.1rem 0 .9rem;
+    border-top:1px solid var(--hairline); border-bottom:1px solid var(--hairline);
+    background:#fff; overflow:hidden;
+  }
+  .ticker-tag {
+    flex:none; display:flex; align-items:center; padding:.45rem .7rem;
+    background:var(--ink); color:#fff; font-size:.68rem; font-weight:700;
+    letter-spacing:.1em; text-transform:uppercase; white-space:nowrap;
+  }
+  .ticker-view { flex:1; overflow:hidden; position:relative; }
+  .ticker-track {
+    display:inline-flex; align-items:center; gap:2.4rem; white-space:nowrap;
+    padding:.45rem 1.2rem; will-change:transform;
+    animation:ticker-scroll var(--ticker-dur,60s) linear infinite;
+  }
+  .ticker:hover .ticker-track, .ticker:focus-within .ticker-track { animation-play-state:paused; }
+  @keyframes ticker-scroll { from { transform:translateX(0); } to { transform:translateX(-50%); } }
+  .tick { font-size:.82rem; color:var(--ink-2); font-variant-numeric:tabular-nums; }
+  .tick b { color:var(--ink); }
+  .tick .up { color:var(--good); font-weight:700; }
+  .tick .dn { color:var(--bad); font-weight:700; }
+  .tick .who { color:var(--muted); font-weight:700; letter-spacing:.06em;
+               text-transform:uppercase; font-size:.7rem; margin-right:.35rem; }
+  @media (prefers-reduced-motion: reduce) {
+    .ticker-track { animation:none; }
+    .ticker-view { overflow-x:auto; }
+  }
+  @media (max-width:620px) {
+    .ticker-track { gap:1.5rem; padding:.4rem .8rem; }
+    .tick { font-size:.76rem; }
+    .ticker-tag { padding:.4rem .5rem; font-size:.62rem; }
+  }
+  @media print { .ticker { display:none !important; } }
   /* ---- What the money buys ---- */
   .whobar { display:flex; flex-wrap:wrap; gap:.5rem .6rem; margin:.2rem 0 1.4rem; }
   .whobar .who {
@@ -225,7 +270,13 @@
   .tx-legend i { width:9px; height:9px; border-radius:2px; display:inline-block; }
   .tx-legend .rest { font-style:italic; }
   /* once a district is chosen the hero steps out of the way */
-  .hero.compact .hero-row { grid-template-columns: 1fr; }
+  .hero.compact .hero-row, html.has-district .hero-row { grid-template-columns: 1fr; }
+  html.has-district .hero .eyebrow, html.has-district h1.hero-h,
+  html.has-district .hero-sub, html.has-district .hero-fig { display: none; }
+  /* label text swaps by class too — setting it in JS flashed the wrong copy */
+  .lbl-return { display: none; }
+  html.has-district .lbl-new { display: none; }
+  html.has-district .lbl-return { display: inline; }
   .hero.compact .eyebrow, .hero.compact h1.hero-h, .hero.compact .hero-sub,
   .hero.compact .hero-fig { display: none; }
   @media (max-width: 860px) {
@@ -320,19 +371,24 @@
     </div>
   </header>
 
+  <div class="ticker" id="ticker" hidden>
+    <span class="ticker-tag">Live figures</span>
+    <div class="ticker-view"><div class="ticker-track" id="ticker-track"></div></div>
+  </div>
+
   <div class="warnbar" id="dbwarn">The database is not reachable right now. If this persists,
     the project may be paused — an administrator can wake it in the Supabase dashboard.</div>
 
   <section id="picker-section" class="hero">
     <div class="eyebrow">Every dollar · every district · 2009–2025</div>
     <h1 class="hero-h" id="picker-title">Texas school districts spend
-      <span class="hero-num" id="hero-num">public money</span> a year. Here is where every penny goes.</h1>
+      <span class="hero-num" id="hero-num" style="opacity:.25">$—</span> a year. Here is where every penny goes.</h1>
     <p class="hero-sub" id="hero-sub">One plain-English record of how every Texas school district spends
       public money — for parents, taxpayers, boosters, business owners, reporters, trustees and
       administrators alike. Official state figures, nothing modelled, a source on every number.</p>
     <div class="hero-row">
       <div class="finder">
-        <label class="finder-lab" for="search" id="finder-lab">Find your district</label>
+        <label class="finder-lab" for="search" id="finder-lab"><span class="lbl-new">Find your district</span><span class="lbl-return">Look up a different district</span></label>
         <div class="row">
           <input type="search" id="search" placeholder="Start typing — Dallas, Katy, Alamo Heights…"
                  autocomplete="off" aria-label="Search districts">
@@ -694,7 +750,7 @@ const titleCase = s => (s || '').toLowerCase()
 
 const state = { district: null, summary: [], benchmarks: [], peers: null, flags: [], breakdown: [],
                 metric: 'spend', compare: null, compareSummary: [], lens: 'parent',
-                dollar: null, dollarPin: null, dollarHover: null, outcomes: null };
+                dollar: null, dollarPin: null, dollarHover: null, outcomes: null, txDollar: null };
 
 /* ===== The dollar: every dollar the district spends, as 100 pennies =====
    Shares, peer/statewide medians and dollars-at-stake all come from
@@ -923,6 +979,66 @@ function renderAtom() {
     `<p><strong>Question worth asking:</strong> ${DOLLAR_QUESTIONS[p.key] || ''}</p>` +
     `<button class="closebtn" type="button" id="atom-close">✕ Close this category</button>`;
   $('atom-close').onclick = () => pinCat(state.dollarPin);
+}
+
+/* ===== Ticker: real computed figures, cycling =====
+   Items are built from whatever data has actually loaded. Anything that cannot
+   be computed is simply omitted — the ticker never fills space with a figure it
+   does not have, and never editorialises a number into "news". */
+function tickerItems() {
+  const t = [], tx = state.txDollar, o = state.outcomes, d = dollarParts();
+  const D = state.district ? state.district.name.toUpperCase() : null;
+  const num = v => v == null ? null : Number(v).toLocaleString();
+
+  if (tx) {
+    const top = tx.parts[0], debt = tx.parts.find(p => p.key === 'debt');
+    t.push(`<span class="who">Texas</span>Public schools spent <b>${fmtBig(tx.total_spend)}</b> in fiscal ${tx.year}`);
+    t.push(`<span class="who">Texas</span><b>${num(tx.students)}</b> students · <b>${fmtMoney(tx.per_student)}</b> per student`);
+    if (top) t.push(`<span class="who">Texas</span><b>${top.cents}¢</b> of every dollar reaches ${top.label.toLowerCase()}`);
+    if (debt) t.push(`<span class="who">Texas</span><b>${debt.cents}¢</b> of every dollar repays past building bonds`);
+  }
+  const L = o?.meta?.lever_strength;
+  if (L) {
+    t.push(`<span class="who">Statewide finding</span>Teacher turnover explains <b class="up">${L.teacher_turnover_pct}%</b> of results after student need — spending per student, <b class="dn">${L.spend_per_student}%</b>`);
+    t.push(`<span class="who">Statewide finding</span>Whether experienced teachers stay predicts results better than the size of the budget`);
+  }
+  const sm = o?.meta?.state_medians;
+  if (sm?.teacher_turnover_pct != null)
+    t.push(`<span class="who">Texas</span>Median teacher turnover <b>${sm.teacher_turnover_pct}%</b>`);
+  if (sm?.avg_teacher_salary != null)
+    t.push(`<span class="who">Texas</span>Median teacher salary <b>${fmtMoney(sm.avg_teacher_salary)}</b>`);
+
+  if (D && d) {
+    const cls = d.parts.find(p => p.key === 'classroom');
+    t.push(`<span class="who">${D}</span><b>${fmtMoney(d.perStudent)}</b> per student · <b>${num(d.enrollment)}</b> students`);
+    if (cls) t.push(`<span class="who">${D}</span><b>${cls.cents}¢</b> of every dollar to classroom teaching`);
+    const big = d.parts.filter(p => p.dollars_vs_peers != null)
+      .sort((a, b) => Math.abs(b.dollars_vs_peers) - Math.abs(a.dollars_vs_peers))[0];
+    if (big && Math.abs(big.dollars_vs_peers) / d.enrollment >= 25)
+      t.push(`<span class="who">${D}</span>${big.name}: <b class="${big.dollars_vs_peers > 0 ? 'up' : 'dn'}">` +
+        `${fmtMoney(Math.abs(big.dollars_vs_peers))} ${big.dollars_vs_peers > 0 ? 'more' : 'less'}</b> a year than similar districts`);
+  }
+  if (D && o) {
+    if (o.expectation && Math.abs(o.expectation.gap) >= 3)
+      t.push(`<span class="who">${D}</span>Scores <b class="${o.expectation.gap > 0 ? 'up' : 'dn'}">` +
+        `${Math.abs(o.expectation.gap).toFixed(0)} points ${o.expectation.gap > 0 ? 'above' : 'below'}</b> what its student population predicts`);
+    const tv = o.measures?.teacher_turnover_pct;
+    if (tv && tv[1] != null)
+      t.push(`<span class="who">${D}</span>Teacher turnover <b>${tv[0]}%</b> vs <b>${tv[1]}%</b> at similar districts`);
+    if (o.need?.pct_econ_disadv != null)
+      t.push(`<span class="who">${D}</span><b>${o.need.pct_econ_disadv}%</b> of students economically disadvantaged`);
+  }
+  return t;
+}
+function renderTicker() {
+  const items = tickerItems(), bar = $('ticker'), track = $('ticker-track');
+  if (items.length < 3) { bar.hidden = true; return; }
+  const html = items.map(x => `<span class="tick">${x}</span>`).join('');
+  track.innerHTML = html + html;          // doubled so the loop is seamless
+  bar.hidden = false;
+  // Pace it by content length so a long feed doesn't race past unreadably.
+  const secs = Math.max(25, Math.round(items.join('').replace(/<[^>]+>/g, '').length / 12));
+  track.style.setProperty('--ticker-dur', secs + 's');
 }
 
 /* ===== What the money buys: students, teachers, results =====
@@ -1197,7 +1313,7 @@ async function selectDistrict(num, name) {
   state.dollar = null; state.dollarPin = null; state.dollarHover = null; state.outcomes = null;
   $('results').innerHTML = ''; $('search').value = '';
   $('picker-section').classList.add('compact');
-  $('finder-lab').textContent = 'Look up a different district';
+  document.documentElement.classList.add('has-district');
   await loadDashboard();
 }
 async function selectCompare(num, name) {
@@ -1233,6 +1349,7 @@ async function loadDashboard() {
   } catch (e) { /* banner shown */ }
 }
 function renderAll() {
+  renderTicker();
   renderExec(); renderDollar(); renderOutcomes(); renderInsights(); renderKPIs(); renderTrend(); renderPeers();
   renderMoney(); renderFlags(); renderObject(); renderProgram(); renderTurnarounds();
   ['kpi-cite', 'trend-cite', 'peers-cite', 'flags-cite'].forEach(c => cite(c));
@@ -1754,6 +1871,7 @@ const fmtBig = v => v >= 1e9 ? '$' + (v / 1e9).toFixed(1) + ' billion'
 function renderTexasDollar(tx) {
   if (!tx || !tx.parts) return;
   $('hero-num').textContent = fmtBig(tx.total_spend);
+  $('hero-num').style.opacity = '';
   $('tx-pennies').innerHTML = tx.parts.map(p =>
     Array(p.cents).fill(`<i style="background:${DOLLAR_COLORS[p.key] || '#c9c7be'}"></i>`).join('')).join('');
   const top = tx.parts[0], debt = tx.parts.find(p => p.key === 'debt');
@@ -1795,7 +1913,9 @@ async function loadStatewide() {
     const [s, bm, tx] = await Promise.all([
       api('/stats'), api('/benchmarks'), api('/dollar/texas').catch(() => null)]);
     state.benchmarks = bm;
-    renderTexasDollar(tx);
+    state.txDollar = tx;
+  renderTexasDollar(tx);
+  renderTicker();
     renderQuickPicks(s.largest_districts);
     document.querySelector('.brand .tag').textContent =
       `Official TEA data · fiscal ${s.start_year}–${s.end_year} · ${fmtNum(s.total_districts)} districts`;
@@ -1887,15 +2007,15 @@ function slug() { return (state.district?.name || 'district').replace(/\W+/g, '_
     document.querySelectorAll('#lensbar button').forEach(x =>
       x.setAttribute('aria-pressed', x.dataset.lens === savedLens));
   }
-  await loadStatewide();
+  const statewide = loadStatewide();   // don't block the district on this
   const saved = localStorage.getItem('tisd_district');
   if (saved) {
     const { num, name } = JSON.parse(saved);
     state.district = { num, name };
     $('picker-section').classList.add('compact');
-    $('finder-lab').textContent = 'Look up a different district';
     await loadDashboard();
   }
+  await statewide;
 })();
 </script>
 </body>
