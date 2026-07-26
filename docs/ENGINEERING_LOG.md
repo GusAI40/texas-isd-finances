@@ -17,6 +17,58 @@ Entry template:
 
 ---
 
+## 2026-07-26 — The real map of Texas is live (and it needed no Mapbox)
+
+**What changed:** `/geomap` — 1,005 actual school-district boundaries,
+colourable by teacher turnover, spending, student poverty, or how far a
+district beats what its demographics predict. Plus
+`scripts/build_district_geo.py`, `scripts/simulate_map_value.py`,
+`docs/MAP_VALUE_SIMULATION.md`, and routes `/geomap` + `/district-geo`.
+
+**Asked before building.** The Monte Carlo (100k visitors placed by real
+enrolment, adjacency from 2,863 real shared borders) had to be able to say
+"no". It said: **100%** of visitors see a bordering district that is not
+among their statistical peers; **64.7%** share no overlap at all; median
+overlap between neighbours and k-NN peers is **0**. The map is a different
+question, not a prettier answer.
+
+**No Mapbox, on purpose.** Polygons are Census TIGER 2024 (public domain),
+the renderer is our own canvas code, and "find my district" is
+point-in-polygon **in the browser** — location never leaves the device, no
+API key, no per-load billing, nothing to lock into. Mapbox remains optional
+later for street-address geocoding and a basemap; neither is needed here.
+Free tier if we ever do: 50k map loads and 100k geocodes a month.
+
+**Gotchas:**
+- Census keys on NCES codes, we key on TEA numbers. **Join by normalised
+  name: 1,005 of 1,006.** The ten mismatches are an explicit alias table
+  checked by hand (`Ft Davis` vs `Fort Davis`, `Hamlin Collegiate`,
+  `LaPoynor`…). `Spring Creek ISD` is genuinely absent from TEA 2024 — left
+  unmatched rather than forced.
+- **Douglas-Peucker must be iterative here.** Texas rings run to tens of
+  thousands of vertices; the recursive form blows the stack.
+- 27 MB shapefile → **518 KB**: quantise to 1e-4 deg (~11 m), delta-encode
+  along each ring, drop sub-threshold islands. 1,660,525 vertices → 48,760
+  (2.9%). Measures are merged into the same file so the map is one fetch.
+- **Charters have no boundary** — the map covers ~92% of Texas students and
+  says so on its face. Never let a map imply those children do not exist.
+- Rebuild after any TEA release: `build_outcomes_data.py` first (its output
+  is merged in), then `build_district_geo.py`.
+
+**What it shows.** Coloured by turnover, Texas renders as a **patchwork, not
+regions** — the visual form of the finding that neighbouring districts differ
+in turnover 87% as much as random ones, while salary (a labour-market
+quantity) is only 63%. Pin Wharton ISD and the page says it plainly: loses
+33% of its teachers; El Campo next door, 73.8% vs 78.1% student poverty,
+loses 12.7%.
+
+**Open items:** 🔴 rotate the Vercel/Supabase/GitHub PATs pasted 2026-07-25.
+Then: read-only DB role for NLP, `/query` threadpool + timeout, real rate
+limiting, analytics, Supabase idle-pause keep-alive, keyboard/SR path for
+both maps, PR #2 review.
+
+---
+
 ## 2026-07-26 — Live-figures ticker, and the hero flash (a real bug) fixed
 
 **What changed:** A scrolling ticker under the header, and the end of the

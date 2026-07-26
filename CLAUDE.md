@@ -50,6 +50,9 @@ read-only Postgres views on Supabase. MIT-licensed, built for public use.
   Keep `git config user.email` on the repo owner; `Co-Authored-By` records
   the AI author.
 - **After any data import**: `REFRESH MATERIALIZED VIEW v_anomaly_flags;`
+- **`static/district_geo.json` is a committed build artifact too.** Rebuild
+  order after a TEA release: `build_outcomes_data.py` → `build_district_geo.py`
+  (the latter merges the former's measures in).
 - **`static/outcomes_data.json` is a committed build artifact** — the API
   serves it directly and it works with no database. Rebuild it after any new
   TEA release: `scripts/ingest_tea_snapshot.py --download` then
@@ -95,6 +98,7 @@ proxy), run `scratchpad/liveproxy.py` and point Playwright at
 - ✅ `static/map.html` ("seating chart" of all 1,202 districts) works on phones — pan/pinch/tap; landmarks + named neighborhoods + plain axes.
 - ✅ **"What the money buys" live on every district page** — student need, teacher turnover/experience/salary, STAAR, attendance, graduation, each vs structural peers + state; scored against what demographics predict; statewide lever chart (turnover 10.12% vs spending 0.01%). Data: TEA Snapshot 2009–2024 joined to PEIMS (`scripts/ingest_tea_snapshot.py`, `scripts/build_outcomes_data.py`, `docs/WHAT_A_DOLLAR_BUYS.md`).
 - ✅ Guided dollar (hover/tap → peer + state comparison + dollars at stake), zoom ladder, rebuilt landing page with the live statewide dollar, live-figures ticker under the header.
+- ✅ **`/geomap` — the real map**: 1,005 Census TIGER boundaries joined to TEA numbers, coloured by turnover/spending/poverty/beats-prediction, neighbours outlined, "find my district" via in-browser point-in-polygon. No Mapbox, no API key, location never leaves the device. Covers ~92% of students (charters have no boundary).
 - ✅ Three audit rounds + Monte Carlo audit complete (`AUDIT.md`, `docs/AUDIT_SCORECARD.md`); 32 tests green; CI enforces ruff+pytest.
 - 🔴 OPEN: user must rotate credentials pasted into chat on 2026-07-22 (OpenAI/GitHub/Hetzner/Anthropic etc.); OpenAI key in Vercel env needs updating after rotation.
 - 🟡 OPEN hardening: read-only DB role for NLP; `/query` needs threadpool+timeout; real rate limiting; analytics; map keyboard/SR path; PR #2 awaiting user review (do not merge).
