@@ -56,6 +56,15 @@ number is editorialised into a headline. Pace scales with content length
 - The ticker track is rendered **twice** and animates to `translateX(-50%)`
   — that is what makes the loop seamless. Don't "optimise" the duplicate
   away.
+- **Hiding the hero also hid the statewide penny grid**, which lived only
+  there — returning visitors lost the best explanation of the whole site.
+  It now renders in **Statewide context** as well (one definition, two
+  containers, `['', '-2']`). Watch for this whenever the hero changes.
+- The pre-paint rule was written as `html.has-district .hero-fig`, which
+  matched **any** `.hero-fig` on the page and silently gave the new
+  statewide copy zero height while all 100 pennies sat in the DOM. Scoped to
+  `.hero` descendants. A selector written for one element can reach an
+  element that doesn't exist yet.
 
 **Open items:** 🔴 rotate the Vercel/Supabase/GitHub PATs pasted 2026-07-25.
 Then: read-only DB role for NLP, `/query` threadpool + timeout, real rate
