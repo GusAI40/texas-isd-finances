@@ -17,6 +17,83 @@ Entry template:
 
 ---
 
+## 2026-07-26 — The economics layer, and the bond data that closes the stadium question
+
+**What changed:** commits `325e9f9` and `5c05564` (pushed, **still not deployed**).
+
+- `scripts/ingest_tea_property.py` — certified property values (tax years
+  2015-2025), adopted M&O/I&S rates (2005-06 to 2023-24), recapture paid by
+  district (fiscal 1994-2026). TEA has no finance API; these are spreadsheets,
+  older ones under `/sites/default/files` with underscores where newer ones use
+  hyphens. The URL table records both.
+- `scripts/build_economics_data.py` -> `static/economics_data.json` (1.6 MB,
+  committed, served sliced per request). Within-district first differences for
+  the lever effects; an 11-year reliability score; matched outperformers.
+- `/district/{id}/economics` and `/economics/texas`; a district-page section
+  with inline-SVG charts, a validated categorical palette, and a table twin.
+- Corrected the published turnover claim (see below). 44 tests.
+
+**Why:** the portal could say where money went and how students did, but not
+what a taxpayer pays, what it buys, or who does better — which is every
+question an actual reader has.
+
+**Gotchas — three that would have shipped wrong numbers:**
+- **TEA reports local M&O revenue NET of recapture.** Any per-student figure
+  built on that column understates property-wealthy districts badly (Austin
+  reads as a $93B tax base instead of $184B). Add recapture back for gross
+  collections.
+- **Debt service sits OUTSIDE `total_operate_expend_by_function`.** Subtracting
+  it to get a residual yields a NEGATIVE "everything else" for any district
+  with real debt. Compose the parts; do not carve them out.
+- **Charters are not data-quality failures.** 188 districts have no tax rate
+  because they levy no property tax. Counting them as "withheld for QA" would
+  have reported our error rate as 188 when it is 0. Now counted separately and
+  pinned by a test.
+- Playwright needs `executable_path="/opt/pw-browsers/chromium"`; the local
+  design harness must be a `ThreadingHTTPServer` or the browser's parallel
+  fetches deadlock it and `networkidle` never fires.
+
+**The correction we owed:** the published lever chart (turnover 10.12% of
+variance vs spending 0.01%) is CROSS-SECTIONAL and was being read as leverage.
+Within districts over three years (5,887 windows, 1,210 districts, year effects,
+clustered SEs): $2,000/student more buys **+0.08 STAAR points, CI -0.21 to
++0.37** — indistinguishable from zero; cutting turnover 10 points buys +0.43;
+cutting class size by 2 buys +0.59. The ranking survives, the magnitude does
+not. What IS large is the persistent between-district difference: split-half
+r = **+0.91**, a 20.2-point spread top-to-bottom decile, of which only **23%**
+is explained by every staffing and money variable TEA publishes. The chart now
+says it describes rather than forecasts, and links to the within-district
+effects. Same correction inline in `docs/WHAT_A_DOLLAR_BUYS.md`.
+
+**Bond election data (analysed, NOT yet built in).** A user-supplied CSV of
+4,588 decided Texas school bond propositions, 1958-2024, $291B asked / $232B
+approved, with an explicit purpose field — it joins to our districts at 97%
+(912 districts). This closes the gap we had documented as unclosable: TEA does
+not itemise facilities, but the ballot does. Athletics: 637 props, 57% pass
+rate vs 74% for school buildings; stadiums named specifically: 145 props, 48%
+pass — the only category voters reject more than approve. Bundling athletics
+with classrooms lifts the pass rate from 54.7% to 62.3% and takes the median
+ask from $6M to $24M. Voter willingness is collapsing as the asks grow:
+86.8% pass on $9.8B (1958-99) -> **63.2% pass on $120.5B (2020-24)**, which is
+the demand side of the +72% I&S rate rise we already measured.
+
+**Do not ingest the other two bond files.** They carry a company's CRM —
+17 named sales reps, per-district revenue, commission percentages. Public bond
+and TEA columns are fine; the commercial columns must never reach an
+MIT-licensed public repo. Rebuild that analysis from the clean file instead.
+
+**Open items:**
+- 🔴 **Nothing since `439e82f` is deployed.** No Vercel token in this session
+  and the Vercel MCP needs an interactive approval. Production still 404s on
+  `/economics/*` and serves no CSP header.
+- 🔴 Rotate the credentials pasted into chat (2026-07-22 and 2026-07-25).
+- 🟡 `economics_data.json` is 1.6 MB — fine sliced server-side, needs trimming
+  before any client-side use.
+- 🟡 Read-only DB role for the NLP path; 518 KB `/geomap` payload.
+- ⏭️ Next: the per-district bond history section from the clean CSV.
+
+---
+
 ## 2026-07-26 — Hardening pass: security headers, a bounded /query, and a table twin for both maps
 
 **What changed:** Commit `fc294cd` on `claude/audit-public-launch-ocd7ra`
