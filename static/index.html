@@ -40,6 +40,16 @@
     --good: #006300;
     --bad: #c23934;
   }
+  /* The proof row: what am I looking at, answered before any scrolling. Four
+     counted facts, not adjectives. */
+  .proof { display: flex; flex-wrap: wrap; gap: .2rem 2.2rem; margin: 1rem 0 .9rem;
+    padding: .8rem 0; border-top: 1px solid var(--hairline); border-bottom: 1px solid var(--hairline); }
+  .proof span { display: inline-flex; flex-direction: column; }
+  .proof b { font-size: 1.5rem; font-weight: 700; letter-spacing: -.02em; line-height: 1.1; color: var(--ink); }
+  .proof i { font-style: normal; font-size: .78rem; color: var(--muted); text-transform: uppercase;
+    letter-spacing: .05em; margin-top: .15rem; }
+  .hero-why { color: var(--ink-2); font-size: .95rem; max-width: 46rem; margin: 0 0 .4rem; }
+  @media (max-width: 600px) { .proof { gap: .6rem 1.6rem; } .proof b { font-size: 1.25rem; } }
   /* Progress rail + section nav. Both are navigation chrome, so they stay
      visually quiet — a 3px hairline and small grey chips — and never compete
      with the figures they sit above. */
@@ -556,9 +566,18 @@
     <div class="eyebrow">Storytelling with data · a story of Texas ISD</div>
     <h1 class="hero-h" id="picker-title">Texas school districts spend
       <span class="hero-num" id="hero-num" style="opacity:.25">$—</span> a year. Here is where every penny goes.</h1>
-    <p class="hero-sub" id="hero-sub">One plain-English record of how every Texas school district spends
-      public money — for parents, taxpayers, boosters, business owners, reporters, trustees and
-      administrators alike. Official state figures, nothing modelled, a source on every number.</p>
+    <p class="hero-sub" id="hero-sub"><b>What this is:</b> a public record of what every Texas school
+      district collects, spends, borrows and achieves — in plain English, from official state figures,
+      with a source on every number.</p>
+    <div class="proof" id="proof">
+      <span><b id="proof-points">6.6 million</b><i>data points analysed</i></span>
+      <span><b id="proof-districts">1,310</b><i>school districts</i></span>
+      <span><b id="proof-years">67</b><i>years of records</i></span>
+      <span><b id="proof-sources">6</b><i>official sources</i></span>
+    </div>
+    <p class="hero-why" id="hero-why"><b>Why it matters:</b> your school taxes are the largest line on most
+      Texas property bills. This shows what yours buys, and the finding that surprised us: <b>spending $2,000 more per student changed results by 0.08 points, too small to tell apart from
+      zero.</b> What does move results is in here too.</p>
     <div class="credential" id="credential"></div>
     <div class="hero-row">
       <div class="finder">
@@ -2140,7 +2159,7 @@ function parseFigure(text) {
 function armCounters(root) {
   if (!root) return;
   const reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const targets = root.querySelectorAll('.econ-big, .stat > b, .bond-bundle .pct');
+  const targets = root.querySelectorAll('.econ-big, .stat > b, .bond-bundle .pct, .proof b');
 
   const run = el => {
     const f = el._fig;
@@ -2927,6 +2946,7 @@ async function loadStatewide() {
     // one slow extra never costs the page its statewide figures.
     state.benchmarks = bm;
     state.txDollar = tx; state.econTexas = txEcon;
+    armCounters($('picker-section'));
   renderTexasDollar(tx);
   renderTicker();
     renderQuickPicks(s.largest_districts);
