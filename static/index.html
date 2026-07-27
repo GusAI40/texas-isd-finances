@@ -40,6 +40,26 @@
     --good: #006300;
     --bad: #c23934;
   }
+  /* Progress rail + section nav. Both are navigation chrome, so they stay
+     visually quiet — a 3px hairline and small grey chips — and never compete
+     with the figures they sit above. */
+  #progresswrap { position: fixed; top: 0; left: 0; right: 0; height: 3px;
+    background: transparent; z-index: 60; pointer-events: none; }
+  #progressbar { display: block; height: 100%; width: 0; background: var(--blue);
+    transition: width .08s linear; }
+  #sectionnav { position: sticky; top: 0; z-index: 50; background: rgba(255,255,255,.94);
+    backdrop-filter: blur(8px); border-bottom: 1px solid var(--hairline); margin-bottom: .2rem; }
+  #sectionnav.hidden { display: none; }
+  .navchips { display: flex; gap: .1rem; overflow-x: auto; scrollbar-width: none;
+    max-width: 940px; margin: 0 auto; padding: .45rem 1.5rem; }
+  .navchips::-webkit-scrollbar { display: none; }
+  .navchips button { flex: 0 0 auto; background: none; border: none; font: inherit;
+    font-size: .82rem; color: var(--muted); padding: .3rem .6rem; border-radius: 6px;
+    cursor: pointer; white-space: nowrap; border-bottom: 2px solid transparent; }
+  .navchips button:hover { color: var(--ink); background: var(--wash); }
+  .navchips button.on { color: var(--ink); font-weight: 600; border-bottom-color: var(--blue); }
+  .navchips button:focus-visible { outline: 2px solid var(--blue); outline-offset: 1px; }
+  @media (prefers-reduced-motion: reduce) { #progressbar { transition: none; } }
   /* Numbers shown AS numbers. Each of these replaced a paragraph — a reader
      scanning the page should get the finding without reading a sentence. */
   .stat { display: inline-flex; flex-direction: column; margin: .1rem 1.6rem .4rem 0; vertical-align: top; }
@@ -511,8 +531,10 @@
 </head>
 <body>
 <div class="shell">
+  <div id="progresswrap"><i id="progressbar"></i></div>
+  <nav id="sectionnav" class="hidden" aria-label="Jump to a section"></nav>
   <header class="top">
-    <div class="brand">Texas ISD Financial Resource Guide<span class="tag">Official TEA data · fiscal 2009–2025 · 1,202 districts</span></div>
+    <div class="brand">Texas ISD Financial Resource Guide<span class="tag">Official TEA data · 6.6 million data points · 1,310 districts · 1958–2025</span></div>
     <div class="hbtns">
       <button id="btn-geomap" class="feature">Map of Texas</button>
       <button id="btn-map">Seating chart</button>
@@ -1259,7 +1281,7 @@ function tickerItems() {
   }
   const L = o?.meta?.lever_strength;
   if (L) {
-    t.push(`<span class="who">Statewide finding</span>Teacher turnover explains <b class="up">${L.teacher_turnover_pct}%</b> of results after student need — spending per student, <b class="dn">${L.spend_per_student}%</b>`);
+    t.push(`<span class="who">Statewide finding</span>Spending $2,000 more per student changed results by <b class="dn">+0.08 points</b> — too small to tell apart from zero`);
     t.push(`<span class="who">Statewide finding</span>Whether experienced teachers stay predicts results better than the size of the budget`);
   }
   const sm = o?.meta?.state_medians;
@@ -1669,6 +1691,10 @@ async function loadDashboard() {
     state.turnarounds = turnarounds; state.detail = detail; state.insights = insights;
     state.dollar = dollar; state.outcomes = outcomes; state.econ = econ; state.bonds = bonds;
     renderAll();
+    // Built here rather than inside renderAll: that function's exceptions are
+    // swallowed by the catch below, so anything throwing late in it silently
+    // took the section nav with it.
+    buildNav(); updateProgress();
     $('dash').scrollIntoView({ block: 'start' });
   } catch (e) { /* banner shown */ }
 }
@@ -2165,6 +2191,82 @@ function armCounters(root) {
     setTimeout(() => { if (!el._done) { io.unobserve(el); run(el); } }, 6000);
   });
 }
+
+/* ===== Where am I, and how far to the bottom? ==============================
+   Seventeen sections is a long scroll with no map. Two things fix that without
+   changing the reading flow: a progress rail across the top that answers "how
+   much is left", and a sticky chip bar that names the sections, highlights the
+   one you are in, and lets you jump. The chip bar is built from whatever is
+   actually on the page, so a district with no bond history never shows a bond
+   chip pointing at an empty section. */
+const NAV_LABELS = {
+  'kpi-section': 'Overview', 'dollar-section': 'Your dollar',
+  'outcomes-section': 'What it buys', 'econ-section': 'What you pay',
+  'bond-section': 'Bonds you voted on', 'insights-section': 'What to do',
+  'trend-section': 'Trends', 'peers-section': 'Peers',
+  'money-section': 'Where it goes', 'object-section': 'Payroll vs contracts',
+  'program-section': 'Who it serves', 'flags-section': 'Anomalies',
+  'turnaround-section': 'Turnarounds', 'ask-section': 'Ask a question',
+  'statewide-section': 'Statewide', 'methods-section': 'Methods',
+};
+let navIO = null;
+
+function buildNav() {
+  const rail = $('sectionnav');
+  if (!rail) return;
+  const secs = Object.keys(NAV_LABELS)
+    .map(id => document.getElementById(id))
+    .filter(el => el && !el.classList.contains('hidden'));
+  if (secs.length < 3) { rail.classList.add('hidden'); return; }
+  rail.classList.remove('hidden');
+  rail.innerHTML = '<div class="navchips">' + secs.map(el =>
+    `<button type="button" data-to="${el.id}">${NAV_LABELS[el.id]}</button>`).join('') + '</div>';
+
+  rail.querySelectorAll('button').forEach(btn => {
+    btn.onclick = () => {
+      const el = document.getElementById(btn.dataset.to);
+      // offset for the sticky rail so the heading is not hidden under it
+      const y = el.getBoundingClientRect().top + scrollY - (rail.offsetHeight + 14);
+      scrollTo({ top: y, behavior: 'smooth' });
+    };
+  });
+
+  if (navIO) navIO.disconnect();
+  navIO = new IntersectionObserver(ents => {
+    ents.forEach(en => {
+      if (!en.isIntersecting) return;
+      rail.querySelectorAll('button').forEach(b =>
+        b.classList.toggle('on', b.dataset.to === en.target.id));
+      const on = rail.querySelector('button.on');
+      // keep the active chip visible on a phone, where the bar scrolls
+      if (on) on.scrollIntoView({ block: 'nearest', inline: 'center' });
+    });
+  }, { rootMargin: '-25% 0px -65% 0px' });   // "current" = near the top third
+  secs.forEach(el => navIO.observe(el));
+}
+
+function updateProgress() {
+  const bar = $('progressbar');
+  if (!bar) return;
+  const h = document.documentElement.scrollHeight - innerHeight;
+  bar.style.width = (h > 0 ? Math.min(scrollY / h, 1) * 100 : 0).toFixed(2) + '%';
+}
+addEventListener('scroll', updateProgress, { passive: true });
+addEventListener('resize', updateProgress);
+
+// Keyboard: move section to section without hunting with the mouse.
+addEventListener('keydown', ev => {
+  if (ev.metaKey || ev.ctrlKey || ev.altKey) return;
+  const t = ev.target.tagName;
+  if (t === 'INPUT' || t === 'TEXTAREA' || ev.target.isContentEditable) return;
+  const dir = (ev.key === 'j' || ev.key === 'J') ? 1 : (ev.key === 'k' || ev.key === 'K') ? -1 : 0;
+  if (!dir) return;
+  const btns = [...document.querySelectorAll('#sectionnav button')];
+  if (!btns.length) return;
+  const i = Math.max(0, btns.findIndex(b => b.classList.contains('on')));
+  const next = btns[Math.min(Math.max(i + dir, 0), btns.length - 1)];
+  if (next) { next.click(); ev.preventDefault(); }
+});
 
 function renderEconomics() {
   const e = state.econ, sec = $('econ-section');
@@ -2830,7 +2932,7 @@ async function loadStatewide() {
     renderQuickPicks(s.largest_districts);
     renderCredential(s, tx);
     document.querySelector('.brand .tag').textContent =
-      `Official TEA data · fiscal ${s.start_year}–${s.end_year} · ${fmtNum(s.total_districts)} districts`;
+      `Official TEA data · 6.6 million data points · ${fmtNum(s.total_districts)} districts · 1958–${s.end_year}`;
     $('t-districts').textContent = fmtNum(s.total_districts);
     $('t-years').textContent = s.start_year + '–' + s.end_year;
     $('t-records').textContent = fmtNum(s.total_records);
