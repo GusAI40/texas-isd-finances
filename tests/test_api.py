@@ -306,6 +306,23 @@ def test_negative_scaling_keeps_intervals_ordered(client):
     assert "Math.min(a, b)" in page and "Math.max(a, b)" in page
 
 
+def test_hero_credentials_match_the_data(client):
+    """The hero states four counted facts. Each has to be true of the whole
+    portal, not of its longest single source — "67 years of records" was true
+    only of the bond elections while every other dataset spans 17 years."""
+    from pathlib import Path
+
+    page = Path("static/index.html").read_text()
+    assert ">17</b><i>years of budgets" in page, \
+        "the years figure must describe the finance data, not the deepest source"
+    assert "years of records" not in page, "that phrasing overstated every source but one"
+
+    stats = client.get("/stats").json() if client.get("/stats").status_code == 200 else None
+    if stats:
+        span = stats["end_year"] - stats["start_year"] + 1
+        assert span == 17, f"finance data spans {span} years; the hero says 17"
+
+
 def test_maps_ship_a_table_twin():
     """Both maps draw to a canvas, which no keyboard or screen reader can enter.
     Each must publish the same data as a real table. The styles alone once

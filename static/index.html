@@ -544,7 +544,7 @@
   <div id="progresswrap"><i id="progressbar"></i></div>
   <nav id="sectionnav" class="hidden" aria-label="Jump to a section"></nav>
   <header class="top">
-    <div class="brand">Texas ISD Financial Resource Guide<span class="tag">Official TEA data · 6.6 million data points · 1,310 districts · 1958–2025</span></div>
+    <div class="brand">Texas ISD Financial Resource Guide<span class="tag">Official TEA &amp; Comptroller data · independent, not a TEA product</span></div>
     <div class="hbtns">
       <button id="btn-geomap" class="feature">Map of Texas</button>
       <button id="btn-map">Seating chart</button>
@@ -570,9 +570,9 @@
       district collects, spends, borrows and achieves — in plain English, from official state figures,
       with a source on every number.</p>
     <div class="proof" id="proof">
-      <span><b id="proof-points">6.6 million</b><i>data points analysed</i></span>
+      <span title="2,882,180 finance values · 2,248,478 STAAR · 894,286 Snapshot · 432,327 property and tax · 96,848 boundary coordinates · 51,744 bond records"><b id="proof-points">6.6 million</b><i>data points analysed</i></span>
       <span><b id="proof-districts">1,310</b><i>school districts</i></span>
-      <span><b id="proof-years">67</b><i>years of records</i></span>
+      <span title="TEA financial data, fiscal 2009–2025. Bond elections go back further, to 1958."><b id="proof-years">17</b><i>years of budgets</i></span>
       <span><b id="proof-sources">6</b><i>official sources</i></span>
     </div>
     <p class="hero-why" id="hero-why"><b>Why it matters:</b> your school taxes are the largest line on most
@@ -2958,7 +2958,7 @@ async function loadStatewide() {
     renderQuickPicks(s.largest_districts);
     renderCredential(s, tx);
     document.querySelector('.brand .tag').textContent =
-      `Official TEA data · 6.6 million data points · ${fmtNum(s.total_districts)} districts · 1958–${s.end_year}`;
+      `Official TEA & Comptroller data · fiscal ${s.start_year}–${s.end_year} · independent, not a TEA product`;
     $('t-districts').textContent = fmtNum(s.total_districts);
     $('t-years').textContent = s.start_year + '–' + s.end_year;
     $('t-records').textContent = fmtNum(s.total_records);
