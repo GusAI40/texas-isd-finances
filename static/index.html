@@ -2082,6 +2082,90 @@ function effectChart(svg, rows) {
   svg.querySelectorAll('[data-tip]').forEach(c => bindTip(c, c.getAttribute('data-tip')));
 }
 
+/* ===== Scroll-triggered count-up (animated KPI counter) =====================
+   The pattern: an IntersectionObserver fires when a figure scrolls into view,
+   then the value is tweened from zero to its target on requestAnimationFrame
+   with an ease-out curve, so it decelerates into the real number rather than
+   stopping dead.
+
+   It exists to buy a beat of attention on the number that carries the finding.
+   Three rules keep it from becoming decoration:
+     - It runs ONCE per element. A number that re-animates every scroll is a
+       distraction, not an emphasis.
+     - `prefers-reduced-motion` skips it entirely. Motion is a genuine
+       accessibility and vestibular problem for some readers.
+     - The element carries its final value in aria-label from the start, so a
+       screen reader announces the real figure and never the tween. */
+const COUNT_MS = 900;
+
+function parseFigure(text) {
+  // "$2,631 / year" -> {pre:"$", num:2631, suf:" / year", dec:0}
+  const m = String(text).match(/^([^\d\-+.]*)([+\-]?[\d,]*\.?\d+)(.*)$/s);
+  if (!m) return null;
+  const digits = m[2].replace(/,/g, '');
+  const dot = digits.indexOf('.');
+  return {
+    pre: m[1], suf: m[3], num: parseFloat(digits),
+    dec: dot === -1 ? 0 : digits.length - dot - 1,
+    grouped: m[2].includes(','),
+  };
+}
+
+function armCounters(root) {
+  if (!root) return;
+  const reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const targets = root.querySelectorAll('.econ-big, .stat > b, .bond-bundle .pct');
+
+  const run = el => {
+    const f = el._fig;
+    if (!f || el._done) return;
+    el._done = true;
+    const paint = v => {
+      const shown = f.grouped
+        ? v.toLocaleString(undefined, { minimumFractionDigits: f.dec, maximumFractionDigits: f.dec })
+        : v.toFixed(f.dec);
+      el.firstChild.nodeValue = f.pre + shown + f.suf;
+    };
+    if (reduced) { paint(f.num); return; }
+    const t0 = performance.now();
+    const step = now => {
+      const p = Math.min((now - t0) / COUNT_MS, 1);
+      paint(f.num * (1 - Math.pow(1 - p, 3)));       // ease-out cubic
+      if (p < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  };
+
+  const io = 'IntersectionObserver' in window
+    ? new IntersectionObserver((ents, obs) => ents.forEach(en => {
+        if (!en.isIntersecting) return;
+        obs.unobserve(en.target);
+        run(en.target);
+      }), { threshold: 0.4 })
+    : null;
+
+  targets.forEach(el => {
+    if (el._armed) return;
+    const node = el.firstChild;
+    if (!node || node.nodeType !== 3) return;
+    const f = parseFigure(node.nodeValue);
+    if (!f || !isFinite(f.num)) return;
+    el._fig = f; el._armed = true;
+    el.setAttribute('aria-label', node.nodeValue.trim());   // SR always gets the real value
+
+    const r = el.getBoundingClientRect();
+    const onScreen = r.top < innerHeight && r.bottom > 0;
+    if (!io || reduced || onScreen) { run(el); return; }    // already visible: just play it
+
+    node.nodeValue = f.pre + (0).toFixed(f.dec) + f.suf;
+    io.observe(el);
+    // A counter that never fires leaves a FALSE ZERO on screen, which is worse
+    // than no animation at all. If the reader never scrolls it into view, snap
+    // it to the real figure rather than lie.
+    setTimeout(() => { if (!el._done) { io.unobserve(el); run(el); } }, 6000);
+  });
+}
+
 function renderEconomics() {
   const e = state.econ, sec = $('econ-section');
   if (!e) { sec.classList.add('hidden'); return; }
@@ -2231,6 +2315,7 @@ function renderEconomics() {
   }
 
   renderEconTable();
+  armCounters($('econ-section'));
   $('econ-cite').innerHTML =
     'Sources: TEA Summarized PEIMS (fiscal 2009&ndash;2025), TEA/Comptroller certified property values, ' +
     'TEA adopted tax rates, TEA recapture paid by district, TEA Snapshot. ' +
@@ -2439,6 +2524,7 @@ function renderBonds() {
     `<b>Before the next ballot:</b> what is bundled into the proposition, and what it adds to the debt above.`;
 
   renderBondTable(b);
+  armCounters($('bond-section'));
   $('bond-cite').innerHTML =
     `Source: Texas ISD bond election results, ${b.meta.first_year}&ndash;${b.meta.last_year}, ` +
     `${b.meta.propositions.toLocaleString()} decided propositions matched to TEA district numbers at ` +
