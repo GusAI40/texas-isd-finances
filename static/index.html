@@ -40,6 +40,26 @@
     --good: #006300;
     --bad: #c23934;
   }
+  /* Numbers shown AS numbers. Each of these replaced a paragraph — a reader
+     scanning the page should get the finding without reading a sentence. */
+  .stat { display: inline-flex; flex-direction: column; margin: .1rem 1.6rem .4rem 0; vertical-align: top; }
+  .stat b { font-size: 1.75rem; font-weight: 700; letter-spacing: -.02em; line-height: 1.05; color: var(--ink); }
+  .stat i { font-style: normal; font-size: .8rem; color: var(--muted); margin-top: .1rem; }
+  .stat.up b { color: var(--c-debt); }
+  .stat.down b { color: var(--c-teach); }
+  .stat-note { display: inline-block; font-size: .8rem; color: var(--muted); vertical-align: bottom;
+    padding-bottom: .5rem; }
+  .bond-key i.k-yes { width: 11px; height: 11px; border-radius: 50%; background: var(--c-yes); display: inline-block; }
+  .bond-key i.k-no { width: 11px; height: 11px; border-radius: 50%; background: #fff;
+    border: 2px dashed var(--c-focus); display: inline-block; }
+  /* the debt share compared with the state, so "is that a lot?" is answered visually */
+  .vsbar { margin: .6rem 0 0; }
+  .vsbar .row { display: grid; grid-template-columns: 7.5rem 1fr auto; gap: .6rem;
+    align-items: center; margin-bottom: .3rem; font-size: .85rem; }
+  .vsbar .track { background: var(--wash); border-radius: 4px; height: 14px; overflow: hidden; }
+  .vsbar .fill { height: 100%; border-radius: 4px; }
+  .vsbar .lab { color: var(--ink-2); }
+  .vsbar b { font-variant-numeric: tabular-nums; }
   /* Bond story. Storytelling-with-data discipline: grey is the default and
      carries context, one accent carries the point being made, and every chart
      title states the finding rather than naming the topic. */
@@ -2073,11 +2093,9 @@ function renderEconomics() {
   const t = e.tax, a = e.allocation;
   if (t) {
     const keeps = t.bill_on_home - t.leaves_district;
-    $('econ-support').textContent =
-      'School taxes on a ' + money(t.home_value) + ' home here run ' + money(t.bill_on_home) +
-      ' a year' + (t.leaves_district > 0
-        ? ', and ' + money(t.leaves_district) + ' of that leaves the district under recapture.'
-        : '. None of it leaves the district.');
+    $('econ-support').textContent = t.leaves_district > 0
+      ? money(t.leaves_district) + ' of your school tax leaves this district every year.'
+      : 'Every dollar of your school tax stays in this district.';
     $('econ-bill').innerHTML =
       '<h4>Your school tax, on a ' + money(t.home_value) + ' home</h4>' +
       '<div class="econ-big">' + money(t.bill_on_home) + '<span style="font-size:1rem;font-weight:400;color:var(--muted)"> / year</span></div>' +
@@ -2092,8 +2110,7 @@ function renderEconomics() {
       '<div class="econ-sub">Rate ' + t.total_rate.toFixed(4) + ' per $100 &mdash; ' +
       t.mo_rate.toFixed(4) + ' operating, ' + t.is_rate.toFixed(4) + ' debt.</div>';
   } else {
-    $('econ-support').textContent =
-      'This district levies no property tax of its own, so there is no tax bill to show. Everything below still applies.';
+    $('econ-support').textContent = 'A charter district — no property tax, so no bill.';
     $('econ-bill').innerHTML = '<h4>Your school tax</h4><div class="econ-sub">' +
       'Charter districts levy no property tax, so there is no rate and no bill. ' +
       'They are funded through the state formula instead.</div>';
@@ -2119,20 +2136,37 @@ function renderEconomics() {
       ? ' &mdash; the annual debt payment costs what ' + a.teachers_equivalent_of_debt.toLocaleString() +
         ' teacher salaries would.' : '.') + '</div>';
 
+  // Answer "is that a lot?" with a picture instead of a sentence.
+  const Mx = state.econTexas;
+  if (Mx) {
+    const st = Mx.macro.spending[Mx.macro.spending.length - 1];
+    const stShare = st.debt_per_student_real / (st.spend_per_student_real + st.debt_per_student_real) * 100;
+    const myShare = a.debt_per_student / a.total_per_student * 100;
+    const bar = (lab, v, col) =>
+      `<div class="row"><span class="lab">${lab}</span><span class="track">` +
+      `<i class="fill" style="display:block;width:${Math.min(v, 100).toFixed(1)}%;background:${col}"></i></span>` +
+      `<b>${v.toFixed(0)}%</b></div>`;
+    $('econ-alloc').innerHTML += '<div class="vsbar">' +
+      bar('this district', myShare, myShare > stShare ? ECON_C.debt : ECON_C.teach) +
+      bar('Texas', stShare, 'var(--faint)') +
+      '</div><div class="stat-note">share of spending that goes to buildings &amp; debt</div>';
+  }
+
   /* ---- macro: the statewide series ---- */
   const M = state.econTexas;
   if (M) {
     const sp = M.macro.spending.filter(r => r.year >= 2009);
     const f = sp[0], l = sp[sp.length - 1];
     const pct = (a2, b2) => ((b2 / a2 - 1) * 100).toFixed(0);
+    // Three numbers, shown as numbers. The sentence version of this was six lines.
     $('econ-macro-support').innerHTML =
-      'Adjusted for inflation, Texas spends about the same per student as it did in ' + f.year +
-      ' (' + money(f.spend_per_student_real) + ' &rarr; ' + money(l.spend_per_student_real) + ', ' +
-      pct(f.spend_per_student_real, l.spend_per_student_real) + '%). But <b>teaching fell ' +
-      Math.abs(pct(f.instruction_per_student_real, l.instruction_per_student_real)) + '%</b> while <b>debt service rose ' +
-      pct(f.debt_per_student_real, l.debt_per_student_real) + '%</b>. Nominal spending rose ' +
-      pct(f.spend_per_student_nominal, l.spend_per_student_nominal) + '% over the same years &mdash; ' +
-      'the difference is inflation.';
+      '<span class="stat"><b>' + pct(f.spend_per_student_real, l.spend_per_student_real) +
+      '%</b><i>total, after inflation</i></span>' +
+      '<span class="stat down"><b>' + pct(f.instruction_per_student_real, l.instruction_per_student_real) +
+      '%</b><i>teaching</i></span>' +
+      '<span class="stat up"><b>+' + pct(f.debt_per_student_real, l.debt_per_student_real) +
+      '%</b><i>buildings &amp; debt</i></span>' +
+      '<span class="stat-note">since ' + f.year + ', per student</span>';
     $('econ-macro-legend').innerHTML =
       '<span><i style="background:' + ECON_C.other + '"></i>total spending</span>' +
       '<span><i style="background:' + ECON_C.teach + '"></i>teaching</span>' +
@@ -2163,11 +2197,8 @@ function renderEconomics() {
     // an interval that crosses zero must not be re-sorted as if it ranked
     rows.sort((x, y) => y.mid - x.mid);
     $('econ-lever-support').innerHTML =
-      'Each bar is what actually happened when districts changed that lever, measured <b>against themselves</b> over ' +
-      mp.horizon_years + ' years (' + mp.n_windows.toLocaleString() + ' windows across ' +
-      mp.n_districts.toLocaleString() + ' districts). Where the line crosses &ldquo;no effect,&rdquo; ' +
-      'the change bought nothing we can distinguish from zero. For scale, the gap between a low-poverty ' +
-      'and a high-poverty district is about 19 points.';
+      'What happened when districts actually did these things, measured against themselves. ' +
+      '<b>For scale: the gap between a rich and a poor district is 19 points.</b>';
     effectChart($('econ-levers'), rows);
     $('econ-lever-cap').textContent =
       'Change in STAAR percent-at-approaches. Within-district first differences with year effects and ' +
@@ -2179,12 +2210,8 @@ function renderEconomics() {
   const w = e.who_does_better || [], rel = e.reliability;
   if (rel) {
     $('econ-peers-support').innerHTML = w.length
-      ? 'These districts carry your size and your share of students in poverty, and have beaten what their ' +
-        'students&rsquo; circumstances predict for ' + rel.years_measured + ' years running &mdash; not once, reliably ' +
-        '(the measure repeats at r&nbsp;=&nbsp;' + (state.econTexas ? state.econTexas.meta.split_half_reliability : 0.91) +
-        ' across independent years). They are the phone calls worth making.'
-      : 'No district of this size and student need beat expectations more reliably than this one over ' +
-        rel.years_measured + ' years.';
+      ? 'Same size, same poverty &mdash; better results, ' + rel.years_measured + ' years running.'
+      : 'No district of this size and student need does better, over ' + rel.years_measured + ' years.';
     const row = (n, name, st, pv, sc, tn, sp, you) =>
       '<tr' + (you ? ' class="you"' : '') + '><td>' + (you ? '<b>' + name + '</b> &mdash; you'
         : '<a href="/?d=' + n + '">' + name + '</a>') + '</td><td>' + st.toLocaleString() + '</td><td>' +
@@ -2253,8 +2280,8 @@ function bondTimeline(svg, elections) {
   const Y = v => H - m.b - (v / aMax) * (H - m.t - m.b);
   const R = v => 4 + Math.sqrt(Math.max(v, 0) / aMax) * 14;
   let g = '';
-  for (let i = 0; i <= 3; i++) {
-    const v = aMax * i / 3;
+  for (let i = 1; i <= 2; i++) {          // two reference lines is enough to read scale
+    const v = aMax * i / 2;
     g += `<line class="grid" x1="${m.l}" y1="${Y(v).toFixed(1)}" x2="${W - m.r}" y2="${Y(v).toFixed(1)}"/>`
       + `<text class="tick" x="${m.l - 8}" y="${(Y(v) + 3.5).toFixed(1)}" text-anchor="end">${usd(v)}</text>`;
   }
@@ -2270,7 +2297,7 @@ function bondTimeline(svg, elections) {
     g += `<circle class="bond-hit" data-i="${i}" cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" `
       + `r="${Math.max(r, 15).toFixed(1)}" fill="transparent" style="cursor:pointer"/>`;
   });
-  g += `<line class="axis" x1="${m.l}" y1="${H - m.b}" x2="${W - m.r}" y2="${H - m.b}"/>`;
+  // no baseline rule: the gridlines already carry it (Gestalt continuity)
   svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
   svg.innerHTML = g;
   svg.querySelectorAll('.bond-hit').forEach(c => {
@@ -2313,9 +2340,9 @@ function bondPurpose(svg, rows) {
       + `<text class="lbl" x="${(X(r.pass_rate) + 7).toFixed(1)}" y="${y + 10}" ${hi ? `fill="${BOND_C.focus}"` : ''}>`
       + `${Math.round(r.pass_rate)}%</text>`;
   });
-  g += `<line class="axis" x1="${m.l}" y1="${H - m.b + 4}" x2="${X(100).toFixed(1)}" y2="${H - m.b + 4}"/>`
-    + `<text class="tick" x="${m.l}" y="${H - m.b + 18}">0%</text>`
-    + `<text class="tick" x="${X(100).toFixed(1)}" y="${H - m.b + 18}" text-anchor="end">100% approved</text>`;
+  // the bars share a left edge, so alignment anchors them — no axis rule needed
+  g += `<text class="tick" x="${X(100).toFixed(1)}" y="${H - m.b + 14}" text-anchor="end">`
+    + `100% approved</text>`;
   svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
   svg.innerHTML = g;
 }
@@ -2354,20 +2381,15 @@ function renderBonds() {
   const ec = state.econ && state.econ.allocation;
   $('bond-bigidea').textContent =
     'The fastest-growing part of your school tax bill is debt — and you voted for it.';
-  $('bond-lede').innerHTML =
-    (ec ? `Of every dollar ${nm} spends, <b>${usd(ec.debt_per_student)} per student goes to buildings and debt</b> ` +
-          `rather than teaching. ` : '') +
-    'None of that debt was imposed on you. Every dollar of it went on a ballot with a stated purpose, ' +
-    'and someone counted the votes. Here is that record.';
+  $('bond-lede').innerHTML = 'Every dollar of it went on a ballot. Here is the record.';
 
   // BEAT 1
   $('bond-b1-title').textContent =
     `${nm} has asked voters for ${usd(t.asked)} since ${t.first_year}. They approved ${Math.round((t.approved_share || 0) * 100)}% of it.`;
   $('bond-b1-sub').innerHTML =
-    `${t.props} propositions, ${t.passed} carried and ${t.props - t.passed} rejected. ` +
-    `Each circle is one ballot measure &mdash; <b style="color:${BOND_C.yes}">solid blue for approved</b>, ` +
-    `<b style="color:${BOND_C.focus}">dashed outline for rejected</b>, sized by the amount asked. ` +
-    `<b>Hover or tap one</b> to see what it was for and how your neighbours voted.`;
+    `<span class="bond-key"><span><i class="k-yes"></i>${t.passed} approved</span>` +
+    `<span><i class="k-no"></i>${t.props - t.passed} rejected</span>` +
+    `<span class="stat-note">circle size = amount asked &middot; tap one for details</span></span>`;
   bondTimeline($('bond-timeline'), b.elections);
   bondDetail(null);
   $('bond-b1-cap').textContent =
@@ -2379,10 +2401,8 @@ function renderBonds() {
   $('bond-b2-title').textContent =
     `Texans approve classrooms ${Math.round(bld.pass_rate)}% of the time. Stadiums, fewer than half.`;
   $('bond-b2-sub').innerHTML =
-    `Across ${b.meta.propositions.toLocaleString()} propositions since ${b.meta.first_year}, voters are not ` +
-    `indifferent about what they are borrowing for. Athletics is the one category they reject more often than ` +
-    `they approve: <b>${C.stadium.props} propositions naming a stadium specifically passed just ` +
-    `${Math.round(C.stadium.pass_rate)}% of the time.</b>`;
+    `<span class="stat"><b>${Math.round(C.stadium.pass_rate)}%</b><i>of ${C.stadium.props} stadium bonds passed</i></span>` +
+    `<span class="stat-note">${b.meta.propositions.toLocaleString()} propositions since ${b.meta.first_year}</span>`;
   bondPurpose($('bond-purpose'), C.by_purpose);
   $('bond-b2-cap').textContent =
     'Categories with at least 30 propositions. Purpose is free text written by hundreds of districts over 66 years; ' +
@@ -2393,10 +2413,7 @@ function renderBonds() {
   $('bond-b3-title').textContent =
     `Districts asked for more since ${last.start} than in all of the ${prev.start}s — and approval hit a ${b.meta.last_year - b.meta.first_year}-year low.`;
   $('bond-b3-sub').innerHTML =
-    `In ${first.era}, ${Math.round(first.pass_rate)}% of school bonds passed. In ${last.era}, ` +
-    `${Math.round(last.pass_rate)}% did &mdash; while the amount on the ballot rose to ${usd(last.asked)} in just ` +
-    `${last.end - last.start + 1} years. <b>This is the other half of the story your tax bill tells:</b> the state ` +
-    `compressed the operating rate districts control, districts turned to borrowing, and voters started saying no.`;
+    'More asked, less approved. Districts turned to borrowing; voters started saying no.';
   bondEra($('bond-era'), C.by_era);
   $('bond-b3-cap').textContent =
     'Amounts are as asked, not inflation-adjusted — a 1958 dollar and a 2024 dollar are both "asked" but are not ' +
@@ -2407,10 +2424,7 @@ function renderBonds() {
   $('bond-b4-title').textContent =
     'Put a stadium on the ballot by itself and it is a coin flip. Attach it to classrooms and the odds jump — so does the price.';
   $('bond-b4-sub').innerHTML =
-    'This is the single most useful thing to know before your district&rsquo;s next election. Bundling lifts the ' +
-    `pass rate by <b>${Math.round(bund.pass_rate - alone.pass_rate)} points</b> and takes the typical ask from ` +
-    `<b>${usd(alone.median_ask)} to ${usd(bund.median_ask)}</b>. A voter who wants classrooms often cannot vote ` +
-    'for them without also voting for the field house.';
+    'A vote for classrooms is often a vote for the field house too.';
   const card = (h, r, cap, hi) =>
     `<div class="bb${hi ? ' hi' : ''}"><h5>${h}</h5><div class="pct"${hi ? ` style="color:${BOND_C.focus}"` : ''}>` +
     `${Math.round(r.pass_rate)}%</div><div class="cap">${cap}<br>${r.props.toLocaleString()} on the ballot · ` +
@@ -2422,10 +2436,7 @@ function renderBonds() {
 
   // the close: hand the reader something to do
   $('bond-close').innerHTML =
-    `<b>So what?</b> The next time ${nm} puts a bond on the ballot, two questions decide what you are actually ` +
-    `voting on: <b>what is bundled into this proposition</b>, and <b>what it adds to the debt you are already ` +
-    `paying</b>. Both are answerable before you vote — the wording is on the ballot, and the debt is in the ` +
-    `chart above.`;
+    `<b>Before the next ballot:</b> what is bundled into the proposition, and what it adds to the debt above.`;
 
   renderBondTable(b);
   $('bond-cite').innerHTML =
