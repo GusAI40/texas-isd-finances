@@ -98,7 +98,7 @@ To render *production* in a browser (Chromium can't TLS through the agent
 proxy), run `scratchpad/liveproxy.py` and point Playwright at
 `127.0.0.1:8799`.
 
-## Current Status (updated 2026-07-25 — keep this a snapshot, history goes in the log)
+## Current Status (updated 2026-07-27 — keep this a snapshot, history goes in the log)
 
 - ✅ Live in production, all endpoints verified including end-to-end NLP.
 - ✅ Public portal is now the **Texas ISD Financial Resource Guide**: white-minimalist McKinsey/SWD design, penny-of-the-dollar visual, 6 audience lenses, share cards, Methods & citation section, AI disclosure + TAG footer.
@@ -107,11 +107,13 @@ proxy), run `scratchpad/liveproxy.py` and point Playwright at
 - ✅ Guided dollar (hover/tap → peer + state comparison + dollars at stake), zoom ladder, rebuilt landing page with the live statewide dollar, live-figures ticker under the header.
 - ✅ **`/geomap` — the real map**: 1,005 Census TIGER boundaries joined to TEA numbers, coloured by turnover/spending/poverty/beats-prediction, neighbours outlined, "find my district" via in-browser point-in-polygon. No Mapbox, no API key, location never leaves the device. Covers ~92% of students (charters have no boundary).
 - ✅ Three audit rounds + Monte Carlo audit complete (`AUDIT.md`, `docs/AUDIT_SCORECARD.md`); 47 tests green; CI enforces ruff+pytest.
-- 🔴 OPEN: user must rotate credentials pasted into chat on 2026-07-22 (OpenAI/GitHub/Hetzner/Anthropic etc.); OpenAI key in Vercel env needs updating after rotation.
+- 🔴 OPEN: user must rotate credentials pasted into chat on 2026-07-22 and 2026-07-25 (OpenAI/GitHub/Hetzner/Anthropic etc.); OpenAI key in Vercel env needs updating after rotation.
 - 🟡 OPEN hardening: read-only DB role for NLP is the last one left; 518 KB `/geomap` payload on mobile; PR #2 awaiting user review (do not merge).
 - ✅ **Bond story** — `/district/{id}/bonds` + `/bonds/texas` from `static/bond_data.json`. 4,588 decided propositions 1958–2024, 911 districts, 96.8% name-matched. **The ballot is the only public record of what school debt was FOR** — TEA does not itemise facilities. Four-beat narrative on the district page. `scripts/build_bond_data.py`. **Never ingest the two companion CSVs — they carry a vendor's CRM (named reps, revenue, commissions).**
 - ✅ **Economics layer** — `/district/{id}/economics` + `/economics/texas`, served from `static/economics_data.json` (no DB). What you pay (tax bill on a $300k home, what leaves under recapture), where it goes (teaching vs buildings vs debt — **debt sits OUTSIDE TEA's operating total, compose don't subtract**), what each lever actually bought (within-district first differences, 3-yr, clustered SEs), and who does better (matched persistent outperformers). `scripts/ingest_tea_property.py` + `scripts/build_economics_data.py`.
 - ✅ **All of the above is LIVE** (deployed 2026-07-26): security headers, `/query` threadpool+timeout+global cap, table twins, property/tax/recapture ingest, economics layer.
+- ⏭️ NEXT: bake outcomes in as the **spine** (every money fact ends in what it bought, with an error bar) — first the bond→outcome test on the district page; then the **HISD board-of-managers analysis** (did the 2023 takeover change results vs matched districts?); then the **TAPR campus file** for teacher certification.
+- 📌 Measured so far, all within-district: spending +0.08 pts (CI crosses zero), buildings −0.57 (crosses zero), teacher pay +0.48, class size +0.59, turnover +0.43. The large thing is a **20.2-pt persistent district effect, 77% unexplained**.
 - 🟡 WATCH: Supabase free tier pauses after ~7 days idle → portal shows "database not connected" until woken in dashboard. Vercel Hobby is non-commercial; upgrade both if pursuing revenue.
 
 ## Key docs

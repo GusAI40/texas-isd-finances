@@ -17,6 +17,103 @@ Entry template:
 
 ---
 
+## 2026-07-27 — The bond story shipped, and the question it forced: does any of this buy results?
+
+**What changed:** commit `ca1c943`, deployed and verified live on
+https://txisd.dev.
+
+- `scripts/build_bond_data.py` -> `static/bond_data.json` (981 KB, committed).
+  4,588 decided propositions 1958-2024, 911 districts, 96.8% name-matched to
+  TEA numbers. Source: a user-supplied export of Texas ISD bond election
+  results, staged as `data/texas_bond_elections.csv` (gitignored; the script
+  rebuilds from it).
+- `/district/{id}/bonds` and `/bonds/texas`, both serving with no database.
+- A four-beat narrative section on the district page, built to
+  storytelling-with-data discipline rather than as a chart dump: every chart
+  title states the FINDING, grey carries context and one accent carries the
+  argument, and the pass/fail read never depends on colour alone (filled vs
+  dashed outline). Interactive timeline — hover or tap any circle for that
+  ballot's purpose, amount and vote.
+- 47 tests.
+
+**Why this data matters more than its size suggests:** we had documented, in
+`docs/DATA_ROADMAP.md` and in the economics payload's own limits, that TEA does
+not itemise facilities and therefore a stadium cannot be separated from a roof
+without district bond documents. **The ballot closes that gap.** Every dollar
+of Texas school debt passed through an election with a stated purpose and a
+recorded vote. It is the only public record of what school debt was FOR.
+
+**The findings (all live on the page):**
+- Texans approve classrooms 74% of the time. Athletics is the only category
+  they reject more often than they approve; the 145 propositions naming a
+  **stadium** specifically pass just **48%** of the time.
+- **Bundling works.** Athletics alone passes 54.2%; bundled with classrooms,
+  63.8% — and the typical ask goes from **$6M to $22M**. A voter who wants
+  classrooms often cannot vote for them without also voting for the field house.
+- **The demand side of the debt rise we already measured:** districts asked for
+  **$120.5B in 2020-24**, more than in all of the 2010s ($89.2B), while approval
+  fell from 86.8% (1958-99) to **63.2%** — a 66-year low. That is the other half
+  of the +72% I&S rate rise in the economics layer.
+
+**The analysis that closes the loop (run, NOT yet on the page):** does passing
+the bond change results? 710 bonds, 484 districts, each district compared to
+ITSELF — the residual-vs-need 2-4 years after the vote against the 3 years
+before. Passed: **-0.32 pts**. Rejected: **+0.24 pts**. Difference **-0.57,
+p=0.214** — indistinguishable from zero. Large bonds (>$20k/student): -0.34.
+Athletics bonds that passed: -0.19. Buildings do not move test scores. The
+caveat that must ship with it: a bond in a growing district buys SEATS, not
+scores, and safety and roofs are real goods STAAR cannot see.
+
+Taken with the economics layer, every money lever we can measure now lands in
+the same place: spending +0.08 (CI crosses zero), buildings -0.57 (crosses
+zero), teacher pay +0.48. What is large is the 20.2-point persistent
+between-district effect that is **77% unexplained** by anything TEA publishes
+at district level.
+
+**Gotchas:**
+- **21.5% of bond records carry a vote tally under 20** — a $40M bond recorded
+  as "1 for, 0 against". Those are placeholders, not turnout. Printing them
+  would have put an obviously false number in front of a reader. Fixed at the
+  SOURCE (`MIN_PLAUSIBLE_VOTES = 20`, tally suppressed, `votes_reported` flag,
+  limit stated in the payload); the carried/defeated result is unaffected and
+  is kept. A test pins it.
+- **Propositions bundle**, so athletics dollars include classrooms sold
+  alongside. Both the bundled and athletics-alone figures ship; a test asserts
+  the payload says "upper bound".
+- `df.itertuples()` cannot expose columns whose names contain spaces
+  ("Votes For"), which fails at runtime, not at import. Use `iterrows()` or
+  rename first.
+- **`loadDashboard()` swallows every render exception** in its outer
+  `catch {}`, so a broken render leaves the section silently hidden with no
+  page error. When a section will not appear, call its render function directly
+  from the console before assuming the data is missing — the data was fine both
+  times this happened.
+- The local design harness proxies DB endpoints to the live site and is flaky
+  on a cold start; a run showing everything empty is often just that. Re-run
+  before debugging.
+
+**Do not ingest the two companion bond files.** They carry a vendor's CRM —
+17 named sales representatives, per-district revenue, commission percentages.
+The bond and TEA columns in them are public; the commercial columns must never
+reach an MIT-licensed public repo. Only `..._Bond_Results_All.csv` is used.
+
+**Open items:**
+- 🔴 **Rotate the three PATs** (Vercel/Supabase/GitHub) — pasted in chat twice
+  now, 2026-07-22 and 2026-07-25. The Vercel one was used for two deploys this
+  session and shredded after each; `.vercel/` and `.env.local` removed.
+- ⏭️ **Bake outcomes in as the spine, not a section.** Every money fact should
+  terminate in what it bought, with an error bar. First build: put the
+  bond→outcome test on the district page under the timeline.
+- ⏭️ **The HISD board-of-managers test** — did the 2023 TEA takeover change
+  outcomes, against matched districts? Biggest education story in Texas,
+  directly testable with data already loaded, and unpublished.
+- ⏭️ **TAPR campus file** — teacher certification status is the sharpest test
+  of our own finding that stability beats pay, and 77% of what makes a district
+  work is invisible above campus level.
+- 🟡 Read-only DB role for NLP; 1.6 MB `economics_data.json`; 518 KB `/geomap`.
+
+---
+
 ## 2026-07-26 — Deployed. And the two Vercel traps that nearly sent it to the wrong place
 
 **What changed:** everything from `fc294cd` through `c6be292` is now LIVE on
