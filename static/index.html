@@ -694,6 +694,31 @@
     </section>
 
 
+
+    <hr class="rule">
+    <section id="equity-section" class="hidden">
+      <div class="eyebrow">Who this district works for</div>
+      <h2 class="action" id="eq-title"></h2>
+      <p class="support" id="eq-sub"></p>
+
+      <div class="econ-grid">
+        <div class="econ-card" id="eq-head"></div>
+        <div class="econ-card" id="eq-subject"></div>
+      </div>
+
+      <figure class="econ-fig">
+        <div class="chartwrap"><svg id="eq-bars" role="img" aria-labelledby="eq-cap"></svg></div>
+        <figcaption id="eq-cap" class="cite"></figcaption>
+      </figure>
+
+      <h3 class="econ-h">Districts getting the most out of the same students</h3>
+      <p class="support" id="eq-leaders-sub"></p>
+      <div class="econ-peers" id="eq-leaders"></div>
+
+      <p class="econ-note" id="eq-trap"></p>
+      <div class="cite" id="eq-cite"></div>
+    </section>
+
     <hr class="rule">
     <section id="bond-section" class="hidden">
       <div class="eyebrow">The debt you voted for</div>
@@ -1051,7 +1076,7 @@ const titleCase = s => (s || '').toLowerCase()
 const state = { district: null, summary: [], benchmarks: [], peers: null, flags: [], breakdown: [],
                 metric: 'spend', compare: null, compareSummary: [], lens: 'parent',
                 dollar: null, dollarPin: null, dollarHover: null, outcomes: null, txDollar: null,
-                econ: null, econTexas: null, bonds: null };
+                econ: null, econTexas: null, bonds: null, equity: null };
 
 /* ===== The dollar: every dollar the district spends, as 100 pennies =====
    Shares, peer/statewide medians and dollars-at-stake all come from
@@ -1668,7 +1693,7 @@ async function selectDistrict(num, name) {
   state.district = { num, name };
   state.compare = null; state.compareSummary = [];
   state.dollar = null; state.dollarPin = null; state.dollarHover = null; state.outcomes = null;
-  state.econ = null; state.bonds = null;
+  state.econ = null; state.bonds = null; state.equity = null;
   $('results').innerHTML = ''; $('search').value = '';
   document.documentElement.classList.add('has-district');
   await loadDashboard();
@@ -1687,7 +1712,7 @@ async function loadDashboard() {
   if (!d) return;
   $('dash').classList.remove('hidden');
   try {
-    const [summary, peers, flags, breakdown, turnarounds, detail, insights, dollar, outcomes, econ, bonds] = await Promise.all([
+    const [summary, peers, flags, breakdown, turnarounds, detail, insights, dollar, outcomes, econ, bonds, equity] = await Promise.all([
       api('/district/' + encodeURIComponent(d.num) + '/summary'),
       api('/district/' + encodeURIComponent(d.num) + '/peers'),
       api('/anomalies?district_number=' + encodeURIComponent(d.num) + '&limit=50'),
@@ -1699,6 +1724,7 @@ async function loadDashboard() {
       api('/district/' + encodeURIComponent(d.num) + '/outcomes').catch(() => null),
       api('/district/' + encodeURIComponent(d.num) + '/economics').catch(() => null),
       api('/district/' + encodeURIComponent(d.num) + '/bonds').catch(() => null),
+      api('/district/' + encodeURIComponent(d.num) + '/equity').catch(() => null),
     ]);
     // The name may be a placeholder when arriving from a shared ?d= link.
     const realName = summary.find(r => r.district_name)?.district_name;
@@ -1708,7 +1734,7 @@ async function loadDashboard() {
     }
     state.summary = summary; state.peers = peers; state.flags = flags; state.breakdown = breakdown;
     state.turnarounds = turnarounds; state.detail = detail; state.insights = insights;
-    state.dollar = dollar; state.outcomes = outcomes; state.econ = econ; state.bonds = bonds;
+    state.dollar = dollar; state.outcomes = outcomes; state.econ = econ; state.bonds = bonds; state.equity = equity;
     renderAll();
     // Built here rather than inside renderAll: that function's exceptions are
     // swallowed by the catch below, so anything throwing late in it silently
@@ -1719,7 +1745,7 @@ async function loadDashboard() {
 }
 function renderAll() {
   renderTicker();
-  renderExec(); renderDollar(); renderOutcomes(); renderEconomics(); renderBonds(); renderInsights(); renderKPIs(); renderTrend(); renderPeers();
+  renderExec(); renderDollar(); renderOutcomes(); renderEconomics(); renderEquity(); renderBonds(); renderInsights(); renderKPIs(); renderTrend(); renderPeers();
   renderMoney(); renderFlags(); renderObject(); renderProgram(); renderTurnarounds();
   ['kpi-cite', 'trend-cite', 'peers-cite', 'flags-cite'].forEach(c => cite(c));
   cite('money-cite', 'function-code groupings listed under Disclaimer');
@@ -2220,6 +2246,7 @@ function armCounters(root) {
    chip pointing at an empty section. */
 const NAV_LABELS = {
   'kpi-section': 'Overview', 'dollar-section': 'Your dollar',
+  'equity-section': 'Who it works for',
   'outcomes-section': 'What it buys', 'econ-section': 'What you pay',
   'bond-section': 'Bonds you voted on', 'insights-section': 'What to do',
   'trend-section': 'Trends', 'peers-section': 'Peers',
@@ -2286,6 +2313,107 @@ addEventListener('keydown', ev => {
   const next = btns[Math.min(Math.max(i + dir, 0), btns.length - 1)];
   if (next) { next.click(); ev.preventDefault(); }
 });
+
+/* ===== Who the district works for =========================================
+   A district average hides who it is failing. The headline here is how the
+   district's economically disadvantaged students do — NOT the poor/non-poor
+   gap, which correlates about zero with how well poor students actually do
+   because the narrowest gaps belong to districts where nobody does well. */
+function eqBars(svg, rows) {
+  const W = 620, rowH = 44, m = { t: 10, r: 20, b: 26, l: 168 };
+  const H = m.t + rows.length * rowH + m.b;
+  const X = v => m.l + v / 100 * (W - m.l - m.r);
+  let g = '';
+  rows.forEach((r, i) => {
+    const y = m.t + i * rowH + 12;
+    g += `<text x="${m.l - 12}" y="${y + 11}" text-anchor="end" ${r.hi ? 'class="lbl"' : 'class="tick"'}>${r.label}</text>`
+      + `<rect x="${m.l}" y="${y}" width="${(X(r.value) - m.l).toFixed(1)}" height="14" rx="4" fill="${r.color}"/>`
+      + `<text class="lbl" x="${(X(r.value) + 8).toFixed(1)}" y="${y + 12}" fill="${r.hi ? r.color : 'var(--ink-2)'}">${r.value}%</text>`;
+  });
+  g += `<text class="tick" x="${m.l}" y="${H - 8}">0%</text>`
+    + `<text class="tick" x="${X(100).toFixed(1)}" y="${H - 8}" text-anchor="end">100% meeting grade level</text>`;
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  svg.innerHTML = g;
+}
+
+function renderEquity() {
+  const e = state.equity, sec = $('equity-section');
+  if (!e) { sec.classList.add('hidden'); return; }
+  sec.classList.remove('hidden');
+  const nm = state.district.name, st = e.state, p = e.poor;
+  const ord = n => n + (n % 10 === 1 && n % 100 !== 11 ? 'st' : n % 10 === 2 && n % 100 !== 12 ? 'nd'
+    : n % 10 === 3 && n % 100 !== 13 ? 'rd' : 'th');
+
+  $('eq-title').textContent =
+    `${p.meets}% of ${nm}'s low-income students meet grade level. Statewide it is ${st.poor_meets}%.`;
+  $('eq-sub').innerHTML =
+    `That places them in the <b>${ord(p.percentile)} percentile</b> among Texas districts, ` +
+    `on ${p.tests.toLocaleString()} tests.` +
+    (e.poor_change != null
+      ? ` ${e.poor_change > 0 ? 'Up' : e.poor_change < 0 ? 'Down' : 'Flat'} ` +
+        `${Math.abs(e.poor_change)} point${Math.abs(e.poor_change) === 1 ? '' : 's'} on last year.` : '');
+
+  const better = p.meets >= st.poor_meets;
+  $('eq-head').innerHTML =
+    '<h4>Low-income students meeting grade level</h4>' +
+    `<div class="econ-big" style="color:${better ? ECON_C.teach : ECON_C.debt}">${p.meets}%</div>` +
+    `<div class="econ-sub">${ord(p.percentile)} percentile of ${st.districts_ranked.toLocaleString()} ` +
+    `districts · ${p.tests.toLocaleString()} tests</div>`;
+
+  const bs = e.poor_by_subject || {};
+  $('eq-subject').innerHTML =
+    '<h4>Where the shortfall sits</h4>' +
+    (bs.reading != null && bs.math != null
+      ? `<div class="econ-legend" style="margin:.2rem 0 .4rem">` +
+        `<span><i style="background:${ECON_C.teach}"></i>reading ${bs.reading}%</span>` +
+        `<span><i style="background:${ECON_C.debt}"></i>maths ${bs.math}%</span></div>` +
+        `<div class="econ-sub">Statewide, low-income students reach ` +
+        `${e.state_by_subject['Reading/Language Arts']}% in reading and ` +
+        `${e.state_by_subject['Mathematics']}% in maths &mdash; ` +
+        `<b>maths is the harder problem everywhere.</b></div>`
+      : '<div class="econ-sub">Subject detail is not reported for this district.</div>');
+
+  const rows = [
+    { label: 'low-income students here', value: p.meets, color: better ? ECON_C.teach : ECON_C.debt, hi: true },
+    { label: 'low-income, statewide', value: st.poor_meets, color: 'var(--faint)' },
+  ];
+  if (e.not_poor_meets != null) {
+    rows.push({ label: 'everyone else here', value: e.not_poor_meets, color: 'var(--faint)' });
+  }
+  for (const [k, lab] of [['emergent_bilingual', 'learning English'], ['special_ed', 'special education']]) {
+    const o = (e.other_groups || {})[k];
+    if (o) rows.push({ label: lab + ' here', value: o.meets, color: 'var(--faint)' });
+  }
+  eqBars($('eq-bars'), rows);
+  $('eq-cap').textContent =
+    `SY ${e.year}, TEA Meets grade level, all subjects. Groups with fewer than ${e.meta.min_tests} ` +
+    `tests are not shown. "Economically disadvantaged" is TEA's category and is a blunt proxy.`;
+
+  $('eq-leaders-sub').innerHTML =
+    'Ranked on how their low-income students do &mdash; not on the size of their gap.';
+  $('eq-leaders').innerHTML =
+    '<table><thead><tr><th>District</th><th>Low-income students meeting grade level</th><th>Tests</th></tr></thead><tbody>' +
+    e.leaders.slice(0, 8).map(l =>
+      `<tr><td><a href="/?d=${l.district_number}">${titleCase(l.district_name)}</a></td>` +
+      `<td>${l.poor_meets}%</td><td>${l.tests.toLocaleString()}</td></tr>`).join('') +
+    `<tr class="you"><td><b>${nm}</b> &mdash; you</td><td>${p.meets}%</td>` +
+    `<td>${p.tests.toLocaleString()}</td></tr></tbody></table>`;
+
+  // Say why we do not rank on the gap, using the number that proves it.
+  $('eq-trap').innerHTML =
+    `<b>Why not rank on the gap?</b> Because it does not tell you what it looks like it tells you. ` +
+    `Across Texas the poor/non-poor gap correlates <b>${st.gap_vs_level_correlation}</b> with how well ` +
+    `low-income students actually do &mdash; essentially nothing. The 30 narrowest-gap districts average ` +
+    `<b>${st.narrowest_gap_districts_poor_meets}%</b> for low-income students, against ` +
+    `${st.poor_meets}% statewide: closing the gap picks out districts that are merely average for poor ` +
+    `children, because a gap narrows just as easily when the top comes down as when the bottom comes up.` +
+    (e.gap != null ? ` For the record, this district's gap is ${e.gap} points.` : '');
+
+  $('eq-cite').innerHTML =
+    `Source: TEA District STAAR Performance, all grades, SY ${e.year}. Reported at <b>Meets grade level</b>, ` +
+    `TEA's middle bar &mdash; not the lower &ldquo;Approaches&rdquo;.`;
+  armCounters(sec);
+}
 
 function renderEconomics() {
   const e = state.econ, sec = $('econ-section');

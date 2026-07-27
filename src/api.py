@@ -171,6 +171,8 @@ async def api_info():
             "texas_economics": "GET /economics/texas",
             "district_bonds": "GET /district/{district_number}/bonds",
             "texas_bonds": "GET /bonds/texas",
+            "district_equity": "GET /district/{district_number}/equity",
+            "texas_equity": "GET /equity/texas",
             "anomalies": "GET /anomalies",
             "sample_queries": "GET /sample-queries",
             "stats": "GET /stats",
@@ -1091,6 +1093,58 @@ async def get_texas_bonds():
     if data is None:
         raise HTTPException(status_code=503,
                             detail="Bond data not built. Run scripts/build_bond_data.py")
+    return {k: v for k, v in data.items() if k != "districts"}
+
+
+_equity_cache: Optional[Dict[str, Any]] = None
+
+
+def _equity() -> Optional[Dict[str, Any]]:
+    global _equity_cache
+    if _equity_cache is None:
+        path = STATIC_DIR / "equity_data.json"
+        if not path.exists():
+            return None
+        with path.open() as fh:
+            _equity_cache = json.load(fh)
+    return _equity_cache
+
+
+@app.get("/district/{district_number}/equity", tags=["Districts"])
+async def get_district_equity(district_number: str):
+    """How this district does for the students it actually serves.
+
+    A district average hides who it is failing. This reports how the district's
+    economically disadvantaged students do at TEA's Meets grade level bar, and
+    where that places them among poor students statewide — plus the same for
+    emergent bilingual and special education students, the reading/maths split,
+    and the change since last year.
+
+    The poor/non-poor gap is included but is deliberately NOT the headline: it
+    correlates about zero with how well poor students actually do, because the
+    narrowest gaps belong to districts where nobody does well.
+    """
+    data = _equity()
+    if data is None:
+        raise HTTPException(status_code=503,
+                            detail="Equity data not built. Run scripts/build_equity_data.py")
+    rec = data["districts"].get(district_number)
+    if rec is None:
+        raise HTTPException(
+            status_code=404,
+            detail="This district does not have enough tests from economically "
+                   "disadvantaged students to report a reliable figure.")
+    return {"meta": data["meta"], "state": data["state"],
+            "state_by_subject": data["state_by_subject"], "leaders": data["leaders"], **rec}
+
+
+@app.get("/equity/texas", tags=["Statewide"])
+async def get_texas_equity():
+    """Statewide results by student group, and who does best for poor students."""
+    data = _equity()
+    if data is None:
+        raise HTTPException(status_code=503,
+                            detail="Equity data not built. Run scripts/build_equity_data.py")
     return {k: v for k, v in data.items() if k != "districts"}
 
 

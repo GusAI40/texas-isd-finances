@@ -323,6 +323,43 @@ def test_hero_credentials_match_the_data(client):
         assert span == 17, f"finance data spans {span} years; the hero says 17"
 
 
+def test_equity_headlines_the_level_not_the_gap(client):
+    """Ranking districts on the poor/non-poor gap is the obvious feature and it
+    is wrong: the gap correlates about zero with how well poor students
+    actually do, because a gap narrows just as easily when the top falls as
+    when the bottom rises. The payload must headline the LEVEL and must publish
+    the evidence for that choice rather than assert it."""
+    res = client.get("/equity/texas")
+    if res.status_code == 503:
+        pytest.skip("equity_data.json not built in this checkout")
+    body = res.json()
+    st = body["state"]
+    assert abs(st["gap_vs_level_correlation"]) < 0.25, \
+        "if the gap ever did predict outcomes, this design decision needs revisiting"
+    assert any("NOT the" in x and "gap" in x for x in body["meta"]["limits"])
+    # leaders are ranked on how poor students do, so the list must descend on it
+    poor = [x["poor_meets"] for x in body["leaders"]]
+    assert poor == sorted(poor, reverse=True)
+    assert all(x["tests"] >= 2000 for x in body["leaders"]), "leaders must not be noise"
+
+
+def test_equity_reports_meets_and_flags_thin_cells(client):
+    """Results are at Meets, and a district-group cell built on a handful of
+    children is not published at all."""
+    res = client.get("/district/227901/equity")
+    if res.status_code == 503:
+        pytest.skip("equity_data.json not built in this checkout")
+    b = res.json()
+    assert b["meta"]["bar"] == "Meets grade level"
+    assert b["poor"]["tests"] >= b["meta"]["min_tests"]
+    # Meets sits between Masters and Approaches for the same students
+    p = b["poor"]
+    if p["approaches"] is not None and p["masters"] is not None:
+        assert p["masters"] <= p["meets"] <= p["approaches"]
+    assert 0 <= p["percentile"] <= 100
+    assert client.get("/district/999999/equity").status_code == 404
+
+
 def test_maps_ship_a_table_twin():
     """Both maps draw to a canvas, which no keyboard or screen reader can enter.
     Each must publish the same data as a real table. The styles alone once
