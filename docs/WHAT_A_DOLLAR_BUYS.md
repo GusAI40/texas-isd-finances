@@ -76,6 +76,38 @@ part of the result that student need does *not* already explain?
 | Average teacher salary | +0.066 | 0.86% |
 | **Spending per student** | −0.077 | **0.01%** |
 
+> ### Correction (2026-07-27) — the wrong bar was being reported
+>
+> Everything below originally used TEA's **"Approaches grade level"** bar. That
+> is the lowest of three, and it is not grade level. Statewide in SY 2024-25:
+> **74.2%** reach Approaches, **46.5%** reach **Meets**, 17.6% Masters. A reader
+> told "74%" hears "at grade level," so the portal now reports **Meets**
+> throughout.
+>
+> This was not only a labelling problem. Scoring districts on Approaches rather
+> than Meets moves **35 of the top 100** "reliably beats expectations"
+> districts, so modelling one bar while displaying another would have named
+> outperformers on a measure nobody sees. Meets begins in 2018, costing five
+> years of span, and costs nothing in reliability: split-half r = **0.913**
+> against 0.910. The need model also fits better on Meets (**50.1%** of the
+> spread explained, against 42.3%).
+>
+> **The effect sizes changed with the bar, and so did the ranking.** Re-measured
+> at Meets over 3,538 three-year windows in 1,193 districts:
+>
+> | Change a district made over 3 years | Effect on % Meeting grade level | 95% CI |
+> |---|---:|---|
+> | Raise average teacher pay $5,000 | **+0.86** | +0.48 to +1.23 |
+> | Shift 5% more of budget to teaching | +0.42 | −0.11 to +0.94 (crosses zero) |
+> | Cut class size by 2 students | +0.37 | +0.20 to +0.55 |
+> | Cut teacher turnover by 10 points | +0.30 | −0.06 to +0.65 (crosses zero) |
+> | **Spend $2,000 more per student** | **+0.15** | **−0.04 to +0.33 (crosses zero)** |
+>
+> The headline holds — money still buys nothing measurable — but **teacher pay
+> is now the largest identifiable lever, and turnover no longer separates from
+> zero.** The earlier correction below overstated turnover for a second reason:
+> it was measured on the wrong bar.
+
 > ### Correction (2026-07-26) — this table describes, it does not forecast
 >
 > Everything in the table above compares **different districts to each other**.

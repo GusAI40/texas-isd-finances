@@ -576,8 +576,8 @@
       <span><b id="proof-sources">6</b><i>official sources</i></span>
     </div>
     <p class="hero-why" id="hero-why"><b>Why it matters:</b> your school taxes are the largest line on most
-      Texas property bills. This shows what yours buys, and the finding that surprised us: <b>spending $2,000 more per student changed results by 0.08 points, too small to tell apart from
-      zero.</b> What does move results is in here too.</p>
+      Texas property bills. This shows what yours buys, and the finding that surprised us: <b>spending $2,000 more per student changed results by 0.15 points — too small to
+      tell apart from zero.</b> What does move them is in here too.</p>
     <div class="credential" id="credential"></div>
     <div class="hero-row">
       <div class="finder">
@@ -1300,7 +1300,7 @@ function tickerItems() {
   }
   const L = o?.meta?.lever_strength;
   if (L) {
-    t.push(`<span class="who">Statewide finding</span>Spending $2,000 more per student changed results by <b class="dn">+0.08 points</b> — too small to tell apart from zero`);
+    t.push(`<span class="who">Statewide finding</span>Spending $2,000 more per student changed results by <b class="dn">+0.15 points</b> — too small to tell apart from zero`);
     t.push(`<span class="who">Statewide finding</span>Whether experienced teachers stay predicts results better than the size of the budget`);
   }
   const sm = o?.meta?.state_medians;
@@ -1389,7 +1389,7 @@ function renderOutcomes() {
   }).join('');
 
   // --- the measures that actually move results ---
-  const order = ['teacher_turnover_pct', 'teacher_avg_experience', 'test_all_approaches',
+  const order = ['teacher_turnover_pct', 'teacher_avg_experience', 'test_all_meets',
                  'attendance_rate', 'grad_rate_4yr', 'avg_teacher_salary', 'students_per_teacher'];
   $('outcomes-drivers').innerHTML = order.filter(k => o.measures[k]).map(k => {
     const [val, peer] = o.measures[k], def = M[k];
@@ -2389,9 +2389,14 @@ function renderEconomics() {
   /* ---- what each lever bought ---- */
   const mp = e.micro && e.micro.marginal_product;
   if (mp) {
-    const E = mp.effects, S = (k, mult) => ({
-      mid: E[k].per_unit * mult, lo: E[k].ci_low * mult, hi: E[k].ci_high * mult,
-    });
+    // A NEGATIVE multiplier (cutting turnover, cutting class size) flips the
+    // interval: ci_low * -10 becomes the upper bound. Without re-sorting, the
+    // "does it cross zero" test silently fails and an effect that cannot be
+    // told apart from zero is drawn as though it were solid.
+    const E = mp.effects, S = (k, mult) => {
+      const a = E[k].ci_low * mult, b = E[k].ci_high * mult;
+      return { mid: E[k].per_unit * mult, lo: Math.min(a, b), hi: Math.max(a, b) };
+    };
     const rows = [
       Object.assign({ label: 'Spend $2,000 more per student' }, S('operating_per_pupil', 2000)),
       Object.assign({ label: 'Raise average teacher pay $5,000' }, S('avg_teacher_salary', 5000)),
@@ -2403,10 +2408,11 @@ function renderEconomics() {
     rows.sort((x, y) => y.mid - x.mid);
     $('econ-lever-support').innerHTML =
       'What happened when districts actually did these things, measured against themselves. ' +
-      '<b>For scale: the gap between a rich and a poor district is 19 points.</b>';
+      '<b>Measured at <b>Meets grade level</b>, not the lower &ldquo;Approaches&rdquo; bar. For scale: the gap between a rich and a poor district is 19 points.</b>';
     effectChart($('econ-levers'), rows);
     $('econ-lever-cap').textContent =
-      'Change in STAAR percent-at-approaches. Within-district first differences with year effects and ' +
+      'Change in the percentage of students MEETING grade level — TEA\'s middle bar, not the lowest. '
+      + 'Within-district first differences with year effects and ' +
       'standard errors clustered by district; test-standard changes excluded. Observational, not an experiment: ' +
       'this removes everything about a district that does not change, but not something that changed at the same time.';
   }

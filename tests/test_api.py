@@ -260,6 +260,52 @@ def test_bond_athletics_is_reported_as_an_upper_bound(client):
     assert b["athletics_with_buildings"]["pass_rate"] > b["athletics_alone"]["pass_rate"]
 
 
+def test_results_are_reported_at_the_meets_bar_not_approaches(client):
+    """TEA publishes three bars. 74% of Texas students reach "Approaches", 46%
+    reach "Meets", 18% "Masters". A parent told 74% hears "at grade level",
+    which Approaches is not, so the portal must report Meets. This is a
+    correction to something that shipped, and it must not silently regress."""
+    from pathlib import Path
+
+    res = client.get("/district/043905/outcomes")
+    if res.status_code == 503:
+        pytest.skip("outcomes_data.json not built in this checkout")
+    body = res.json()
+    measures = body["measures"]
+    # All three bars ship, so a reader can see the lower one too — but MEETS
+    # must be the bar the expectation model scores against.
+    assert "test_all_meets" in measures
+    assert body["expectation"]["actual"] == measures["test_all_meets"][0], \
+        "the district is scored against Meets, not Approaches"
+    # Meets is the middle bar, so it must be lower than Approaches for the
+    # same district — if this flips, the two have been swapped somewhere.
+    if "test_all_approaches" in measures:
+        assert measures["test_all_meets"][0] <= measures["test_all_approaches"][0]
+
+    # and the page must not quietly go back to driving off Approaches
+    page = Path("static/index.html").read_text()
+    assert "test_all_approaches" not in page
+    assert "percent-at-approaches" not in page
+
+
+def test_negative_scaling_keeps_intervals_ordered(client):
+    """The page scales effects for display: "cut turnover by 10" multiplies the
+    per-unit effect by -10, which FLIPS the confidence interval. If the bounds
+    are not re-sorted, the "crosses zero" test fails and an effect that cannot
+    be told apart from zero is drawn as solid. This shipped once."""
+    from pathlib import Path
+
+    res = client.get("/economics/texas")
+    if res.status_code == 503:
+        pytest.skip("economics_data.json not built in this checkout")
+    e = res.json()["micro"]["marginal_product"]["effects"]["teacher_turnover_pct"]
+    lo, hi = sorted([e["ci_low"] * -10, e["ci_high"] * -10])
+    assert lo <= e["per_unit"] * -10 <= hi
+    # the page must re-sort rather than assume ci_low stays the lower bound
+    page = Path("static/index.html").read_text()
+    assert "Math.min(a, b)" in page and "Math.max(a, b)" in page
+
+
 def test_maps_ship_a_table_twin():
     """Both maps draw to a canvas, which no keyboard or screen reader can enter.
     Each must publish the same data as a real table. The styles alone once

@@ -81,7 +81,17 @@ BASE = CPI[2024]
 HOME_VALUE = 300_000
 
 NEED = ["pct_econ_disadv", "pct_emergent_bilingual", "pct_special_ed"]
-OUTCOME = "test_all_approaches"
+# "Approaches grade level" is the LOWEST of TEA's three bars and the portal
+# used to report it: 74.2% of Texas students reach Approaches, 46.5% reach
+# Meets, 17.6% reach Masters. A parent told "74%" hears "at grade level", which
+# Approaches is not. Everything here uses MEETS.
+#
+# This is not only a labelling change. Scoring districts on Approaches versus
+# Meets moves 35 of the top 100 "reliably beats expectations" districts, so
+# modelling one bar while displaying another would name outperformers on a
+# measure the reader never sees. Meets costs five years of span (it begins in
+# 2018) and costs nothing in reliability: split-half r = 0.913 against 0.910.
+OUTCOME = "test_all_meets"
 
 
 def title_case(name: str) -> str:

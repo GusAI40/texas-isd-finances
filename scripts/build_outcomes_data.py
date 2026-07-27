@@ -76,7 +76,9 @@ MEASURES = {
     "students_per_teacher":  ("Students per teacher", False, ""),
     "attendance_rate":       ("Attendance rate", True, "%"),
     "grad_rate_4yr":         ("4-year graduation rate", True, "%"),
-    "test_all_approaches":   ("STAAR at/above grade level", True, "%"),
+    "test_all_meets":        ("STAAR at grade level (Meets)", True, "%"),
+    "test_all_approaches":   ("STAAR at/above the lowest bar (Approaches)", True, "%"),
+    "test_all_masters":      ("STAAR mastering grade level (Masters)", True, "%"),
 }
 
 
@@ -106,14 +108,14 @@ def main() -> int:
     df = df[df["enrollment"].fillna(0) > 0].copy()
     df["spend_per_student"] = df["operating_spend"] / df["enrollment"]
 
-    year = int(df[df["test_all_approaches"].notna()]["year"].max())
+    year = int(df[df["test_all_meets"].notna()]["year"].max())
     cur = df[df["year"] == year].set_index("district_number")
     print(f"Latest year with results: {year}  ({len(cur):,} districts)")
 
     # --- expectation model: what does this student population predict? ---
-    fit = cur.dropna(subset=NEED + ["test_all_approaches"])
+    fit = cur.dropna(subset=NEED + ["test_all_meets"])
     X = np.column_stack([np.ones(len(fit)), fit[NEED].to_numpy(float)])
-    y = fit["test_all_approaches"].to_numpy(float)
+    y = fit["test_all_meets"].to_numpy(float)
     coef, *_ = np.linalg.lstsq(X, y, rcond=None)
     pred = X @ coef
     r2 = 1 - ((y - pred) ** 2).sum() / ((y - y.mean()) ** 2).sum()
@@ -192,11 +194,11 @@ def main() -> int:
             "spend_state_median": state["spend_per_student"],
             "border_keeps_teachers_better": nb_best,
         }
-        if exp is not None and not pd.isna(exp) and val("test_all_approaches") is not None:
+        if exp is not None and not pd.isna(exp) and val("test_all_meets") is not None:
             rec["expectation"] = {
                 "expected": round(float(exp), 1),
-                "actual": val("test_all_approaches"),
-                "gap": round(val("test_all_approaches") - float(exp), 1),
+                "actual": val("test_all_meets"),
+                "gap": round(val("test_all_meets") - float(exp), 1),
                 "model_r2": round(float(r2), 4),
             }
         out[num] = rec
