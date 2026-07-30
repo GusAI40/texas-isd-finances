@@ -360,6 +360,42 @@ def test_equity_reports_meets_and_flags_thin_cells(client):
     assert client.get("/district/999999/equity").status_code == 404
 
 
+def test_takeover_ships_its_own_falsification_checks(client):
+    """A difference-in-differences on one treated district is only as good as
+    the checks around it. The payload must carry the parallel-trends test, the
+    placebo across every district, and the composition check — and must not
+    claim a p-value it cannot have."""
+    res = client.get("/takeover/houston")
+    if res.status_code == 503:
+        pytest.skip("takeover_data.json not built in this checkout")
+    d = res.json()
+    assert d["parallel_trends"]["holds"] is True, \
+        "if pre-trends stop being parallel the comparison is invalid and must not ship"
+    assert d["placebo"]["districts_tested"] > 1000
+    assert d["composition"]["houston"]["enrolment_change_pct"] is not None
+    assert any("p-value" in x for x in d["meta"]["limits"])
+    # the headline must be the difference, not Houston's raw change
+    h = d["headline"]
+    assert h["difference"] == pytest.approx(
+        h["houston_change"] - h["comparison_change"], abs=0.05)
+
+
+def test_takeover_reports_the_group_that_went_backwards(client):
+    """Special education students in Houston fell relative to the comparison
+    group. A result that only lists the groups that improved is advocacy, not
+    analysis, so every tracked group must ship whatever its sign."""
+    res = client.get("/takeover/houston")
+    if res.status_code == 503:
+        pytest.skip("takeover_data.json not built in this checkout")
+    groups = res.json()["by_group"]
+    assert len(groups) >= 5
+    assert any(g["difference"] < 0 for g in groups), \
+        "at least one group did worse; if that stops being true, re-verify rather than assume"
+    for g in groups:
+        assert g["difference"] == pytest.approx(
+            g["houston_change"] - g["comparison_change"], abs=0.05)
+
+
 def test_maps_ship_a_table_twin():
     """Both maps draw to a canvas, which no keyboard or screen reader can enter.
     Each must publish the same data as a real table. The styles alone once

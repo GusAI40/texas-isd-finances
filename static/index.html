@@ -90,6 +90,15 @@
   .vsbar .fill { height: 100%; border-radius: 4px; }
   .vsbar .lab { color: var(--ink-2); }
   .vsbar b { font-variant-numeric: tabular-nums; }
+  .tk-checks { display: grid; grid-template-columns: repeat(3, 1fr); gap: .8rem; margin: 1.2rem 0 .4rem; }
+  @media (max-width: 700px) { .tk-checks { grid-template-columns: 1fr; } }
+  .tk-checks .chk { border: 1px solid var(--hairline); border-left: 3px solid var(--good);
+    border-radius: 0 10px 10px 0; padding: .75rem .9rem; font-size: .87rem; }
+  .tk-checks .chk.warn { border-left-color: var(--c-focus); }
+  /* Only the leading label is a block heading — styling every <b> turned each
+     emphasised figure inside the body into its own uppercase line. */
+  .tk-checks .chk > b:first-child { display: block; font-size: .78rem; text-transform: uppercase;
+    letter-spacing: .05em; color: var(--muted); margin-bottom: .2rem; }
   /* Bond story. Storytelling-with-data discipline: grey is the default and
      carries context, one accent carries the point being made, and every chart
      title states the finding rather than naming the topic. */
@@ -695,6 +704,27 @@
 
 
 
+
+    <hr class="rule">
+    <section id="takeover-section" class="hidden">
+      <div class="eyebrow">The state takeover</div>
+      <h2 class="action" id="tk-title"></h2>
+      <p class="support" id="tk-sub"></p>
+      <figure class="econ-fig">
+        <div class="econ-legend" id="tk-legend"></div>
+        <div class="chartwrap"><svg id="tk-chart" role="img" aria-labelledby="tk-cap"></svg></div>
+        <figcaption id="tk-cap" class="cite"></figcaption>
+      </figure>
+      <h3 class="econ-h">Who the gains reached — and who they did not</h3>
+      <figure class="econ-fig">
+        <div class="chartwrap"><svg id="tk-groups" role="img" aria-labelledby="tk-gcap"></svg></div>
+        <figcaption id="tk-gcap" class="cite"></figcaption>
+      </figure>
+      <div class="tk-checks" id="tk-checks"></div>
+      <p class="econ-note" id="tk-limits"></p>
+      <div class="cite" id="tk-cite"></div>
+    </section>
+
     <hr class="rule">
     <section id="equity-section" class="hidden">
       <div class="eyebrow">Who this district works for</div>
@@ -1076,7 +1106,7 @@ const titleCase = s => (s || '').toLowerCase()
 const state = { district: null, summary: [], benchmarks: [], peers: null, flags: [], breakdown: [],
                 metric: 'spend', compare: null, compareSummary: [], lens: 'parent',
                 dollar: null, dollarPin: null, dollarHover: null, outcomes: null, txDollar: null,
-                econ: null, econTexas: null, bonds: null, equity: null };
+                econ: null, econTexas: null, bonds: null, equity: null, takeover: null };
 
 /* ===== The dollar: every dollar the district spends, as 100 pennies =====
    Shares, peer/statewide medians and dollars-at-stake all come from
@@ -1693,7 +1723,7 @@ async function selectDistrict(num, name) {
   state.district = { num, name };
   state.compare = null; state.compareSummary = [];
   state.dollar = null; state.dollarPin = null; state.dollarHover = null; state.outcomes = null;
-  state.econ = null; state.bonds = null; state.equity = null;
+  state.econ = null; state.bonds = null; state.equity = null; state.takeover = null;
   $('results').innerHTML = ''; $('search').value = '';
   document.documentElement.classList.add('has-district');
   await loadDashboard();
@@ -1712,7 +1742,7 @@ async function loadDashboard() {
   if (!d) return;
   $('dash').classList.remove('hidden');
   try {
-    const [summary, peers, flags, breakdown, turnarounds, detail, insights, dollar, outcomes, econ, bonds, equity] = await Promise.all([
+    const [summary, peers, flags, breakdown, turnarounds, detail, insights, dollar, outcomes, econ, bonds, equity, takeover] = await Promise.all([
       api('/district/' + encodeURIComponent(d.num) + '/summary'),
       api('/district/' + encodeURIComponent(d.num) + '/peers'),
       api('/anomalies?district_number=' + encodeURIComponent(d.num) + '&limit=50'),
@@ -1725,6 +1755,7 @@ async function loadDashboard() {
       api('/district/' + encodeURIComponent(d.num) + '/economics').catch(() => null),
       api('/district/' + encodeURIComponent(d.num) + '/bonds').catch(() => null),
       api('/district/' + encodeURIComponent(d.num) + '/equity').catch(() => null),
+      api('/takeover/houston').catch(() => null),
     ]);
     // The name may be a placeholder when arriving from a shared ?d= link.
     const realName = summary.find(r => r.district_name)?.district_name;
@@ -1734,7 +1765,7 @@ async function loadDashboard() {
     }
     state.summary = summary; state.peers = peers; state.flags = flags; state.breakdown = breakdown;
     state.turnarounds = turnarounds; state.detail = detail; state.insights = insights;
-    state.dollar = dollar; state.outcomes = outcomes; state.econ = econ; state.bonds = bonds; state.equity = equity;
+    state.dollar = dollar; state.outcomes = outcomes; state.econ = econ; state.bonds = bonds; state.equity = equity; state.takeover = takeover;
     renderAll();
     // Built here rather than inside renderAll: that function's exceptions are
     // swallowed by the catch below, so anything throwing late in it silently
@@ -1745,7 +1776,7 @@ async function loadDashboard() {
 }
 function renderAll() {
   renderTicker();
-  renderExec(); renderDollar(); renderOutcomes(); renderEconomics(); renderEquity(); renderBonds(); renderInsights(); renderKPIs(); renderTrend(); renderPeers();
+  renderExec(); renderDollar(); renderOutcomes(); renderEconomics(); renderEquity(); renderTakeover(); renderBonds(); renderInsights(); renderKPIs(); renderTrend(); renderPeers();
   renderMoney(); renderFlags(); renderObject(); renderProgram(); renderTurnarounds();
   ['kpi-cite', 'trend-cite', 'peers-cite', 'flags-cite'].forEach(c => cite(c));
   cite('money-cite', 'function-code groupings listed under Disclaimer');
@@ -2247,6 +2278,7 @@ function armCounters(root) {
 const NAV_LABELS = {
   'kpi-section': 'Overview', 'dollar-section': 'Your dollar',
   'equity-section': 'Who it works for',
+  'takeover-section': 'The state takeover',
   'outcomes-section': 'What it buys', 'econ-section': 'What you pay',
   'bond-section': 'Bonds you voted on', 'insights-section': 'What to do',
   'trend-section': 'Trends', 'peers-section': 'Peers',
@@ -2412,6 +2444,130 @@ function renderEquity() {
   $('eq-cite').innerHTML =
     `Source: TEA District STAAR Performance, all grades, SY ${e.year}. Reported at <b>Meets grade level</b>, ` +
     `TEA's middle bar &mdash; not the lower &ldquo;Approaches&rdquo;.`;
+  armCounters(sec);
+}
+
+/* ===== Did the state takeover change results? ==============================
+   Houston's own before-and-after cannot answer this — every Texas district was
+   climbing out of the same pandemic hole. The chart therefore shows Houston
+   AGAINST districts that were in the same hole and were not taken over, and
+   the checks that could break the comparison are shown next to the result
+   rather than buried. */
+function tkChart(svg, traj) {
+  const W = 660, H = 260, m = { t: 16, r: 92, b: 34, l: 46 };
+  const ys = traj.map(t => t.year);
+  const vals = traj.flatMap(t => [t.houston, t.comparison]);
+  const y0 = Math.max(0, Math.min(...vals) - 6), y1 = Math.max(...vals) + 6;
+  const X = v => m.l + (v - ys[0]) / (ys[ys.length - 1] - ys[0]) * (W - m.l - m.r);
+  const Y = v => H - m.b - (v - y0) / (y1 - y0) * (H - m.t - m.b);
+  let g = '';
+  for (let i = 0; i <= 3; i++) {
+    const v = y0 + (y1 - y0) * i / 3;
+    g += `<line class="grid" x1="${m.l}" y1="${Y(v).toFixed(1)}" x2="${W - m.r}" y2="${Y(v).toFixed(1)}"/>`
+      + `<text class="tick" x="${m.l - 7}" y="${(Y(v) + 3.5).toFixed(1)}" text-anchor="end">${Math.round(v)}%</text>`;
+  }
+  // the intervention itself, marked where it happened
+  const xT = X(2023.5);
+  g += `<line x1="${xT.toFixed(1)}" y1="${m.t}" x2="${xT.toFixed(1)}" y2="${H - m.b}" `
+    + `stroke="var(--ink-2)" stroke-dasharray="4 3"/>`
+    + `<text class="tick" x="${(xT + 6).toFixed(1)}" y="${m.t + 10}">takeover, June 2023</text>`;
+  const line = (key, color, label) => {
+    const d = traj.map((t, i) => (i ? 'L' : 'M') + X(t.year).toFixed(1) + ',' + Y(t[key]).toFixed(1)).join(' ');
+    const last = traj[traj.length - 1];
+    return `<path d="${d}" fill="none" stroke="${color}" stroke-width="2.5" stroke-linejoin="round"/>`
+      + traj.map(t => `<circle cx="${X(t.year).toFixed(1)}" cy="${Y(t[key]).toFixed(1)}" r="3.5" fill="${color}"/>`).join('')
+      + `<text class="lbl" x="${X(last.year) + 8}" y="${(Y(last[key]) + 4).toFixed(1)}" fill="${color}">${label}</text>`;
+  };
+  g += line('comparison', 'var(--faint)', 'like districts');
+  g += line('houston', ECON_C.teach, 'Houston');
+  ys.forEach(y => { g += `<text class="tick" x="${X(y).toFixed(1)}" y="${H - 12}" text-anchor="middle">${y}</text>`; });
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  svg.innerHTML = g;
+}
+
+function tkGroups(svg, rows) {
+  const W = 620, rowH = 40, m = { t: 22, r: 20, b: 26, l: 150 };
+  const H = m.t + rows.length * rowH + m.b;
+  const lo = Math.min(...rows.map(r => Math.min(r.houston_change, r.comparison_change, 0)));
+  const hi = Math.max(...rows.map(r => Math.max(r.houston_change, r.comparison_change, 0)));
+  const pad = (hi - lo) * 0.12 || 1;
+  const X = v => m.l + (v - (lo - pad)) / ((hi + pad) - (lo - pad)) * (W - m.l - m.r);
+  let g = `<line x1="${X(0).toFixed(1)}" y1="${m.t - 6}" x2="${X(0).toFixed(1)}" y2="${H - m.b}" `
+    + `stroke="var(--faint)" stroke-dasharray="3 3"/>`
+    + `<text class="tick" x="${X(0).toFixed(1)}" y="${m.t - 11}" text-anchor="middle">no change</text>`;
+  rows.forEach((r, i) => {
+    const y = m.t + i * rowH + 14;
+    const worse = r.difference < 0;
+    const col = worse ? ECON_C.debt : ECON_C.teach;
+    g += `<text x="${m.l - 12}" y="${y + 4}" text-anchor="end" class="${worse ? 'lbl' : 'tick'}" `
+      + `${worse ? `fill="${ECON_C.debt}"` : ''}>${r.group}</text>`
+      // comparison marker first, so Houston's sits on top
+      + `<circle cx="${X(r.comparison_change).toFixed(1)}" cy="${y}" r="5" fill="var(--faint)"/>`
+      + `<line x1="${X(r.comparison_change).toFixed(1)}" y1="${y}" x2="${X(r.houston_change).toFixed(1)}" y2="${y}" `
+      + `stroke="${col}" stroke-width="2"/>`
+      + `<circle cx="${X(r.houston_change).toFixed(1)}" cy="${y}" r="6" fill="${col}" stroke="#fff" stroke-width="2"/>`
+      + `<text class="lbl" x="${(X(r.houston_change) + 11).toFixed(1)}" y="${y + 4}" fill="${col}">`
+      + `${r.houston_change > 0 ? '+' : ''}${r.houston_change}</text>`;
+  });
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  svg.innerHTML = g;
+}
+
+function renderTakeover() {
+  const t = state.takeover, sec = $('takeover-section');
+  // only meaningful on the district it is about
+  if (!t || !state.district || state.district.num !== t.meta.district_number) {
+    sec.classList.add('hidden'); return;
+  }
+  sec.classList.remove('hidden');
+  const h = t.headline, pt = t.parallel_trends, pb = t.placebo, c = t.composition;
+
+  $('tk-title').textContent =
+    `Houston gained ${h.houston_change} points. Districts like it gained ${h.comparison_change}.`;
+  $('tk-sub').innerHTML =
+    `Every Texas district was climbing out of the same pandemic hole, so Houston's own before-and-after ` +
+    `settles nothing. Against <b>${h.pool_size - 1} districts of its size and poverty that were not taken ` +
+    `over</b>, it moved <b>${h.difference > 0 ? '+' : ''}${h.difference} points</b> further &mdash; ` +
+    `first of ${h.pool_size}.`;
+  $('tk-legend').innerHTML =
+    `<span><i style="background:${ECON_C.teach}"></i>Houston ISD</span>` +
+    `<span><i style="background:var(--faint)"></i>${h.pool_size - 1} districts its size and poverty</span>`;
+  tkChart($('tk-chart'), t.trajectory);
+  $('tk-cap').textContent =
+    `Percentage meeting grade level, all subjects. Comparison districts: ${t.meta.comparison_rule}. ` +
+    `No STAAR was administered in 2020.`;
+
+  tkGroups($('tk-groups'), t.by_group);
+  const back = t.by_group.filter(g => g.difference < 0).map(g => g.group);
+  $('tk-gcap').innerHTML =
+    `Change from ${t.meta.post_years[0]} to ${t.meta.post_years[1]}; the grey dot is the comparison ` +
+    `average, the coloured dot is Houston. ` +
+    (back.length
+      ? `<b>${back.join(' and ')} went backwards relative to the comparison group</b> &mdash; the gains ` +
+        `did not reach every child.`
+      : 'Every group tracked gained more than the comparison group.');
+
+  const chk = (ok, label, body) =>
+    `<div class="chk${ok ? '' : ' warn'}"><b>${label}</b>${body}</div>`;
+  $('tk-checks').innerHTML =
+    chk(pt.holds, 'Was Houston already pulling ahead?',
+        `No. Before the takeover it was moving ${pt.houston_pre_slope}/yr against the group's ` +
+        `${pt.comparison_pre_slope}/yr — close enough for the comparison to hold.`) +
+    chk(pb.rank_among_large_districts <= 3, 'Is a swing this size just normal?',
+        `Running the same sum on all ${pb.districts_tested.toLocaleString()} Texas districts puts Houston ` +
+        `${pb.houston_rank}th — top ${pb.houston_percentile}% — and <b>first of ${pb.large_districts}</b> ` +
+        `districts its size.`) +
+    chk(false, 'Did the student body change?',
+        `Houston lost <b>${Math.abs(c.houston.enrolment_change_pct)}%</b> of its enrolment against ` +
+        `${Math.abs(c.comparison.enrolment_change_pct)}% for the group. Its poverty share held ` +
+        `(${c.houston.poor_before}% → ${c.houston.poor_after}%), so the leavers were not mostly poor — ` +
+        `but a composition effect cannot be ruled out.`);
+
+  $('tk-limits').innerHTML = '<b>What this is not.</b> ' + t.meta.limits.join(' ');
+  $('tk-cite').innerHTML =
+    `Sources: TEA Snapshot 2018&ndash;2024 and TEA District STAAR 2025, at the <b>Meets grade level</b> bar. ` +
+    `Difference-in-differences against districts matched on pre-takeover size and poverty. ` +
+    `Independent analysis, not a TEA product.`;
   armCounters(sec);
 }
 

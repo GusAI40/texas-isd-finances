@@ -173,6 +173,7 @@ async def api_info():
             "texas_bonds": "GET /bonds/texas",
             "district_equity": "GET /district/{district_number}/equity",
             "texas_equity": "GET /equity/texas",
+            "houston_takeover": "GET /takeover/houston",
             "anomalies": "GET /anomalies",
             "sample_queries": "GET /sample-queries",
             "stats": "GET /stats",
@@ -1146,6 +1147,45 @@ async def get_texas_equity():
         raise HTTPException(status_code=503,
                             detail="Equity data not built. Run scripts/build_equity_data.py")
     return {k: v for k, v in data.items() if k != "districts"}
+
+
+_takeover_cache: Optional[Dict[str, Any]] = None
+
+
+def _takeover() -> Optional[Dict[str, Any]]:
+    global _takeover_cache
+    if _takeover_cache is None:
+        path = STATIC_DIR / "takeover_data.json"
+        if not path.exists():
+            return None
+        with path.open() as fh:
+            _takeover_cache = json.load(fh)
+    return _takeover_cache
+
+
+@app.get("/takeover/houston", tags=["Statewide"])
+async def get_houston_takeover():
+    """Did the June 2023 state takeover of Houston ISD change results?
+
+    Houston's own before-and-after cannot answer that: every Texas district was
+    climbing out of the same pandemic hole at the same time. This compares
+    Houston with districts that were in the same hole and were not taken over —
+    at least 40,000 students and at least 60% economically disadvantaged as of
+    2023, chosen on pre-takeover traits so the comparison cannot be picked to
+    fit the answer.
+
+    Ships the checks alongside the result: whether the pre-takeover trends were
+    parallel, where Houston's swing ranks against the same calculation run on
+    every Texas district, whether its student body changed, and which student
+    groups the gains did and did not reach.
+
+    One treated district means no meaningful p-value, and none is claimed.
+    """
+    data = _takeover()
+    if data is None:
+        raise HTTPException(status_code=503,
+                            detail="Takeover analysis not built. Run scripts/build_takeover_data.py")
+    return data
 
 
 @app.get("/robots.txt", include_in_schema=False)
