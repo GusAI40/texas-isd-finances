@@ -17,6 +17,102 @@ Entry template:
 
 ---
 
+## 2026-07-27 (later) — Three accuracy fixes, two new layers, and a green deploy that served a dead site
+
+**What changed:** commits `06f694c` → `f797b0c`, all live on https://txisd.dev.
+55 tests.
+
+### The accuracy work (do this before features — the user was right to insist)
+
+1. **We were reporting the wrong STAAR bar.** TEA publishes three. Statewide
+   SY 2024-25: **74.2% reach Approaches, 46.5% reach Meets, 17.6% Masters.**
+   The portal reported Approaches — the lowest — and a parent told "74%" hears
+   "at grade level". Everything now reports **Meets**, with all three shipped
+   as context.
+   **This was not a relabel.** Scoring districts on Approaches vs Meets moves
+   **35 of the top 100** "reliably beats expectations" districts, so modelling
+   one bar while displaying another would have named outperformers on a measure
+   nobody sees. Meets starts in 2018 (costing 5 years of span), costs nothing
+   in reliability (split-half **0.913** vs 0.910), and the need model fits
+   BETTER on it (**50.1%** vs 42.3% of the spread).
+   **The lever ranking changed with the bar:** teacher pay +$5,000 is now the
+   largest identifiable effect (**+0.86**, CI +0.48/+1.23); class size −2 is
+   +0.37 (+0.20/+0.55); **turnover −10 drops to +0.30 and its CI now crosses
+   zero**; spending +$2,000 stays at +0.15, still zero. The headline holds;
+   the ranking under it did not.
+2. **A flipped confidence interval.** Scaling for display — "cut turnover by
+   10" multiplies per-unit by −10 — **flips the interval**, so `ci_low` becomes
+   the upper bound. The crosses-zero test silently failed and turnover was
+   drawn as solid when it spans zero. Fixed with `Math.min/max`; test pins it.
+3. **An overstated credential.** The hero claimed "67 years of records". True
+   of ONE source (bond elections, 1958-2024); finance is 2009-2025. Now "17
+   years of budgets", pinned to `/stats` by a test.
+
+### New layers
+
+- **Equity** (`/district/{id}/equity`, `/equity/texas`) from TEA District STAAR
+  2024+2025, 99.8% join. Headlines **how a district's low-income students do**
+  and their percentile among poor students statewide.
+  **The trap deliberately avoided:** ranking on the poor/non-poor GAP. It
+  correlates **−0.02** with how well poor students actually do; the 30
+  narrowest-gap districts average 40.2% against 39.0% statewide, so gap-ranking
+  surfaces the merely average. A gap narrows as easily when the top falls as
+  when the bottom rises. Austin ISD: **28% for low-income students (14th
+  percentile), 75% for everyone else.**
+- **HISD takeover** (`/takeover/houston`). Difference-in-differences against 13
+  districts matched on PRE-takeover size and poverty. **Houston +5.5 vs +0.0,
+  first of 14.** Pre-trends parallel (−0.30 vs −0.53/yr). Placebo across all
+  1,166 districts: 50th overall, **1st of 30 large districts**. Enrolment fell
+  3.0% vs 1.3% but poverty held (79.5→79.6), so composition is reduced not
+  excluded. Gains broad — low income +4 vs +1.7, EB +3 vs −1.0, Black +5 vs
+  +2.1, Hispanic +5 vs +1.8 — **except special education, −1.0 vs +0.8**,
+  reported in the caption with a test asserting a negative group still ships.
+  No p-value, and the payload says why.
+
+### Presentation
+
+Scroll-triggered count-up on headline figures (IntersectionObserver + eased
+tween, once only, `prefers-reduced-motion` honoured, real value in `aria-label`).
+Progress rail + sticky section nav with J/K keys. Hero rewritten to answer what
+this is / what you are looking at / why you should care, with **6.6 million data
+points** — counted, breakdown on hover. Prose cut hard: bond section 800 → 454
+words.
+
+**Gotchas — the expensive ones:**
+
+- 🔴 **A READY deploy served a 404 on every route.** Vercel changed
+  backend-framework routing so an internal rewrite passes the DESTINATION path
+  to the app. Our `/(.*) → /api/index` rewrite handed FastAPI the literal
+  `/api/index` for every request. Portal, `/health`, `/docs` — all 404 while
+  the build log said READY. The only signal was one warning line in the build
+  log. **Pinning the CLI to 57 did NOT help — the change is platform-side,
+  keyed on the framework setting.** Fix: delete the rewrite; the `fastapi`
+  preset already routes to `api/index.py`. Now an invariant in CLAUDE.md plus
+  a test asserting `vercel.json` has no `rewrites`.
+- **A counter that never fires shows a confident zero.** Pre-zeroing every
+  count-up meant elements the reader never scrolled to sat at "0%". Fixed:
+  already-visible figures play immediately, and anything un-fired after 6s
+  snaps to the real value.
+- **`loadDashboard()` swallows render exceptions**, and it bit again — the
+  section nav sat behind fourteen render calls inside the try block and
+  silently never built. Anything that must run belongs AFTER `renderAll()`,
+  not inside it.
+- **CSS `.chk b` styled every bold in the body** as a block uppercase label.
+  Scope decorative rules to `:first-child`.
+- Claims drift as filters change: the "narrow gaps mean nobody does well" line
+  was true unfiltered and false once thin cells were excluded (40.2 vs 39.0).
+  Re-read your own prose after changing a threshold.
+
+**Open items:**
+- 🔴 **Rotate the three PATs** (Vercel/Supabase/GitHub) — pasted twice, used
+  for ~8 deploys, shredded after each.
+- ⏭️ Write the HISD finding up for a reporter (offered, not started).
+- ⏭️ TAPR campus file — teacher certification, and the 77% of district
+  performance invisible above campus level.
+- 🟡 Read-only DB role for NLP; 1.6 MB `economics_data.json`; 518 KB `/geomap`.
+
+---
+
 ## 2026-07-27 — The bond story shipped, and the question it forced: does any of this buy results?
 
 **What changed:** commit `ca1c943`, deployed and verified live on

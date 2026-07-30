@@ -99,7 +99,7 @@ To render *production* in a browser (Chromium can't TLS through the agent
 proxy), run `scratchpad/liveproxy.py` and point Playwright at
 `127.0.0.1:8799`.
 
-## Current Status (updated 2026-07-27 — keep this a snapshot, history goes in the log)
+## Current Status (updated 2026-07-30 — keep this a snapshot, history goes in the log)
 
 - ✅ Live in production, all endpoints verified including end-to-end NLP.
 - ✅ Public portal is now the **Texas ISD Financial Resource Guide**: white-minimalist McKinsey/SWD design, penny-of-the-dollar visual, 6 audience lenses, share cards, Methods & citation section, AI disclosure + TAG footer.
@@ -115,8 +115,8 @@ proxy), run `scratchpad/liveproxy.py` and point Playwright at
 - ✅ **Bond story** — `/district/{id}/bonds` + `/bonds/texas` from `static/bond_data.json`. 4,588 decided propositions 1958–2024, 911 districts, 96.8% name-matched. **The ballot is the only public record of what school debt was FOR** — TEA does not itemise facilities. Four-beat narrative on the district page. `scripts/build_bond_data.py`. **Never ingest the two companion CSVs — they carry a vendor's CRM (named reps, revenue, commissions).**
 - ✅ **Economics layer** — `/district/{id}/economics` + `/economics/texas`, served from `static/economics_data.json` (no DB). What you pay (tax bill on a $300k home, what leaves under recapture), where it goes (teaching vs buildings vs debt — **debt sits OUTSIDE TEA's operating total, compose don't subtract**), what each lever actually bought (within-district first differences, 3-yr, clustered SEs), and who does better (matched persistent outperformers). `scripts/ingest_tea_property.py` + `scripts/build_economics_data.py`.
 - ✅ **All of the above is LIVE** (deployed 2026-07-26): security headers, `/query` threadpool+timeout+global cap, table twins, property/tax/recapture ingest, economics layer.
-- ⏭️ NEXT: bake outcomes in as the **spine** (every money fact ends in what it bought, with an error bar) — first the bond→outcome test on the district page; then the **HISD board-of-managers analysis** (did the 2023 takeover change results vs matched districts?); then the **TAPR campus file** for teacher certification.
-- 📌 Measured so far, all within-district: spending +0.08 pts (CI crosses zero), buildings −0.57 (crosses zero), teacher pay +0.48, class size +0.59, turnover +0.43. The large thing is a **20.2-pt persistent district effect, 77% unexplained**.
+- ⏭️ NEXT: write the HISD finding up for a reporter; then the **TAPR campus file** (teacher certification, and the 77% invisible above campus level). Older plan: bake outcomes in as the **spine** (every money fact ends in what it bought, with an error bar) — first the bond→outcome test on the district page; then the **HISD board-of-managers analysis** (did the 2023 takeover change results vs matched districts?); then the **TAPR campus file** for teacher certification.
+- 📌 Measured within-district **at the Meets bar**: teacher pay +$5,000 → **+0.86** (CI +0.48/+1.23, the largest identifiable lever); class size −2 → +0.37; turnover −10 → +0.30 (**CI crosses zero**); spending +$2,000 → +0.15 (**crosses zero**); a passed building bond → −0.57 (crosses zero). The large thing is a persistent district effect, **77% unexplained**.
 - 🟡 WATCH: Supabase free tier pauses after ~7 days idle → portal shows "database not connected" until woken in dashboard. Vercel Hobby is non-commercial; upgrade both if pursuing revenue.
 
 ## Key docs
