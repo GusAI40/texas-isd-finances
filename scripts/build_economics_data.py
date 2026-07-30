@@ -258,6 +258,12 @@ def main() -> int:
     prop = pd.read_csv(args.property, dtype={"district_number": str}, low_memory=False)
     snap = pd.read_csv(args.snapshot, dtype={"district_number": str}, low_memory=False)
 
+    # --- where the money comes FROM, not just where it goes ---
+    LOC_MO = "all_funds_local_tax_revenue_from_m_o"
+    LOC_IS = "all_funds_local_property_taxes_from_i_s"
+    STATE = "all_funds_state_revenue"
+    FEDERAL = "all_funds_federal_revenue"
+    OTHER_LOC = "all_funds_other_local_intermediate_revenue"
     DEBT = "all_funds_total_debt_service_expend_by_obj"
     INSTR = "all_funds_instruction_transfer_expend_fct11_95"
     TOTAL = "all_funds_total_operate_expend_by_function"
@@ -282,6 +288,16 @@ def main() -> int:
         mo=("mo_rate", "median"), is_=("is_rate", "median")).reset_index()
     rates["total"] = rates.mo + rates.is_
     rates["debt_share_pct"] = (rates.is_ / rates.total * 100).round(1)
+
+    _rf = fin[fin.year == latest]
+    _rl = (_rf[LOC_MO].sum() + _rf[LOC_IS].sum() + _rf[OTHER_LOC].sum()
+           + prop[prop.year == latest].recapture_paid.sum())
+    _rs, _rd = _rf[STATE].sum(), _rf[FEDERAL].sum()
+    _rt = _rl + _rs + _rd
+    _slp, _ssp = round(_rl / _rt * 100), round(_rs / _rt * 100)
+    statewide_revenue = {"local_pct": _slp, "state_pct": _ssp,
+                         "federal_pct": 100 - _slp - _ssp,
+                         "local": float(_rl), "state": float(_rs), "federal": float(_rd)}
 
     recap = prop.groupby("year").recapture_paid.sum().reset_index()
     ever = prop.groupby("district_number").recapture_paid.sum()
@@ -349,6 +365,24 @@ def main() -> int:
                 if row[TOTAL + "_ps"] > 0 else None,
             }
 
+        # revenue by source, per student, from gross local collections
+        enrol = float(row.fall_survey_enrollment)
+        _loc = gross_mo + float(row.get(LOC_IS, 0) or 0) + float(row.get(OTHER_LOC, 0) or 0)
+        _st, _fed = float(row.get(STATE, 0) or 0), float(row.get(FEDERAL, 0) or 0)
+        _tot = _loc + _st + _fed
+        _revenue = None
+        if _tot > 0 and enrol > 0:
+            _lp, _sp = round(_loc / _tot * 100), round(_st / _tot * 100)
+            _revenue = {
+                "local_per_student": round(_loc / enrol),
+                "state_per_student": round(_st / enrol),
+                "federal_per_student": round(_fed / enrol),
+                "total_per_student": round(_tot / enrol),
+                # shares are forced to sum to 100 so the labels on the bar agree
+                "local_pct": _lp, "state_pct": _sp, "federal_pct": 100 - _lp - _sp,
+                "note": "local is gross property tax before recapture is deducted",
+            }
+
         debt_ps, instr_ps = float(row[DEBT + "_ps"]), float(row[INSTR + "_ps"])
         _instr, _debt = round(instr_ps), round(debt_ps)
         _operating = round(float(row[TOTAL + "_ps"]))
@@ -380,6 +414,11 @@ def main() -> int:
                     debt_ps * row.fall_survey_enrollment / teacher_cost)
                 if teacher_cost > 0 else None,
             },
+            # WHO PAYS. TEA reports local M&O revenue net of recapture, so the
+            # local share must be built from GROSS collections — otherwise a
+            # property-wealthy district looks state-funded when in fact its
+            # taxpayers paid and the state took a share away.
+            "revenue": _revenue,
             "recapture": {"paid": round(recapture),
                           "per_student": round(recapture / row.fall_survey_enrollment),
                           "share_of_local_mo": round(recapture / gross_mo, 4) if gross_mo > 0 else 0.0},
@@ -427,6 +466,7 @@ def main() -> int:
             ],
         },
         "macro": {
+            "revenue": statewide_revenue,
             "spending": by_year.round(2).to_dict("records"),
             "tax_rates": rates.round(4).to_dict("records"),
             "recapture_by_year": recap.round(0).to_dict("records"),

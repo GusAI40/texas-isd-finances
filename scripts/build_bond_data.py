@@ -112,10 +112,77 @@ def match_districts(d: pd.DataFrame, finance: Path) -> pd.DataFrame:
     return d.merge(names.drop_duplicates("_k"), on="_k", how="left")
 
 
+def bond_outcome_test(d: pd.DataFrame, snapshot: Path) -> dict | None:
+    """Did passing the bond change results?
+
+    The claim on every bond campaign is that the buildings will help children
+    learn. It is testable: compare each district with ITSELF — the residual
+    against what its student need predicts, 2-4 years after the vote, against
+    the 3 years before — and then compare districts whose bond PASSED with
+    districts whose bond was DEFEATED. Both groups went to the ballot, so both
+    had a board that thought it needed the money; only one got it.
+
+    A bond in a growing district buys SEATS, not scores, and safety and roofs
+    are real goods STAAR cannot see. This measures test results, which is one
+    thing a building might buy and not the only one.
+    """
+    import numpy as np
+    if not snapshot.exists():
+        return None
+    sn = pd.read_csv(snapshot, dtype={"district_number": str}, low_memory=False)
+    need = ["pct_econ_disadv", "pct_emergent_bilingual", "pct_special_ed"]
+    out = "test_all_meets"
+    if out not in sn.columns:
+        return None
+    res = {}
+    for yr, g in sn.dropna(subset=[out] + need).groupby("year"):
+        X = np.column_stack([np.ones(len(g)), g[need].to_numpy(float)])
+        beta = np.linalg.lstsq(X, g[out].to_numpy(float), rcond=None)[0]
+        res[yr] = pd.Series(g[out].to_numpy(float) - X @ beta, index=g.district_number.values)
+    R = pd.DataFrame(res)
+    if R.empty:
+        return None
+
+    rows = []
+    for r in d[d.district_number.notna()].itertuples():
+        num, y = r.district_number, int(r.year)
+        if num not in R.index or pd.isna(r.amount):
+            continue
+        pre = [R.loc[num, c] for c in R.columns if y - 3 <= c < y and pd.notna(R.loc[num, c])]
+        post = [R.loc[num, c] for c in R.columns if y + 2 <= c <= y + 4 and pd.notna(R.loc[num, c])]
+        if len(pre) < 2 or len(post) < 2:
+            continue
+        rows.append({"passed": bool(r.passed), "delta": float(np.mean(post) - np.mean(pre)),
+                     "district": num})
+    if len(rows) < 100:
+        return None
+    f = pd.DataFrame(rows)
+    a, b = f[f.passed].delta, f[~f.passed].delta
+    # Welch's t, since the two groups differ in size and spread
+    se = float(np.sqrt(a.var(ddof=1) / len(a) + b.var(ddof=1) / len(b)))
+    t = float((a.mean() - b.mean()) / se) if se else 0.0
+    from math import erfc, sqrt
+    pval = float(erfc(abs(t) / sqrt(2)))       # normal approximation, n is large
+    return {
+        "bonds_tested": int(len(f)), "districts": int(f.district.nunique()),
+        "passed_n": int(len(a)), "passed_change": round(float(a.mean()), 2),
+        "defeated_n": int(len(b)), "defeated_change": round(float(b.mean()), 2),
+        "difference": round(float(a.mean() - b.mean()), 2),
+        "p_value": round(pval, 3),
+        "distinguishable_from_zero": bool(pval < 0.05),
+        "window": "results 2-4 years after the vote against the 3 years before, "
+                  "each district compared with itself",
+        "caveat": "A bond in a growing district buys seats, not scores, and safety "
+                  "and roofs are real goods a test cannot see. This measures test "
+                  "results only.",
+    }
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--bonds", type=Path, default=Path("data/texas_bond_elections.csv"))
     ap.add_argument("--finance", type=Path, default=Path("data/texas_finance_clean.csv"))
+    ap.add_argument("--snapshot", type=Path, default=Path("data/snapshot_all.csv"))
     ap.add_argument("--out", type=Path, default=Path("static/bond_data.json"))
     args = ap.parse_args()
     if not args.bonds.exists():
@@ -226,6 +293,7 @@ def main() -> int:
             "asked": float(stadium.amount.sum()),
             "approved": float(stadium[stadium.passed].amount.sum()),
         },
+        "did_it_work": bond_outcome_test(d, args.snapshot),
         "districts": districts,
     }
     args.out.parent.mkdir(parents=True, exist_ok=True)
@@ -236,6 +304,12 @@ def main() -> int:
     print(f"  matched to TEA districts: {m['matched_pct']}%")
     print(f"  stadiums named specifically: {payload['stadium']['props']} props, "
           f"{payload['stadium']['pass_rate']}% pass")
+    w = payload["did_it_work"]
+    if w:
+        print(f"  did the bond change results? passed {w['passed_change']:+.2f} vs "
+              f"defeated {w['defeated_change']:+.2f} = {w['difference']:+.2f} "
+              f"(p={w['p_value']}, "
+              f"{'significant' if w['distinguishable_from_zero'] else 'not distinguishable from zero'})")
     print(f"  athletics alone {bundling['athletics_alone']['pass_rate']}% vs bundled "
           f"{bundling['athletics_with_buildings']['pass_rate']}% "
           f"(median ask ${bundling['athletics_alone']['median_ask']/1e6:,.0f}M -> "

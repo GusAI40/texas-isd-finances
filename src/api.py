@@ -1077,7 +1077,7 @@ async def get_district_bonds(district_number: str):
             status_code=404,
             detail="No bond election on record for this district. Districts that have "
                    "never gone to the voters for debt have no entry here.")
-    return {"meta": data["meta"], "context": {
+    return {"meta": data["meta"], "did_it_work": data.get("did_it_work"), "context": {
         "by_purpose": data["by_purpose"], "by_era": data["by_era"],
         "bundling": data["bundling"], "stadium": data["stadium"]}, **rec}
 

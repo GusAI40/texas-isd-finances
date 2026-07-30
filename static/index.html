@@ -674,6 +674,7 @@
       <div class="econ-grid">
         <div class="econ-card" id="econ-bill"></div>
         <div class="econ-card" id="econ-alloc"></div>
+        <div class="econ-card" id="econ-who"></div>
       </div>
 
       <h3 class="econ-h">Where the money actually went, statewide</h3>
@@ -784,6 +785,10 @@
       <h3 class="econ-h" id="bond-b4-title"></h3>
       <p class="support" id="bond-b4-sub"></p>
       <div class="bond-bundle" id="bond-bundle"></div>
+
+      <h3 class="econ-h" id="bond-b5-title"></h3>
+      <p class="support" id="bond-b5-sub"></p>
+      <div class="econ-card" id="bond-worked"></div>
 
       <p class="bond-close" id="bond-close"></p>
 
@@ -2641,6 +2646,27 @@ function renderEconomics() {
       '</div><div class="stat-note">share of spending that goes to buildings &amp; debt</div>';
   }
 
+  /* ---- who pays: the other half of the dollar ---- */
+  const rv = e.revenue, sr = state.econTexas && state.econTexas.macro.revenue;
+  if (rv) {
+    const seg = (pct, col) => `<i style="background:${col};width:${pct}%"></i>`;
+    $('econ-who').innerHTML =
+      '<h4>Where the money comes from</h4>' +
+      '<div class="econ-split">' + seg(rv.local_pct, ECON_C.debt) +
+      seg(rv.state_pct, ECON_C.teach) + seg(rv.federal_pct, ECON_C.other) + '</div>' +
+      '<div class="econ-legend">' +
+      `<span><i style="background:${ECON_C.debt}"></i>local property tax ${rv.local_pct}%</span>` +
+      `<span><i style="background:${ECON_C.teach}"></i>state ${rv.state_pct}%</span>` +
+      `<span><i style="background:${ECON_C.other}"></i>federal ${rv.federal_pct}%</span></div>` +
+      '<div class="econ-sub">' +
+      (sr ? `Texas overall is ${sr.local_pct}% local, ${sr.state_pct}% state, ${sr.federal_pct}% federal. ` : '') +
+      `Local is <b>gross property tax before recapture</b> &mdash; the money your neighbours paid, ` +
+      `whether or not this district kept it.</div>`;
+  } else {
+    $('econ-who').innerHTML = '<h4>Where the money comes from</h4>' +
+      '<div class="econ-sub">Revenue detail is not reported for this district.</div>';
+  }
+
   /* ---- macro: the statewide series ---- */
   const M = state.econTexas;
   if (M) {
@@ -2931,6 +2957,35 @@ function renderBonds() {
     card('Classrooms on their own', sch, 'pass', false);
 
   // the close: hand the reader something to do
+  const w = b.did_it_work;
+  if (w) {
+    $('bond-b5-title').textContent = w.distinguishable_from_zero
+      ? 'Districts whose bond passed did measurably better afterwards.'
+      : 'Whether the bond passed or failed, results afterwards look the same.';
+    $('bond-b5-sub').innerHTML =
+      `Every bond campaign argues the buildings will help children learn. It is testable: compare each ` +
+      `district with <b>itself</b> before and after the vote, then set districts whose bond <b>passed</b> ` +
+      `against districts whose bond was <b>defeated</b>. Both went to the ballot; only one got the money.`;
+    const arrow = v => (v > 0 ? '+' : '') + v.toFixed(2);
+    $('bond-worked').innerHTML =
+      `<h4>Change in results after the vote</h4>` +
+      `<div class="econ-legend" style="margin:.3rem 0 .5rem">` +
+      `<span><i style="background:${BOND_C.yes}"></i>bond passed (${w.passed_n}) ${arrow(w.passed_change)}</span>` +
+      `<span><i style="background:${BOND_C.focus}"></i>bond defeated (${w.defeated_n}) ${arrow(w.defeated_change)}</span>` +
+      `</div>` +
+      `<div class="econ-big" style="color:${w.distinguishable_from_zero ? ECON_C.teach : 'var(--muted)'}">` +
+      `${arrow(w.difference)}<span style="font-size:1rem;font-weight:400;color:var(--muted)"> points</span></div>` +
+      `<div class="econ-sub">` +
+      (w.distinguishable_from_zero
+        ? `p = ${w.p_value}. `
+        : `<b>p = ${w.p_value} &mdash; too close to call.</b> With ${w.bonds_tested} bonds across ` +
+          `${w.districts} districts, a difference this size is not distinguishable from no difference at all. `) +
+      `${w.caveat}</div>`;
+  } else {
+    ['bond-b5-title','bond-b5-sub'].forEach(id => { $(id).textContent = ''; });
+    $('bond-worked').innerHTML = '';
+  }
+
   $('bond-close').innerHTML =
     `<b>Before the next ballot:</b> what is bundled into the proposition, and what it adds to the debt above.`;
 

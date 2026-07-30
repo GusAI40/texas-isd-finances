@@ -468,6 +468,43 @@ def test_displayed_figures_add_up_for_every_district(client):
             assert t["mo_rate"] + t["is_rate"] == pytest.approx(t["total_rate"], abs=1e-4), num
 
 
+def test_revenue_shows_who_pays_from_gross_local_collections(client):
+    """Where the money GOES was answered; where it comes FROM was not. TEA
+    reports local M&O revenue net of recapture, so a property-wealthy district
+    looks state-funded unless the local share is built from gross collections —
+    its taxpayers did pay, the state simply took a share away."""
+    res = client.get("/district/165901/economics")
+    if res.status_code == 503:
+        pytest.skip("economics_data.json not built in this checkout")
+    r = res.json().get("revenue")
+    assert r, "every taxing district must report where its money comes from"
+    assert r["local_pct"] + r["state_pct"] + r["federal_pct"] == 100, \
+        "shares are forced to 100 so the labels on the bar agree with each other"
+    assert "gross" in r["note"] and "recapture" in r["note"]
+    # Midland is heavily property-funded; net-of-recapture would understate it
+    assert r["local_pct"] > 50
+    tx = client.get("/economics/texas").json()["macro"]["revenue"]
+    assert tx["local_pct"] + tx["state_pct"] + tx["federal_pct"] == 100
+
+
+def test_bond_outcome_test_ships_and_refuses_to_overclaim(client):
+    """Every bond campaign argues the buildings help children learn. The test
+    ships whatever it finds, and where the interval includes zero the payload
+    must say so rather than let the point estimate read as a result."""
+    res = client.get("/district/165901/bonds")
+    if res.status_code == 503:
+        pytest.skip("bond_data.json not built in this checkout")
+    w = res.json().get("did_it_work")
+    assert w, "the bonds endpoint must carry the outcome test, not just the ballots"
+    assert w["bonds_tested"] > 100 and w["districts"] > 50
+    assert w["difference"] == pytest.approx(
+        w["passed_change"] - w["defeated_change"], abs=0.02)
+    # significance and the flag must agree — this is what stops a null being
+    # presented as a finding
+    assert w["distinguishable_from_zero"] == (w["p_value"] < 0.05)
+    assert "seats, not scores" in w["caveat"]
+
+
 def test_maps_ship_a_table_twin():
     """Both maps draw to a canvas, which no keyboard or screen reader can enter.
     Each must publish the same data as a real table. The styles alone once
