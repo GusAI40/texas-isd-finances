@@ -16,6 +16,7 @@ read-only Postgres views on Supabase. MIT-licensed, built for public use.
 
 | Thing | Value |
 |---|---|
+| ⚠️ vercel.json | **Must have NO `rewrites` block.** Vercel changed backend-framework routing so an internal rewrite now passes the DESTINATION path to the app — the old `/(.*) → /api/index` rewrite made FastAPI receive `/api/index` for every request and 404 the entire site while the build still reported READY. The `fastapi` framework preset routes to `api/index.py` on its own. |
 | Vercel team | **TAG-ai** (`tag-ai-projects`) — NOT GOAT-UIX. Two teams each hold a project named `texas-isd-finances`; only the TAG-ai one owns `txisd.dev`. Always `--scope tag-ai-projects`. `vercel link` rewrites `vercel.json` and the project framework — `cat vercel.json` after. |
 | Live portal | **https://txisd.dev** — the custom domain, use it everywhere. `texas-isd-finances.vercel.app` also resolves but is the prototype URL and must not appear in pages, docs or citations (a test enforces this). Vercel project `texas-isd-finances`, account `tag-ai`. |
 | API docs | https://txisd.dev/docs |

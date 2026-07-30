@@ -396,6 +396,22 @@ def test_takeover_reports_the_group_that_went_backwards(client):
             g["houston_change"] - g["comparison_change"], abs=0.05)
 
 
+def test_vercel_json_has_no_rewrites(client):
+    """Vercel changed routing for backend-framework projects: an internal
+    rewrite now passes the DESTINATION path to the app. The old
+    `/(.*) -> /api/index` rewrite therefore handed FastAPI the literal path
+    "/api/index" on every request, and the whole site 404'd while the build
+    still reported READY. The fastapi preset routes to api/index.py by itself."""
+    import json as _json
+    from pathlib import Path
+
+    cfg = _json.loads(Path("vercel.json").read_text())
+    assert "rewrites" not in cfg, \
+        "a rewrite here silently 404s every route in production"
+    # the entrypoint the preset looks for must exist
+    assert Path("api/index.py").exists()
+
+
 def test_maps_ship_a_table_twin():
     """Both maps draw to a canvas, which no keyboard or screen reader can enter.
     Each must publish the same data as a real table. The styles alone once
