@@ -23,7 +23,13 @@ OpenAI via LangChain (src/nlp_engine.py) — natural-language questions
 2. In the SQL Editor, run the whole of `sql/create_tables.sql`. This creates
    the base table, public read-only views, indexes, and locks the base table
    down with row-level security.
-3. Copy the **connection string** — this is your `SUPABASE_DB_URL`.
+3. Run `sql/create_nlp_role.sql` (after replacing `CHANGE_ME` with a password
+   you generate). This creates `nlp_reader`: SELECT on the two public views,
+   read-only transactions, no schema rights. `/query` lets a language model
+   write its own SQL, so it must not hold the owner connection — the
+   least-privilege boundary has to live in the database, where a prompt
+   cannot argue with it. The role's pooler URL is your `NLP_DB_URL`.
+4. Copy the **connection string** — this is your `SUPABASE_DB_URL`.
 
    ⚠️ **Use the Session pooler string** (Connect → Session pooler:
    `postgresql://postgres.[REF]:[PASSWORD]@aws-[REGION].pooler.supabase.com:5432/postgres`).
@@ -94,7 +100,8 @@ disables asyncpg's statement cache so it is pooler-compatible.
 
 | Variable | Required | Purpose |
 |---|---|---|
-| `SUPABASE_DB_URL` | for data endpoints | Postgres connection string |
+| `SUPABASE_DB_URL` | for data endpoints | Postgres connection string (owner) |
+| `NLP_DB_URL` | for `/query` | Least-privilege `nlp_reader` connection. Falls back to `SUPABASE_DB_URL` if unset — that works, but runs model-authored SQL as the owner. Set it. |
 | `OPENAI_API_KEY` | for `/query` | LLM for natural-language questions |
 | `CORS_ALLOW_ORIGINS` | no (default `*`) | Comma-separated allowed origins |
 | `NLP_MODEL` | no (default `gpt-4o-mini`) | OpenAI model for NLP queries |

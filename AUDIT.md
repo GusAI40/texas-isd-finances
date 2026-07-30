@@ -51,9 +51,17 @@ Data coverage is TEA's summarized financial data for fiscal years
 
 - `/query` invokes a paid LLM per request; add rate limiting before heavy
   public promotion (see DEPLOYMENT.md).
-- The NLP agent's SQL access is limited to two read-only views, and the
+- ~~The NLP agent's SQL access is limited to two read-only views, and the
   schema grants no write access to API roles; still, prefer a dedicated
-  read-only database role in production.
+  read-only database role in production.~~ **Closed.**
+  `sql/create_nlp_role.sql` creates `nlp_reader` — SELECT on the two views,
+  `default_transaction_read_only = on`, no schema or role rights — and
+  `src/nlp_engine.py` prefers `NLP_DB_URL` over the owner connection. The
+  point: `include_tables` controlled what the agent was *told about*, never
+  what the database would *let it run*. Now the boundary is enforced where
+  a prompt cannot reach it. The env-var fallback to `SUPABASE_DB_URL` keeps
+  a fresh checkout working, so a deployment is only actually protected once
+  `NLP_DB_URL` is set — DEPLOYMENT.md step 1.3.
 - Anomaly thresholds (15/20/10%) are heuristics; the portal labels them as
   starting points for questions, not findings of wrongdoing.
 

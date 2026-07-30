@@ -79,9 +79,17 @@ class TexasFinanceNLPEngine:
         db: Optional[SQLDatabase] = None,
     ):
         if db is None:
-            db_url = db_url or os.getenv("SUPABASE_DB_URL")
+            # NLP_DB_URL is the least-privilege role from sql/create_nlp_role.sql:
+            # SELECT on the two public views, read-only transactions, nothing
+            # else. Prefer it. SUPABASE_DB_URL is the owner connection and is
+            # only a fallback so the feature still works before the role is
+            # provisioned — `include_tables` below limits what the agent is told
+            # about, not what the database will let it run.
+            db_url = db_url or os.getenv("NLP_DB_URL") or os.getenv("SUPABASE_DB_URL")
             if not db_url:
-                raise ValueError("SUPABASE_DB_URL not found in environment variables")
+                raise ValueError(
+                    "Neither NLP_DB_URL nor SUPABASE_DB_URL found in environment"
+                )
             # Connect to the two public read-only views only (least privilege)
             db = SQLDatabase.from_uri(
                 db_url,

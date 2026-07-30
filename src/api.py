@@ -238,7 +238,7 @@ async def nlp_query(request: NLPQueryRequest, http_request: Request):
     except Exception:
         raise HTTPException(
             status_code=503,
-            detail="NLP engine not configured. Set OPENAI_API_KEY and SUPABASE_DB_URL.",
+            detail="NLP engine not configured. Set OPENAI_API_KEY and NLP_DB_URL.",
         )
     # engine.query() is synchronous and can take ~10s. Awaiting it directly
     # blocked the event loop, so one slow question stalled every other request

@@ -14,6 +14,13 @@ SUPABASE_URL=https://[YOUR_PROJECT_REF].supabase.co
 SUPABASE_ANON_KEY=[YOUR_SUPABASE_ANON_KEY]
 OPENAI_API_KEY=[YOUR_OPENAI_API_KEY]
 
+# Least-privilege connection for the natural-language query path (/query).
+# That path lets a language model write its own SQL, so it must not use the
+# owner connection above. Create the role with sql/create_nlp_role.sql, then
+# put its pooler URL here. If unset, /query falls back to SUPABASE_DB_URL,
+# which works but is privileged — set this in any real deployment.
+NLP_DB_URL=postgresql://nlp_reader.[YOUR_PROJECT_REF]:[NLP_PASSWORD]@aws-[REGION].pooler.supabase.com:6543/postgres
+
 # Optional overrides
 # CORS_ALLOW_ORIGINS=https://your-frontend.example.com
 # NLP_MODEL=gpt-4o-mini
