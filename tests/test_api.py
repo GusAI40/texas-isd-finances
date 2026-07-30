@@ -412,6 +412,36 @@ def test_vercel_json_has_no_rewrites(client):
     assert Path("api/index.py").exists()
 
 
+def test_tutorial_covers_every_section_on_the_page(client):
+    """The tour was written before four sections existed and silently stopped
+    describing half the page. Every section a reader can reach should have a
+    tour step, and every step should point at a section that exists."""
+    import re
+    from pathlib import Path
+
+    page = Path("static/index.html").read_text()
+    sections = set(re.findall(r'<section id="([a-z-]+)"', page))
+    tour = set(re.findall(r"'([a-z-]+-section)'\]", page.split("const TOUR = [")[1]
+                          .split("];")[0]))
+    assert tour <= sections, f"tour points at sections that do not exist: {tour - sections}"
+    # the sections carrying the findings must all be described
+    must = {"kpi-section", "dollar-section", "outcomes-section", "econ-section",
+            "equity-section", "bond-section", "takeover-section", "insights-section"}
+    assert must <= tour, f"tour never mentions: {must - tour}"
+
+
+def test_tutorial_doc_uses_the_corrected_bar(client):
+    """The written tutorial has to carry the same correction the site does, or
+    it teaches people to read the wrong number."""
+    from pathlib import Path
+
+    doc = Path("docs/TUTORIAL.md").read_text()
+    assert "Meets" in doc and "46.5" in doc
+    assert "Approaches is not grade level" in doc
+    for topic in ("recapture", "bond", "low-income", "takeover"):
+        assert topic in doc.lower(), f"tutorial never mentions {topic}"
+
+
 def test_maps_ship_a_table_twin():
     """Both maps draw to a canvas, which no keyboard or screen reader can enter.
     Each must publish the same data as a real table. The styles alone once

@@ -3125,27 +3125,42 @@ function pngDownload(svgId) {
 }
 
 /* ---------- tutorial ---------- */
+/* Steps are declared in PAGE order and filtered at run time to the sections
+   that actually exist for this district — a district with no bond history, or
+   any district but Houston, must not be walked to an empty highlight. */
 const TOUR = [
-  ['Welcome', 'This dashboard turns 17 years of official TEA finance data into a story you can read in a minute. Quick tour?', 'picker-section'],
-  ['The story in one paragraph', 'The summary at the top gives you the answer first — spending vs the state, your rank among peers, and the five-year direction. Every headline below it is a finding, not a label.', 'kpi-section'],
-  ['Trends with context', 'The dashed gray line is the statewide median. Chart headlines state the takeaway; hover for exact numbers; "Show the numbers" reveals the table.', 'trend-section'],
-  ['Apples to apples', 'You are compared only with districts near your size — your bar is blue, everyone else stays gray.', 'peers-section'],
-  ['Where the money goes', 'Nine real categories from TEA function codes — instruction highlighted, so you instantly see the share reaching classrooms.', 'money-section'],
-  ['Flags show their work', 'Every anomaly card shows the actual before → after numbers plus the innocent explanations to rule out first.', 'flags-section'],
-  ['Take it with you', 'Every chart exports as an image or CSV, and Print (top right) makes a board-packet-ready PDF. You can also compare two districts side by side. That\'s the tour!', 'ask-section'],
+  ['Welcome', 'Six official sources, 6.6 million data points, one plain-English answer: what your school district collects, spends, borrows — and what it buys. Quick tour?', 'picker-section'],
+  ['Find your way around', 'The bar across the top tracks how far through you are, and the chips jump straight to any section. J and K move between them from the keyboard.', 'picker-section'],
+  ['The answer first', 'Spending against the state, your rank among districts your size, and the five-year direction. Every headline on this page states a finding, not a label.', 'kpi-section'],
+  ['Your dollar, as 100 pennies', 'Every dollar the district spends, split into real TEA categories. Hover or tap a colour to see what it covers and how it compares with peers.', 'dollar-section'],
+  ['What the money buys', 'Teachers, class sizes, attendance and results — each against districts with the same student need. Results are reported at "Meets grade level", TEA\'s middle bar, not the lower "Approaches".', 'outcomes-section'],
+  ['What you pay for it', 'The school tax on a $300,000 home here, how much of it leaves the district, and what each budget lever actually bought — with an error bar. Spending more per student moves results by an amount too small to tell apart from zero.', 'econ-section'],
+  ['Did the state takeover work?', 'Houston against 13 districts of its size and poverty that were not taken over, with the checks that could break the comparison shown beside it. This section appears only on Houston\'s page.', 'takeover-section'],
+  ['Who the district works for', 'A district average hides who it is failing. This is how its low-income students do, against poor students statewide — not the gap, which turns out to say almost nothing about how those children actually do.', 'equity-section'],
+  ['The debt you voted for', 'Every bond this district ever put on a ballot: what it was for, what it cost, how the vote went. Hover any circle. TEA does not itemise facilities — the ballot is the only public record of what school debt was for.', 'bond-section'],
+  ['Who does better, and what to do', 'Named districts with your size and your share of students in poverty that beat expectations reliably — eleven years, not one lucky year. These are the phone calls worth making.', 'insights-section'],
+  ['Show your work', 'Every chart has the numbers behind it, exports as an image or CSV, and Print makes a board-packet PDF. Ask a question in plain English, or read the Methods section for how each figure is built. That\'s the tour!', 'ask-section'],
 ];
 let tourI = 0;
+let tourSteps = TOUR;
+function tourBuild() {
+  tourSteps = TOUR.filter(([, , id]) => {
+    const el = document.getElementById(id);
+    return el && !el.classList.contains('hidden');
+  });
+  if (!tourSteps.length) tourSteps = [TOUR[0]];
+}
 function tourShow(i) {
   document.querySelectorAll('.tour-highlight').forEach(el => el.classList.remove('tour-highlight'));
-  if (i >= TOUR.length || ($('dash').classList.contains('hidden') && i > 0)) { tourEnd(); return; }
+  if (i >= tourSteps.length || ($('dash').classList.contains('hidden') && i > 0)) { tourEnd(); return; }
   tourI = i;
-  const [title, text, target] = TOUR[i];
+  const [title, text, target] = tourSteps[i];
   $('overlay').style.display = 'block';
   $('tourbox').style.display = 'block';
   $('tour-title').textContent = title;
   $('tour-text').textContent = text;
-  $('tour-step').textContent = (i + 1) + ' / ' + TOUR.length;
-  $('tour-next').textContent = i === TOUR.length - 1 ? 'Done' : 'Next →';
+  $('tour-step').textContent = (i + 1) + ' / ' + tourSteps.length;
+  $('tour-next').textContent = i === tourSteps.length - 1 ? 'Done' : 'Next →';
   const el = $(target);
   if (el) { el.classList.add('tour-highlight'); el.scrollIntoView({ block: 'center' }); }
 }
@@ -3216,7 +3231,7 @@ function renderQuickPicks(largest) {
   el.querySelectorAll('button[data-num]').forEach(b =>
     b.onclick = () => selectDistrict(b.dataset.num, b.dataset.name));
   $('chip-map').onclick = () => { location.href = '/geomap'; };
-  if ($('chip-tour')) $('chip-tour').onclick = () => tourShow(0);
+  if ($('chip-tour')) $('chip-tour').onclick = () => { tourBuild(); tourShow(0); };
   $('chip-random').onclick = async () => {
     try {
       const all = await api('/districts?limit=500');
@@ -3303,7 +3318,7 @@ $('lensbar').addEventListener('click', e => {
   localStorage.setItem('tisd_lens', state.lens);
   renderExec();
 });
-$('btn-tour').onclick = () => tourShow(0);
+$('btn-tour').onclick = () => { tourBuild(); tourShow(0); };
 $('tour-next').onclick = () => tourShow(tourI + 1);
 $('tour-skip').onclick = tourEnd;
 $('overlay').onclick = closeSheets;
