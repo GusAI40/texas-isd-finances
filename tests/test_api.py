@@ -442,6 +442,32 @@ def test_tutorial_doc_uses_the_corrected_bar(client):
         assert topic in doc.lower(), f"tutorial never mentions {topic}"
 
 
+def test_displayed_figures_add_up_for_every_district(client):
+    """A superintendent reading their own page will add the column. Rounding
+    each component independently left a quarter of districts off by a dollar —
+    explainable, and still the first thing anyone notices. Every district, not
+    a sample."""
+    import json as _json
+    from pathlib import Path
+
+    path = Path("static/economics_data.json")
+    if not path.exists():
+        pytest.skip("economics_data.json not built in this checkout")
+    data = _json.loads(path.read_text())
+    for num, r in data["districts"].items():
+        a = r["allocation"]
+        assert a["instruction_per_student"] + a["other_operating_per_student"] == \
+            a["operating_per_student"], num
+        assert a["operating_per_student"] + a["debt_per_student"] == \
+            a["total_per_student"], num
+        t = r.get("tax")
+        if t:
+            # the bill must be what the PUBLISHED rate implies, so a reader
+            # multiplying it by their own home value lands on the same answer
+            assert t["bill_on_home"] == round(t["home_value"] / 100 * t["total_rate"]), num
+            assert t["mo_rate"] + t["is_rate"] == pytest.approx(t["total_rate"], abs=1e-4), num
+
+
 def test_maps_ship_a_table_twin():
     """Both maps draw to a canvas, which no keyboard or screen reader can enter.
     Each must publish the same data as a real table. The styles alone once

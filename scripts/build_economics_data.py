@@ -332,12 +332,15 @@ def main() -> int:
         elif pd.notna(check) and abs(check) > 25:
             withheld += 1
         else:
-            total_rate = float(mo) + float(is_ or 0)
+            # Quote the bill from the RATE WE DISPLAY, not from full precision:
+            # otherwise the reader multiplies 0.8770 by their home value and
+            # gets a different answer from the one on the page.
+            total_rate = round(float(mo) + float(is_ or 0), 4)
             bill = HOME_VALUE / 100 * total_rate
             leaves = bill * (float(mo) / total_rate) * (recapture / gross_mo if gross_mo > 0 else 0)
             tax = {
                 "mo_rate": round(float(mo), 4), "is_rate": round(float(is_ or 0), 4),
-                "total_rate": round(total_rate, 4),
+                "total_rate": total_rate,
                 "bill_on_home": round(bill),
                 "leaves_district": round(leaves),
                 "home_value": HOME_VALUE,
@@ -347,6 +350,8 @@ def main() -> int:
             }
 
         debt_ps, instr_ps = float(row[DEBT + "_ps"]), float(row[INSTR + "_ps"])
+        _instr, _debt = round(instr_ps), round(debt_ps)
+        _operating = round(float(row[TOTAL + "_ps"]))
         entry = {
             "district_number": num,
             "district_name": title_case(row.district_name),
@@ -357,12 +362,16 @@ def main() -> int:
             # TEA's structure, so the three parts must be composed, not carved out
             # of the operating total — doing the latter yields a negative residual
             # for any district with heavy debt.
+            # Round ONCE and derive the rest, so the parts add up on screen.
+            # Rounding each component independently left a quarter of districts
+            # off by a dollar — arithmetically explainable, and still the first
+            # thing a superintendent notices when they add the column.
             "allocation": {
-                "instruction_per_student": round(instr_ps),
-                "debt_per_student": round(debt_ps),
-                "other_operating_per_student": round(float(row[TOTAL + "_ps"]) - instr_ps),
-                "operating_per_student": round(float(row[TOTAL + "_ps"])),
-                "total_per_student": round(float(row[TOTAL + "_ps"]) + debt_ps),
+                "instruction_per_student": _instr,
+                "debt_per_student": _debt,
+                "other_operating_per_student": _operating - _instr,
+                "operating_per_student": _operating,
+                "total_per_student": _operating + _debt,
                 "payroll_per_student": round(float(row[PAYROLL + "_ps"])),
                 "cents_on_debt_per_dollar_taught": round(debt_ps / instr_ps * 100)
                 if instr_ps > 0 else None,
