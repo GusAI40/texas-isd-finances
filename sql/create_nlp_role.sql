@@ -27,11 +27,27 @@
 --
 -- Never commit the password. It belongs only in the host's env vars.
 
+-- Create the role if it is missing, and ALWAYS set the password.
+--
+-- The password is set unconditionally on purpose. An earlier version only set
+-- it inside the IF NOT EXISTS branch, so re-running the provisioning script
+-- left the role on its original password while the caller stored the newly
+-- generated one in the deploy env — the two silently diverged and the app
+-- could no longer authenticate. Re-running this file must always leave the
+-- role's password equal to the one the caller just supplied.
 DO $$
 BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'nlp_reader') THEN
     CREATE ROLE nlp_reader LOGIN PASSWORD 'CHANGE_ME'
       NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOREPLICATION;
+  ELSE
+    -- Password only. Restating NOSUPERUSER here fails on Supabase with
+    -- "Only roles with the SUPERUSER attribute may alter roles with the
+    -- SUPERUSER attribute" — touching that attribute at all, even to clear
+    -- it, requires a true superuser, and Supabase's `postgres` is not one.
+    -- The attributes are already set by the CREATE above and are asserted
+    -- afterwards by the verification block at the foot of this file.
+    ALTER ROLE nlp_reader LOGIN PASSWORD 'CHANGE_ME';
   END IF;
 END
 $$;
