@@ -11,17 +11,22 @@ name = "texas-isd-finances"
 version = "1.0.0"
 description = "Public transparency portal for Texas school district finances"
 requires-python = ">=3.10"
+# Every entry carries an upper bound. Vercel resolves these at BUILD time, so
+# without a ceiling a breaking major release upstream breaks a deploy with no
+# change to this repo at all — and the failure surfaces as a build error on
+# whatever commit happened to deploy next, which is the worst possible place
+# to start debugging. Raise a bound deliberately, having read the changelog.
 dependencies = [
-    "python-dotenv>=1.0.0",
-    "sqlalchemy>=2.0.0",
-    "psycopg2-binary>=2.9.0",
-    "asyncpg>=0.29.0",
+    "python-dotenv>=1.0.0,<2.0.0",
+    "sqlalchemy>=2.0.0,<3.0.0",
+    "psycopg2-binary>=2.9.0,<3.0.0",
+    "asyncpg>=0.29.0,<0.32.0",
     "langchain>=1.0.0,<2.0.0",
-    "langchain-community>=0.4.0",
-    "langchain-openai>=1.0.0",
-    "openai>=2.0.0",
-    "fastapi>=0.115.0",
-    "pydantic>=2.7.0",
+    "langchain-community>=0.4.0,<0.5.0",
+    "langchain-openai>=1.0.0,<2.0.0",
+    "openai>=2.0.0,<3.0.0",
+    "fastapi>=0.115.0,<1.0.0",
+    "pydantic>=2.7.0,<3.0.0",
 ]
 
 [tool.uv]

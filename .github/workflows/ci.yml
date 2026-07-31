@@ -1,10 +1,11 @@
 name: CI
 
+# Every branch, not just master. Work happens on feature branches and used to
+# reach a pull request with no CI having run on it at all.
 on:
   push:
-    branches: [master]
+    branches: ['**']
   pull_request:
-    branches: [master]
 
 jobs:
   build:
@@ -30,6 +31,13 @@ jobs:
 
       - name: Lint with ruff
         run: ruff check .
+
+      # The test suite parses these too, but it SKIPS when node is missing.
+      # A skipped accessibility-critical check reads as a pass, so run it here
+      # as its own step where an absent node is a hard failure. A const
+      # redeclaration once killed static/map.html while it still served 200.
+      - name: Parse the static page JavaScript
+        run: python scripts/check_static_js.py
 
       - name: Run tests
         run: pytest -v

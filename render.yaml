@@ -11,6 +11,12 @@ services:
     envVars:
       - key: SUPABASE_DB_URL
         sync: false # set in the Render dashboard
+      # Least-privilege connection for /query, which lets a language model
+      # write its own SQL. Create the role with sql/create_nlp_role.sql. If
+      # this is unset the NLP path falls back to SUPABASE_DB_URL and runs
+      # model-authored SQL as the table owner — see DEPLOYMENT.md step 1.3.
+      - key: NLP_DB_URL
+        sync: false # set in the Render dashboard
       - key: OPENAI_API_KEY
         sync: false # set in the Render dashboard
       - key: PYTHON_VERSION

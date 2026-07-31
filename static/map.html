@@ -12,6 +12,17 @@
   * { box-sizing: border-box; }
   body { margin:0; background:#fff; color:var(--ink);
          font-family: system-ui,-apple-system,"Segoe UI",sans-serif; line-height:1.5; }
+  /* The canvas cannot be tabbed into, so a keyboard user's route to the data
+     is the table twin below it. This link is that route. Off-screen until
+     focused; never display:none, which would drop it from the tab order. */
+  .skiplink { position:absolute; left:-9999px; top:0; z-index:100;
+              background:#fff; color:var(--ink); padding:.6rem 1rem;
+              border:1px solid var(--ink); border-radius:4px; font-size:.9rem; }
+  .skiplink:focus { left:.5rem; top:.5rem; }
+  @media (prefers-reduced-motion: reduce) {
+    * { animation-duration:.01ms !important; animation-iteration-count:1 !important;
+        transition-duration:.01ms !important; scroll-behavior:auto !important; }
+  }
   .shell { max-width: 1180px; margin: 0 auto; padding: 0 1.25rem 3rem; }
   header { display:flex; flex-wrap:wrap; gap:.75rem; align-items:baseline;
            justify-content:space-between; padding:1.4rem 0 .3rem; }
@@ -80,6 +91,7 @@
 </style>
 </head>
 <body>
+<a class="skiplink" href="#a11y-table">Skip to the district table</a>
 <div class="shell">
   <header>
     <div class="brand">Texas ISD Finances<a href="/">← dashboard</a><a href="/geomap">map of Texas</a></div>

@@ -67,21 +67,31 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# CORS: this is a public, read-only API. With a wildcard origin, credentials
-# must be disabled (browsers reject the combination anyway). Set
-# CORS_ALLOW_ORIGINS to a comma-separated list to restrict origins.
+# CORS: this is a public, read-only API. Set CORS_ALLOW_ORIGINS to a
+# comma-separated list to restrict origins.
+#
+# Credentials are off unconditionally. This used to be `"*" not in _origins`,
+# which meant that narrowing the origin list — a tightening change — silently
+# switched credentialed CORS on. There is no auth and no cookie to send, so
+# the flag can only ever grant something unintended.
 _origins = [o.strip() for o in os.getenv("CORS_ALLOW_ORIGINS", "*").split(",") if o.strip()]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_origins,
-    allow_credentials="*" not in _origins,
+    allow_credentials=False,
     allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
 
 @app.middleware("http")
 async def security_headers(request: Request, call_next):
-    """Baseline hardening. Only HSTS was present before this.
+    """Baseline hardening, set by the app so it survives the deploy target.
+
+    HSTS used to arrive only from Vercel's edge, which meant the Dockerfile and
+    render.yaml paths in this repo shipped every other header and no HSTS. It
+    is set here now, but only for requests that actually arrived over TLS —
+    sending it over plain HTTP is meaningless, and pinning a developer's
+    localhost to HTTPS for two years is a genuinely annoying thing to do.
 
     The CSP allows inline script and style because both pages are
     self-contained single files by design — no build step, no bundler, nothing
@@ -91,6 +101,9 @@ async def security_headers(request: Request, call_next):
     resp = await call_next(request)
     if request.url.path.startswith(("/docs", "/redoc", "/openapi.json")):
         return resp                      # Swagger UI loads its assets from a CDN
+    proto = request.headers.get("x-forwarded-proto", request.url.scheme)
+    if proto == "https":
+        resp.headers.setdefault("Strict-Transport-Security", "max-age=63072000")
     resp.headers.setdefault("X-Content-Type-Options", "nosniff")
     resp.headers.setdefault("X-Frame-Options", "SAMEORIGIN")
     resp.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
@@ -1244,6 +1257,26 @@ async def district_geo():
         return FileResponse(data, media_type="application/json")
     raise HTTPException(status_code=404,
                         detail="Boundary data not built. Run scripts/build_district_geo.py")
+
+
+@app.get("/fallback-index", tags=["General"])
+async def fallback_index():
+    """The district picker and statewide figures, with no database involved.
+
+    Fourteen endpoints here are pure static JSON and survive a database outage
+    untouched. The front door did not: the page awaited /stats and /benchmarks
+    before rendering, and the search box called /districts, so a paused
+    Supabase free tier turned a working site into a blank one — including the
+    sections that were still perfectly healthy.
+
+    The page falls back to this and keeps going, labelling the statewide
+    figures as a snapshot. Built by scripts/build_fallback_index.py.
+    """
+    data = STATIC_DIR / "fallback_index.json"
+    if data.exists():
+        return FileResponse(data, media_type="application/json")
+    raise HTTPException(status_code=404,
+                        detail="Fallback index not built. Run scripts/build_fallback_index.py")
 
 
 @app.get("/map-data", tags=["Districts"])

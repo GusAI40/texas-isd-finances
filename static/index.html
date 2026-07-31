@@ -26,6 +26,14 @@
 <meta name="twitter:description" content="$109 billion a year across 1,310 districts. Where every penny goes, and what it actually buys.">
 <title>Texas ISD Finances — District Dashboard</title>
 <style>
+  /* Keyboard users reach the content without tabbing the whole header. The
+     link is off-screen until focused, so it costs the visual design nothing.
+     Do not replace this with display:none — that removes it from the tab
+     order, which is the one thing it exists to be in. */
+  .skiplink { position:absolute; left:-9999px; top:0; z-index:100;
+              background:#fff; color:var(--ink); padding:.6rem 1rem;
+              border:1px solid var(--ink); border-radius:4px; font-size:.9rem; }
+  .skiplink:focus { left:.5rem; top:.5rem; }
   /* White-minimalist system: whitespace over boxes, hairlines over borders,
      gray carries context, ONE blue carries the data story. */
   :root {
@@ -549,6 +557,7 @@
 </style>
 </head>
 <body>
+<a class="skiplink" href="#picker-section">Skip to the data</a>
 <div class="shell">
   <div id="progresswrap"><i id="progressbar"></i></div>
   <nav id="sectionnav" class="hidden" aria-label="Jump to a section"></nav>
@@ -571,7 +580,7 @@
   <div class="warnbar" id="dbwarn">The database is not reachable right now. If this persists,
     the project may be paused — an administrator can wake it in the Supabase dashboard.</div>
 
-  <section id="picker-section" class="hero">
+  <section id="picker-section" class="hero" tabindex="-1">
     <div class="eyebrow">Storytelling with data · a story of Texas ISD</div>
     <h1 class="hero-h" id="picker-title">Texas school districts spend
       <span class="hero-num" id="hero-num" style="opacity:.25">$—</span> a year. Here is where every penny goes.</h1>
@@ -1704,6 +1713,36 @@ function cite(el, extra) {
     + state.district.num + (extra ? ' · ' + extra : '') + ' · <a href="https://tea.texas.gov/finance-and-grants/state-funding/state-funding-reports-and-data/peims-financial-data-downloads" target="_blank" rel="noopener">original release</a>';
 }
 
+/* ---------- surviving a dead database ----------
+   Fourteen sections of this page — outcomes, economics, bonds, equity, the
+   Houston takeover, both maps — are served from committed JSON and do not
+   need a database at all. They used to go dark anyway, because the way IN
+   was database-backed: the page awaited /stats and /benchmarks before it
+   rendered, and the picker called /districts. A paused Supabase free tier
+   therefore produced a blank page sitting on top of a pile of healthy data.
+
+   /fallback-index carries the district list and a dated snapshot of the
+   statewide figures. It is fetched once, lazily, only after something has
+   actually failed — a healthy visit never pays for it. */
+let fallbackPromise = null;
+function loadFallback() {
+  if (!fallbackPromise) {
+    fallbackPromise = fetch('/fallback-index')
+      .then(r => r.ok ? r.json() : Promise.reject(new Error('HTTP ' + r.status)))
+      .catch(e => { fallbackPromise = null; throw e; });
+  }
+  return fallbackPromise;
+}
+
+function markDegraded(capturedISO) {
+  const bar = $('dbwarn');
+  bar.style.display = 'block';
+  bar.textContent = 'Live figures are temporarily unavailable, so the statewide numbers below ' +
+    'are a saved snapshot' + (capturedISO ? ' from ' + capturedISO : '') + '. Everything a ' +
+    'district page says about results, spending, bonds and equity is unaffected — those come ' +
+    'from published files, not the live database.';
+}
+
 /* ---------- search / pickers ---------- */
 async function doSearch(inputId, listId, onPick) {
   const q = $(inputId).value.trim();
@@ -1711,7 +1750,16 @@ async function doSearch(inputId, listId, onPick) {
   const list = $(listId);
   list.innerHTML = '<li class="cite">Searching…</li>';
   try {
-    const rows = await api('/districts?search=' + encodeURIComponent(q) + '&limit=15');
+    let rows;
+    try {
+      rows = await api('/districts?search=' + encodeURIComponent(q) + '&limit=15');
+    } catch (dbErr) {
+      // Same search, run locally over the committed index.
+      const fb = await loadFallback();
+      const needle = q.toLowerCase();
+      rows = fb.districts.filter(r => r.district_name.toLowerCase().includes(needle)).slice(0, 15);
+      markDegraded(fb.captured);
+    }
     list.innerHTML = rows.length ? '' : '<li class="cite">No districts found — try fewer letters.</li>';
     for (const r of rows) {
       const li = document.createElement('li');
@@ -1747,11 +1795,16 @@ async function loadDashboard() {
   if (!d) return;
   $('dash').classList.remove('hidden');
   try {
+    // Every one of these is caught. The first four used to be bare, so a
+    // database outage rejected the whole Promise.all and took the six
+    // sections that had ALREADY loaded from static files down with it —
+    // outcomes, economics, bonds, equity, the takeover, the dollar. A reader
+    // lost the entire district page over a paused free tier.
     const [summary, peers, flags, breakdown, turnarounds, detail, insights, dollar, outcomes, econ, bonds, equity, takeover] = await Promise.all([
-      api('/district/' + encodeURIComponent(d.num) + '/summary'),
-      api('/district/' + encodeURIComponent(d.num) + '/peers'),
-      api('/anomalies?district_number=' + encodeURIComponent(d.num) + '&limit=50'),
-      api('/district/' + encodeURIComponent(d.num) + '/breakdown'),
+      api('/district/' + encodeURIComponent(d.num) + '/summary').catch(() => []),
+      api('/district/' + encodeURIComponent(d.num) + '/peers').catch(() => null),
+      api('/anomalies?district_number=' + encodeURIComponent(d.num) + '&limit=50').catch(() => []),
+      api('/district/' + encodeURIComponent(d.num) + '/breakdown').catch(() => []),
       api('/district/' + encodeURIComponent(d.num) + '/turnarounds').catch(() => ({turnarounds: []})),
       api('/district/' + encodeURIComponent(d.num) + '/spending-detail').catch(() => []),
       api('/district/' + encodeURIComponent(d.num) + '/insights').catch(() => ({insights: []})),
@@ -1763,7 +1816,16 @@ async function loadDashboard() {
       api('/takeover/houston').catch(() => null),
     ]);
     // The name may be a placeholder when arriving from a shared ?d= link.
-    const realName = summary.find(r => r.district_name)?.district_name;
+    let realName = summary.find(r => r.district_name)?.district_name;
+    if (!realName) {
+      // /summary is database-backed. With it down, a shared link would show
+      // the district NUMBER as the heading over perfectly good static data.
+      try {
+        const fb = await loadFallback();
+        realName = fb.districts.find(r => r.district_number === d.num)?.district_name;
+        if (realName) markDegraded(fb.captured);
+      } catch (_) { /* leave the placeholder */ }
+    }
     if (realName) {
       state.district.name = titleCase(realName);
       localStorage.setItem('tisd_district', JSON.stringify(state.district));
@@ -1781,10 +1843,28 @@ async function loadDashboard() {
 }
 function renderAll() {
   renderTicker();
-  renderExec(); renderDollar(); renderOutcomes(); renderEconomics(); renderEquity(); renderTakeover(); renderBonds(); renderInsights(); renderKPIs(); renderTrend(); renderPeers();
-  renderMoney(); renderFlags(); renderObject(); renderProgram(); renderTurnarounds();
-  ['kpi-cite', 'trend-cite', 'peers-cite', 'flags-cite'].forEach(c => cite(c));
-  cite('money-cite', 'function-code groupings listed under Disclaimer');
+  /* Each section renders inside its own boundary. These used to be one
+     statement, so the first renderer to throw — on a missing measure, an
+     empty array from a failed fetch — silently discarded every section after
+     it, and loadDashboard's catch made it look like nothing had happened.
+     A section that cannot draw itself now hides itself and says why in the
+     console; its neighbours are unaffected. */
+  const SECTIONS = [
+    ['exec', renderExec], ['dollar', renderDollar], ['outcomes', renderOutcomes],
+    ['economics', renderEconomics], ['equity', renderEquity], ['takeover', renderTakeover],
+    ['bonds', renderBonds], ['insights', renderInsights], ['kpis', renderKPIs],
+    ['trend', renderTrend], ['peers', renderPeers], ['money', renderMoney],
+    ['flags', renderFlags], ['object', renderObject], ['program', renderProgram],
+    ['turnarounds', renderTurnarounds],
+  ];
+  for (const [name, fn] of SECTIONS) {
+    try { fn(); }
+    catch (e) { console.warn('section "' + name + '" could not render:', e); }
+  }
+  try {
+    ['kpi-cite', 'trend-cite', 'peers-cite', 'flags-cite'].forEach(c => cite(c));
+    cite('money-cite', 'function-code groupings listed under Disclaimer');
+  } catch (e) { console.warn('citations could not render:', e); }
   $('btn-uncompare').classList.toggle('hidden', !state.compare);
   $('comparebar').innerHTML = state.compare
     ? 'Comparing with <b>' + state.compare.name + '</b> (orange in the trend chart below).' : '';
@@ -1793,9 +1873,20 @@ function renderAll() {
 /* ---------- executive summary (pyramid principle: answer first) ---------- */
 function latestOf(rows, field) { const r = rows.filter(r => r[field] != null); return [r[r.length - 1], r[r.length - 2], r]; }
 function renderExec() {
-  const [cur] = latestOf(state.summary, 'spend_per_student');
-  $('kpi-eyebrow').textContent = 'Fiscal ' + cur.year + ' · the story in one paragraph';
+  // The district's NAME is not optional — it is the heading every section
+  // below sits under, and it comes from state, not the database. Set it
+  // first, so a missing finance summary costs the reader the paragraph and
+  // not the identity of the page they are looking at.
   $('dname').textContent = state.district.name;
+  const [cur] = latestOf(state.summary, 'spend_per_student');
+  if (!cur) {
+    $('kpi-eyebrow').textContent = 'Live budget figures are temporarily unavailable';
+    $('exec').innerHTML = 'The year-by-year budget summary for this district could not be ' +
+      'loaded right now. What follows — results, what the money bought, bonds and equity — ' +
+      'is published separately and is complete.';
+    return;
+  }
+  $('kpi-eyebrow').textContent = 'Fiscal ' + cur.year + ' · the story in one paragraph';
   $('exec').innerHTML = lensStory();
 }
 
@@ -3289,7 +3380,14 @@ function renderQuickPicks(largest) {
   if ($('chip-tour')) $('chip-tour').onclick = () => { tourBuild(); tourShow(0); };
   $('chip-random').onclick = async () => {
     try {
-      const all = await api('/districts?limit=500');
+      let all;
+      try {
+        all = await api('/districts?limit=500');
+      } catch (dbErr) {
+        const fb = await loadFallback();
+        all = fb.districts;             // and this one is not capped at 500
+        markDegraded(fb.captured);
+      }
       const r = all[Math.floor(Math.random() * all.length)];
       selectDistrict(r.district_number, titleCase(r.district_name));
     } catch (e) { /* banner shown */ }
@@ -3298,12 +3396,26 @@ function renderQuickPicks(largest) {
 
 async function loadStatewide() {
   try {
-    const [s, bm, tx, txEcon] = await Promise.all([
-      api('/stats'), api('/benchmarks'), api('/dollar/texas').catch(() => null),
+    // /stats and /benchmarks are what the statewide figures are made of, so
+    // they are not optional — but "not optional" used to mean "the whole page
+    // dies with them". They now fall back to the committed snapshot, which
+    // keeps the district picker and all fourteen database-free sections
+    // reachable through an outage. Everything genuinely optional is still
+    // caught individually so one slow extra never costs the page its figures.
+    let s, bm, fallback = null, degradedFrom = null;
+    try {
+      [s, bm] = await Promise.all([api('/stats'), api('/benchmarks')]);
+    } catch (dbErr) {
+      fallback = await loadFallback();
+      s = fallback.stats; bm = fallback.benchmarks; degradedFrom = fallback.captured;
+    }
+    let [tx, txEcon] = await Promise.all([
+      api('/dollar/texas').catch(() => null),
       api('/economics/texas').catch(() => null)]);
-    // NOTE: /stats and /benchmarks are deliberately un-caught — the dashboard
-    // cannot render without them. Everything optional is caught individually so
-    // one slow extra never costs the page its statewide figures.
+    // The statewide dollar is the headline of the page. Left null it renders
+    // "$—", which reads as broken rather than as a snapshot.
+    if (!tx && fallback) tx = fallback.dollar_texas || null;
+    if (degradedFrom) markDegraded(degradedFrom);
     state.benchmarks = bm;
     state.txDollar = tx; state.econTexas = txEcon;
     armCounters($('picker-section'));
@@ -3423,6 +3535,14 @@ function slug() { return (state.district?.name || 'district').replace(/\W+/g, '_
 <!-- Vercel Web Analytics: aggregate page counts only. No cookies, no
      cross-site tracking, no personal data. Enable it in the Vercel project
      for these events to be recorded. -->
-<script defer src="/_vercel/insights/script.js"></script>
+<!-- Vercel Web Analytics was referenced here but is not enabled on the
+     project, so /_vercel/insights/script.js returned 404 on every page load —
+     a failed request for every visitor and no analytics to show for it. If you
+     want it, switch Web Analytics on in the Vercel dashboard first, then put
+     this tag back on both index.html and geomap.html:
+       <script defer src="/_vercel/insights/script.js"></script>
+     It is cookieless and does not identify visitors, but it is still
+     measurement: if it goes back, say so in the disclaimer, because this site
+     tells readers their location never leaves their device. -->
 </body>
 </html>

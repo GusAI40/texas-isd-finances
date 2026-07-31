@@ -564,3 +564,76 @@ def test_year_bounds_validated(client):
     assert res.status_code == 422
     res = client.get("/anomalies?year=2050")
     assert res.status_code == 422
+
+
+# --- endpoints that had no test at all until the July 2026 audit -------------
+# All four served 200 in production the whole time; none of them would have
+# caught a regression. /dollar/texas in particular feeds the landing-page hero.
+
+def test_static_map_pages_served(client):
+    """/map and /map-data need no database and must survive an outage."""
+    res = client.get("/map")
+    assert res.status_code == 200
+    assert "<canvas" in res.text
+
+    res = client.get("/map-data")
+    assert res.status_code == 200
+    body = res.json()
+    assert body["meta"]["year"] >= 2024
+    assert len(body["nodes"]) > 1000
+
+
+def test_district_geo_served_without_database(client):
+    res = client.get("/district-geo")
+    assert res.status_code == 200
+    body = res.json()
+    # Charters have no boundary, so this is short of the 1,310 finance districts
+    # by design. The meta says so; assert it keeps saying so.
+    assert len(body["d"]) > 900
+    assert "Charter" in body["meta"]["note"]
+    assert "TIGER" in body["meta"]["source"]
+
+
+def test_dollar_texas_requires_database(client):
+    """The landing hero's figure. Database-backed, so 503 without one — the
+    page falls back to /fallback-index rather than rendering '$—'."""
+    assert client.get("/dollar/texas").status_code == 503
+
+
+def test_fallback_index_survives_a_dead_database(client):
+    """The survival kit: picker + statewide figures with no database at all.
+
+    Fourteen endpoints here are static JSON and sail through an outage. The
+    front door did not, so a paused free tier blanked a site full of healthy
+    data. This endpoint is what the page falls back to.
+    """
+    res = client.get("/fallback-index")
+    assert res.status_code == 200
+    body = res.json()
+
+    assert len(body["districts"]) > 1000
+    assert all({"district_number", "district_name"} <= set(d) for d in body["districts"][:50])
+    # Every district listed must be findable in the payloads that render it,
+    # or the picker promises a page with nothing on it.
+    assert any(d["district_number"] == "101912" for d in body["districts"]), "Houston ISD missing"
+
+    assert body["stats"]["total_districts"] > 1000
+    assert len(body["benchmarks"]) >= 15
+    assert body["dollar_texas"]["total_spend"] > 0
+    assert body["captured"], "the snapshot must be dated — the page shows the date"
+
+
+def test_fallback_districts_all_have_static_content():
+    """A district in the picker with no payload behind it is a dead end."""
+    import json
+    from pathlib import Path
+
+    static = Path(__file__).resolve().parent.parent / "static"
+    listed = {d["district_number"] for d in json.loads((static / "fallback_index.json").read_text())["districts"]}
+    covered = set()
+    for name, key in (("economics_data.json", "districts"), ("outcomes_data.json", "districts"),
+                      ("equity_data.json", "districts"), ("bond_data.json", "districts"),
+                      ("district_geo.json", "d")):
+        covered |= set(json.loads((static / name).read_text())[key])
+    orphans = listed - covered
+    assert not orphans, f"{len(orphans)} districts in the picker have no data to show: {sorted(orphans)[:5]}"

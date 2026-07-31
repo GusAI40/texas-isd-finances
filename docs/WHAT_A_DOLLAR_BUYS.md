@@ -197,9 +197,17 @@ school board with a similar student population exactly whom to call.
 - **Association, not causation.** Nothing here identifies a cause. A district
   could beat expectations because of leadership, a stable veteran staff, a
   smaller and more cohesive community, or measurement noise.
-- **The need model explains 33.4% of STAAR variation.** Two-thirds remains
-  unexplained by demographics. Some of that is real district difference; some
-  is noise. Do not treat a residual as a score.
+- **The need model explains a third to a half of STAAR variation, depending on
+  which bar and which sample.** Quote the matching pair or the number will be
+  wrong. Over the pooled 2009–2024 panel at **Approaches** (13,212
+  district-years) the three need predictors explain **33.4%**
+  (`docs/findings_outcomes.json`). For the single year the district pages score
+  against — 2024, at **Meets** — the same three predictors explain **50.05%**
+  (`model_r2` in `static/outcomes_data.json`). The site headlines Meets, so
+  **50%** is the figure that belongs next to anything a reader sees on a
+  district page. Either way, half or more is unexplained by demographics: some
+  of it is real district difference, some is noise. Do not treat a residual as
+  a score.
 - **Snapshot vs our finance data disagree by a median 2.9%** on operating
   spending per pupil, because the two use slightly different enrollment
   denominators and reporting vintages. Both are TEA's own figures. Use the
