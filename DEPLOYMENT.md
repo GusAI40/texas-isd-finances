@@ -20,9 +20,18 @@ OpenAI via LangChain (src/nlp_engine.py) — natural-language questions
 ## 1. Provision the database (Supabase)
 
 1. Create a project at https://app.supabase.com (free tier is fine).
-2. In the SQL Editor, run the whole of `sql/create_tables.sql`. This creates
-   the base table, public read-only views, indexes, and locks the base table
-   down with row-level security.
+2. **Import the data before you run any SQL.** `scripts/import_to_supabase.py`
+   creates the base table itself — pandas writes all 140 columns straight from
+   the cleaned TEA file. Only then run `sql/create_tables.sql`, which adds the
+   primary key, indexes, public views, the anomaly materialized view, RLS and
+   grants **to a table that must already exist**. Running the SQL first fails
+   with `relation "public.texas_school_finance" does not exist`; the file's own
+   header says so, and this step used to say the opposite.
+
+       python scripts/prepare_data.py          # Excel → data/texas_finance_clean.csv
+       python scripts/import_to_supabase.py    # creates + fills the table
+       # then paste sql/create_tables.sql into the SQL Editor
+
 3. Run `sql/create_nlp_role.sql` (after replacing `CHANGE_ME` with a password
    you generate). This creates `nlp_reader`: SELECT on the two public views,
    read-only transactions, no schema rights. `/query` lets a language model

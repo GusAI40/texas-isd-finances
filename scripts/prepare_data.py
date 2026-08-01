@@ -91,8 +91,26 @@ def prepare_data(input_file, output_dir):
     return df
 
 if __name__ == "__main__":
-    # Update this path to your Excel file location
-    input_file = "ETL_2008-2024-summarized-financial-data-03-17-2025.xlsx"
-    output_dir = "data"
+    import argparse
 
-    prepare_data(input_file, output_dir)
+    # This used to hardcode a filename from an older TEA release and crash with
+    # a bare pandas traceback when it was missing — which reads like a broken
+    # script rather than a missing input.
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("input", nargs="?",
+                    default="ETL_2008-2024-summarized-financial-data-03-17-2025.xlsx",
+                    help="TEA 'Summarized PEIMS Actual Financial Data' .xlsx "
+                         "(download link in QUICKSTART.md)")
+    ap.add_argument("-o", "--output-dir", default="data", help="default: data/")
+    args = ap.parse_args()
+
+    if not Path(args.input).exists():
+        raise SystemExit(
+            f"Input file not found: {args.input}\n\n"
+            "Download the TEA 'Summarized PEIMS Actual Financial Data' release from\n"
+            "https://tea.texas.gov/finance-and-grants/state-funding/"
+            "state-funding-reports-and-data/peims-financial-data-downloads\n"
+            "then pass it as an argument:\n"
+            "    python scripts/prepare_data.py path/to/file.xlsx"
+        )
+    prepare_data(args.input, args.output_dir)

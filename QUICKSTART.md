@@ -8,6 +8,22 @@
   (currently fiscal 2009–2025), from
   https://tea.texas.gov/finance-and-grants/state-funding/state-funding-reports-and-data/peims-financial-data-downloads
 
+## Just want to look at it? No setup at all
+
+The portal, both maps, and every district's outcomes, economics, bonds, equity
+and takeover analysis are served from committed JSON. None of them touch a
+database. So this works on a fresh clone with no credentials of any kind:
+
+```bash
+pip install -r requirements.txt
+uvicorn src.api:app --reload --port 8000
+# open http://localhost:8000/
+```
+
+You get the whole report. What needs credentials is the live *finance* data
+(per-year budgets, peers, anomalies, the spending trend) and the
+natural-language question box. Everything below is for those.
+
 ## Step-by-Step Setup
 
 ### 1. Clone and Setup Environment
@@ -39,11 +55,19 @@ cp env_template.txt .env
 python scripts/prepare_data.py
 ```
 
-### 4. Setup Supabase
+### 4. Setup Supabase — import FIRST, then run the SQL
+The order is not interchangeable. `import_to_supabase.py` creates the base
+table (pandas writes all 140 columns). `sql/create_tables.sql` then *decorates*
+that table with a primary key, indexes, views and grants — it does not create
+it. Run the SQL first and it fails with
+`relation "public.texas_school_finance" does not exist`.
+
 1. Create a new project at https://app.supabase.com
-2. Open the SQL Editor
-3. Run the contents of `sql/create_tables.sql`
-4. Import the data: `python scripts/import_to_supabase.py`
+2. Import the data: `python scripts/import_to_supabase.py`
+3. Open the SQL Editor and run the contents of `sql/create_tables.sql`
+4. Run `sql/create_nlp_role.sql` with a password you generate, and set the
+   resulting connection string as `NLP_DB_URL`. `/query` lets a language model
+   write its own SQL, so it must not use the owner connection.
 5. In the SQL Editor: `REFRESH MATERIALIZED VIEW public.v_anomaly_flags;`
 
 ### 5. Test the NLP Engine (optional)
