@@ -6,8 +6,19 @@ language querying, and automatic anomaly detection.
 
 🌐 **Live portal:** https://txisd.dev
 
+📖 **How do I use this?** → **[docs/USAGE.md](docs/USAGE.md)** — the three
+tiers (read it / add a database / add questions), the full endpoint table,
+how to rebuild the data layers, and how to verify a change.
+
 🗺️ **New here?** See [PROJECT_MAP.md](PROJECT_MAP.md) for a visual,
 plain-English map of the whole system.
+
+**The fastest possible start** — no credentials, no database, nothing to
+configure. You get the entire report:
+
+```bash
+pip install -r requirements.txt && uvicorn src.api:app --reload --port 8000
+```
 
 ## 🎯 Project Goals
 

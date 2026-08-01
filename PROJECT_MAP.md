@@ -45,7 +45,7 @@ graph TB
     end
 
     subgraph GUARDS["🛡️ SECURITY & INSPECTIONS"]
-        CI["✅ Building inspector:<br/>CI — ruff + 24 tests<br/>(.github/workflows/ci.yml)"]
+        CI["✅ Building inspector:<br/>CI — ruff + pytest + JS parse<br/>(.github/workflows/ci.yml)"]
         DOCS["📚 Town records:<br/>README, AUDIT.md,<br/>DEPLOYMENT.md, SECURITY.md"]
     end
 

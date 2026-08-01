@@ -97,5 +97,5 @@ secret scan.
 | plotly | 6.9.x | `update_xaxes`/`update_yaxes` verified |
 | pandas | 3.0.x | prepare-data helpers tested |
 
-All 24 tests pass against this matrix; CI enforces ruff + pytest on Python
+The suite passed against this matrix at the time; CI enforces ruff + pytest on Python
 3.10–3.12.
