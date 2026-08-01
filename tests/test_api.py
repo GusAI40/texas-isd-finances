@@ -637,3 +637,93 @@ def test_fallback_districts_all_have_static_content():
         covered |= set(json.loads((static / name).read_text())[key])
     orphans = listed - covered
     assert not orphans, f"{len(orphans)} districts in the picker have no data to show: {sorted(orphans)[:5]}"
+
+
+# --- the shared spend ceiling (audit finding H-2) ----------------------------
+# The old limiter counted in process memory, so on serverless "60 per minute"
+# meant "60 per minute PER INSTANCE" and the real bound was however many
+# instances an attacker could provoke. These tests pin the replacement.
+
+class _FakePool:
+    """Minimal asyncpg-pool stand-in backed by a dict, honouring the SQL's
+    conditional-increment semantics: return the new count while under the cap,
+    return None once it is reached."""
+
+    def __init__(self, fail=False):
+        self.counts: dict = {}
+        self.fail = fail
+        self.calls = 0
+
+    def acquire(self):
+        pool = self
+
+        class _Ctx:
+            async def __aenter__(self):
+                if pool.fail:
+                    raise RuntimeError("database unreachable")
+                return pool
+
+            async def __aexit__(self, *a):
+                return False
+        return _Ctx()
+
+    async def fetchval(self, _sql, kind, _trunc, cap):
+        self.calls += 1
+        cur = self.counts.get(kind, 0)
+        if cur >= cap:
+            return None
+        self.counts[kind] = cur + 1
+        return cur + 1
+
+
+@pytest.mark.anyio
+async def test_shared_limit_blocks_at_the_ceiling():
+    import src.api as api
+    pool = _FakePool()
+    allowed = 0
+    for _ in range(api._GLOBAL_LIMIT + 5):
+        if await api._shared_limit_reached(pool):
+            break
+        allowed += 1
+    assert allowed == api._GLOBAL_LIMIT, "the shared ceiling did not hold"
+
+
+@pytest.mark.anyio
+async def test_daily_ceiling_is_independent_of_the_minute_ceiling():
+    """A per-minute cap alone still bills 86,400 calls a day. The daily cap is
+    the one that protects the bill, so it must be counted separately."""
+    import src.api as api
+    pool = _FakePool()
+    await api._shared_limit_reached(pool)
+    assert pool.counts["minute"] == 1 and pool.counts["day"] == 1
+
+
+@pytest.mark.anyio
+async def test_metering_outage_does_not_take_down_the_feature():
+    """Fails open on availability: /query's own connection is separate, so a
+    metering outage must not break a working feature. The per-instance limit
+    still applies, so this is the old exposure, not a new one."""
+    import src.api as api
+    assert await api._shared_limit_reached(_FakePool(fail=True)) is False
+    assert await api._shared_limit_reached(None) is False
+
+
+@pytest.mark.anyio
+async def test_refused_calls_cost_nothing():
+    """The ceiling is checked before the engine is constructed, so a refused
+    request never builds an OpenAI client or opens the agent's connection."""
+    import inspect
+
+    import src.api as api
+    src = inspect.getsource(api.nlp_query)
+    assert src.index("_shared_limit_reached") < src.index("get_nlp_engine")
+
+
+def test_usage_table_is_not_readable_by_the_metered_role():
+    """nlp_reader is what the language model runs as. It must not be able to
+    read its own meter, and certainly not edit it."""
+    from pathlib import Path
+    sql = (Path(__file__).resolve().parent.parent / "sql" / "create_nlp_usage.sql").read_text()
+    assert "REVOKE ALL ON public.nlp_usage FROM nlp_reader" in sql
+    assert "REVOKE ALL ON public.nlp_usage FROM anon, authenticated" in sql
+    assert "ENABLE ROW LEVEL SECURITY" in sql

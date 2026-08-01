@@ -32,13 +32,19 @@ OpenAI via LangChain (src/nlp_engine.py) — natural-language questions
        python scripts/import_to_supabase.py    # creates + fills the table
        # then paste sql/create_tables.sql into the SQL Editor
 
-3. Run `sql/create_nlp_role.sql` (after replacing `CHANGE_ME` with a password
+3. Run `sql/create_nlp_usage.sql`. This is the counter that bounds `/query`'s
+   OpenAI spend across every serverless instance. Skipping it does not break
+   anything — the API logs a warning and falls back to per-instance counters —
+   but per-instance counters are not a ceiling: Vercel starts as many
+   instances as traffic demands, so "60 per minute" becomes "60 per minute
+   times however many instances an attacker can provoke".
+4. Run `sql/create_nlp_role.sql` (after replacing `CHANGE_ME` with a password
    you generate). This creates `nlp_reader`: SELECT on the two public views,
    read-only transactions, no schema rights. `/query` lets a language model
    write its own SQL, so it must not hold the owner connection — the
    least-privilege boundary has to live in the database, where a prompt
    cannot argue with it. The role's pooler URL is your `NLP_DB_URL`.
-4. Copy the **connection string** — this is your `SUPABASE_DB_URL`.
+5. Copy the **connection string** — this is your `SUPABASE_DB_URL`.
 
    ⚠️ **Use the Session pooler string** (Connect → Session pooler:
    `postgresql://postgres.[REF]:[PASSWORD]@aws-[REGION].pooler.supabase.com:5432/postgres`).
@@ -116,14 +122,20 @@ disables asyncpg's statement cache so it is pooler-compatible.
 | `NLP_MODEL` | no (default `gpt-4o-mini`) | OpenAI model for NLP queries |
 | `NLP_VERBOSE` | no (default `false`) | Log agent reasoning |
 | `DATA_MIN_YEAR` / `DATA_MAX_YEAR` | no (2009/2025) | Data coverage bounds |
+| `QUERY_RATE_LIMIT` | no (default 10) | `/query` per IP, per minute. Per-process; spoofable via `X-Forwarded-For`, so this only stops one honest user hogging the box. |
+| `QUERY_GLOBAL_LIMIT` | no (default 60) | `/query` all callers, per minute. Counted in the database, so it holds across every instance. |
+| `QUERY_DAILY_LIMIT` | no (default 5000) | `/query` all callers, per day. **This is the one that bounds the bill** — a per-minute cap alone still permits 86,400 calls a day. |
 
 **Security notes for public operation**
 
 - Point the API at a **read-only** database role where possible
   (`SUPABASE_READONLY_URL` pattern in `env_template.txt`); the NLP agent can
   only see the two public views either way.
-- `/query` calls a paid OpenAI API — consider a rate limiter or gateway
-  (e.g. Cloudflare) in front of the service before promoting it widely.
+- `/query` calls a paid OpenAI API. `QUERY_GLOBAL_LIMIT` and
+  `QUERY_DAILY_LIMIT` are counted in `public.nlp_usage`, so they hold across
+  every serverless instance rather than per-process — but they cap the number
+  of CALLS, not dollars. Set a monthly usage limit on the OpenAI account too;
+  that is the only control that can price a call.
 - Never commit `.env`; both `.gitignore` and this repo's history are clean.
 
 ## 5. Verify the launch

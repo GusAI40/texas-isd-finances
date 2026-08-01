@@ -195,22 +195,71 @@ async def api_info():
     }
 
 
-# Simple sliding-window rate limit for /query: each call costs a paid
-# OpenAI request. Per-process state — on serverless each warm instance
-# enforces its own window, which still bounds abuse per instance; put a
-# CDN/WAF limit in front for a hard global guarantee.
-_RATE_LIMIT = int(os.getenv("QUERY_RATE_LIMIT", "10"))  # requests
-_RATE_WINDOW = 60.0  # seconds
+# Rate limiting for /query, where every call costs a paid OpenAI request.
+#
+# There are two layers, and only one of them is a real spend guard.
+#
+# The per-IP window below is per-process and stays that way on purpose: it
+# exists to stop one honest user hammering the box, and it cannot do more
+# than that, because X-Forwarded-For is client-supplied. An attacker presents
+# a fresh IP per request and walks straight through it.
+#
+# The ceiling that actually bounds the bill is _shared_limit_reached(), which
+# counts in the DATABASE. It used to count in process memory, which on Vercel
+# meant every warm instance enforced its own separate ceiling — "60 per
+# minute" was really "60 per minute per instance", and the platform starts as
+# many instances as traffic demands. That is not a bound.
+_RATE_LIMIT = int(os.getenv("QUERY_RATE_LIMIT", "10"))       # per IP, per minute
+_RATE_WINDOW = 60.0
 _rate_buckets: Dict[str, List[float]] = {}
-# X-Forwarded-For is client-supplied and therefore spoofable, so the per-IP
-# limit alone cannot bound cost — one attacker can present a new IP per
-# request. This global ceiling is the actual spend guard; the per-IP limit
-# just keeps one honest user from hogging it.
-_GLOBAL_LIMIT = int(os.getenv("QUERY_GLOBAL_LIMIT", "60"))  # per window, all callers
+
+_GLOBAL_LIMIT = int(os.getenv("QUERY_GLOBAL_LIMIT", "60"))   # all callers, per minute
+_DAILY_LIMIT = int(os.getenv("QUERY_DAILY_LIMIT", "5000"))   # all callers, per day
 _global_hits: List[float] = []
+
+# Atomic: increment only while still under the cap, and report whether we did.
+# Doing it in one statement is the whole point — a read-then-write race across
+# instances is exactly the hole this is meant to close. No row returned means
+# the window is full.
+_CLAIM_SQL = """
+    INSERT INTO public.nlp_usage (window_kind, window_start, calls)
+    VALUES ($1, date_trunc($2, now()), 1)
+    ON CONFLICT (window_kind, window_start)
+    DO UPDATE SET calls = public.nlp_usage.calls + 1
+    WHERE public.nlp_usage.calls < $3
+    RETURNING calls
+"""
+
+
+async def _shared_limit_reached(pool) -> bool:
+    """Claim one call against the minute and day ceilings shared by every instance.
+
+    Returns True when a ceiling is reached and the call must be refused.
+
+    Falls back to the in-memory counters when the database is unreachable or
+    the table has not been created. That is a deliberate choice: /query's own
+    connection is separate from this one, so a metering outage would otherwise
+    take down a working feature. It fails OPEN on availability and the
+    per-instance ceiling still applies, so the exposure is the old behaviour,
+    not a new one — and `sql/create_nlp_usage.sql` is a one-time setup step.
+    """
+    if pool is None:
+        return False
+    try:
+        async with pool.acquire() as conn:
+            for kind, trunc, cap in (("minute", "minute", _GLOBAL_LIMIT),
+                                     ("day", "day", _DAILY_LIMIT)):
+                got = await conn.fetchval(_CLAIM_SQL, kind, trunc, cap)
+                if got is None:
+                    return True
+    except Exception as exc:  # pragma: no cover - depends on environment
+        print(f"WARNING: shared rate limit unavailable, using per-instance only: {exc}")
+        return False
+    return False
 
 
 def _rate_limited(ip: str) -> bool:
+    """Per-IP and per-instance limits. Cheap, synchronous, and not the real guard."""
     now = time.monotonic()
     global _global_hits
     _global_hits = [t for t in _global_hits if now - t < _RATE_WINDOW]
@@ -245,6 +294,15 @@ async def nlp_query(request: NLPQueryRequest, http_request: Request):
         raise HTTPException(
             status_code=429,
             detail=f"Rate limit: {_RATE_LIMIT} questions per minute. Please wait a moment.",
+        )
+    # Checked before the engine is built, so a refused call costs nothing —
+    # no OpenAI client, no database connection for the agent, no tokens.
+    if await _shared_limit_reached(http_request.app.state.db_pool):
+        raise HTTPException(
+            status_code=429,
+            detail=("This service has reached its shared limit of questions for now. "
+                    "Every other page works — only the question box is paused. "
+                    "Please try again later."),
         )
     try:
         engine = get_nlp_engine()

@@ -64,6 +64,13 @@ python scripts/apply_nlp_role.py        # needs SUPABASE_PAT + VERCEL_TOKEN
 # or by hand: run sql/create_nlp_role.sql, then set NLP_DB_URL
 ```
 
+Also run `sql/create_nlp_usage.sql`. That table is the call ceiling shared by
+every instance — `QUERY_GLOBAL_LIMIT` per minute and `QUERY_DAILY_LIMIT` per
+day. Without it the API falls back to per-process counters, which on
+serverless is not a ceiling: the platform starts as many instances as traffic
+demands, so each one enforces its own separate limit. It caps calls, not
+dollars, so set a monthly usage limit on the OpenAI account as well.
+
 This matters more than it looks. `/query` hands a visitor's question to a
 language model that writes its own SQL. Limiting the tables the agent is
 *told about* does not limit what the connection is *allowed to run* — probed

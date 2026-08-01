@@ -124,3 +124,9 @@ GRANT SELECT ON public.v_anomaly_flags TO anon, authenticated;
 -- After importing new data, re-run this whole file (the materialized view
 -- is rebuilt), or just refresh:
 --   REFRESH MATERIALIZED VIEW public.v_anomaly_flags;
+
+-- Also run sql/create_nlp_usage.sql. It creates the cross-instance call
+-- counter that bounds /query's OpenAI spend. Without that table the API
+-- still runs — it logs a warning and falls back to per-instance counters,
+-- which on serverless is not a real ceiling at all. See the header of that
+-- file for why.
