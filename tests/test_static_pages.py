@@ -22,7 +22,7 @@ needs_node = pytest.mark.skipif(
 
 
 def test_expected_pages_exist():
-    assert {p.name for p in PAGES} == {"index.html", "map.html", "geomap.html", "intel.html"}
+    assert {p.name for p in PAGES} == {"index.html", "map.html", "geomap.html", "intel.html", "heatmap.html"}
 
 
 @needs_node
@@ -80,7 +80,7 @@ def test_accessibility_basics(page):
     # accidentally accepted as an accessibility feature.
     assert 'class="skiplink" href="#' in html, f"{page.name} has no skip link"
     assert ".skiplink:focus" in html, f"{page.name}'s skip link never becomes visible"
-    if page.name in {"map.html", "geomap.html"}:
+    if page.name in {"map.html", "geomap.html", "heatmap.html"}:
         assert 'id="a11y-table"' in html, f"{page.name} lost its table twin markup"
         assert "function renderA11yTable" in html, f"{page.name} lost its table twin builder"
         assert "renderA11yTable()" in html, f"{page.name} never calls renderA11yTable"

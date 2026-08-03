@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iNiIgZmlsbD0iI2ZmZiIvPjxyZWN0IHg9IjUiIHk9IjUiIHdpZHRoPSI5IiBoZWlnaHQ9IjkiIHJ4PSIxLjUiIGZpbGw9IiMyYTc4ZDYiLz48cmVjdCB4PSIxOCIgeT0iNSIgd2lkdGg9IjkiIGhlaWdodD0iOSIgcng9IjEuNSIgZmlsbD0iIzJhNzhkNiIvPjxyZWN0IHg9IjUiIHk9IjE4IiB3aWR0aD0iOSIgaGVpZ2h0PSI5IiByeD0iMS41IiBmaWxsPSIjMmE3OGQ2Ii8+PHJlY3QgeD0iMTgiIHk9IjE4IiB3aWR0aD0iOSIgaGVpZ2h0PSI5IiByeD0iMS41IiBmaWxsPSIjYjhiNmFkIi8+PC9zdmc+">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>Texas ISD Heatmap — news intensity and outcomes</title>
+<style>
+  :root { --ink:#1a1a1a; --ink-2:#55534e; --muted:#8b897f; --hair:#e9e8e3;
+          --wash:#f7f7f5; --blue:#2a78d6; --flag:#d9534f; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:#fff; color:var(--ink); line-height:1.5;
+         font-family:system-ui,-apple-system,"Segoe UI",sans-serif; }
+  .skiplink { position:absolute; left:-9999px; top:0; z-index:100; background:#fff;
+              color:var(--ink); padding:.6rem 1rem; border:1px solid var(--ink); border-radius:4px; }
+  .skiplink:focus { left:.5rem; top:.5rem; }
+  @media (prefers-reduced-motion: reduce){ *{animation:none!important;transition:none!important} }
+  .shell { max-width:1180px; margin:0 auto; padding:0 1.25rem 3rem; }
+  header { padding:1.3rem 0 .6rem; }
+  .brand { font-weight:700; }
+  .brand a { color:var(--blue); text-decoration:none; font-weight:400; font-size:.9rem; margin-left:.8rem; }
+  h1 { font-size:1.45rem; letter-spacing:-.02em; margin:.3rem 0 .2rem; }
+  .sub { color:var(--muted); font-size:.9rem; margin:0 0 .8rem; }
+  .toolbar { display:flex; flex-wrap:wrap; gap:.4rem; margin:.6rem 0; }
+  .chip { font-size:.82rem; padding:.35rem .7rem; border:1px solid var(--hair); border-radius:20px;
+          background:#fff; cursor:pointer; color:var(--ink-2); }
+  .chip[aria-pressed="true"] { background:var(--blue); color:#fff; border-color:var(--blue); }
+  #map { width:100%; height:64vh; min-height:420px; border:1px solid var(--hair); border-radius:12px;
+         background:var(--wash); position:relative; }
+  .msg { position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+         text-align:center; padding:2rem; color:var(--ink-2); font-size:.95rem; }
+  .legend { display:flex; align-items:center; gap:.5rem; font-size:.78rem; color:var(--ink-2); margin:.7rem 0; }
+  .legend .bar { height:12px; width:180px; border-radius:6px; }
+  .note { color:var(--muted); font-size:.82rem; margin-top:.6rem; }
+  .a11y { margin-top:1.5rem; }
+  .a11y table { border-collapse:collapse; width:100%; font-size:.82rem; }
+  .a11y caption { text-align:left; padding:.5rem 0; color:var(--muted); }
+  .a11y th, .a11y td { text-align:left; padding:.3rem .6rem; border-bottom:1px solid var(--hair); }
+</style>
+</head>
+<body>
+<a class="skiplink" href="#a11y-table">Skip to the district table</a>
+<div class="shell">
+  <header>
+    <div class="brand">Texas ISD Heatmap<a href="/">← portal</a><a href="/geomap">private map</a><a href="/intel">briefing</a></div>
+    <h1>Where the action is across Texas school districts</h1>
+    <p class="sub">Every district colored by what you choose — today's news activity, or the numbers behind it.</p>
+  </header>
+
+  <div class="toolbar" role="group" aria-label="Color the map by">
+    <button class="chip" id="m-news" aria-pressed="true">News intensity</button>
+    <button class="chip" id="m-t" aria-pressed="false">Teacher turnover</button>
+    <button class="chip" id="m-s" aria-pressed="false">Spending / student</button>
+    <button class="chip" id="m-p" aria-pressed="false">Student poverty</button>
+  </div>
+
+  <div id="map"><div class="msg" id="map-msg">Loading…</div></div>
+  <div class="legend" id="legend"></div>
+  <p class="note" id="note"></p>
+
+  <div class="a11y" id="a11y">
+    <table id="a11y-table"><caption id="a11y-cap"></caption></table>
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const MB_VERSION = 'v3.9.3';
+const METRICS = {
+  news: { label:'News intensity', unit:'', ramp:['#eef4fd','#2a78d6','#0b3d91'], fmt:v=>v?v.toFixed(0):'0' },
+  t:    { label:'Teacher turnover', unit:'%', ramp:['#fdecea','#e08a7a','#b3311c'], fmt:v=>v==null?'—':v+'%' },
+  s:    { label:'Spending / student', unit:'$', ramp:['#eaf3ee','#5aa478','#1d6b3f'], fmt:v=>v==null?'—':'$'+Math.round(v).toLocaleString() },
+  p:    { label:'Student poverty', unit:'%', ramp:['#f3eef8','#9b78c4','#5a2b91'], fmt:v=>v==null?'—':v+'%' },
+};
+let metric = 'news', geo = null, intensity = {}, map = null, ranges = {};
+
+function decodeRings(enc, q) {
+  return enc.map(flat => {
+    const ring = []; let x = 0, y = 0;
+    for (let i = 0; i < flat.length; i += 2) { x += flat[i]; y += flat[i+1]; ring.push([x/q, y/q]); }
+    if (ring.length && (ring[0][0] !== ring[ring.length-1][0] || ring[0][1] !== ring[ring.length-1][1])) ring.push(ring[0]);
+    return ring;
+  });
+}
+
+function buildFeatures() {
+  const q = geo.meta.quant, feats = [];
+  for (const id in geo.d) {
+    const d = geo.d[id], m = d.m || {};
+    const coords = decodeRings(d.r, q);
+    if (!coords.length) continue;
+    feats.push({ type:'Feature', geometry:{ type:'Polygon', coordinates:coords },
+      properties:{ id, name:d.n, news:intensity[id]||0, t:m.t??null, s:m.s??null, p:m.p??null } });
+  }
+  // ranges for color scaling
+  for (const k of ['news','t','s','p']) {
+    const vals = feats.map(f=>f.properties[k]).filter(v=>v!=null && !(k==='news'&&v===0));
+    ranges[k] = vals.length ? [Math.min(...vals), Math.max(...vals)] : [0,1];
+  }
+  return { type:'FeatureCollection', features:feats };
+}
+
+function paintExpr() {
+  const M = METRICS[metric], [lo, hi] = ranges[metric];
+  const a = lo, b = (lo+hi)/2, c = hi || 1;
+  return ['case', ['==', ['get', metric], null], '#ececec',
+    ['interpolate', ['linear'], ['to-number', ['get', metric]],
+      a, M.ramp[0], b, M.ramp[1], c, M.ramp[2]]];
+}
+
+function renderLegend() {
+  const M = METRICS[metric], [lo, hi] = ranges[metric];
+  $('legend').innerHTML = `<span>${M.fmt(lo)}</span>`
+    + `<span class="bar" style="background:linear-gradient(90deg,${M.ramp[0]},${M.ramp[1]},${M.ramp[2]})"></span>`
+    + `<span>${M.fmt(hi)}</span><span style="margin-left:.6rem">${M.label}</span>`;
+}
+
+function renderA11yTable() {
+  const feats = geo._features.features;
+  const rows = feats.map(f=>f.properties)
+    .sort((x,y)=>(y[metric]??-1)-(x[metric]??-1)).slice(0, 60);
+  const M = METRICS[metric];
+  const cap = `<caption id="a11y-cap">Texas school districts, highest ${M.label.toLowerCase()} first `
+    + `(top ${rows.length} of ${feats.length}). The map is a canvas a screen reader cannot read; this table is its twin.</caption>`;
+  const head = `<tr><th scope="col">District</th><th scope="col">${M.label}</th></tr>`;
+  const body = rows.map(p=>`<tr><td>${p.name}</td><td>${M.fmt(p[metric])}</td></tr>`).join('');
+  $('a11y-table').innerHTML = cap + head + body;
+}
+
+function setMetric(m) {
+  metric = m;
+  document.querySelectorAll('.toolbar .chip').forEach(c =>
+    c.setAttribute('aria-pressed', c.id === 'm-'+m ? 'true' : 'false'));
+  if (map && map.getLayer('fill')) map.setPaintProperty('fill', 'fill-color', paintExpr());
+  renderLegend();
+  renderA11yTable();
+}
+
+async function aggregateIntensity() {
+  try {
+    const b = await (await fetch('/briefing')).json();
+    for (const f of (b.top_findings||[])) {
+      if (!f.district_number) continue;
+      intensity[f.district_number] = (intensity[f.district_number]||0) + (f.impact_score||10);
+    }
+  } catch (e) { /* no briefing yet — news layer is just all-zero */ }
+}
+
+async function initMap(token) {
+  await new Promise((res, rej) => {
+    const css = document.createElement('link'); css.rel='stylesheet';
+    css.href = `https://api.mapbox.com/mapbox-gl-js/${MB_VERSION}/mapbox-gl.css`;
+    document.head.appendChild(css);
+    const s = document.createElement('script');
+    s.src = `https://api.mapbox.com/mapbox-gl-js/${MB_VERSION}/mapbox-gl.js`;
+    s.onload = res; s.onerror = () => rej(new Error('Mapbox GL failed to load'));
+    document.head.appendChild(s);
+  });
+  window.mapboxgl.accessToken = token;
+  map = new window.mapboxgl.Map({
+    container: 'map', style: 'mapbox://styles/mapbox/light-v11',
+    center: [-99.3, 31.3], zoom: 4.4, attributionControl: true });
+  map.addControl(new window.mapboxgl.NavigationControl(), 'top-right');
+  map.on('load', () => {
+    map.addSource('districts', { type:'geojson', data: geo._features });
+    map.addLayer({ id:'fill', type:'fill', source:'districts',
+      paint:{ 'fill-color': paintExpr(), 'fill-opacity':0.75 } });
+    map.addLayer({ id:'outline', type:'line', source:'districts',
+      paint:{ 'line-color':'#ffffff', 'line-width':0.3 } });
+    const popup = new window.mapboxgl.Popup({ closeButton:false, closeOnClick:false });
+    map.on('mousemove', 'fill', e => {
+      map.getCanvas().style.cursor = 'pointer';
+      const p = e.features[0].properties, M = METRICS[metric];
+      popup.setLngLat(e.lngLat).setHTML(`<strong>${p.name}</strong><br>${M.label}: ${M.fmt(p[metric]==null?null:+p[metric])}`).addTo(map);
+    });
+    map.on('mouseleave', 'fill', () => { map.getCanvas().style.cursor=''; popup.remove(); });
+    $('map-msg').style.display = 'none';
+  });
+}
+
+(async function boot() {
+  document.querySelectorAll('.toolbar .chip').forEach(c =>
+    c.onclick = () => setMetric(c.id.slice(2)));
+  // Data first, so the table twin and legend work even with no Mapbox token.
+  try {
+    geo = await (await fetch('/district-geo')).json();
+  } catch (e) {
+    $('map-msg').textContent = 'District boundaries could not be loaded right now.';
+    return;
+  }
+  await aggregateIntensity();
+  geo._features = buildFeatures();
+  renderLegend();
+  renderA11yTable();
+
+  let token = '';
+  try { token = (await (await fetch('/mapbox-token')).json()).token || ''; } catch (e) { /* */ }
+  if (!token) {
+    $('map-msg').innerHTML = 'The interactive map needs a Mapbox token. '
+      + 'Set <code>MAPBOX_TOKEN</code> (the public <code>pk.</code> token) in the deployment. '
+      + 'The district table below works without it.';
+    $('note').textContent = 'Map tiles come from Mapbox when a token is set. '
+      + 'For a version that makes no external calls, use the private map at /geomap.';
+    return;
+  }
+  $('note').textContent = 'Interactive tiles are served by Mapbox. Your device location, if you use it, '
+    + 'is still resolved in the browser and is not sent anywhere.';
+  try { await initMap(token); }
+  catch (e) { $('map-msg').textContent = 'The map failed to load. The district table below still works.'; }
+})();
+</script>
+</body>
+</html>

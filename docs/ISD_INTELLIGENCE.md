@@ -118,6 +118,29 @@ a live model here.
   Lake Worth, Connally, Houston.
 - **Idempotent.** One briefing per UTC day; a replay is free.
 
+## The heatmap (`/heatmap`)
+
+A Mapbox choropleth of all ~1,005 districts with a toggle: **News intensity**
+(count × impact of the day's findings, so a district with a takeover
+announcement lights up) or the outcome layers (turnover / spending / poverty).
+
+- **The public `pk.` token only**, served from `MAPBOX_TOKEN` via
+  `/mapbox-token` — never committed, so it rotates without a code change. The
+  secret `sk.` token is never used and a test fails CI if one is ever committed.
+- **Mapbox is loaded only when a token is present.** With none, the page shows
+  a configure-me message and the district **table twin** still works — and it
+  makes zero external calls, verified.
+- **CSP is widened to Mapbox's hosts for `/heatmap` alone**; every other page,
+  including the privacy-preserving `/geomap`, keeps the strict self-only policy.
+- **`/geomap` is unchanged** — the no-external-calls map still exists for anyone
+  who wants it. `/heatmap` loads tiles from Mapbox; device location, if used, is
+  still resolved in the browser and sent nowhere.
+
+Verified here: token endpoint, CSP scoping, the no-token path, the toggle and
+legend, and the table twin. **Not** verified here: the live Mapbox tile render —
+external tiles are blocked in the build sandbox, so confirm it in a browser once
+`MAPBOX_TOKEN` is set.
+
 ## Deploying it
 
 1. Apply `sql/create_isd_intel.sql` to Supabase (creates the two tables).
@@ -127,7 +150,8 @@ a live model here.
    5–6am Central). **Note:** Vercel Hobby allows only once-daily crons; this
    project's Pro team is fine. And production deploys from a working tree, not
    `master`, so the cron only exists after a fresh `vercel deploy --prod`.
-4. Optional: tune `ISD_PRIORITY_DISTRICTS`, `ISD_MAX_QUERIES`, `ISD_LLM_EXTRACT`.
+4. For the heatmap, set `MAPBOX_TOKEN` to your **public** `pk.` token.
+5. Optional: tune `ISD_PRIORITY_DISTRICTS`, `ISD_MAX_QUERIES`, `ISD_LLM_EXTRACT`.
 
 Trigger a run by hand to verify:
 

@@ -767,3 +767,37 @@ def test_vercel_json_still_has_no_rewrites():
     cfg = json.loads((Path(__file__).resolve().parent.parent / "vercel.json").read_text())
     assert "rewrites" not in cfg
     assert cfg["crons"][0]["path"] == "/api/cron/isd-intelligence"
+
+
+# --- Mapbox heatmap: token from env, CSP scoped to one page ------------------
+
+def test_mapbox_token_served_from_env(client, monkeypatch):
+    monkeypatch.delenv("MAPBOX_TOKEN", raising=False)
+    assert client.get("/mapbox-token").json() == {"token": ""}
+    monkeypatch.setenv("MAPBOX_TOKEN", "pk.test")
+    assert client.get("/mapbox-token").json() == {"token": "pk.test"}
+
+
+def test_secret_mapbox_key_is_not_in_the_repo():
+    """The sk. token must never be committed. Guard against a paste slipping in."""
+    import subprocess
+    from pathlib import Path
+    root = Path(__file__).resolve().parent.parent
+    # Scan tracked text, not git history; a secret in history is a rotate-it problem.
+    out = subprocess.run(["git", "grep", "-lI", "sk.eyJ", "--", ".", ":!tests"],
+                         cwd=root, capture_output=True, text=True)
+    assert out.stdout.strip() == "", f"a Mapbox secret token appears in: {out.stdout}"
+
+
+def test_heatmap_csp_allows_mapbox_but_home_stays_strict(client):
+    hm = client.get("/heatmap").headers.get("content-security-policy", "")
+    assert "api.mapbox.com" in hm and "*.tiles.mapbox.com" in hm
+    home = client.get("/").headers.get("content-security-policy", "")
+    assert "mapbox" not in home, "the Mapbox CSP hole must be scoped to /heatmap only"
+
+
+def test_heatmap_page_served(client):
+    res = client.get("/heatmap")
+    assert res.status_code == 200
+    assert "mapbox-gl" in res.text          # loads Mapbox GL
+    assert 'id="a11y-table"' in res.text    # and carries a table twin

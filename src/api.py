@@ -108,13 +108,30 @@ async def security_headers(request: Request, call_next):
     resp.headers.setdefault("X-Frame-Options", "SAMEORIGIN")
     resp.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
     resp.headers.setdefault("Permissions-Policy", "geolocation=(self), camera=(), microphone=()")
-    resp.headers.setdefault(
-        "Content-Security-Policy",
-        "default-src 'self'; script-src 'self' 'unsafe-inline'; "
-        "style-src 'self' 'unsafe-inline'; img-src 'self' data:; "
-        "connect-src 'self'; frame-ancestors 'self'; base-uri 'self'; "
-        "form-action 'self'",
-    )
+    # /heatmap is the one page that loads Mapbox GL, so it gets a CSP widened
+    # to exactly Mapbox's hosts and nothing more. Every other page keeps the
+    # strict self-only policy — a hole punched for one route is not a hole in
+    # the site. (The privacy-preserving /geomap is unchanged and stays strict.)
+    if request.url.path == "/heatmap":
+        resp.headers.setdefault(
+            "Content-Security-Policy",
+            "default-src 'self'; "
+            "script-src 'self' 'unsafe-inline' blob: https://api.mapbox.com; "
+            "style-src 'self' 'unsafe-inline' https://api.mapbox.com; "
+            "img-src 'self' data: blob: https://*.mapbox.com; "
+            "worker-src blob:; child-src blob:; "
+            "connect-src 'self' https://api.mapbox.com https://*.tiles.mapbox.com "
+            "https://events.mapbox.com; "
+            "frame-ancestors 'self'; base-uri 'self'; form-action 'self'",
+        )
+    else:
+        resp.headers.setdefault(
+            "Content-Security-Policy",
+            "default-src 'self'; script-src 'self' 'unsafe-inline'; "
+            "style-src 'self' 'unsafe-inline'; img-src 'self' data:; "
+            "connect-src 'self'; frame-ancestors 'self'; base-uri 'self'; "
+            "form-action 'self'",
+        )
     return resp
 
 
@@ -1294,6 +1311,28 @@ async def intel_page():
     if page.exists():
         return FileResponse(page)
     raise HTTPException(status_code=404, detail="Intelligence page not available")
+
+
+@app.get("/heatmap", include_in_schema=False)
+async def heatmap_page():
+    """Mapbox choropleth: districts colored by news intensity or outcomes."""
+    page = STATIC_DIR / "heatmap.html"
+    if page.exists():
+        return FileResponse(page)
+    raise HTTPException(status_code=404, detail="Heatmap not available")
+
+
+@app.get("/mapbox-token", include_in_schema=False)
+async def mapbox_token():
+    """The PUBLIC Mapbox token, from the MAPBOX_TOKEN env var.
+
+    Served from the environment, never committed, so it rotates without a code
+    change and never sits in git history. This is the publishable `pk.` token —
+    the only kind a browser map needs. The secret `sk.` token must never be
+    used here or anywhere client-facing. Returns an empty string when unset, and
+    the page shows a configure-me message rather than breaking.
+    """
+    return {"token": os.getenv("MAPBOX_TOKEN", "")}
 
 
 @app.get("/map", include_in_schema=False)
