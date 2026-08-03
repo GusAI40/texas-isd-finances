@@ -11,9 +11,16 @@
      and then removed it, which read as a bug. */
   try { if (localStorage.getItem('tisd_district'))
           document.documentElement.classList.add('has-district'); } catch (e) {}
+  /* Theme, also decided before first paint so there is no flash of the wrong
+     one. Saved choice wins; otherwise follow the device's setting. */
+  try {
+    var _t = localStorage.getItem('tisd_theme');
+    if (!_t && window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches) _t = 'dark';
+    if (_t === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+  } catch (e) {}
 </script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="color-scheme" content="light">
+<meta name="color-scheme" content="light dark">
 <meta name="description" content="Where every dollar goes in all 1,310 Texas school districts — 17 years of official TEA records, in plain English. Free, sourced, and built for parents, taxpayers, teachers, reporters and trustees.">
 <link rel="canonical" href="https://txisd.dev/">
 <meta property="og:type" content="website">
@@ -31,12 +38,15 @@
      Do not replace this with display:none — that removes it from the tab
      order, which is the one thing it exists to be in. */
   .skiplink { position:absolute; left:-9999px; top:0; z-index:100;
-              background:#fff; color:var(--ink); padding:.6rem 1rem;
+              background: var(--bg); color:var(--ink); padding:.6rem 1rem;
               border:1px solid var(--ink); border-radius:4px; font-size:.9rem; }
   .skiplink:focus { left:.5rem; top:.5rem; }
   /* White-minimalist system: whitespace over boxes, hairlines over borders,
      gray carries context, ONE blue carries the data story. */
   :root {
+    --bg: #ffffff;        /* page background — flips in dark mode */
+    --ink-invert: #ffffff; /* text that sits ON --ink surfaces */
+    --card: #ffffff;      /* raised surfaces: sheets, popovers */
     --ink: #1a1a1a;
     --ink-2: #55534e;
     --muted: #8b897f;
@@ -47,6 +57,33 @@
     --orange: #eb6834;    /* only in compare mode: the other district */
     --good: #006300;
     --bad: #c23934;
+    --shadow: rgba(20,20,20,.12);
+    --nav-bg: rgba(255,255,255,.94);
+    --hi-warm: #fdf5f1;   /* bundled-bond highlight */
+    --hi-blue: #f4f8fd;   /* "your district" table row */
+  }
+  /* Dark theme: the same ink-on-paper hierarchy, inverted. The blue lifts a
+     little so it still reads as the story color on a dark ground; greens/reds
+     lift for contrast. Applied via data-theme on <html>, set before first
+     paint (see the head script) so there is never a flash of light. */
+  :root[data-theme="dark"] {
+    --bg: #14151a;
+    --ink-invert: #14151a;
+    --card: #1c1e26;
+    --ink: #e9e9ec;
+    --ink-2: #b6b6be;
+    --muted: #8c8c96;
+    --faint: #5c5c66;
+    --hairline: #2c2e39;
+    --wash: #1c1e26;
+    --blue: #5a9be0;
+    --orange: #f08a5c;
+    --good: #5bbd6b;
+    --bad: #e0736c;
+    --shadow: rgba(0,0,0,.5);
+    --nav-bg: rgba(20,21,26,.94);
+    --hi-warm: #2b231f;
+    --hi-blue: #182430;
   }
   /* The proof row: what am I looking at, answered before any scrolling. Four
      counted facts, not adjectives. */
@@ -65,7 +102,7 @@
     background: transparent; z-index: 60; pointer-events: none; }
   #progressbar { display: block; height: 100%; width: 0; background: var(--blue);
     transition: width .08s linear; }
-  #sectionnav { position: sticky; top: 0; z-index: 50; background: rgba(255,255,255,.94);
+  #sectionnav { position: sticky; top: 0; z-index: 50; background: var(--nav-bg);
     backdrop-filter: blur(8px); border-bottom: 1px solid var(--hairline); margin-bottom: .2rem; }
   #sectionnav.hidden { display: none; }
   .navchips { display: flex; gap: .1rem; overflow-x: auto; scrollbar-width: none;
@@ -88,7 +125,7 @@
   .stat-note { display: inline-block; font-size: .8rem; color: var(--muted); vertical-align: bottom;
     padding-bottom: .5rem; }
   .bond-key i.k-yes { width: 11px; height: 11px; border-radius: 50%; background: var(--c-yes); display: inline-block; }
-  .bond-key i.k-no { width: 11px; height: 11px; border-radius: 50%; background: #fff;
+  .bond-key i.k-no { width: 11px; height: 11px; border-radius: 50%; background: var(--bg);
     border: 2px dashed var(--c-focus); display: inline-block; }
   /* the debt share compared with the state, so "is that a lot?" is answered visually */
   .vsbar { margin: .6rem 0 0; }
@@ -124,7 +161,7 @@
   .bond-bundle { display: grid; grid-template-columns: repeat(3, 1fr); gap: .8rem; margin-top: .6rem; }
   @media (max-width: 700px) { .bond-bundle { grid-template-columns: 1fr; } }
   .bond-bundle .bb { border: 1px solid var(--hairline); border-radius: 12px; padding: .9rem 1rem; }
-  .bond-bundle .bb.hi { border-color: var(--c-focus); background: #fdf5f1; }
+  .bond-bundle .bb.hi { border-color: var(--c-focus); background: var(--hi-warm); }
   .bond-bundle .bb h5 { margin: 0 0 .3rem; font-size: .82rem; text-transform: uppercase;
     letter-spacing: .05em; color: var(--muted); font-weight: 600; }
   .bond-bundle .bb .pct { font-size: 1.9rem; font-weight: 700; letter-spacing: -.02em; line-height: 1.05; }
@@ -174,7 +211,7 @@
   .econ-peers th:first-child, .econ-peers td:first-child { text-align: left; }
   .econ-peers thead th { background: var(--wash); font-size: .78rem; text-transform: uppercase;
     letter-spacing: .05em; color: var(--muted); }
-  .econ-peers tr.you td { background: #f4f8fd; font-weight: 600; }
+  .econ-peers tr.you td { background: var(--hi-blue); font-weight: 600; }
   .econ-peers td a { color: var(--blue); }
   .econ-note { font-size: .85rem; color: var(--ink-2); margin: .5rem 0 0; }
   .a11y { margin: 1.2rem 0 0; }
@@ -185,14 +222,14 @@
   .a11y caption { text-align: left; padding: .5rem .7rem; color: var(--muted); font-size: .78rem; }
   .a11y th, .a11y td { text-align: right; padding: .3rem .6rem; border-bottom: 1px solid var(--hairline); }
   .a11y th:first-child, .a11y td:first-child { text-align: left; }
-  .a11y thead th { position: sticky; top: 0; background: #fff; border-bottom: 1px solid var(--ink); }
-  .econ-tip { position: absolute; pointer-events: none; background: var(--ink); color: #fff;
+  .a11y thead th { position: sticky; top: 0; background: var(--bg); border-bottom: 1px solid var(--ink); }
+  .econ-tip { position: absolute; pointer-events: none; background: var(--ink); color:var(--ink-invert);
     padding: .4rem .55rem; border-radius: 6px; font-size: .78rem; line-height: 1.35;
     opacity: 0; transition: opacity .12s; z-index: 30; white-space: nowrap; }
   * { box-sizing: border-box; }
   html { scroll-behavior: smooth; }
   body {
-    margin: 0; background: #fff; color: var(--ink);
+    margin: 0; background: var(--bg); color: var(--ink);
     font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
     line-height: 1.55;
     font-size: 16px;
@@ -213,7 +250,7 @@
   /* The map is the most compelling thing here; it was hidden in a row of quiet
      text links and people could not find it. */
   .hbtns button.feature {
-    background: var(--blue); color: #fff; font-weight: 600; padding: .3rem .8rem;
+    background: var(--blue); color:var(--ink-invert); font-weight: 600; padding: .3rem .8rem;
     border-radius: 99px;
   }
   .hbtns button.feature:hover { background: #1c5cab; }
@@ -244,17 +281,17 @@
   /* controls */
   input[type=text], input[type=search] {
     width: 100%; padding: .6rem .8rem; font: inherit; color: var(--ink);
-    background: #fff; border: 1px solid var(--faint); border-radius: 8px;
+    background: var(--bg); border: 1px solid var(--faint); border-radius: 8px;
   }
   input:focus-visible, button:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
   button.primary {
     font: inherit; padding: .55rem 1rem; border-radius: 8px; cursor: pointer;
-    border: 1px solid var(--ink); background: var(--ink); color: #fff;
+    border: 1px solid var(--ink); background: var(--ink); color:var(--ink-invert);
   }
   button.primary:hover { opacity: .85; }
   button.quiet {
     font: inherit; font-size: .84rem; padding: .35rem .7rem; border-radius: 7px; cursor: pointer;
-    border: 1px solid var(--hairline); background: #fff; color: var(--ink-2);
+    border: 1px solid var(--hairline); background: var(--bg); color: var(--ink-2);
   }
   button.quiet:hover { border-color: var(--faint); }
   .row { display: flex; gap: .6rem; flex-wrap: wrap; }
@@ -268,16 +305,16 @@
   /* charts */
   .chartwrap { position: relative; margin-top: .4rem; }
   .tooltip {
-    position: absolute; pointer-events: none; background: var(--ink); color: #fff;
+    position: absolute; pointer-events: none; background: var(--ink); color:var(--ink-invert);
     border-radius: 6px; padding: .35rem .65rem; font-size: .8rem; display: none;
     white-space: nowrap; z-index: 5;
   }
   .tabs { display: flex; gap: .3rem; margin: .2rem 0 .4rem; flex-wrap: wrap; }
   .tabs button {
     font: inherit; font-size: .84rem; padding: .3rem .75rem; border-radius: 99px;
-    border: 1px solid var(--hairline); background: #fff; color: var(--ink-2); cursor: pointer;
+    border: 1px solid var(--hairline); background: var(--bg); color: var(--ink-2); cursor: pointer;
   }
-  .tabs button.active { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .tabs button.active { background: var(--ink); color:var(--ink-invert); border-color: var(--ink); }
   .legend { display: flex; gap: 1.1rem; font-size: .8rem; color: var(--ink-2); margin-top: .2rem; flex-wrap: wrap; }
   .legend .key { display: inline-block; width: 14px; height: 3px; border-radius: 2px; vertical-align: middle; margin-right: .35rem; }
   table { border-collapse: collapse; width: 100%; margin-top: .6rem; font-size: .86rem; }
@@ -341,7 +378,7 @@
   /* overlays */
   .overlay { position: fixed; inset: 0; background: rgba(20,20,20,.5); z-index: 50; display: none; }
   .sheet {
-    position: fixed; z-index: 60; background: #fff; border-radius: 14px;
+    position: fixed; z-index: 60; background: var(--bg); border-radius: 14px;
     padding: 1.2rem 1.4rem; max-width: 460px; width: calc(100vw - 3rem);
     box-shadow: 0 12px 40px rgba(0,0,0,.25); display: none;
   }
@@ -356,9 +393,9 @@
   .lensbar .lbl { font-size:.8rem; color:var(--muted); margin-right:.2rem; }
   .lensbar button {
     font:inherit; font-size:.84rem; padding:.32rem .8rem; border-radius:99px; cursor:pointer;
-    border:1px solid var(--hairline); background:#fff; color:var(--ink-2);
+    border:1px solid var(--hairline); background: var(--bg); color:var(--ink-2);
   }
-  .lensbar button[aria-pressed=true] { background:var(--ink); color:#fff; border-color:var(--ink); }
+  .lensbar button[aria-pressed=true] { background:var(--ink); color:var(--ink-invert); border-color:var(--ink); }
   /* ---- Ticker: computed figures, continuously cycling ----
      Every item is a real number from the data on this page. Nothing here is a
      headline someone wrote; if a figure cannot be computed the item is not
@@ -366,11 +403,11 @@
   .ticker {
     display:flex; align-items:stretch; gap:0; margin:.1rem 0 .9rem;
     border-top:1px solid var(--hairline); border-bottom:1px solid var(--hairline);
-    background:#fff; overflow:hidden;
+    background: var(--bg); overflow:hidden;
   }
   .ticker-tag {
     flex:none; display:flex; align-items:center; padding:.45rem .7rem;
-    background:var(--ink); color:#fff; font-size:.68rem; font-weight:700;
+    background:var(--ink); color:var(--ink-invert); font-size:.68rem; font-weight:700;
     letter-spacing:.1em; text-transform:uppercase; white-space:nowrap;
   }
   .ticker-view { flex:1; overflow:hidden; position:relative; }
@@ -399,7 +436,7 @@
   @media print { .ticker { display:none !important; } }
   /* ---- One child: the whole report at human scale ---- */
   .onechild { border:1px solid var(--hairline); border-radius:14px; padding:1.4rem 1.5rem;
-              margin:.2rem 0 1.5rem; max-width:1000px; background:#fff; }
+              margin:.2rem 0 1.5rem; max-width:1000px; background: var(--bg); }
   .onechild .oh { font-size:.72rem; letter-spacing:.14em; text-transform:uppercase;
                   color:var(--muted); font-weight:700; margin-bottom:1rem; }
   .onechild .beats { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:1.6rem; }
@@ -420,7 +457,7 @@
   .whobar { display:flex; flex-wrap:wrap; gap:.5rem .6rem; margin:.2rem 0 1.4rem; }
   .whobar .who {
     border:1px solid var(--hairline); border-radius:10px; padding:.5rem .8rem;
-    font-size:.83rem; color:var(--ink-2); background:#fff;
+    font-size:.83rem; color:var(--ink-2); background: var(--bg);
   }
   .whobar .who b { color:var(--ink); font-variant-numeric:tabular-nums; }
   .whobar .who span { color:var(--muted); }
@@ -478,7 +515,7 @@
   .chips { display:flex; flex-wrap:wrap; gap:.4rem; margin-top:.85rem; }
   .chips button {
     font:inherit; font-size:.83rem; padding:.34rem .8rem; border-radius:99px; cursor:pointer;
-    border:1px solid var(--hairline); background:#fff; color:var(--ink-2);
+    border:1px solid var(--hairline); background: var(--bg); color:var(--ink-2);
   }
   .chips button:hover { border-color:var(--ink); color:var(--ink); }
   .chips button.ghost { border-style:dashed; color:var(--muted); }
@@ -516,7 +553,7 @@
     padding:.18rem .45rem; border-radius:99px; transition:background .12s, border-color .12s;
   }
   .penny-legend button:hover, .penny-legend button:focus-visible { background:var(--wash); border-color:var(--hairline); }
-  .penny-legend button[aria-pressed=true] { background:var(--ink); color:#fff; border-color:var(--ink); }
+  .penny-legend button[aria-pressed=true] { background:var(--ink); color:var(--ink-invert); border-color:var(--ink); }
   .penny-legend i { width:11px; height:11px; border-radius:2px; display:inline-block; flex:none; }
   .penny-legend b { font-variant-numeric:tabular-nums; }
   .penny-legend .tiny-note { flex-basis:100%; font-size:.78rem; color:var(--muted); padding:.2rem .45rem; }
@@ -561,7 +598,7 @@
   .atom .spark { margin:.7rem 0 .2rem; }
   .atom .comps { display:flex; flex-wrap:wrap; gap:.4rem 1.4rem; font-size:.85rem;
                  color:var(--ink-2); font-variant-numeric:tabular-nums; margin:.5rem 0 0; }
-  .atom .closebtn { font:inherit; font-size:.8rem; border:1px solid var(--hairline); background:#fff;
+  .atom .closebtn { font:inherit; font-size:.8rem; border:1px solid var(--hairline); background: var(--bg);
                     color:var(--ink-2); border-radius:99px; padding:.25rem .7rem; cursor:pointer; }
   .bignum { font-size:clamp(2.1rem,6vw,3.1rem); font-weight:700; letter-spacing:-.03em; line-height:1.05; }
   .bignum small { font-size:1rem; font-weight:400; color:var(--ink-2); letter-spacing:0; }
@@ -598,6 +635,7 @@
       <button id="btn-tour">Tutorial</button>
       <button id="btn-disclaimer">Disclaimer</button>
       <button id="btn-print" title="Print or save as PDF">Print</button>
+      <button id="btn-theme" title="Switch light / dark" aria-label="Switch light or dark theme">🌙</button>
     </div>
   </header>
 
@@ -970,7 +1008,10 @@
         <button class="primary" id="askbtn">Ask</button>
       </div>
       <div class="answer" id="answer"></div>
-      <div class="cite">Double-check important figures against
+      <div class="cite">Answers by OpenAI (gpt-4o-mini) via LangChain, run as a read-only role over the
+        two public views — nothing else is reachable. Built by
+        <a href="https://ubntag.com" target="_blank" rel="noopener">TAG ai</a>.
+        Double-check important figures against
         <a href="https://tea.texas.gov/finance-and-grants/state-funding/state-funding-reports-and-data/peims-financial-data-downloads" target="_blank" rel="noopener">official TEA releases</a>.</div>
     </section>
   </div>
@@ -3519,6 +3560,19 @@ $('csearch').addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(
 $('askbtn').onclick = ask;
 $('question').addEventListener('keydown', e => { if (e.key === 'Enter') ask(); });
 $('btn-print').onclick = () => window.print();
+function applyThemeIcon() {
+  const dark = document.documentElement.getAttribute('data-theme') === 'dark';
+  $('btn-theme').textContent = dark ? '☀️' : '🌙';
+  $('btn-theme').setAttribute('aria-pressed', dark ? 'true' : 'false');
+}
+$('btn-theme').onclick = () => {
+  const dark = document.documentElement.getAttribute('data-theme') === 'dark';
+  if (dark) document.documentElement.removeAttribute('data-theme');
+  else document.documentElement.setAttribute('data-theme', 'dark');
+  try { localStorage.setItem('tisd_theme', dark ? 'light' : 'dark'); } catch (e) {}
+  applyThemeIcon();
+};
+applyThemeIcon();
 $('btn-map').onclick = () => { location.href = state.district ? '/map?d=' + encodeURIComponent(state.district.num) : '/map'; };
 $('btn-geomap').onclick = () => { location.href = state.district ? '/geomap?d=' + encodeURIComponent(state.district.num) : '/geomap'; };
 $('btn-share').onclick = shareCard;
