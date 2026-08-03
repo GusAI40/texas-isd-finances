@@ -242,3 +242,64 @@ def test_make_openai_client_is_lazy():
     """Importing the module must not require openai or a key; the client is only
     built on demand."""
     assert callable(make_openai_client)
+
+
+# --- direct official sources: TEA newsroom (first-hand) + generic RSS --------
+from scripts.isd_intel import (  # noqa: E402
+    fetch_rss_feed,
+    fetch_tea_newsroom,
+    parse_tea_newsroom,
+)
+
+_TEA_FIXTURE = (Path(__file__).resolve().parent / "fixtures" / "tea_newsroom.html").read_text()
+
+
+def test_tea_newsroom_parses_real_releases_as_tier_1():
+    items = parse_tea_newsroom(_TEA_FIXTURE)
+    assert len(items) >= 4
+    assert all(i.source_tier == 1 for i in items)
+    assert all(i.url.startswith("https://tea.texas.gov/about-tea/newsroom/") for i in items)
+
+
+def test_tea_newsroom_excludes_section_links():
+    items = parse_tea_newsroom(_TEA_FIXTURE)
+    slugs = [i.url.rsplit("/", 1)[-1] for i in items]
+    assert "tea-communications" not in slugs
+    assert "branding-standards" not in slugs
+
+
+def test_tea_releases_resolve_to_the_takeover_districts():
+    """The real appointments must land on the right districts — this is the
+    payoff of reading TEA first-hand."""
+    findings = analyze(parse_tea_newsroom(_TEA_FIXTURE), DISTRICTS, REF)
+    resolved = {f.district_name for f in findings if f.district_name}
+    up = {n.upper() for n in resolved}
+    for expected in ("BEAUMONT ISD", "FORT WORTH ISD", "LAKE WORTH ISD", "CONNALLY ISD"):
+        assert expected in up, f"{expected} not resolved from a real TEA release"
+
+
+def test_fetch_tea_newsroom_uses_injected_opener_offline():
+    called = {}
+
+    def fake_opener(url):
+        called["url"] = url
+        return _TEA_FIXTURE.encode()
+
+    items = fetch_tea_newsroom(opener=fake_opener)
+    assert called["url"] == "https://tea.texas.gov/about-tea/newsroom"
+    assert items and items[0].source_tier == 1
+
+
+def test_generic_rss_feed_forces_tier_and_resolves_relative_links():
+    rss = b"""<?xml version="1.0"?><rss><channel>
+      <item><title>Somewhere ISD approves budget</title><description>d</description>
+        <link>/news/1</link><pubDate>Sat, 10 Jan 2026 00:00:00 GMT</pubDate></item>
+    </channel></rss>"""
+
+    def fake_opener(url):
+        return rss
+
+    items = fetch_rss_feed("https://example.tx.us/feed", opener=fake_opener,
+                           base_url="https://example.tx.us", force_tier=1)
+    assert items[0].source_tier == 1
+    assert items[0].url == "https://example.tx.us/news/1"   # relative link resolved

@@ -1438,10 +1438,18 @@ async def cron_isd_intelligence(request: Request):
             "ISD_PRIORITY_DISTRICTS",
             "Beaumont ISD;Fort Worth ISD;Lake Worth ISD;Connally ISD;Houston ISD"
         ).split(";")
+        items: list = []
+        # Official first: TEA's own newsroom, first-hand and tier-1. This is
+        # where a takeover or board-of-managers appointment appears before any
+        # paper covers it.
+        try:
+            items += isd_intel.fetch_tea_newsroom()
+        except Exception as exc:
+            print(f"WARNING: TEA newsroom fetch failed: {exc}")
+        # Then Google News for breadth across the priority districts.
         queries = isd_intel.build_queries(None)
         for name in priority:
             queries += isd_intel.build_queries(name.strip())
-        items: list = []
         for q in queries[: int(os.getenv("ISD_MAX_QUERIES", "12"))]:
             try:
                 items += isd_intel.fetch_google_news_rss(q)

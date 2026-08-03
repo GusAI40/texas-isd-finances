@@ -422,13 +422,14 @@ def _default_opener(url: str) -> bytes:
         return r.read()
 
 
-def parse_rss(raw: bytes) -> list[NewsItem]:
+def parse_rss(raw: bytes, base_url: str = "") -> list[NewsItem]:
     """Minimal, dependency-free RSS parse. Titles/links/dates only — we never
     store full article bodies (copyright), only enough to resolve and classify.
 
     Tier comes from the publisher domain. Google News wraps each item's real
     host in the <source url="..."> attribute, so we tier on that; the visible
     <link> is a news.google.com redirect and would mis-tier everything as 3.
+    `base_url` resolves relative <link> paths from a first-party feed.
     """
     import xml.etree.ElementTree as ET
     items: list[NewsItem] = []
@@ -443,12 +444,74 @@ def parse_rss(raw: bytes) -> list[NewsItem]:
         src = it.find("source")
         src_url = src.get("url") if src is not None else ""
         link = g("link")
+        if base_url and link and not link.startswith("http"):
+            link = base_url.rstrip("/") + "/" + link.lstrip("/")
         tier = classify_source_tier(src_url or link, src.text if src is not None else "")
         items.append(NewsItem(
             title=title, summary=re.sub(r"<[^>]+>", "", g("description"))[:400],
             url=link, source_name=(src.text if src is not None else "Google News"),
             published_at=g("pubDate"), source_tier=tier,
         ))
+    return items
+
+
+# ---------------------------------------------------------------------------
+# Direct official sources — first-hand, not via Google's index.
+#
+# TEA's own newsroom is where a takeover, a rating, or a board-of-managers
+# appointment appears FIRST. Reading it directly means the system sees the
+# Beaumont / Fort Worth / Lake Worth / Connally appointments the day TEA posts
+# them, tier-1, instead of waiting for a paper to cover them.
+#
+# Note (verified 2026): TEA's advertised RSS feed (/rssfeeds/news_rss.aspx) is
+# dead — the site moved to Drupal and exposes no feed at the usual paths. So
+# this reads the newsroom HTML. That is more fragile than a feed: if TEA
+# changes its markup the selector needs updating, and the site:tea.texas.gov
+# Google query remains as a fallback. The parser is deliberately forgiving.
+
+TEA_NEWSROOM_URL = "https://tea.texas.gov/about-tea/newsroom"
+TEA_BASE = "https://tea.texas.gov"
+# Newsroom slugs that are sections, not news releases.
+_TEA_NON_RELEASE = {"tea-communications", "media", "branding-standards"}
+# href to a single release + its (possibly tag-wrapped) title text.
+_TEA_ANCHOR_RE = re.compile(
+    r'<a\b[^>]*href="(/about-tea/newsroom/[^"/]+)"[^>]*>(.*?)</a>', re.S)
+
+
+def fetch_tea_newsroom(opener: Callable[[str], bytes] | None = None) -> list[NewsItem]:
+    """TEA press releases, first-hand from the newsroom. Always tier 1."""
+    raw = (opener or _default_opener)(TEA_NEWSROOM_URL)
+    return parse_tea_newsroom(raw.decode("utf-8", "replace"))
+
+
+def parse_tea_newsroom(html: str) -> list[NewsItem]:
+    items: list[NewsItem] = []
+    seen: set[str] = set()
+    for href, inner in _TEA_ANCHOR_RE.findall(html):
+        slug = href.rsplit("/", 1)[-1]
+        if slug in _TEA_NON_RELEASE or slug in seen:
+            continue
+        title = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", "", inner)).strip()
+        if len(title.split()) < 4:            # nav links, not headlines
+            continue
+        seen.add(slug)
+        items.append(NewsItem(
+            title=title, summary="",
+            url=TEA_BASE + href, source_name="Texas Education Agency",
+            published_at="", source_tier=1))       # tea.texas.gov → official
+    return items
+
+
+def fetch_rss_feed(url: str, opener: Callable[[str], bytes] | None = None,
+                   base_url: str = "", force_tier: Optional[int] = None) -> list[NewsItem]:
+    """Generic direct-RSS adapter for any real feed — a district that publishes
+    one, an ESC, a newsroom. `base_url` resolves relative links; `force_tier`
+    stamps a known-official feed tier 1 without domain sniffing."""
+    raw = (opener or _default_opener)(url)
+    items = parse_rss(raw, base_url=base_url)
+    if force_tier is not None:
+        items = [NewsItem(i.title, i.summary, i.url, i.source_name,
+                          i.published_at, force_tier) for i in items]
     return items
 
 

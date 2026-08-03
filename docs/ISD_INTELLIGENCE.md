@@ -139,10 +139,16 @@ curl -H "Authorization: Bearer $CRON_SECRET" https://txisd.dev/api/cron/isd-inte
 
 Naming these so nobody mistakes the slice for the platform:
 
-- **Source breadth.** Google News RSS, with domain-based tiering that reaches
-  official `.tx.us`/`tea.texas.gov` material and a `site:tea.texas.gov` query.
-  Direct TEA/board-agenda feeds (BoardBook, Diligent) are the next adapters —
-  the fetch layer has a clean seam for them.
+- **Source breadth.** TEA's newsroom is read **first-hand** (`fetch_tea_newsroom`,
+  tier-1) so a takeover or board-of-managers appointment is seen the day TEA
+  posts it — verified against the real page, which currently carries the
+  Beaumont / Fort Worth / Lake Worth / Connally appointments. Plus Google News
+  for breadth, domain-tiered. A generic `fetch_rss_feed` adapter is ready for
+  any district/ESC that publishes a real feed. Board-agenda portals (BoardBook,
+  Diligent) are the next adapters. Note: TEA's *advertised* RSS feed
+  (`/rssfeeds/news_rss.aspx`) is dead — verified 2026, the site moved to Drupal
+  — so the newsroom adapter parses HTML and its selector may need updating if
+  TEA changes markup; the `site:tea.texas.gov` Google query is the fallback.
 - **LLM extraction** is wired, bounded, and injection-isolated — but off by
   default and not yet verified against a live model (tests use a fake client).
 - **Notifications, a review *UI*, per-user relevance lenses, an events history
