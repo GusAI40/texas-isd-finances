@@ -18,7 +18,7 @@ pip install -r requirements.txt
 uvicorn src.api:app --reload --port 8000
 ```
 
-Open <http://localhost:8000/>. That is not a degraded mode — 20 of the 29
+Open <http://localhost:8000/>. That is not a degraded mode — 20 of the 32
 endpoints are served from committed JSON in `static/` and never touch a
 database. The finance layer is the only thing missing, and the page says so
 rather than breaking.
