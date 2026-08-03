@@ -6,6 +6,9 @@ language querying, and automatic anomaly detection.
 
 🌐 **Live portal:** https://txisd.dev
 
+👋 **Not a developer?** → **[docs/PLAIN_ENGLISH.md](docs/PLAIN_ENGLISH.md)** —
+what this is and what it found, with no jargon. Start there.
+
 📖 **How do I use this?** → **[docs/USAGE.md](docs/USAGE.md)** — the three
 tiers (read it / add a database / add questions), the full endpoint table,
 how to rebuild the data layers, and how to verify a change.

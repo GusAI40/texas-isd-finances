@@ -179,6 +179,7 @@ production outage:
 
 | Doc | For |
 |---|---|
+| `docs/PLAIN_ENGLISH.md` | What this is and what it found — no jargon, no background needed |
 | `PROJECT_MAP.md` | Visual map of the whole system |
 | `docs/TUTORIAL.md` | What each section of the site means |
 | `docs/WHAT_A_DOLLAR_BUYS.md` | The methods, and the limits — read before citing |
