@@ -38,7 +38,7 @@ Vercel Cron (daily, 11:00 UTC)
 - **`GET /intel`** — the rendered page.
 - **`sql/create_isd_intel.sql`** — `isd_briefings` + `isd_review_queue`, locked
   down (no access for `anon`, `authenticated`, or `nlp_reader`).
-- **19 tests** in `tests/test_isd_intel.py` and `tests/test_api.py`.
+- **30 tests** in `tests/test_isd_intel.py` and `tests/test_api.py`.
 
 ## The three properties that make it safe, not just working
 
@@ -127,7 +127,7 @@ a live model here.
    5–6am Central). **Note:** Vercel Hobby allows only once-daily crons; this
    project's Pro team is fine. And production deploys from a working tree, not
    `master`, so the cron only exists after a fresh `vercel deploy --prod`.
-4. Optional: tune `ISD_PRIORITY_QUERIES`, `ISD_MAX_QUERIES`.
+4. Optional: tune `ISD_PRIORITY_DISTRICTS`, `ISD_MAX_QUERIES`, `ISD_LLM_EXTRACT`.
 
 Trigger a run by hand to verify:
 
