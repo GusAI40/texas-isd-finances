@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iNiIgZmlsbD0iI2ZmZiIvPjxyZWN0IHg9IjUiIHk9IjUiIHdpZHRoPSI5IiBoZWlnaHQ9IjkiIHJ4PSIxLjUiIGZpbGw9IiMyYTc4ZDYiLz48cmVjdCB4PSIxOCIgeT0iNSIgd2lkdGg9IjkiIGhlaWdodD0iOSIgcng9IjEuNSIgZmlsbD0iIzJhNzhkNiIvPjxyZWN0IHg9IjUiIHk9IjE4IiB3aWR0aD0iOSIgaGVpZ2h0PSI5IiByeD0iMS41IiBmaWxsPSIjMmE3OGQ2Ii8+PHJlY3QgeD0iMTgiIHk9IjE4IiB3aWR0aD0iOSIgaGVpZ2h0PSI5IiByeD0iMS41IiBmaWxsPSIjYjhiNmFkIi8+PC9zdmc+">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>Texas ISD Intelligence — daily briefing</title>
+<style>
+  :root { --ink:#1a1a1a; --ink-2:#55534e; --muted:#8b897f; --hair:#e9e8e3;
+          --wash:#f7f7f5; --blue:#2a78d6; --flag:#d9534f; --amber:#b8860b; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:#fff; color:var(--ink); line-height:1.55;
+         font-family:system-ui,-apple-system,"Segoe UI",sans-serif; }
+  .skiplink { position:absolute; left:-9999px; top:0; z-index:100; background:#fff;
+              color:var(--ink); padding:.6rem 1rem; border:1px solid var(--ink); border-radius:4px; }
+  .skiplink:focus { left:.5rem; top:.5rem; }
+  @media (prefers-reduced-motion: reduce){ *{animation:none!important;transition:none!important} }
+  .shell { max-width:920px; margin:0 auto; padding:0 1.25rem 4rem; }
+  header { padding:1.5rem 0 1rem; border-bottom:1px solid var(--hair); }
+  .brand { font-weight:700; letter-spacing:-.01em; }
+  .brand a { color:var(--blue); text-decoration:none; font-weight:400; font-size:.9rem; margin-left:.8rem; }
+  h1 { font-size:1.5rem; letter-spacing:-.02em; margin:.2rem 0 .3rem; }
+  .sub { color:var(--muted); font-size:.9rem; }
+  .meta { display:flex; flex-wrap:wrap; gap:.4rem 1.4rem; margin:1rem 0; padding:.8rem 0;
+          border-bottom:1px solid var(--hair); }
+  .meta b { display:block; font-size:1.35rem; letter-spacing:-.02em; }
+  .meta i { font-style:normal; font-size:.78rem; color:var(--muted); }
+  .card { padding:1.1rem 0; border-bottom:1px solid var(--hair); }
+  .card h2 { font-size:1.05rem; margin:0 0 .3rem; }
+  .row { display:flex; flex-wrap:wrap; gap:.4rem; margin:.4rem 0; }
+  .tag { font-size:.72rem; padding:.12rem .5rem; border-radius:20px; background:var(--wash); color:var(--ink-2); }
+  .tag.d { background:#eef4fd; color:var(--blue); }
+  .status { font-weight:600; }
+  .status.contradiction { color:var(--flag); }
+  .status.new, .status.expanded { color:var(--blue); }
+  .ours { background:var(--wash); border-left:3px solid var(--blue); padding:.5rem .8rem;
+          margin:.5rem 0; font-size:.9rem; }
+  .ours.contradiction { border-left-color:var(--flag); }
+  .why { color:var(--ink-2); font-size:.92rem; }
+  .src { font-size:.8rem; color:var(--muted); }
+  .src a { color:var(--muted); }
+  .review { background:#fdf6e3; border:1px solid #efe2b8; border-radius:8px; padding:1rem 1.2rem; margin:1.2rem 0; }
+  .review h2 { color:var(--amber); }
+  .disc { color:var(--muted); font-size:.82rem; margin-top:2rem; padding-top:1rem; border-top:1px solid var(--hair); }
+  .warn { background:#fdf6e3; border:1px solid #efe2b8; padding:.8rem 1rem; border-radius:8px;
+          margin:1rem 0; font-size:.9rem; display:none; }
+</style>
+</head>
+<body>
+<a class="skiplink" href="#findings">Skip to the findings</a>
+<div class="shell">
+  <header>
+    <div class="brand">Texas ISD Intelligence<a href="/">← finance portal</a><a href="/geomap">map</a></div>
+    <h1>What changed across Texas school districts</h1>
+    <p class="sub" id="sub">Daily briefing — every claim links to its source, and nothing here overwrites verified data.</p>
+  </header>
+
+  <div class="warn" id="warn"></div>
+  <div class="meta" id="meta"></div>
+
+  <main id="findings"><p class="sub">Loading the latest briefing…</p></main>
+
+  <p class="disc" id="disc"></p>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => (s==null?'':String(s)).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+function statTile(n, label){ return `<span><b>${esc(n)}</b><i>${esc(label)}</i></span>`; }
+
+function findingCard(f){
+  const cats = (f.categories||[]).map(c=>`<span class="tag">${esc(c)}</span>`).join('');
+  const dist = f.district_name
+    ? `<span class="tag d">${esc(f.district_name)}</span>`
+    : `<span class="tag">district unresolved</span>`;
+  const st = esc(f.comparison_status||'');
+  const oursClass = st==='contradiction' ? 'ours contradiction' : 'ours';
+  return `<div class="card">
+    <h2>${esc(f.headline)}</h2>
+    <div class="row">${dist}${cats}
+      <span class="tag">confidence ${esc(f.confidence_score)}</span>
+      <span class="tag">impact ${esc(f.impact_score)}</span></div>
+    <p class="why"><span class="status ${st}">${st.replace('_',' ')}</span> — ${esc(f.comparison_note)}</p>
+    <div class="${oursClass}"><strong>What our data says:</strong> ${esc(f.what_our_data_says)}</div>
+    <p class="src">Source: <a href="${esc(f.url)}" target="_blank" rel="noopener">${esc(f.source_name)}</a>
+      · resolved with ${esc(f.resolution_confidence)} confidence (${esc(f.resolution_basis)})</p>
+  </div>`;
+}
+
+(async function(){
+  let b;
+  try {
+    const r = await fetch('/briefing');
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    b = await r.json();
+  } catch(e){
+    $('findings').innerHTML = '<p class="sub">No briefing available yet. The daily research has not run, '
+      + 'or the database is unreachable. See docs/ISD_INTELLIGENCE.md.</p>';
+    return;
+  }
+  const m = b.meta || {};
+  if ((m.note||'').startsWith('SAMPLE')) {
+    $('warn').style.display = 'block';
+    $('warn').textContent = 'Showing a sample briefing built from fixtures. A live daily run replaces it.';
+  }
+  $('sub').textContent = 'Briefing for ' + (m.run_date||'—')
+    + ' · rule-based extraction · every claim links to its source.';
+  $('meta').innerHTML = statTile(m.items_analyzed??'—','items analyzed')
+    + statTile(m.districts_with_findings??'—','districts affected')
+    + statTile(m.contradictions??'—','data conflicts')
+    + statTile(m.review_items??'—','need human review');
+
+  const top = b.top_findings || [];
+  $('findings').innerHTML = top.length
+    ? '<h2 style="border:0;font-size:.8rem;text-transform:uppercase;letter-spacing:.08em;color:#8b897f;margin:.5rem 0">Highest-impact findings</h2>'
+      + top.map(findingCard).join('')
+    : '<p class="sub">No material findings in this run.</p>';
+
+  const rev = b.review_queue || [];
+  if (rev.length){
+    const div = document.createElement('div');
+    div.className = 'review';
+    div.innerHTML = '<h2>Human review queue</h2><p class="why">These were not auto-accepted — '
+      + 'the district could not be resolved with confidence, or the claim conflicts with stored data. '
+      + 'They are shown, not hidden, and never applied automatically.</p>'
+      + rev.map(f=>`<p class="src">• ${esc(f.headline)} — <strong>${esc(f.comparison_status).replace('_',' ')}</strong>
+          (${esc(f.resolution_confidence)})</p>`).join('');
+    $('findings').appendChild(div);
+  }
+
+  $('disc').textContent = m.note || '';
+})();
+</script>
+</body>
+</html>

@@ -727,3 +727,43 @@ def test_usage_table_is_not_readable_by_the_metered_role():
     assert "REVOKE ALL ON public.nlp_usage FROM nlp_reader" in sql
     assert "REVOKE ALL ON public.nlp_usage FROM anon, authenticated" in sql
     assert "ENABLE ROW LEVEL SECURITY" in sql
+
+
+# --- Texas ISD Intelligence: cron auth + briefing endpoint --------------------
+
+def test_cron_requires_secret_configured(client, monkeypatch):
+    """With no CRON_SECRET set, the endpoint refuses rather than running open."""
+    monkeypatch.delenv("CRON_SECRET", raising=False)
+    assert client.get("/api/cron/isd-intelligence").status_code == 503
+
+
+def test_cron_rejects_missing_or_wrong_bearer(client, monkeypatch):
+    monkeypatch.setenv("CRON_SECRET", "s3cret")
+    assert client.get("/api/cron/isd-intelligence").status_code == 401
+    assert client.get("/api/cron/isd-intelligence",
+                      headers={"authorization": "Bearer wrong"}).status_code == 401
+
+
+def test_cron_is_not_in_the_public_schema(client):
+    """It must not appear in OpenAPI — it is infrastructure, not a public route."""
+    paths = client.get("/openapi.json").json()["paths"]
+    assert "/api/cron/isd-intelligence" not in paths
+
+
+def test_briefing_served_from_committed_snapshot_without_db(client):
+    """/briefing works at Tier 1 — no database — from the committed snapshot."""
+    res = client.get("/briefing")
+    assert res.status_code == 200
+    body = res.json()
+    assert "meta" in body and "top_findings" in body
+    assert body["meta"]["run_date"]
+
+
+def test_vercel_json_still_has_no_rewrites():
+    """A rewrites block 404s the whole site (CLAUDE.md invariant). The cron
+    addition must not have introduced one."""
+    import json
+    from pathlib import Path
+    cfg = json.loads((Path(__file__).resolve().parent.parent / "vercel.json").read_text())
+    assert "rewrites" not in cfg
+    assert cfg["crons"][0]["path"] == "/api/cron/isd-intelligence"

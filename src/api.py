@@ -1287,6 +1287,15 @@ async def sitemap():
     return Response(content=body, media_type="application/xml")
 
 
+@app.get("/intel", include_in_schema=False)
+async def intel_page():
+    """The daily ISD intelligence briefing, rendered."""
+    page = STATIC_DIR / "intel.html"
+    if page.exists():
+        return FileResponse(page)
+    raise HTTPException(status_code=404, detail="Intelligence page not available")
+
+
 @app.get("/map", include_in_schema=False)
 async def similarity_map():
     """Serve the statewide similarity map page."""
@@ -1354,6 +1363,106 @@ async def get_sample_queries():
         "sample_queries": SAMPLE_QUERIES,
         "usage": "POST these questions to /query endpoint",
     }
+
+
+# --- Texas ISD Intelligence: daily research → resolve → compare → briefing ---
+# The pipeline is in scripts/isd_intel.py (importable, offline-testable, no LLM
+# by default). Two endpoints: a secured cron trigger, and a public read.
+
+@app.get("/briefing", tags=["Intelligence"])
+async def get_briefing(request: Request):
+    """The most recent daily ISD intelligence briefing.
+
+    Reads from the isd_briefings table when a database is configured, and falls
+    back to a committed snapshot (static/isd_briefing.json) so the page works
+    with no database at all — the same Tier-1 principle as the rest of the site.
+    """
+    pool = request.app.state.db_pool
+    if pool is not None:
+        try:
+            async with pool.acquire() as conn:
+                row = await conn.fetchrow(
+                    "SELECT payload FROM public.isd_briefings ORDER BY run_date DESC LIMIT 1")
+                if row:
+                    return json.loads(row["payload"])
+        except Exception as exc:  # table missing or DB down → fall through to file
+            print(f"WARNING: briefing table unavailable, using snapshot: {exc}")
+    snap = STATIC_DIR / "isd_briefing.json"
+    if snap.exists():
+        return FileResponse(snap, media_type="application/json")
+    raise HTTPException(status_code=404,
+                        detail="No briefing yet. Run the daily research (see docs/ISD_INTELLIGENCE.md).")
+
+
+@app.get("/api/cron/isd-intelligence", include_in_schema=False)
+async def cron_isd_intelligence(request: Request):
+    """Daily research run, triggered by Vercel Cron.
+
+    Vercel Cron issues a GET and auto-injects `Authorization: Bearer
+    $CRON_SECRET` when that env var is set — hence GET, not POST. Secured with
+    CRON_SECRET and idempotent by date: a second call on the same UTC day
+    returns the already-stored run instead of doing the work (and spending)
+    twice.
+    """
+    secret = os.getenv("CRON_SECRET")
+    if not secret:
+        raise HTTPException(status_code=503, detail="CRON_SECRET not configured.")
+    if request.headers.get("authorization") != f"Bearer {secret}":
+        raise HTTPException(status_code=401, detail="Unauthorized")
+
+    from datetime import timezone
+    run_date = datetime.now(timezone.utc).date().isoformat()
+    pool = request.app.state.db_pool
+
+    # Idempotency: if today's run already exists, do not re-run.
+    if pool is not None:
+        try:
+            async with pool.acquire() as conn:
+                existing = await conn.fetchval(
+                    "SELECT 1 FROM public.isd_briefings WHERE run_date = $1", run_date)
+                if existing:
+                    return {"status": "already_ran", "run_date": run_date}
+        except Exception as exc:
+            print(f"WARNING: idempotency check failed, proceeding: {exc}")
+
+    # The research itself is synchronous and network-bound; keep it off the loop.
+    from scripts import isd_intel
+
+    def _run() -> dict:
+        districts = isd_intel.load_districts()
+        ref = isd_intel.load_reference()
+        # Priority districts only, to bound cost and time — the spec's own rule.
+        # Configurable via ISD_PRIORITY_QUERIES; defaults to statewide + takeover set.
+        queries = os.getenv(
+            "ISD_PRIORITY_QUERIES",
+            "Texas ISD;Beaumont ISD;Fort Worth ISD;Lake Worth ISD;Connally ISD;Houston ISD"
+        ).split(";")
+        items: list = []
+        for q in queries[: int(os.getenv("ISD_MAX_QUERIES", "8"))]:
+            try:
+                items += isd_intel.fetch_google_news_rss(q.strip() + " school district")
+            except Exception as exc:  # one bad feed must not sink the run
+                print(f"WARNING: feed failed for {q!r}: {exc}")
+        findings = isd_intel.analyze(items, districts, ref)
+        return isd_intel.build_briefing(findings, run_date)
+
+    briefing = await run_in_threadpool(_run)
+
+    stored = False
+    if pool is not None:
+        try:
+            async with pool.acquire() as conn:
+                await conn.execute(
+                    "INSERT INTO public.isd_briefings (run_date, payload) VALUES ($1, $2) "
+                    "ON CONFLICT (run_date) DO UPDATE SET payload = EXCLUDED.payload",
+                    run_date, json.dumps(briefing))
+                stored = True
+        except Exception as exc:
+            print(f"WARNING: could not store briefing (table missing?): {exc}")
+
+    return {"status": "ok", "run_date": run_date, "stored": stored,
+            "items_analyzed": briefing["meta"]["items_analyzed"],
+            "review_items": briefing["meta"]["review_items"]}
 
 
 @app.get("/stats", tags=["General"])
