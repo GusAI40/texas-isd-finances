@@ -1432,18 +1432,32 @@ async def cron_isd_intelligence(request: Request):
         districts = isd_intel.load_districts()
         ref = isd_intel.load_reference()
         # Priority districts only, to bound cost and time — the spec's own rule.
-        # Configurable via ISD_PRIORITY_QUERIES; defaults to statewide + takeover set.
-        queries = os.getenv(
-            "ISD_PRIORITY_QUERIES",
-            "Texas ISD;Beaumont ISD;Fort Worth ISD;Lake Worth ISD;Connally ISD;Houston ISD"
+        # Statewide queries (incl. an official site:tea.texas.gov query) plus a
+        # configurable priority-district list.
+        priority = os.getenv(
+            "ISD_PRIORITY_DISTRICTS",
+            "Beaumont ISD;Fort Worth ISD;Lake Worth ISD;Connally ISD;Houston ISD"
         ).split(";")
+        queries = isd_intel.build_queries(None)
+        for name in priority:
+            queries += isd_intel.build_queries(name.strip())
         items: list = []
-        for q in queries[: int(os.getenv("ISD_MAX_QUERIES", "8"))]:
+        for q in queries[: int(os.getenv("ISD_MAX_QUERIES", "12"))]:
             try:
-                items += isd_intel.fetch_google_news_rss(q.strip() + " school district")
+                items += isd_intel.fetch_google_news_rss(q)
             except Exception as exc:  # one bad feed must not sink the run
                 print(f"WARNING: feed failed for {q!r}: {exc}")
-        findings = isd_intel.analyze(items, districts, ref)
+
+        # LLM enrichment is opt-in and hard-bounded. Off unless ISD_LLM_EXTRACT
+        # is set AND a key is present; capped at ISD_LLM_MAX_CALLS per run so it
+        # cannot become a surprise bill — the same discipline as the /query cap.
+        enrich = None
+        if os.getenv("ISD_LLM_EXTRACT") == "1" and os.getenv("OPENAI_API_KEY"):
+            budget = isd_intel.LlmBudget(int(os.getenv("ISD_LLM_MAX_CALLS", "25")))
+            client = isd_intel.make_openai_client()
+            enrich = lambda it: isd_intel.extract_with_llm(it, client, budget)  # noqa: E731
+
+        findings = isd_intel.analyze(items, districts, ref, enrich=enrich)
         return isd_intel.build_briefing(findings, run_date)
 
     briefing = await run_in_threadpool(_run)

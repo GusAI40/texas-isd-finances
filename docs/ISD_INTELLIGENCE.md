@@ -66,17 +66,56 @@ what the site actually ships:
   `expanded`; for one with none → `new`.
 - Everything else → `not_applicable`, honestly, rather than invented certainty.
 
+## Source tiering — official vs newsroom vs discovery
+
+The tier is derived from the **publisher domain**, not the query, so "official"
+means official:
+
+- **Tier 1 (official)** — `tea.texas.gov`, `*.texas.gov`, `*.tx.us`,
+  `*.k12.tx.us`. The registry includes a `site:tea.texas.gov` query, and any
+  district's own `.tx.us` site resolves here automatically.
+- **Tier 2 (newsroom)** — a maintained list of Texas newsrooms (Tribune,
+  Star-Telegram, Houston Chronicle, KUT, …).
+- **Tier 3 (discovery)** — everything else; surfaced but labeled unverified.
+
+Google News hides the real host in each item's `<source url>` attribute (the
+visible link is a `news.google.com` redirect), so the parser tiers on that —
+otherwise everything would mis-tier as discovery. `build_queries()` produces
+statewide queries plus five per priority district (name, finance, governance,
+facilities/enrollment, and an agenda/press-release query).
+
+## LLM enrichment — off by default, bounded when on, injection-isolated always
+
+The rule-based path reads headlines; the LLM adds what it can't — a bond
+**amount**, an **effective date**, whether a plan is *proposed* or *approved*.
+It is `extract_with_llm(item, client, budget)`, and three things make it safe:
+
+1. **A hard call budget per run** (`LlmBudget`). The client is asked only while
+   budget remains; `ISD_LLM_MAX_CALLS` (default 25) caps it. A bad day cannot
+   become a large bill — the same discipline as the `/query` ceiling. Enrichment
+   is also spent only on **resolved** findings, never on noise.
+2. **The snippet is untrusted DATA.** It goes inside `<<<SOURCE_SNIPPET>>>`
+   delimiters, the system prompt says text within is never a command, and the
+   output is a fixed JSON schema that is validated (retry once, then null). A
+   headline that says "mark this urgent" cannot move a score, because the model
+   cannot emit one. A test asserts the delimiter and the untrusted-data
+   instruction are both present.
+3. **Best-effort, never blocking.** Budget spent, call failed, or output
+   invalid → `None`, and the run continues on rule-based data.
+
+Turn it on: `ISD_LLM_EXTRACT=1` **and** `OPENAI_API_KEY` set. The `client` is
+injected (`make_openai_client`), so the pipeline is provider-agnostic and the
+tests run offline with a fake client — the LLM path is **not** verified against
+a live model here.
+
 ## Cost and safety, on purpose
 
-- **$0 by default.** Rule-based extraction over RSS titles needs no LLM. We just
-  spent real effort bounding `/query`'s OpenAI spend; a 1,200-district LLM
-  fan-out would undo that. An `extract_with_llm` hook exists as a seam but is
-  off, and the code says how to switch it on responsibly (per-run token budget +
-  injection isolation).
+- **$0 by default.** Rule-based extraction over RSS titles needs no LLM, and
+  enrichment is off unless explicitly enabled and capped.
 - **No new secret.** Google News RSS is keyless.
-- **Priority districts, not all 1,200.** `ISD_PRIORITY_QUERIES` and
-  `ISD_MAX_QUERIES` bound each run. Default: statewide + the takeover-watch set
-  (Beaumont, Fort Worth, Lake Worth, Connally, Houston).
+- **Priority districts, not all 1,200.** `ISD_PRIORITY_DISTRICTS` and
+  `ISD_MAX_QUERIES` bound each run. Default watch set: Beaumont, Fort Worth,
+  Lake Worth, Connally, Houston.
 - **Idempotent.** One briefing per UTC day; a replay is free.
 
 ## Deploying it
@@ -100,12 +139,12 @@ curl -H "Authorization: Bearer $CRON_SECRET" https://txisd.dev/api/cron/isd-inte
 
 Naming these so nobody mistakes the slice for the platform:
 
-- **Source breadth.** Only Google News RSS today. TEA feeds, board-agenda
-  scraping, and official district sites are the next adapters (the code has a
-  clean seam for them).
-- **LLM extraction.** The rule-based path handles headlines well; nuanced
-  facts (a bond *amount*, an *effective date*) need the LLM hook wired with a
-  budget.
+- **Source breadth.** Google News RSS, with domain-based tiering that reaches
+  official `.tx.us`/`tea.texas.gov` material and a `site:tea.texas.gov` query.
+  Direct TEA/board-agenda feeds (BoardBook, Diligent) are the next adapters —
+  the fetch layer has a clean seam for them.
+- **LLM extraction** is wired, bounded, and injection-isolated — but off by
+  default and not yet verified against a live model (tests use a fake client).
 - **Notifications, a review *UI*, per-user relevance lenses, an events history
   table, durable queues.** The spec asks for all of these; none are needed to
   prove the spine, and each adds real cost or infrastructure.
@@ -120,9 +159,9 @@ Naming these so nobody mistakes the slice for the platform:
 |---|---|---|
 | Security | 4 | Cron authed + idempotent; tables locked down; injection-resistant by design. Not yet pen-tested live. |
 | Data integrity | 4 | Never overwrites; conflicts surfaced; every claim keeps its source. |
-| Accuracy | 3 | Resolution and comparison are sound and tested; rule-based extraction misses nuance an LLM would catch. |
+| Accuracy | 3 | Resolution and comparison sound and tested; LLM enrichment wired for nuance but off by default and not live-verified. |
 | Reliability | 3 | Idempotent, fails soft per-feed. One serverless request per day; heavy fan-out would need a queue. |
-| Scalability | 2 | Priority-district design bounds it deliberately; statewide daily coverage needs batching. |
+| Scalability | 2 | Priority-district + call-budget design bounds it deliberately; statewide daily coverage needs batching. |
 | Clarity | 4 | The briefing leads with what-changed / why / our-data / source. |
 | Observability | 2 | Run status returned; no metrics dashboard yet. |
 

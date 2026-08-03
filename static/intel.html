@@ -38,6 +38,7 @@
           margin:.5rem 0; font-size:.9rem; }
   .ours.contradiction { border-left-color:var(--flag); }
   .why { color:var(--ink-2); font-size:.92rem; }
+  .facts { font-size:.86rem; color:var(--ink); background:#eef4fd; padding:.4rem .7rem; border-radius:6px; margin:.4rem 0; }
   .src { font-size:.8rem; color:var(--muted); }
   .src a { color:var(--muted); }
   .review { background:#fdf6e3; border:1px solid #efe2b8; border-radius:8px; padding:1rem 1.2rem; margin:1.2rem 0; }
@@ -77,13 +78,28 @@ function findingCard(f){
     : `<span class="tag">district unresolved</span>`;
   const st = esc(f.comparison_status||'');
   const oursClass = st==='contradiction' ? 'ours contradiction' : 'ours';
+  const tierLabel = {1:'official', 2:'newsroom', 3:'unverified'}[f.source_tier] || '';
+  let facts = '';
+  const e = f.enrichment;
+  if (e) {
+    const parts = [];
+    if (e.status) parts.push(`status: <strong>${esc(e.status)}</strong>`);
+    if (e.bond_amount_usd) parts.push(`bond: $${Number(e.bond_amount_usd).toLocaleString()}`);
+    if (e.financial_amount_usd) parts.push(`amount: $${Number(e.financial_amount_usd).toLocaleString()}`);
+    if (e.effective_date) parts.push(`effective: ${esc(e.effective_date)}`);
+    if (e.person_named) parts.push(`person: ${esc(e.person_named)}`);
+    if (parts.length) facts = `<p class="facts">Extracted: ${parts.join(' · ')}
+      ${e.needs_verification ? '<span class="tag">needs verification</span>' : ''}</p>`;
+  }
   return `<div class="card">
     <h2>${esc(f.headline)}</h2>
     <div class="row">${dist}${cats}
+      <span class="tag">${tierLabel}</span>
       <span class="tag">confidence ${esc(f.confidence_score)}</span>
       <span class="tag">impact ${esc(f.impact_score)}</span></div>
     <p class="why"><span class="status ${st}">${st.replace('_',' ')}</span> — ${esc(f.comparison_note)}</p>
     <div class="${oursClass}"><strong>What our data says:</strong> ${esc(f.what_our_data_says)}</div>
+    ${facts}
     <p class="src">Source: <a href="${esc(f.url)}" target="_blank" rel="noopener">${esc(f.source_name)}</a>
       · resolved with ${esc(f.resolution_confidence)} confidence (${esc(f.resolution_basis)})</p>
   </div>`;
