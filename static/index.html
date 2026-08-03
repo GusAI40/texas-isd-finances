@@ -301,6 +301,35 @@
     white-space: pre-wrap; background: var(--wash); border-radius: 10px;
     padding: .9rem 1.1rem; margin-top: .75rem; display: none; max-width: 44rem; font-size: .94rem;
   }
+  /* The answer arrives all at once from the server; we reveal it a word at a
+     time so it reads as if it is being written. Each word fades up from
+     slightly below — elegant, and honest, because it is the real answer, not
+     a fake stream. Motion is removed for anyone who asks. */
+  .answer .w { display:inline-block; opacity:0; transform:translateY(.28em);
+               animation: wordin .32s ease forwards; }
+  @keyframes wordin { to { opacity:1; transform:none; } }
+  .answer .caret { display:inline-block; width:.5ch; margin-left:1px; color:var(--blue);
+                   animation: blink 1s step-end infinite; }
+  @keyframes blink { 50% { opacity:0; } }
+  /* Skeleton "thinking" shimmer — three lines that pulse while the model runs,
+     so the wait feels like progress instead of a frozen box. */
+  .skeleton { display:grid; gap:.5rem; }
+  .skeleton i { height:.72rem; border-radius:4px; display:block;
+                background:linear-gradient(90deg,#eeece7 25%,#f6f5f2 37%,#eeece7 63%);
+                background-size:400% 100%; animation: shimmer 1.4s ease infinite; }
+  .skeleton i:nth-child(1){ width:92%; } .skeleton i:nth-child(2){ width:78%; }
+  .skeleton i:nth-child(3){ width:54%; }
+  @keyframes shimmer { 0%{ background-position:100% 0; } 100%{ background-position:0 0; } }
+  .thinking { color:var(--muted); font-size:.82rem; margin-bottom:.6rem;
+              display:flex; align-items:center; gap:.5rem; }
+  .thinking .dots b { display:inline-block; width:5px; height:5px; border-radius:50%;
+                      background:var(--muted); margin-left:2px; animation: bounce 1.2s infinite; }
+  .thinking .dots b:nth-child(2){ animation-delay:.2s; } .thinking .dots b:nth-child(3){ animation-delay:.4s; }
+  @keyframes bounce { 0%,60%,100%{ transform:translateY(0); opacity:.4; } 30%{ transform:translateY(-4px); opacity:1; } }
+  @media (prefers-reduced-motion: reduce) {
+    .answer .w { animation:none; opacity:1; transform:none; }
+    .skeleton i, .thinking .dots b, .answer .caret { animation:none; }
+  }
   .warnbar {
     border-left: 3px solid var(--bad); padding: .6rem 1rem; background: var(--wash);
     color: var(--ink-2); margin-top: 1.2rem; border-radius: 0 8px 8px 0; display: none;
@@ -3222,22 +3251,63 @@ function renderTurnarounds() {
 }
 
 /* ---------- ask ---------- */
+let _askToken = 0;   // guards against an old answer streaming over a newer one
 async function ask() {
   const q = $('question').value.trim();
   if (q.length < 3) return;
   const box = $('answer');
+  const mine = ++_askToken;
   box.style.display = 'block';
-  box.textContent = 'Thinking… (10–30 seconds)';
+  box.classList.remove('done');
+  // Skeleton while the model runs — perceived progress, not a frozen box.
+  box.innerHTML = '<div class="thinking">Reading the data'
+    + '<span class="dots"><b></b><b></b><b></b></span></div>'
+    + '<div class="skeleton"><i></i><i></i><i></i></div>';
+  box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   try {
     const r = await api('/query', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ question: q }),
     });
-    box.textContent = r.success ? r.answer : ('That one stumped the system: ' + (r.error || 'unknown error'));
+    if (mine !== _askToken) return;   // a newer question superseded this one
+    const text = r.success ? r.answer
+      : ('That one stumped the system: ' + (r.error || 'unknown error'));
+    streamAnswer(box, text, mine);
   } catch (e) {
+    if (mine !== _askToken) return;
     box.textContent = e.status === 429 ? (e.detail || 'Rate limit reached — wait a minute and try again.')
       : 'The question service is unavailable right now.';
   }
+}
+
+/* Reveal the real answer one word at a time, each fading up, with a blinking
+   caret until it finishes. Not a fake stream — it is the answer we already
+   have, written out for the eye. Skips straight to the full text when the
+   reader prefers reduced motion. */
+function streamAnswer(box, text, mine) {
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduce) { box.textContent = text; return; }
+  const words = text.split(/(\s+)/);   // keep the whitespace tokens
+  box.innerHTML = '<span class="caret">▌</span>';
+  const caret = box.querySelector('.caret');
+  let i = 0, delay = 0;
+  const step = () => {
+    if (mine !== _askToken) return;
+    if (i >= words.length) { caret.remove(); return; }
+    const tok = words[i++];
+    if (tok.trim() === '') { caret.insertAdjacentText('beforebegin', tok); }
+    else {
+      const s = document.createElement('span');
+      s.className = 'w'; s.textContent = tok;
+      s.style.animationDelay = Math.min(delay, 60) + 'ms';
+      caret.insertAdjacentElement('beforebegin', s);
+    }
+    delay += 4;
+    // ~18ms/word feels like typing without being slow; punctuation lingers.
+    const pause = /[.!?,;:]$/.test(tok) ? 90 : 18;
+    setTimeout(step, pause);
+  };
+  step();
 }
 
 /* ---------- exports ---------- */
