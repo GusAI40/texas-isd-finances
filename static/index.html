@@ -630,7 +630,8 @@
   <header class="top">
     <div class="brand">Texas ISD Financial Resource Guide<span class="tag">Official TEA &amp; Comptroller data · independent, not a TEA product</span></div>
     <div class="hbtns">
-      <button id="btn-geomap" class="feature">Map of Texas</button>
+      <button id="btn-geomap" class="feature">🗺️ Map of Texas</button>
+      <button id="btn-heatmap" class="feature">Heatmap</button>
       <button id="btn-map">Seating chart</button>
       <button id="btn-tour">Tutorial</button>
       <button id="btn-disclaimer">Disclaimer</button>
@@ -3483,11 +3484,13 @@ function renderQuickPicks(largest) {
     `${titleCase(d.district_name).replace(/ ISD$/, '')}</button>`).join('') +
     `<button type="button" class="ghost" id="chip-random">Surprise me</button>` +
     `<button type="button" class="ghost" id="chip-map">See the map of Texas</button>` +
+    `<button type="button" class="ghost" id="chip-heatmap">🗺️ Heatmap</button>` +
     (localStorage.getItem('tisd_toured') ? ''
       : `<button type="button" class="ghost" id="chip-tour">New here? 60-second tour</button>`);
   el.querySelectorAll('button[data-num]').forEach(b =>
     b.onclick = () => selectDistrict(b.dataset.num, b.dataset.name));
   $('chip-map').onclick = () => { location.href = '/geomap'; };
+  $('chip-heatmap').onclick = () => { location.href = '/heatmap'; };
   if ($('chip-tour')) $('chip-tour').onclick = () => { tourBuild(); tourShow(0); };
   $('chip-random').onclick = async () => {
     try {
@@ -3575,6 +3578,7 @@ $('btn-theme').onclick = () => {
 applyThemeIcon();
 $('btn-map').onclick = () => { location.href = state.district ? '/map?d=' + encodeURIComponent(state.district.num) : '/map'; };
 $('btn-geomap').onclick = () => { location.href = state.district ? '/geomap?d=' + encodeURIComponent(state.district.num) : '/geomap'; };
+$('btn-heatmap').onclick = () => { location.href = '/heatmap'; };
 $('btn-share').onclick = shareCard;
 
 /* Guided dollar: pointer, touch and keyboard all reach the same panel.
