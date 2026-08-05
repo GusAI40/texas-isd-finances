@@ -303,3 +303,89 @@ def test_generic_rss_feed_forces_tier_and_resolves_relative_links():
                            base_url="https://example.tx.us", force_tier=1)
     assert items[0].source_tier == 1
     assert items[0].url == "https://example.tx.us/news/1"   # relative link resolved
+
+
+# --- House voice: punchy headlines that always carry a sourced receipt -------
+
+from scripts.isd_intel import (  # noqa: E402
+    nice_name,
+    pick_beat,
+    receipts,
+    share_text,
+)
+
+
+def _find(headline, summary=""):
+    """Resolve + analyze one item, return its Finding."""
+    it = NewsItem(headline, summary, "https://ex.com/x", "Test", "2026-01-10", 2)
+    return analyze([it], DISTRICTS, REF)[0]
+
+
+def test_nice_name_titlecases_but_keeps_isd_upper():
+    assert nice_name("FORT WORTH ISD") == "Fort Worth ISD"
+    assert nice_name("HOUSTON ISD") == "Houston ISD"
+    assert nice_name(None) == "This district"
+
+
+def test_pick_beat_prioritizes_takeover_over_generic_governance():
+    assert pick_beat("TEA appoints board of managers for Beaumont ISD", ["governance"]) == "takeover"
+
+
+def test_pick_beat_detects_super_exit_and_bond_and_budget():
+    assert pick_beat("Superintendent to resign amid buyout", ["governance"]) == "super_exit"
+    assert pick_beat("District calls $1.2 billion bond election", ["finance"]) == "bond"
+    assert pick_beat("District faces $200 million budget shortfall", ["finance"]) == "budget"
+
+
+def test_every_finding_gets_a_hook_and_a_beat():
+    f = _find("Fort Worth ISD approves bond for new schools",
+              "Fort Worth Independent School District trustees acted.")
+    assert f.hook and isinstance(f.hook, str)
+    assert f.beat in {"bond", "finance", "takeover", "super_exit", "general"}
+
+
+def test_hook_carries_a_real_receipt_number():
+    """The whole point: a hook lands with a sourced figure from our data."""
+    f = _find("Beaumont ISD faces state takeover, board of managers appointed",
+              "Beaumont Independent School District cited for years of failure.")
+    r = receipts(f.district_number, REF)
+    assert r.get("students")                      # we hold a real enrollment
+    assert str(r["students"]) in f.hook.replace(",", "") or f"{r['students']:,}" in f.hook
+
+
+def test_hook_never_names_an_individual_from_the_headline():
+    """Punchy but safe: a named person in the source must not appear in our hook."""
+    f = _find("Houston ISD superintendent Mike Miles faces buyout vote",
+              "Houston Independent School District board to consider separation.")
+    assert "Mike Miles" not in f.hook
+    assert "Miles" not in f.hook
+
+
+def test_bond_hook_uses_our_pass_fail_history():
+    """A district with a failed last bond should get the 'voters killed it' framing."""
+    f = _find("Fort Worth ISD calls a new bond election",
+              "Fort Worth Independent School District places bond on ballot.")
+    r = receipts(f.district_number, REF)
+    if r.get("bond_count") and r.get("bond_last_passed") is False:
+        assert "killed" in f.hook.lower() or "voters" in f.hook.lower()
+
+
+def test_per_student_dollars_are_full_not_abbreviated():
+    """$13,428/student must never render as $13/student (the abbreviator bug)."""
+    f = _find("Dallas ISD stares at a budget shortfall with layoffs looming",
+              "Dallas Independent School District warned of cuts.")
+    r = receipts(f.district_number, REF)
+    if r.get("spend_per_student"):
+        assert f"${round(r['spend_per_student']):,}" in f.hook
+
+
+def test_share_text_is_bounded_and_attributed():
+    s = share_text("A" * 500, "Houston ISD")
+    assert s.endswith("via txisd.dev")
+    assert len(s) <= 220
+
+
+def test_findings_expose_receipts_for_the_feed():
+    f = _find("Connally ISD board of managers appointed by TEA",
+              "Connally Independent School District taken over.")
+    assert isinstance(f.receipts, dict)

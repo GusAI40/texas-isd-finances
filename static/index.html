@@ -630,6 +630,7 @@
   <header class="top">
     <div class="brand">Texas ISD Financial Resource Guide<span class="tag">Official TEA &amp; Comptroller data · independent, not a TEA product</span></div>
     <div class="hbtns">
+      <button id="btn-feed" class="feature">🔥 The Feed</button>
       <button id="btn-geomap" class="feature">🗺️ Map of Texas</button>
       <button id="btn-heatmap" class="feature">Heatmap</button>
       <button id="btn-map">Seating chart</button>
@@ -3579,6 +3580,7 @@ applyThemeIcon();
 $('btn-map').onclick = () => { location.href = state.district ? '/map?d=' + encodeURIComponent(state.district.num) : '/map'; };
 $('btn-geomap').onclick = () => { location.href = state.district ? '/geomap?d=' + encodeURIComponent(state.district.num) : '/geomap'; };
 $('btn-heatmap').onclick = () => { location.href = '/heatmap'; };
+$('btn-feed').onclick = () => { location.href = '/feed'; };
 $('btn-share').onclick = shareCard;
 
 /* Guided dollar: pointer, touch and keyboard all reach the same panel.

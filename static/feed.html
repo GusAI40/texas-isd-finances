@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iNiIgZmlsbD0iI2ZmZiIvPjxyZWN0IHg9IjUiIHk9IjUiIHdpZHRoPSI5IiBoZWlnaHQ9IjkiIHJ4PSIxLjUiIGZpbGw9IiMyYTc4ZDYiLz48cmVjdCB4PSIxOCIgeT0iNSIgd2lkdGg9IjkiIGhlaWdodD0iOSIgcng9IjEuNSIgZmlsbD0iIzJhNzhkNiIvPjxyZWN0IHg9IjUiIHk9IjE4IiB3aWR0aD0iOSIgaGVpZ2h0PSI5IiByeD0iMS41IiBmaWxsPSIjMmE3OGQ2Ii8+PHJlY3QgeD0iMTgiIHk9IjE4IiB3aWR0aD0iOSIgaGVpZ2h0PSI5IiByeD0iMS41IiBmaWxsPSIjZWI2ODM0Ii8+PC9zdmc+">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<script>
+  /* Theme before first paint (shared tisd_theme key with the portal). */
+  try {
+    var _t = localStorage.getItem('tisd_theme');
+    if (!_t && window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches) _t = 'dark';
+    if (_t === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+  } catch (e) {}
+</script>
+<meta name="description" content="The feed of what's happening across Texas school districts — every headline with the receipts from 17 years of official state data.">
+<link rel="canonical" href="https://txisd.dev/feed">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://txisd.dev/feed">
+<meta property="og:title" content="Texas ISD — The Feed">
+<meta property="og:description" content="What's happening across Texas school districts, every headline with the receipts. Official state data, in plain English.">
+<title>Texas ISD — The Feed</title>
+<style>
+  :root { --ink:#1a1a1a; --ink-2:#55534e; --muted:#8b897f; --hair:#e9e8e3;
+          --wash:#f7f7f5; --blue:#2a78d6; --bg:#fff; --card:#fff;
+          --good:#0a7a34; --goodbg:#e8f5ec; --newsbg:#eef4fd; --warnbg:#fdf6e3; --warn:#9a7b1a;
+          --tint:#eef4fd; --hot:#c8102e; }
+  :root[data-theme="dark"] {
+    --ink:#e9e9ec; --ink-2:#b6b6be; --muted:#8c8c96; --hair:#2c2e39;
+    --wash:#1c1e26; --blue:#5a9be0; --bg:#14151a; --card:#1c1e26;
+    --good:#5bbd6b; --goodbg:#16241a; --newsbg:#182430; --warnbg:#241f16; --warn:#d8b24a;
+    --tint:#182430; --hot:#ff5a6e; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); line-height:1.5;
+         font-family:system-ui,-apple-system,"Segoe UI",sans-serif; }
+  .skiplink { position:absolute; left:-9999px; top:0; z-index:100; background:var(--card);
+              color:var(--ink); padding:.6rem 1rem; border:1px solid var(--ink); border-radius:4px; }
+  .skiplink:focus { left:.5rem; top:.5rem; }
+  @media (prefers-reduced-motion: reduce){ *{animation:none!important;transition:none!important} }
+  .shell { max-width:760px; margin:0 auto; padding:0 1.1rem 4rem; }
+  header { padding:1.4rem 0 .3rem; }
+  .brand { font-weight:800; letter-spacing:-.02em; font-size:1.05rem; }
+  .brand .hot { color:var(--hot); }
+  .brand a { color:var(--blue); text-decoration:none; font-weight:400; font-size:.86rem; margin-left:.7rem; }
+  .btn-theme { background:none; border:1px solid var(--hair); color:var(--ink-2); border-radius:6px;
+          font:inherit; font-size:.8rem; padding:.15rem .5rem; margin-left:.7rem; cursor:pointer; }
+  .btn-theme:hover { background:var(--wash); }
+  h1 { font-family:ui-serif,Georgia,"Times New Roman",serif; font-size:1.9rem; letter-spacing:-.02em;
+       margin:.5rem 0 .2rem; }
+  .sub { color:var(--muted); font-size:.92rem; margin:0 0 .5rem; }
+  .live { display:flex; align-items:center; gap:.5rem; font-size:.8rem; color:var(--muted);
+          border-top:1px solid var(--hair); border-bottom:1px solid var(--hair); padding:.55rem 0; margin:.6rem 0; }
+  .dot { width:8px; height:8px; border-radius:50%; background:var(--hot); display:inline-block;
+         animation:pulse 1.8s ease-in-out infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.35} }
+  .filters { display:flex; flex-wrap:wrap; gap:.35rem; margin:.4rem 0 1rem; }
+  .filters button { font:inherit; font-size:.78rem; padding:.28rem .6rem; border-radius:20px; cursor:pointer;
+          border:1px solid var(--hair); background:var(--card); color:var(--ink-2); }
+  .filters button[aria-pressed="true"] { background:var(--ink); color:var(--card); border-color:var(--ink); }
+  .card { border:1px solid var(--hair); border-radius:14px; padding:1.05rem 1.15rem; margin:0 0 1rem;
+          background:var(--card); }
+  .meta { display:flex; align-items:center; gap:.5rem; flex-wrap:wrap; margin-bottom:.5rem; }
+  .badge { font-size:.68rem; font-weight:700; letter-spacing:.04em; text-transform:uppercase;
+           padding:.16rem .5rem; border-radius:5px; white-space:nowrap; }
+  .badge.beat { background:var(--ink); color:var(--card); }
+  .badge.t1 { background:var(--goodbg); color:var(--good); }
+  .badge.t2 { background:var(--newsbg); color:var(--blue); }
+  .badge.t3 { background:var(--warnbg); color:var(--warn); }
+  .when { font-size:.76rem; color:var(--muted); margin-left:auto; }
+  .hook { font-size:1.28rem; font-weight:700; letter-spacing:-.01em; line-height:1.28; margin:.1rem 0 .55rem;
+          font-family:ui-serif,Georgia,"Times New Roman",serif; }
+  .said { font-size:.9rem; color:var(--ink-2); margin:0 0 .55rem; }
+  .said a { color:var(--ink-2); }
+  .said .src { color:var(--muted); }
+  .receipt { background:var(--wash); border-left:3px solid var(--blue); border-radius:0 8px 8px 0;
+             padding:.5rem .8rem; font-size:.88rem; margin:0 0 .6rem; }
+  .receipt b { color:var(--ink); }
+  .receipt.contradiction { border-left-color:var(--hot); }
+  .nums { display:flex; flex-wrap:wrap; gap:.3rem .5rem; margin:.35rem 0 0; }
+  .nums span { font-size:.74rem; background:var(--tint); color:var(--ink-2); padding:.12rem .45rem; border-radius:12px; }
+  .actions { display:flex; gap:.4rem; flex-wrap:wrap; align-items:center; }
+  .actions button, .actions a { font:inherit; font-size:.8rem; padding:.32rem .7rem; border-radius:8px;
+          border:1px solid var(--hair); background:var(--card); color:var(--ink); cursor:pointer;
+          text-decoration:none; }
+  .actions .share { background:var(--blue); color:#fff; border-color:var(--blue); font-weight:600; }
+  .actions a:hover, .actions button:hover { background:var(--wash); }
+  .actions .share:hover { filter:brightness(1.05); background:var(--blue); }
+  .empty { color:var(--muted); padding:2rem 0; text-align:center; }
+  .warn { background:var(--warnbg); border:1px solid var(--hair); border-radius:8px; padding:.7rem .9rem;
+          margin:.8rem 0; font-size:.88rem; display:none; }
+  .disc { color:var(--muted); font-size:.8rem; margin-top:1.6rem; padding-top:1rem; border-top:1px solid var(--hair); }
+  .a11y { margin-top:1.8rem; }
+  .a11y summary { cursor:pointer; font-size:.84rem; color:var(--ink-2); padding:.35rem 0; }
+  .a11y table { border-collapse:collapse; width:100%; font-size:.8rem; margin-top:.4rem; }
+  .a11y th, .a11y td { text-align:left; padding:.3rem .5rem; border-bottom:1px solid var(--hair); vertical-align:top; }
+  .toast { position:fixed; left:50%; bottom:1.4rem; transform:translateX(-50%); background:var(--ink);
+           color:var(--card); padding:.5rem .9rem; border-radius:8px; font-size:.85rem; opacity:0;
+           transition:opacity .2s; pointer-events:none; z-index:20; }
+  .toast.show { opacity:1; }
+</style>
+</head>
+<body>
+<a class="skiplink" href="#stream">Skip to the feed</a>
+<div class="shell">
+  <header>
+    <div class="brand">Texas ISD <span class="hot">·</span> The Feed<a href="/">← portal</a><a href="/intel">briefing</a><a href="/heatmap">heatmap</a><a href="/geomap">map</a><button class="btn-theme" id="btnTheme" type="button" aria-label="Toggle dark mode">◐ Theme</button></div>
+    <h1>What's moving across Texas school districts</h1>
+    <p class="sub">Every headline with the receipts — 17 years of official state data, in plain English. We never name a private person, and every number is sourced.</p>
+    <div class="live"><span class="dot" aria-hidden="true"></span><span id="livetext">Loading the feed…</span></div>
+    <div class="filters" id="filters" role="group" aria-label="Filter by beat"></div>
+  </header>
+
+  <div class="warn" id="warn"></div>
+  <main id="stream"></main>
+
+  <details class="a11y">
+    <summary>Read the feed as a table (screen-reader friendly)</summary>
+    <table id="a11y-table"><thead><tr><th>Beat</th><th>Headline (house voice)</th><th>District</th><th>Source</th></tr></thead><tbody id="a11y-body"></tbody></table>
+  </details>
+
+  <p class="disc" id="disc"></p>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => (
+  {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+const BEATS = {
+  takeover:   {label:'State takeover', emoji:'🏛️'},
+  super_exit: {label:'Super out',      emoji:'🚪'},
+  bond:       {label:'Bond',           emoji:'💰'},
+  budget:     {label:'Budget',         emoji:'📉'},
+  rating:     {label:'Report card',    emoji:'📊'},
+  legal:      {label:'Legal',          emoji:'⚖️'},
+  enrollment: {label:'Enrollment',     emoji:'👥'},
+  facilities: {label:'Facilities',     emoji:'🏗️'},
+  safety:     {label:'Safety',         emoji:'🚨'},
+  governance: {label:'Governance',     emoji:'🗳️'},
+  finance:    {label:'Money',          emoji:'💵'},
+  academics:  {label:'Academics',      emoji:'📚'},
+  general:    {label:'News',           emoji:'📌'},
+};
+const TIER = {1:{c:'t1',t:'Official'}, 2:{c:'t2',t:'Newsroom'}, 3:{c:'t3',t:'Unverified'}};
+
+function whenText(s) {
+  if (!s) return '';
+  const d = new Date(s);
+  if (isNaN(d)) return esc(String(s).slice(0, 24));
+  return d.toLocaleDateString(undefined, {month:'short', day:'numeric', year:'numeric'});
+}
+
+function numChips(r) {
+  if (!r) return '';
+  const bits = [];
+  if (r.students) bits.push(`${r.students.toLocaleString()} students`);
+  if (r.spend_per_student) bits.push(`$${Math.round(r.spend_per_student).toLocaleString()}/student`);
+  if (r.pct_econ_disadv != null) bits.push(`${Math.round(r.pct_econ_disadv)}% low-income`);
+  if (r.meets_pct != null) bits.push(`${Math.round(r.meets_pct)}% at grade level`);
+  if (r.turnover_pct != null) bits.push(`${r.turnover_pct}% teacher turnover`);
+  if (r.bond_count) bits.push(`${r.bond_count} bonds on record`);
+  return bits.length ? `<div class="nums">${bits.map(b => `<span>${esc(b)}</span>`).join('')}</div>` : '';
+}
+
+let ALL = [];
+let activeBeat = 'all';
+
+function render() {
+  const stream = $('stream');
+  const items = activeBeat === 'all' ? ALL : ALL.filter(f => (f.beat || 'general') === activeBeat);
+  if (!items.length) { stream.innerHTML = '<p class="empty">Nothing in this beat yet.</p>'; return; }
+  stream.innerHTML = items.map((f, i) => {
+    const beat = BEATS[f.beat] || BEATS.general;
+    const tier = TIER[f.source_tier] || TIER[3];
+    const hook = f.hook || f.headline || '';
+    const contradiction = f.comparison_status === 'contradiction';
+    const dlink = f.district_number ? `<a href="/?d=${esc(f.district_number)}">See the full district →</a>` : '';
+    return `<article class="card" data-i="${i}">
+      <div class="meta">
+        <span class="badge beat">${beat.emoji} ${esc(beat.label)}</span>
+        <span class="badge ${tier.c}">${esc(tier.t)}</span>
+        <span class="when">${whenText(f.published_at)}</span>
+      </div>
+      <p class="hook">${esc(hook)}</p>
+      <p class="said">What was reported: <a href="${esc(f.url)}" target="_blank" rel="noopener">${esc(f.headline)}</a> <span class="src">— ${esc(f.source_name)}</span></p>
+      <div class="receipt${contradiction ? ' contradiction' : ''}"><b>The receipt:</b> ${esc(f.what_our_data_says)}${numChips(f.receipts)}</div>
+      <div class="actions">
+        <button class="share" type="button" data-share="${i}">Share</button>
+        ${dlink ? `<a href="/?d=${esc(f.district_number)}">Full district</a>` : ''}
+        <a href="${esc(f.url)}" target="_blank" rel="noopener">Source</a>
+      </div>
+    </article>`;
+  }).join('');
+  stream.querySelectorAll('[data-share]').forEach(b =>
+    b.addEventListener('click', () => shareItem(items[+b.getAttribute('data-share')])));
+}
+
+function shareItem(f) {
+  const hook = f.hook || f.headline || '';
+  const url = 'https://txisd.dev/feed';
+  const text = `${hook} — via txisd.dev`;
+  if (navigator.share) {
+    navigator.share({title: 'Texas ISD — The Feed', text, url}).catch(() => {});
+    return;
+  }
+  const payload = `${text}\n${url}`;
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(payload).then(() => toast('Copied — paste it anywhere')).catch(() => toast(payload));
+  } else {
+    toast('Copy: ' + text);
+  }
+}
+
+let toastTimer = null;
+function toast(msg) {
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+function buildFilters() {
+  const present = ['all', ...Array.from(new Set(ALL.map(f => f.beat || 'general')))];
+  $('filters').innerHTML = present.map(b => {
+    const label = b === 'all' ? 'All' : ((BEATS[b] || BEATS.general).emoji + ' ' + (BEATS[b] || BEATS.general).label);
+    return `<button type="button" data-beat="${esc(b)}" aria-pressed="${b === 'all'}">${esc(label)}</button>`;
+  }).join('');
+  $('filters').querySelectorAll('[data-beat]').forEach(btn =>
+    btn.addEventListener('click', () => {
+      activeBeat = btn.getAttribute('data-beat');
+      $('filters').querySelectorAll('[data-beat]').forEach(b =>
+        b.setAttribute('aria-pressed', b === btn ? 'true' : 'false'));
+      render();
+    }));
+}
+
+function buildTable() {
+  $('a11y-body').innerHTML = ALL.map(f => {
+    const beat = (BEATS[f.beat] || BEATS.general).label;
+    return `<tr><td>${esc(beat)}</td><td>${esc(f.hook || f.headline)}</td>
+      <td>${esc(f.district_name || '—')}</td><td>${esc(f.source_name)} (${esc((TIER[f.source_tier]||TIER[3]).t)})</td></tr>`;
+  }).join('');
+}
+
+fetch('/briefing').then(r => {
+  if (!r.ok) throw new Error('no briefing');
+  return r.json();
+}).then(b => {
+  ALL = (b.top_findings || []).slice();
+  const m = b.meta || {};
+  $('livetext').textContent =
+    `${ALL.length} stories · ${m.districts_with_findings || 0} districts · updated ${m.run_date || 'recently'}`;
+  if (m.note && /sample/i.test(m.note)) {
+    const w = $('warn'); w.style.display = 'block';
+    w.textContent = 'Preview feed built from a sample day. A live daily run replaces it with the day\'s real headlines.';
+  }
+  $('disc').textContent = (m.note || '') +
+    ' The house-voice headline is our framing of the beat plus figures from this repo\'s official TEA data; the linked headline and outlet are the original report. Not an official TEA product; not legal, financial, or investment advice.';
+  buildFilters();
+  buildTable();
+  render();
+}).catch(() => {
+  $('livetext').textContent = 'The feed could not load right now.';
+  $('stream').innerHTML = '<p class="empty">The feed is unavailable at the moment. Please try again shortly.</p>';
+});
+
+/* Theme toggle — shares tisd_theme with the portal. */
+(function () {
+  const b = $('btnTheme');
+  if (!b) return;
+  b.addEventListener('click', () => {
+    const dark = document.documentElement.getAttribute('data-theme') === 'dark';
+    if (dark) document.documentElement.removeAttribute('data-theme');
+    else document.documentElement.setAttribute('data-theme', 'dark');
+    try { localStorage.setItem('tisd_theme', dark ? 'light' : 'dark'); } catch (e) {}
+  });
+})();
+</script>
+</body>
+</html>

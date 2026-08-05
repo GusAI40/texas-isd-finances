@@ -49,11 +49,16 @@ USER_AGENT = "texas-isd-finances/1.0 (+https://txisd.dev)"
 
 CATEGORY_RULES: dict[str, list[str]] = {
     "governance": ["superintendent", "board of managers", "trustee", "board president",
-                   "resign", "appointed", "conservator", "takeover", "state intervention"],
+                   "resign", "appointed", "conservator", "takeover", "state intervention",
+                   "buyout", "severance", "separation agreement", "fired", "terminated",
+                   "placed on leave", "stepping down", "steps down", "ousted", "no confidence",
+                   "censure", "recall", "removed from office", "special election"],
     "finance": ["bond", "budget", "deficit", "tax rate", "recapture", "debt",
-                "shortfall", "surplus", "TRE", "VATRE"],
+                "shortfall", "surplus", "TRE", "VATRE", "layoff", "layoffs",
+                "budget cut", "insolvent", "fiscal cliff", "reduction in force", "RIF"],
     "academics": ["staar", "accountability rating", "a-f rating", "graduation",
-                  "test scores", "college readiness", "failing"],
+                  "test scores", "college readiness", "failing", "f rating", "d rating",
+                  "unacceptable", "accreditation", "lowered rating"],
     "enrollment": ["enrollment", "enrolment", "student count", "declining enrollment",
                    "attendance", "consolidat"],
     "facilities": ["new school", "new campus", "rezon", "attendance zone", "boundary",
@@ -62,7 +67,9 @@ CATEGORY_RULES: dict[str, list[str]] = {
                "security"],
     "personnel": ["teacher shortage", "layoff", "hiring", "pay raise", "salary",
                   "labor dispute", "strike"],
-    "legal": ["lawsuit", "investigation", "open records", "civil rights", "grievance"],
+    "legal": ["lawsuit", "investigation", "open records", "civil rights", "grievance",
+              "indicted", "indictment", "arrested", "fraud", "embezzle", "misappropriat",
+              "grand jury", "criminal charges", "charges filed", "ethics complaint"],
 }
 
 # Words that raise urgency when present, with the reason kept for the score audit.
@@ -117,6 +124,9 @@ class Finding:
     review_required: bool = False
     content_hash: str = ""
     enrichment: Optional[dict] = None   # structured facts from the LLM, or None
+    beat: str = "general"               # the dominant editorial angle
+    hook: str = ""                      # house-voice headline, grounded in our data
+    receipts: dict = field(default_factory=dict)  # the numbers behind the hook
 
 
 # ---------------------------------------------------------------------------
@@ -288,6 +298,179 @@ def score(item: NewsItem, res: Resolution, cats: list[str], text: str) -> dict:
 
 
 # ---------------------------------------------------------------------------
+# House voice — punchy, active, specific, and always carrying a receipt.
+#
+# The rule that keeps this out of court: the hook paraphrases the *category* the
+# rule-based path already assigned (so it never asserts an event the source did
+# not report) and appends figures from OUR data (which are sourced). It NEVER
+# names an individual and NEVER asserts wrongdoing — a takeover is public record;
+# a named super's motives are not ours to characterize. Sharp about institutions
+# and public decisions, never about a private person. Deterministic and testable;
+# no LLM needed. The source's own headline stays visible beside the hook, so a
+# reader always sees what was actually reported and who reported it.
+
+_BEAT_KEYWORDS = [
+    ("takeover",   ["takeover", "board of managers", "conservator", "state intervention",
+                    "state takeover", "removed the board", "appointed"]),
+    ("super_exit", ["superintendent", "resign", "buyout", "severance", "fired",
+                    "terminated", "placed on leave", "stepping down", "steps down",
+                    "ousted", "retire", "separation agreement", "no confidence"]),
+    ("bond",       ["bond"]),
+    ("budget",     ["deficit", "shortfall", "budget cut", "layoff", "insolvent",
+                    "fiscal cliff", "reduction in force", "rif", "budget"]),
+    ("rating",     ["rating", "staar", "accountability", "failing", "unacceptable",
+                    "accreditation", "test scores", "graduation"]),
+    ("legal",      ["indicted", "indictment", "arrested", "fraud", "embezzle",
+                    "misappropriat", "grand jury", "lawsuit", "investigation",
+                    "criminal charges", "charges filed", "ethics complaint"]),
+    ("enrollment", ["enrollment", "enrolment", "student count", "consolidat"]),
+    ("facilities", ["new school", "new campus", "rezon", "attendance zone",
+                    "boundary", "construction", "closure", "closing"]),
+    ("safety",     ["cybersecurity", "data breach", "ransomware", "threat", "lockdown"]),
+]
+
+_SUFFIX_KEEP = {"isd", "cisd", "msd"}   # keep these upper in a titled name
+
+
+def nice_name(name: Optional[str]) -> str:
+    """'FORT WORTH ISD' -> 'Fort Worth ISD'. District, not person — safe to style."""
+    if not name:
+        return "This district"
+    out = []
+    for w in name.split():
+        out.append(w.upper() if w.lower() in _SUFFIX_KEEP else w.capitalize())
+    return " ".join(out)
+
+
+def pick_beat(text: str, cats: list[str]) -> str:
+    low = text.lower()
+    for beat, kws in _BEAT_KEYWORDS:
+        if any(k in low for k in kws):
+            return beat
+    return cats[0] if cats else "general"
+
+
+def receipts(dnum: Optional[str], ref: dict) -> dict:
+    """The numbers that back a hook — all from data this repo already ships."""
+    r: dict = {}
+    o = ref.get("outcomes", {}).get(dnum) if dnum else None
+    if o:
+        if o.get("students"):
+            r["students"] = o["students"]
+        if o.get("spend_per_student"):
+            r["spend_per_student"] = round(o["spend_per_student"])
+        need = o.get("need") or {}
+        if need.get("pct_econ_disadv") is not None:
+            r["pct_econ_disadv"] = need["pct_econ_disadv"]
+        meas = o.get("measures") or {}
+        if meas.get("test_all_meets"):
+            r["meets_pct"] = meas["test_all_meets"][0]
+        if meas.get("teacher_turnover_pct"):
+            r["turnover_pct"] = meas["teacher_turnover_pct"][0]
+        exp = o.get("expectation") or {}
+        if exp.get("gap") is not None:
+            r["beats_gap"] = exp["gap"]
+        if o.get("spend_state_median"):
+            r["spend_state_median"] = round(o["spend_state_median"])
+    b = ref.get("bonds", {}).get(dnum) if dnum else None
+    if b and b.get("elections"):
+        els = b["elections"]
+        r["bond_count"] = len(els)
+        last = sorted(els, key=lambda e: e.get("date", ""))[-1]
+        r["bond_last_year"] = last.get("year")
+        r["bond_last_amount"] = last.get("amount")
+        r["bond_last_passed"] = last.get("passed")
+    return r
+
+
+def _usd(n) -> str:
+    """Abbreviated dollars for large figures: $1.2B, $200M, $76M. Used for
+    bond and budget amounts, which are always millions or more."""
+    if n is None:
+        return ""
+    n = float(n)
+    if n >= 1e9:
+        return f"${n/1e9:.1f}B"
+    if n >= 1e6:
+        return f"${n/1e6:.0f}M"
+    if n >= 1e3:
+        return f"${n/1e3:,.0f}K"
+    return f"${n:,.0f}"
+
+
+def _usd_full(n) -> str:
+    """Full dollars for per-student figures, where $13,000 must not become $13K."""
+    return f"${round(n):,}" if n is not None else ""
+
+
+def house_headline(district_name: Optional[str], beat: str, r: dict) -> str:
+    """A punchy hook grounded in a receipt. Institution-level, never personal."""
+    D = nice_name(district_name)
+    students = f"{r['students']:,}" if r.get("students") else None
+    spend = _usd_full(r.get("spend_per_student")) if r.get("spend_per_student") else None
+    econ = f"{r['pct_econ_disadv']:.0f}%" if r.get("pct_econ_disadv") is not None else None
+    meets = f"{r['meets_pct']:.0f}%" if r.get("meets_pct") is not None else None
+
+    def tag() -> str:  # a compact receipt clause when we have the numbers
+        bits = []
+        if students:
+            bits.append(f"{students} students")
+        if spend:
+            bits.append(f"{spend}/student")
+        elif econ:
+            bits.append(f"{econ} low-income")
+        return " · ".join(bits)
+
+    if beat == "takeover":
+        rc = tag() or "the elected board is out"
+        extra = f" Just {meets} were at grade level last STAAR." if meets else ""
+        return f"The state stepped into {D}. {rc}.{extra}"
+    if beat == "super_exit":
+        rc = tag()
+        tail = f" Whoever takes it inherits {rc}." if rc else ""
+        return f"{D} needs a new superintendent.{tail}"
+    if beat == "bond":
+        if r.get("bond_count"):
+            yr, amt = r.get("bond_last_year"), _usd(r.get("bond_last_amount"))
+            if r.get("bond_last_passed") is False:
+                return (f"{D} is back for another bond. Voters killed the last one — "
+                        f"{amt} in {yr}.")
+            return (f"{D} is asking taxpayers for a new bond. Its last one passed: "
+                    f"{amt} in {yr}.")
+        return f"{D}'s first bond on record is on the table. {tag()}."
+    if beat == "budget":
+        if spend and r.get("spend_state_median"):
+            return (f"{D} says the money's short. It spends {spend}/student — the "
+                    f"state median is {_usd_full(r['spend_state_median'])}.")
+        return f"{D} is staring at a budget hole. {tag() or 'The numbers are in the story.'}"
+    if beat == "rating":
+        if meets:
+            gap = r.get("beats_gap")
+            g = (f", {abs(gap):.0f} points {'above' if gap >= 0 else 'below'} what its "
+                 f"demographics predict") if gap is not None else ""
+            return f"{D}'s report card is back in the news — {meets} at grade level{g}."
+        return f"{D}'s accountability is in the story. {tag()}."
+    if beat == "legal":
+        return f"{D} is in a legal fight. {tag() or 'Public money, public record.'}"
+    if beat == "enrollment":
+        return f"{D}'s enrollment is the story. Our TEA count: {students or 'on file'} students."
+    if beat == "facilities":
+        return f"{D} is redrawing its footprint. {tag() or 'New buildings, same taxpayers.'}"
+    if beat == "safety":
+        return f"A safety story at {D}. {tag()}."
+    rc = tag()
+    return f"{D} is in the news. {rc}." if rc else f"{D} is in the news."
+
+
+def share_text(hook: str, district_name: Optional[str]) -> str:
+    """One line built to be pasted into a group chat."""
+    base = hook.strip()
+    if len(base) > 200:
+        base = base[:197] + "…"
+    return f"{base} — via txisd.dev"
+
+
+# ---------------------------------------------------------------------------
 # The pipeline: items -> findings.
 
 def analyze(items: list[NewsItem], districts: list[dict], ref: dict,
@@ -308,6 +491,12 @@ def analyze(items: list[NewsItem], districts: list[dict], ref: dict,
         enrichment = enrich(it) if (enrich and res.district_number) else None
         review = res.confidence in ("low", "unresolved") or status == "contradiction"
         h = hashlib.sha256(f"{res.district_number}|{it.title}".encode()).hexdigest()[:16]
+        # House voice: pick the angle, pull the receipts, write the hook. All
+        # deterministic and grounded in our own data — no LLM, no assertion the
+        # source didn't make, no named individual.
+        the_beat = pick_beat(text, cats)
+        rc = receipts(res.district_number, ref)
+        hook = house_headline(res.district_name, the_beat, rc)
         findings.append(Finding(
             headline=it.title, summary=it.summary, url=it.url,
             source_name=it.source_name, source_tier=it.source_tier,
@@ -319,6 +508,7 @@ def analyze(items: list[NewsItem], districts: list[dict], ref: dict,
             confidence_score=sc["confidence_score"], impact_score=sc["impact_score"],
             urgency_score=sc["urgency_score"], score_factors=sc["factors"],
             review_required=review, content_hash=h, enrichment=enrichment,
+            beat=the_beat, hook=hook, receipts=rc,
         ))
     # Dedup by content hash (same district + headline seen twice).
     seen, unique = set(), []

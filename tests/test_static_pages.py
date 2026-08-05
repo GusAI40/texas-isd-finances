@@ -22,7 +22,9 @@ needs_node = pytest.mark.skipif(
 
 
 def test_expected_pages_exist():
-    assert {p.name for p in PAGES} == {"index.html", "map.html", "geomap.html", "intel.html", "heatmap.html"}
+    assert {p.name for p in PAGES} == {
+        "index.html", "map.html", "geomap.html", "intel.html", "heatmap.html", "feed.html",
+    }
 
 
 @needs_node

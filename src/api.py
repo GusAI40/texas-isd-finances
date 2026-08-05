@@ -1313,6 +1313,16 @@ async def intel_page():
     raise HTTPException(status_code=404, detail="Intelligence page not available")
 
 
+@app.get("/feed", include_in_schema=False)
+async def feed_page():
+    """The Feed: the day's district headlines as a stream, each with the
+    receipts. Same /briefing data as /intel, styled as a reverse-chron feed."""
+    page = STATIC_DIR / "feed.html"
+    if page.exists():
+        return FileResponse(page)
+    raise HTTPException(status_code=404, detail="Feed not available")
+
+
 @app.get("/heatmap", include_in_schema=False)
 async def heatmap_page():
     """Mapbox choropleth: districts colored by news intensity or outcomes."""

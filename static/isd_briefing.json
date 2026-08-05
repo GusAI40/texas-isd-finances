@@ -1,1 +1,353 @@
-{"meta":{"run_date":"2026-01-10","items_analyzed":6,"districts_with_findings":5,"contradictions":0,"review_items":0,"llm_enriched":1,"note":"SAMPLE briefing, committed so /briefing and /intel work with no database. The TEA items are REAL first-hand press releases from tea.texas.gov (tier 1); the bond item and its extracted-facts row are illustrative. A live daily run replaces all of it."},"top_findings":[{"headline":"Fort Worth ISD calls bond election for new schools","summary":"Trustees for Fort Worth Independent School District placed a bond on the ballot.","url":"https://star-telegram.com/fw-bond","source_name":"Star-Telegram","source_tier":2,"published_at":"2026-01-10","district_number":"220905","district_name":"Fort Worth ISD","resolution_confidence":"confirmed","resolution_basis":"full name with ISD suffix","categories":["facilities","finance","governance"],"comparison_status":"expanded","comparison_note":"district has prior bond history on file; this adds a new data point","what_our_data_says":"We hold this district's past bond elections. A new bond item extends that record \u2014 confirm the amount and whether it passed before acting.","confidence_score":90,"impact_score":70,"urgency_score":45,"score_factors":{"confidence":{"resolution":"confirmed","source_tier":2},"impact":{"categories":["facilities","finance","governance"]},"urgency":{"markers":["an active election"]}},"review_required":false,"content_hash":"cd4c8bab1082e60e","enrichment":{"event_type":"bond_election","status":"proposed","bond_amount_usd":1200000000,"effective_date":null,"person_named":null,"enrollment_stated":null,"financial_amount_usd":null,"needs_verification":true}},{"headline":"Texas Education Agency Appoints Board of Managers and New Superintendent for Connally ISD","summary":"","url":"https://tea.texas.gov/about-tea/newsroom/texas-education-agency-appoints-board-managers-and-new-superintendent-connally-isd","source_name":"Texas Education Agency","source_tier":1,"published_at":"","district_number":"161921","district_name":"Connally ISD","resolution_confidence":"high","resolution_basis":"single-word name with ISD suffix","categories":["governance"],"comparison_status":"not_applicable","comparison_note":"relevant news, no matching structured field","what_our_data_says":"This is district news but does not change a number we track.","confidence_score":80,"impact_score":50,"urgency_score":20,"score_factors":{"confidence":{"resolution":"high","source_tier":1},"impact":{"categories":["governance"]},"urgency":{"markers":["none"]}},"review_required":false,"content_hash":"b1a3f55c14f1fa0b","enrichment":null},{"headline":"Texas Education Agency Appoints Beaumont ISD Board of Managers and Superintendent","summary":"","url":"https://tea.texas.gov/about-tea/newsroom/texas-education-agency-appoints-beaumont-isd-board-managers-and-superintendent","source_name":"Texas Education Agency","source_tier":1,"published_at":"","district_number":"123910","district_name":"Beaumont ISD","resolution_confidence":"high","resolution_basis":"single-word name with ISD suffix","categories":["governance"],"comparison_status":"not_applicable","comparison_note":"relevant news, no matching structured field","what_our_data_says":"This is district news but does not change a number we track.","confidence_score":80,"impact_score":50,"urgency_score":20,"score_factors":{"confidence":{"resolution":"high","source_tier":1},"impact":{"categories":["governance"]},"urgency":{"markers":["none"]}},"review_required":false,"content_hash":"8fcdacf7dc0508c6","enrichment":null},{"headline":"Texas Education Agency Appoints Board of Managers and Names New Superintendent for Lake Worth ISD","summary":"","url":"https://tea.texas.gov/about-tea/newsroom/texas-education-agency-appoints-board-managers-and-names-new-superintendent-lake-worth-isd","source_name":"Texas Education Agency","source_tier":1,"published_at":"","district_number":"220910","district_name":"Lake Worth ISD","resolution_confidence":"confirmed","resolution_basis":"full name with ISD suffix","categories":["governance"],"comparison_status":"not_applicable","comparison_note":"relevant news, no matching structured field","what_our_data_says":"This is district news but does not change a number we track.","confidence_score":100,"impact_score":50,"urgency_score":20,"score_factors":{"confidence":{"resolution":"confirmed","source_tier":1},"impact":{"categories":["governance"]},"urgency":{"markers":["none"]}},"review_required":false,"content_hash":"777188127299ed66","enrichment":null},{"headline":"Texas Education Agency appoints Board of Managers and Names New Superintendent to Lead Fort Worth ISD","summary":"","url":"https://tea.texas.gov/about-tea/newsroom/texas-education-agency-appoints-board-managers-and-names-new-superintendent-lead-fort-worth-isd","source_name":"Texas Education Agency","source_tier":1,"published_at":"","district_number":"220905","district_name":"Fort Worth ISD","resolution_confidence":"confirmed","resolution_basis":"full name with ISD suffix","categories":["governance"],"comparison_status":"not_applicable","comparison_note":"relevant news, no matching structured field","what_our_data_says":"This is district news but does not change a number we track.","confidence_score":100,"impact_score":50,"urgency_score":20,"score_factors":{"confidence":{"resolution":"confirmed","source_tier":1},"impact":{"categories":["governance"]},"urgency":{"markers":["none"]}},"review_required":false,"content_hash":"a0ed08fb1e9675ad","enrichment":null},{"headline":"TEA Announces Houston ISD School Board Changes","summary":"","url":"https://tea.texas.gov/about-tea/newsroom/tea-announces-houston-isd-school-board-changes","source_name":"Texas Education Agency","source_tier":1,"published_at":"","district_number":"101912","district_name":"Houston ISD","resolution_confidence":"high","resolution_basis":"single-word name with ISD suffix","categories":[],"comparison_status":"not_applicable","comparison_note":"relevant news, no matching structured field","what_our_data_says":"This is district news but does not change a number we track.","confidence_score":80,"impact_score":20,"urgency_score":20,"score_factors":{"confidence":{"resolution":"high","source_tier":1},"impact":{"categories":[]},"urgency":{"markers":["none"]}},"review_required":false,"content_hash":"9f51c5a8836e2680","enrichment":null}],"review_queue":[]}
+{
+  "meta": {
+    "run_date": "2026-01-10",
+    "items_analyzed": 6,
+    "districts_with_findings": 5,
+    "contradictions": 0,
+    "review_items": 0,
+    "llm_enriched": 1,
+    "note": "SAMPLE briefing, committed so /briefing, /intel and /feed work with no database. The TEA items are REAL first-hand press releases from tea.texas.gov (tier 1); the bond item and its extracted-facts row are illustrative. A live daily run replaces all of it. Headlines in the house voice are generated from this repo's own TEA data \u2014 every number shown is sourced, and no individual is named or characterized."
+  },
+  "top_findings": [
+    {
+      "headline": "Fort Worth ISD calls bond election for new schools",
+      "summary": "Trustees for Fort Worth Independent School District placed a bond on the ballot.",
+      "url": "https://www.star-telegram.com/",
+      "source_name": "Star-Telegram",
+      "source_tier": 2,
+      "published_at": "2026-01-10",
+      "district_number": "220905",
+      "district_name": "Fort Worth ISD",
+      "resolution_confidence": "confirmed",
+      "resolution_basis": "full name with ISD suffix",
+      "categories": [
+        "facilities",
+        "finance",
+        "governance"
+      ],
+      "comparison_status": "expanded",
+      "comparison_note": "district has prior bond history on file; this adds a new data point",
+      "what_our_data_says": "We hold this district's past bond elections. A new bond item extends that record \u2014 confirm the amount and whether it passed before acting.",
+      "confidence_score": 90,
+      "impact_score": 70,
+      "urgency_score": 45,
+      "score_factors": {
+        "confidence": {
+          "resolution": "confirmed",
+          "source_tier": 2
+        },
+        "impact": {
+          "categories": [
+            "facilities",
+            "finance",
+            "governance"
+          ]
+        },
+        "urgency": {
+          "markers": [
+            "an active election"
+          ]
+        }
+      },
+      "review_required": false,
+      "content_hash": "cd4c8bab1082e60e",
+      "enrichment": {
+        "event_type": "bond_election",
+        "status": "proposed",
+        "bond_amount_usd": 1200000000,
+        "effective_date": null,
+        "financial_amount_usd": null,
+        "enrollment_stated": null,
+        "person_named": null,
+        "needs_verification": true
+      },
+      "beat": "bond",
+      "hook": "Fort Worth ISD is back for another bond. Voters killed the last one \u2014 $76M in 2021.",
+      "receipts": {
+        "students": 70903,
+        "spend_per_student": 14212,
+        "pct_econ_disadv": 82.5,
+        "meets_pct": 30.0,
+        "turnover_pct": 16.9,
+        "beats_gap": -8.0,
+        "spend_state_median": 14416,
+        "bond_count": 11,
+        "bond_last_year": 2021,
+        "bond_last_amount": 76200000.0,
+        "bond_last_passed": false
+      }
+    },
+    {
+      "headline": "Texas Education Agency Appoints Board of Managers and New Superintendent for Connally ISD",
+      "summary": "",
+      "url": "https://tea.texas.gov/about-tea/newsroom/2026/tea-appoints-board-of-managers-connally-isd",
+      "source_name": "Texas Education Agency",
+      "source_tier": 1,
+      "published_at": "2026-01-10",
+      "district_number": "161921",
+      "district_name": "Connally ISD",
+      "resolution_confidence": "high",
+      "resolution_basis": "single-word name with ISD suffix",
+      "categories": [
+        "governance"
+      ],
+      "comparison_status": "not_applicable",
+      "comparison_note": "relevant news, no matching structured field",
+      "what_our_data_says": "This is district news but does not change a number we track.",
+      "confidence_score": 80,
+      "impact_score": 50,
+      "urgency_score": 20,
+      "score_factors": {
+        "confidence": {
+          "resolution": "high",
+          "source_tier": 1
+        },
+        "impact": {
+          "categories": [
+            "governance"
+          ]
+        },
+        "urgency": {
+          "markers": [
+            "none"
+          ]
+        }
+      },
+      "review_required": false,
+      "content_hash": "b1a3f55c14f1fa0b",
+      "enrichment": null,
+      "beat": "takeover",
+      "hook": "The state stepped into Connally ISD. 2,288 students \u00b7 $15,627/student. Just 23% were at grade level last STAAR.",
+      "receipts": {
+        "students": 2288,
+        "spend_per_student": 15627,
+        "pct_econ_disadv": 83.7,
+        "meets_pct": 23.0,
+        "turnover_pct": 31.4,
+        "beats_gap": -13.0,
+        "spend_state_median": 14416,
+        "bond_count": 3,
+        "bond_last_year": 2024,
+        "bond_last_amount": 60000000.0,
+        "bond_last_passed": false
+      }
+    },
+    {
+      "headline": "Texas Education Agency Appoints Beaumont ISD Board of Managers and Superintendent",
+      "summary": "",
+      "url": "https://tea.texas.gov/about-tea/newsroom/2026/tea-appoints-beaumont-isd-board-of-managers",
+      "source_name": "Texas Education Agency",
+      "source_tier": 1,
+      "published_at": "2026-01-10",
+      "district_number": "123910",
+      "district_name": "Beaumont ISD",
+      "resolution_confidence": "high",
+      "resolution_basis": "single-word name with ISD suffix",
+      "categories": [
+        "governance"
+      ],
+      "comparison_status": "not_applicable",
+      "comparison_note": "relevant news, no matching structured field",
+      "what_our_data_says": "This is district news but does not change a number we track.",
+      "confidence_score": 80,
+      "impact_score": 50,
+      "urgency_score": 20,
+      "score_factors": {
+        "confidence": {
+          "resolution": "high",
+          "source_tier": 1
+        },
+        "impact": {
+          "categories": [
+            "governance"
+          ]
+        },
+        "urgency": {
+          "markers": [
+            "none"
+          ]
+        }
+      },
+      "review_required": false,
+      "content_hash": "8fcdacf7dc0508c6",
+      "enrichment": null,
+      "beat": "takeover",
+      "hook": "The state stepped into Beaumont ISD. 16,775 students \u00b7 $13,428/student. Just 28% were at grade level last STAAR.",
+      "receipts": {
+        "students": 16775,
+        "spend_per_student": 13428,
+        "pct_econ_disadv": 83.7,
+        "meets_pct": 28.0,
+        "turnover_pct": 25.3,
+        "beats_gap": -8.8,
+        "spend_state_median": 14416,
+        "bond_count": 3,
+        "bond_last_year": 2007,
+        "bond_last_amount": 388600000.0,
+        "bond_last_passed": true
+      }
+    },
+    {
+      "headline": "Texas Education Agency Appoints Board of Managers and Names New Superintendent for Lake Worth ISD",
+      "summary": "",
+      "url": "https://tea.texas.gov/about-tea/newsroom/2026/tea-appoints-lake-worth-isd-board-of-managers",
+      "source_name": "Texas Education Agency",
+      "source_tier": 1,
+      "published_at": "2026-01-10",
+      "district_number": "220910",
+      "district_name": "Lake Worth ISD",
+      "resolution_confidence": "confirmed",
+      "resolution_basis": "full name with ISD suffix",
+      "categories": [
+        "governance"
+      ],
+      "comparison_status": "not_applicable",
+      "comparison_note": "relevant news, no matching structured field",
+      "what_our_data_says": "This is district news but does not change a number we track.",
+      "confidence_score": 100,
+      "impact_score": 50,
+      "urgency_score": 20,
+      "score_factors": {
+        "confidence": {
+          "resolution": "confirmed",
+          "source_tier": 1
+        },
+        "impact": {
+          "categories": [
+            "governance"
+          ]
+        },
+        "urgency": {
+          "markers": [
+            "none"
+          ]
+        }
+      },
+      "review_required": false,
+      "content_hash": "777188127299ed66",
+      "enrichment": null,
+      "beat": "takeover",
+      "hook": "The state stepped into Lake Worth ISD. 3,232 students \u00b7 $15,705/student. Just 22% were at grade level last STAAR.",
+      "receipts": {
+        "students": 3232,
+        "spend_per_student": 15705,
+        "pct_econ_disadv": 87.9,
+        "meets_pct": 22.0,
+        "turnover_pct": 37.0,
+        "beats_gap": -12.4,
+        "spend_state_median": 14416,
+        "bond_count": 2,
+        "bond_last_year": 2004,
+        "bond_last_amount": 88885000.0,
+        "bond_last_passed": true
+      }
+    },
+    {
+      "headline": "Texas Education Agency appoints Board of Managers and Names New Superintendent to Lead Fort Worth ISD",
+      "summary": "",
+      "url": "https://tea.texas.gov/about-tea/newsroom/2026/tea-appoints-fort-worth-isd-board-of-managers",
+      "source_name": "Texas Education Agency",
+      "source_tier": 1,
+      "published_at": "2026-01-10",
+      "district_number": "220905",
+      "district_name": "Fort Worth ISD",
+      "resolution_confidence": "confirmed",
+      "resolution_basis": "full name with ISD suffix",
+      "categories": [
+        "governance"
+      ],
+      "comparison_status": "not_applicable",
+      "comparison_note": "relevant news, no matching structured field",
+      "what_our_data_says": "This is district news but does not change a number we track.",
+      "confidence_score": 100,
+      "impact_score": 50,
+      "urgency_score": 20,
+      "score_factors": {
+        "confidence": {
+          "resolution": "confirmed",
+          "source_tier": 1
+        },
+        "impact": {
+          "categories": [
+            "governance"
+          ]
+        },
+        "urgency": {
+          "markers": [
+            "none"
+          ]
+        }
+      },
+      "review_required": false,
+      "content_hash": "a0ed08fb1e9675ad",
+      "enrichment": null,
+      "beat": "takeover",
+      "hook": "The state stepped into Fort Worth ISD. 70,903 students \u00b7 $14,212/student. Just 30% were at grade level last STAAR.",
+      "receipts": {
+        "students": 70903,
+        "spend_per_student": 14212,
+        "pct_econ_disadv": 82.5,
+        "meets_pct": 30.0,
+        "turnover_pct": 16.9,
+        "beats_gap": -8.0,
+        "spend_state_median": 14416,
+        "bond_count": 11,
+        "bond_last_year": 2021,
+        "bond_last_amount": 76200000.0,
+        "bond_last_passed": false
+      }
+    },
+    {
+      "headline": "TEA Announces Houston ISD School Board Changes",
+      "summary": "",
+      "url": "https://tea.texas.gov/about-tea/newsroom/2026/tea-houston-isd-board-changes",
+      "source_name": "Texas Education Agency",
+      "source_tier": 1,
+      "published_at": "2026-01-10",
+      "district_number": "101912",
+      "district_name": "Houston ISD",
+      "resolution_confidence": "high",
+      "resolution_basis": "single-word name with ISD suffix",
+      "categories": [],
+      "comparison_status": "not_applicable",
+      "comparison_note": "relevant news, no matching structured field",
+      "what_our_data_says": "This is district news but does not change a number we track.",
+      "confidence_score": 80,
+      "impact_score": 20,
+      "urgency_score": 20,
+      "score_factors": {
+        "confidence": {
+          "resolution": "high",
+          "source_tier": 1
+        },
+        "impact": {
+          "categories": []
+        },
+        "urgency": {
+          "markers": [
+            "none"
+          ]
+        }
+      },
+      "review_required": false,
+      "content_hash": "9f51c5a8836e2680",
+      "enrichment": null,
+      "beat": "general",
+      "hook": "Houston ISD is in the news. 183,603 students \u00b7 $14,338/student.",
+      "receipts": {
+        "students": 183603,
+        "spend_per_student": 14338,
+        "pct_econ_disadv": 79.6,
+        "meets_pct": 44.0,
+        "turnover_pct": 19.7,
+        "beats_gap": 3.9,
+        "spend_state_median": 14416,
+        "bond_count": 6,
+        "bond_last_year": 2024,
+        "bond_last_amount": 440000000.0,
+        "bond_last_passed": false
+      }
+    }
+  ],
+  "review_queue": []
+}
