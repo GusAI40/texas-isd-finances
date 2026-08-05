@@ -759,6 +759,62 @@ def test_briefing_served_from_committed_snapshot_without_db(client):
     assert body["meta"]["run_date"]
 
 
+class _RecordingConn:
+    def __init__(self, store):
+        self.store = store
+
+    async def fetchval(self, _sql, arg):
+        self.store.setdefault("fetchval_args", []).append(arg)
+        return None            # today's run does not exist yet
+
+    async def execute(self, _sql, *args):
+        self.store["execute_args"] = args
+        return "INSERT 0 1"
+
+
+class _RecordingPool:
+    def __init__(self):
+        self.store: dict = {}
+
+    def acquire(self):
+        conn = _RecordingConn(self.store)
+
+        class _Ctx:
+            async def __aenter__(self_):
+                return conn
+
+            async def __aexit__(self_, *a):
+                return False
+        return _Ctx()
+
+
+def test_cron_binds_a_date_not_a_string(client, monkeypatch):
+    """asyncpg binds a `date` column from a datetime.date, never a str. Passing
+    the isoformat string raises 'str object has no attribute toordinal' and the
+    store fails silently — the intel cron never persisted in production until
+    this was fixed. Pin the argument type so the regression cannot return."""
+    import datetime as _dt
+
+    import src.api as api
+    from scripts import isd_intel
+    monkeypatch.setenv("CRON_SECRET", "s3cret")
+    monkeypatch.setattr(isd_intel, "fetch_tea_newsroom", lambda *a, **k: [])
+    monkeypatch.setattr(isd_intel, "fetch_google_news_rss", lambda *a, **k: [])
+    pool = _RecordingPool()
+    monkeypatch.setattr(api.app.state, "db_pool", pool, raising=False)
+
+    res = client.get("/api/cron/isd-intelligence",
+                     headers={"authorization": "Bearer s3cret"})
+    assert res.status_code == 200
+    assert res.json()["stored"] is True
+    # The run_date bound to BOTH the idempotency check and the INSERT must be a
+    # date object, not the isoformat string.
+    assert pool.store["execute_args"], "the INSERT never ran"
+    assert isinstance(pool.store["execute_args"][0], _dt.date)
+    assert not isinstance(pool.store["execute_args"][0], str)
+    assert all(isinstance(a, _dt.date) for a in pool.store.get("fetchval_args", []))
+
+
 def test_vercel_json_still_has_no_rewrites():
     """A rewrites block 404s the whole site (CLAUDE.md invariant). The cron
     addition must not have introduced one."""

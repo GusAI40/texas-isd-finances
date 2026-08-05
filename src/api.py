@@ -1460,7 +1460,12 @@ async def cron_isd_intelligence(request: Request):
         raise HTTPException(status_code=401, detail="Unauthorized")
 
     from datetime import timezone
-    run_date = datetime.now(timezone.utc).date().isoformat()
+    # asyncpg binds a `date` column from a datetime.date, NOT a string — passing
+    # the isoformat string raises "'str' object has no attribute 'toordinal'"
+    # and the idempotency check + INSERT both fail silently. Keep the date object
+    # for the DB and the string for the JSON payload / response.
+    run_dt = datetime.now(timezone.utc).date()
+    run_date = run_dt.isoformat()
     pool = request.app.state.db_pool
 
     # Idempotency: if today's run already exists, do not re-run.
@@ -1468,7 +1473,7 @@ async def cron_isd_intelligence(request: Request):
         try:
             async with pool.acquire() as conn:
                 existing = await conn.fetchval(
-                    "SELECT 1 FROM public.isd_briefings WHERE run_date = $1", run_date)
+                    "SELECT 1 FROM public.isd_briefings WHERE run_date = $1", run_dt)
                 if existing:
                     return {"status": "already_ran", "run_date": run_date}
         except Exception as exc:
@@ -1526,7 +1531,7 @@ async def cron_isd_intelligence(request: Request):
                 await conn.execute(
                     "INSERT INTO public.isd_briefings (run_date, payload) VALUES ($1, $2) "
                     "ON CONFLICT (run_date) DO UPDATE SET payload = EXCLUDED.payload",
-                    run_date, json.dumps(briefing))
+                    run_dt, json.dumps(briefing))
                 stored = True
         except Exception as exc:
             print(f"WARNING: could not store briefing (table missing?): {exc}")
