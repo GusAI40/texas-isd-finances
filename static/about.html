@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iNiIgZmlsbD0iI2ZmZiIvPjxyZWN0IHg9IjUiIHk9IjUiIHdpZHRoPSI5IiBoZWlnaHQ9IjkiIHJ4PSIxLjUiIGZpbGw9IiMyYTc4ZDYiLz48cmVjdCB4PSIxOCIgeT0iNSIgd2lkdGg9IjkiIGhlaWdodD0iOSIgcng9IjEuNSIgZmlsbD0iIzJhNzhkNiIvPjxyZWN0IHg9IjUiIHk9IjE4IiB3aWR0aD0iOSIgaGVpZ2h0PSI5IiByeD0iMS41IiBmaWxsPSIjMmE3OGQ2Ii8+PHJlY3QgeD0iMTgiIHk9IjE4IiB3aWR0aD0iOSIgaGVpZ2h0PSI5IiByeD0iMS41IiBmaWxsPSIjYjhiNmFkIi8+PC9zdmc+">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<script>
+  /* Theme before first paint (shared tisd_theme key with the portal). */
+  try {
+    var _t = localStorage.getItem('tisd_theme');
+    if (!_t && window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches) _t = 'dark';
+    if (_t === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+  } catch (e) {}
+</script>
+<meta name="description" content="Why the Texas ISD Financial Resource Guide exists: to bring plain-English transparency to how every Texas school district raises, spends, and borrows public money — from the state's own official records, free, for everyone.">
+<link rel="canonical" href="https://txisd.dev/about">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://txisd.dev/about">
+<meta property="og:title" content="Why this exists — Texas ISD Financial Resource Guide">
+<meta property="og:description" content="Public schools are the biggest thing your Texas taxes pay for. This is a free, independent, plain-English window into where that money goes — built from the state's own records.">
+<title>Why this exists — Texas ISD Financial Resource Guide</title>
+<style>
+  :root { --ink:#1a1a1a; --ink-2:#55534e; --muted:#8b897f; --hair:#e9e8e3;
+          --wash:#f7f7f5; --blue:#2a78d6; --bg:#fff; --card:#fff; --good:#0a7a34; }
+  :root[data-theme="dark"] {
+    --ink:#e9e9ec; --ink-2:#b6b6be; --muted:#8c8c96; --hair:#2c2e39;
+    --wash:#1c1e26; --blue:#5a9be0; --bg:#14151a; --card:#1c1e26; --good:#5bbd6b; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); line-height:1.6;
+         font-family:system-ui,-apple-system,"Segoe UI",sans-serif; }
+  .skiplink { position:absolute; left:-9999px; top:0; z-index:100; background:var(--card);
+              color:var(--ink); padding:.6rem 1rem; border:1px solid var(--ink); border-radius:4px; }
+  .skiplink:focus { left:.5rem; top:.5rem; }
+  @media (prefers-reduced-motion: reduce){ *{animation:none!important;transition:none!important} }
+  .shell { max-width:760px; margin:0 auto; padding:0 1.25rem 4rem; }
+  header { padding:1.4rem 0 .3rem; display:flex; align-items:baseline; flex-wrap:wrap; gap:.3rem 0; }
+  .brand { font-weight:800; letter-spacing:-.02em; }
+  .brand a { color:var(--blue); text-decoration:none; font-weight:400; font-size:.86rem; margin-left:.7rem; }
+  .btn-theme { background:none; border:1px solid var(--hair); color:var(--ink-2); border-radius:6px;
+          font:inherit; font-size:.8rem; padding:.15rem .5rem; margin-left:.7rem; cursor:pointer; }
+  .btn-theme:hover { background:var(--wash); }
+  .eyebrow { font-size:.72rem; letter-spacing:.14em; text-transform:uppercase; color:var(--muted);
+             font-weight:700; margin:1.6rem 0 .4rem; }
+  h1 { font-family:ui-serif,Georgia,"Times New Roman",serif; font-weight:600;
+       font-size:clamp(2rem,4.5vw,2.9rem); line-height:1.12; letter-spacing:-.02em; margin:.2rem 0 .7rem;
+       text-wrap:balance; }
+  h2 { font-family:ui-serif,Georgia,"Times New Roman",serif; font-weight:600; font-size:1.4rem;
+       letter-spacing:-.01em; margin:2.2rem 0 .5rem; }
+  .lede { font-size:1.15rem; color:var(--ink-2); max-width:38rem; }
+  p { max-width:38rem; }
+  .mission { border-left:3px solid var(--blue); background:var(--wash); border-radius:0 10px 10px 0;
+             padding:1rem 1.2rem; margin:1.4rem 0; font-size:1.05rem; }
+  .mission b { color:var(--ink); }
+  .who { list-style:none; padding:0; margin:1rem 0; }
+  .who li { padding:.7rem 0; border-bottom:1px solid var(--hair); max-width:40rem; }
+  .who b { color:var(--ink); }
+  .principles li { margin:.5rem 0; max-width:38rem; }
+  .principles b { color:var(--ink); }
+  .stats { display:flex; flex-wrap:wrap; gap:.4rem 2.2rem; margin:1.2rem 0; padding:.9rem 0;
+           border-top:1px solid var(--hair); border-bottom:1px solid var(--hair); }
+  .stats span { display:inline-flex; flex-direction:column; }
+  .stats b { font-size:1.5rem; font-weight:700; letter-spacing:-.02em; }
+  .stats i { font-style:normal; font-size:.76rem; color:var(--muted); text-transform:uppercase; letter-spacing:.05em; }
+  a.tlink { color:var(--blue); }
+  .cta { display:flex; flex-wrap:wrap; gap:.6rem; margin:1.8rem 0 0; }
+  .cta a { display:inline-flex; align-items:center; gap:.4rem; font:inherit; font-size:.95rem; font-weight:600;
+           text-decoration:none; padding:.62rem 1.15rem; border-radius:10px; border:1px solid var(--hair);
+           color:var(--ink); background:var(--card); }
+  .cta a:hover { background:var(--wash); }
+  .cta .primary { background:var(--blue); color:#fff; border-color:var(--blue); }
+  .foot { color:var(--muted); font-size:.82rem; margin-top:2.4rem; padding-top:1.1rem; border-top:1px solid var(--hair); }
+  .foot b { color:var(--ink-2); }
+</style>
+</head>
+<body>
+<a class="skiplink" href="#mission">Skip to the mission</a>
+<div class="shell">
+  <header>
+    <div class="brand">Texas ISD Financial Resource Guide<a href="/">← home</a><a href="/feed">the feed</a><a href="/geomap">map</a><button class="btn-theme" id="btnTheme" type="button" aria-label="Toggle dark mode">◐ Theme</button></div>
+  </header>
+
+  <div class="eyebrow">Why this exists</div>
+  <h1>Public schools are the biggest thing your Texas taxes pay for. You should be able to see inside.</h1>
+  <p class="lede">For most Texas families, school property taxes are the single largest line on the tax
+     bill — thousands of dollars a year. Yet what that money actually does, whether it's working, and how
+     your district compares is buried in state spreadsheets almost nobody reads. This guide exists to
+     change that.</p>
+
+  <div class="mission" id="mission">
+    <b>Our mission:</b> bring plain-English transparency to how every Texas school district raises,
+    spends, and borrows public money — and what it buys for students — using the state's own official
+    records, free, for anyone, with a source on every number.
+  </div>
+
+  <div class="stats">
+    <span><b>1,310</b><i>districts covered</i></span>
+    <span><b>6.6 million</b><i>official data points</i></span>
+    <span><b>2009–2025</b><i>years of records</i></span>
+    <span><b>$0</b><i>cost to use, forever</i></span>
+  </div>
+
+  <h2>The problem</h2>
+  <p>The numbers that decide how your schools are funded — budgets, tax rates, recapture, debt, test
+     results, teacher pay and turnover, bond elections — are all public. But "public" and "readable" are
+     not the same thing. They live in dozens of separate state files, in the language of accountants and
+     agencies. A parent choosing a neighborhood, a taxpayer wondering where the money went, or a reporter
+     on deadline can't reasonably piece them together. So almost no one does.</p>
+
+  <h2>What we did about it</h2>
+  <p>We gathered 17 years of the Texas Education Agency's and Comptroller's own records — every district's
+     audited finances, property values and tax bills, STAAR results, teacher data, and every school bond
+     back to 1958 — 6.6 million data points in all. Then we translated them into plain English: what your
+     district collects, where each dollar goes, what it borrowed and for what, and what the spending
+     actually bought in results. Every figure links back to the state source it came from. Nothing is
+     estimated, ranked, or spun.</p>
+
+  <h2>Why you should care</h2>
+  <ul class="who">
+    <li><b>If you're a parent</b> — see what a district actually delivers for students before you choose a
+        neighborhood, a home, or a school. Ratings mostly reflect how wealthy a community already is; this
+        shows what the district itself does with what it has.</li>
+    <li><b>If you're a taxpayer or grandparent</b> — see exactly where your school taxes go, how much
+        leaves your district under recapture, and whether the spending is buying results.</li>
+    <li><b>If you're a teacher</b> — see pay, class sizes, and turnover against genuinely comparable
+        districts, not the whole state average.</li>
+    <li><b>If you're a reporter</b> — a sourced, district-by-district starting point for any story, with
+        the receipts already attached.</li>
+    <li><b>If you're a school board member or trustee</b> — benchmark your district against its real
+        structural peers and see what actually moves outcomes.</li>
+  </ul>
+
+  <h2>What we stand for</h2>
+  <ul class="principles">
+    <li><b>Independent.</b> Not a TEA product, not affiliated with any district, and nothing to sell. The
+        numbers are the state's; the plain-English framing is ours.</li>
+    <li><b>Sourced.</b> Every figure traces back to an official record. If we can't source it, we don't
+        show it.</li>
+    <li><b>Honest, even when it's inconvenient.</b> We report what the data says — including that spending
+        $2,000 more per student changed results by too little to tell apart from zero, and that some
+        celebrated turnarounds left their most vulnerable students behind.</li>
+    <li><b>No accusations, no rankings.</b> Anomaly flags are questions worth asking, not findings of
+        wrongdoing. We never rank or endorse a district or community.</li>
+    <li><b>Privacy first.</b> District-level aggregates only — no student, family, or personnel data is
+        collected, stored, or shown. "Find my district" on the map runs entirely in your browser.</li>
+    <li><b>Open.</b> The whole project is open source (MIT), so anyone can check our work.</li>
+  </ul>
+
+  <h2>Who built it</h2>
+  <p>Built by the team at <b>Technology Automation Group (TAG&nbsp;ai)</b> together with
+     <b>Michelle Sanchez</b>, Realtor, Coldwell Banker Realty — with a shared goal: helping families make
+     better-informed decisions about where they raise their children, on the state's own records rather
+     than reputation. No party to this collaboration influenced any number, method, or finding, and
+     nothing here is real estate, financial, or investment advice.</p>
+
+  <div class="cta">
+    <a class="primary" href="/#search">🔎 Find your district</a>
+    <a href="/feed">🔥 See what's happening now</a>
+    <a href="/geomap">🗺️ Explore the map</a>
+  </div>
+
+  <p class="foot"><b>Data disclaimer:</b> An independent transparency tool presenting Texas Education
+     Agency and Comptroller data, fiscal 2009–2025, for informational purposes only. Not an official TEA
+     product, not an audit, and not financial, legal, or investment advice. District-level aggregates
+     only. Every number is traceable to the State of Texas.</p>
+</div>
+
+<script>
+/* Theme toggle — shares tisd_theme with the portal so the choice follows the reader. */
+(function () {
+  var b = document.getElementById('btnTheme');
+  if (!b) return;
+  b.addEventListener('click', function () {
+    var dark = document.documentElement.getAttribute('data-theme') === 'dark';
+    if (dark) document.documentElement.removeAttribute('data-theme');
+    else document.documentElement.setAttribute('data-theme', 'dark');
+    try { localStorage.setItem('tisd_theme', dark ? 'light' : 'dark'); } catch (e) {}
+  });
+})();
+</script>
+</body>
+</html>

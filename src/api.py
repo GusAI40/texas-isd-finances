@@ -1323,6 +1323,16 @@ async def feed_page():
     raise HTTPException(status_code=404, detail="Feed not available")
 
 
+@app.get("/about", include_in_schema=False)
+async def about_page():
+    """The mission: what this is, why it was built, who it's for, and what we
+    stand for — plain-English context for a first-time visitor."""
+    page = STATIC_DIR / "about.html"
+    if page.exists():
+        return FileResponse(page)
+    raise HTTPException(status_code=404, detail="About page not available")
+
+
 @app.get("/heatmap", include_in_schema=False)
 async def heatmap_page():
     """Mapbox choropleth: districts colored by news intensity or outcomes."""

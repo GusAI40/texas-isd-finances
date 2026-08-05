@@ -391,6 +391,22 @@ def test_findings_expose_receipts_for_the_feed():
     assert isinstance(f.receipts, dict)
 
 
+def test_feed_is_newest_first():
+    """A transparency feed leads with the latest, not the highest-impact — an
+    older 2024 item must never sit above a 2026 one."""
+    items = [
+        NewsItem("Dallas ISD calls a bond election", "Dallas Independent School District.",
+                 "u1", "A", "Mon, 01 Jan 2024 00:00:00 GMT", 2),
+        NewsItem("Katy ISD faces a budget shortfall", "Katy Independent School District.",
+                 "u2", "B", "Wed, 01 Jan 2025 00:00:00 GMT", 2),
+        NewsItem("Frisco ISD report card released", "Frisco Independent School District.",
+                 "u3", "C", "Fri, 01 Jan 2026 00:00:00 GMT", 2),
+    ]
+    b = build_briefing(analyze(items, DISTRICTS, REF), "2026-06-01")
+    years = [int(f["published_at"].split()[3]) for f in b["top_findings"]]
+    assert years == sorted(years, reverse=True), f"feed not newest-first: {years}"
+
+
 def test_feed_shows_only_resolved_non_review_findings():
     """An unresolved item ('This district …') must never become a public feed
     card — it has no district and no receipts. It belongs in the review queue."""

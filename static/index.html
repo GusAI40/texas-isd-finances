@@ -654,6 +654,7 @@
       <button id="btn-geomap" class="feature">🗺️ Map of Texas</button>
       <button id="btn-heatmap" class="feature">Heatmap</button>
       <button id="btn-map">Seating chart</button>
+      <button id="btn-about">About</button>
       <button id="btn-tour">Tutorial</button>
       <button id="btn-disclaimer">Disclaimer</button>
       <button id="btn-print" title="Print or save as PDF">Print</button>
@@ -681,6 +682,7 @@
       <a class="cta-primary" href="#search" id="wc-find">🔎 Find your district</a>
       <a href="/feed">🔥 What's happening now</a>
       <a href="/geomap">🗺️ Explore the map</a>
+      <a href="/about">📖 Why we built this</a>
       <a href="#" id="wc-tour">▶︎ 60-second tour</a>
     </div>
     <div class="welcome-strip">
@@ -3621,6 +3623,7 @@ $('btn-map').onclick = () => { location.href = state.district ? '/map?d=' + enco
 $('btn-geomap').onclick = () => { location.href = state.district ? '/geomap?d=' + encodeURIComponent(state.district.num) : '/geomap'; };
 $('btn-heatmap').onclick = () => { location.href = '/heatmap'; };
 $('btn-feed').onclick = () => { location.href = '/feed'; };
+$('btn-about').onclick = () => { location.href = '/about'; };
 $('btn-share').onclick = shareCard;
 
 /* Guided dollar: pointer, touch and keyboard all reach the same panel.

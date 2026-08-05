@@ -561,9 +561,38 @@ def _collapse_by_district_beat(findings: list[Finding]) -> list[Finding]:
     return passthrough + list(best.values())
 
 
+def _when_key(published_at: str, run_date: str) -> float:
+    """A sortable timestamp for a finding. Google News gives an RFC-822 date;
+    first-hand TEA items have none, so they are treated as today's run (they are
+    the current official releases) rather than sinking to the bottom."""
+    from datetime import datetime, timezone
+    from email.utils import parsedate_to_datetime
+    if published_at:
+        try:
+            dt = parsedate_to_datetime(published_at)
+            if dt is not None:
+                if dt.tzinfo is None:
+                    dt = dt.replace(tzinfo=timezone.utc)
+                return dt.timestamp()
+        except (TypeError, ValueError, IndexError):
+            pass
+    try:
+        return datetime.fromisoformat(run_date).replace(tzinfo=timezone.utc).timestamp()
+    except ValueError:
+        return 0.0
+
+
 def build_briefing(findings: list[Finding], run_date: str) -> dict:
     findings = _collapse_by_district_beat(findings)
-    ranked = sorted(findings, key=lambda f: (f.impact_score, f.urgency_score), reverse=True)
+    # The public feed shows only confidently-resolved district news: a card needs
+    # a real district (so it has a name and receipts) and must not be flagged for
+    # review. Unresolved items ("This district …") and contradictions stay in the
+    # review queue, never on the public feed.
+    feed = [f for f in findings if f.district_number and not f.review_required]
+    # Newest first — a transparency feed leads with the latest, not the loudest.
+    feed.sort(key=lambda f: _when_key(f.published_at, run_date), reverse=True)
+    review = sorted((f for f in findings if f.review_required),
+                    key=lambda f: (f.impact_score, f.urgency_score), reverse=True)
     return {
         "meta": {
             "run_date": run_date,
@@ -577,13 +606,8 @@ def build_briefing(findings: list[Finding], run_date: str) -> dict:
                     "structured facts, which come from an LLM reading only that "
                     "source snippet as untrusted data.",
         },
-        # The public feed shows only confidently-resolved district news: a card
-        # needs a real district (so it has a name and receipts) and must not be
-        # flagged for review. Unresolved items ("This district …") and
-        # contradictions stay in the review queue, never on the public feed.
-        "top_findings": [asdict(f) for f in ranked
-                         if f.district_number and not f.review_required][:25],
-        "review_queue": [asdict(f) for f in ranked if f.review_required],
+        "top_findings": [asdict(f) for f in feed[:25]],
+        "review_queue": [asdict(f) for f in review],
     }
 
 
