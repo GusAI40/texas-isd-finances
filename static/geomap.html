@@ -4,7 +4,15 @@
 <meta charset="utf-8">
 <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iNiIgZmlsbD0iI2ZmZiIvPjxyZWN0IHg9IjUiIHk9IjUiIHdpZHRoPSI5IiBoZWlnaHQ9IjkiIHJ4PSIxLjUiIGZpbGw9IiMyYTc4ZDYiLz48cmVjdCB4PSIxOCIgeT0iNSIgd2lkdGg9IjkiIGhlaWdodD0iOSIgcng9IjEuNSIgZmlsbD0iIzJhNzhkNiIvPjxyZWN0IHg9IjUiIHk9IjE4IiB3aWR0aD0iOSIgaGVpZ2h0PSI5IiByeD0iMS41IiBmaWxsPSIjMmE3OGQ2Ii8+PHJlY3QgeD0iMTgiIHk9IjE4IiB3aWR0aD0iOSIgaGVpZ2h0PSI5IiByeD0iMS41IiBmaWxsPSIjYjhiNmFkIi8+PC9zdmc+">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="color-scheme" content="light">
+<meta name="color-scheme" content="light dark">
+<script>
+  /* Theme decided before first paint (shared tisd_theme key with the portal). */
+  try {
+    var _t = localStorage.getItem('tisd_theme');
+    if (!_t && window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches) _t = 'dark';
+    if (_t === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+  } catch (e) {}
+</script>
 <meta name="description" content="Every Texas school district's real boundary, coloured by teacher turnover, spending, student poverty, or how far it beats what its demographics predict.">
 <link rel="canonical" href="https://txisd.dev/geomap">
 <meta property="og:type" content="website">
@@ -15,15 +23,23 @@
 <title>Texas School Districts — the real map</title>
 <style>
   :root { --ink:#1a1a1a; --ink-2:#55534e; --muted:#8b897f; --faint:#b8b6ad;
-          --hairline:#e9e8e3; --wash:#f7f7f5; --blue:#2a78d6; --good:#006300; --bad:#c23934; }
+          --hairline:#e9e8e3; --wash:#f7f7f5; --blue:#2a78d6; --good:#006300; --bad:#c23934;
+          --bg:#fff; --card:#fff; }
+  /* Dark theme for the page chrome. The map plate (.mapwrap) stays a fixed
+     light surface on purpose — the choropleth ramp is tuned for light, and a
+     dark plate would swallow pale-value districts. */
+  :root[data-theme="dark"] {
+    --ink:#e9e9ec; --ink-2:#b6b6be; --muted:#8c8c96; --faint:#5c5c66;
+    --hairline:#2c2e39; --wash:#1c1e26; --blue:#5a9be0; --good:#5bbd6b; --bad:#e0736c;
+    --bg:#14151a; --card:#1c1e26; }
   * { box-sizing:border-box; }
-  body { margin:0; background:#fff; color:var(--ink); line-height:1.5;
+  body { margin:0; background:var(--bg); color:var(--ink); line-height:1.5;
          font-family:system-ui,-apple-system,"Segoe UI",sans-serif; }
   /* The canvas cannot be tabbed into, so a keyboard user's route to the data
      is the table twin below it. This link is that route. Off-screen until
      focused; never display:none, which would drop it from the tab order. */
   .skiplink { position:absolute; left:-9999px; top:0; z-index:100;
-              background:#fff; color:var(--ink); padding:.6rem 1rem;
+              background:var(--card); color:var(--ink); padding:.6rem 1rem;
               border:1px solid var(--ink); border-radius:4px; font-size:.9rem; }
   .skiplink:focus { left:.5rem; top:.5rem; }
   @media (prefers-reduced-motion: reduce) {
@@ -36,6 +52,9 @@
   .brand { font-weight:700; }
   .brand a { color:var(--ink-2); font-weight:400; font-size:.85rem; margin-left:.6rem; text-decoration:none; }
   .brand a:hover { color:var(--blue); }
+  .btn-theme { background:none; border:1px solid var(--hairline); color:var(--ink-2); border-radius:6px;
+          font:inherit; font-size:.8rem; padding:.15rem .5rem; margin-left:.6rem; cursor:pointer; }
+  .btn-theme:hover { background:var(--wash); }
   .eyebrow { font-size:.72rem; letter-spacing:.14em; text-transform:uppercase;
              color:var(--muted); font-weight:600; margin:.8rem 0 .3rem; }
   h1 { font-family:ui-serif,Georgia,"Times New Roman",serif; font-weight:600;
@@ -43,18 +62,18 @@
   .support { color:var(--ink-2); font-size:.92rem; max-width:46rem; margin:0 0 1rem; }
   .toolbar { display:flex; gap:.5rem; flex-wrap:wrap; align-items:center; margin:.9rem 0 .6rem; }
   input[type=search] { padding:.45rem .7rem; font:inherit; border:1px solid var(--hairline);
-          border-radius:8px; min-width:210px; }
+          border-radius:8px; min-width:210px; background:var(--card); color:var(--ink); }
   .chip { font:inherit; font-size:.82rem; padding:.4rem .8rem; border-radius:99px; cursor:pointer;
-          border:1px solid var(--hairline); background:#fff; color:var(--ink-2); }
-  .chip[aria-pressed=true] { background:var(--ink); color:#fff; border-color:var(--ink); }
+          border:1px solid var(--hairline); background:var(--card); color:var(--ink-2); }
+  .chip[aria-pressed=true] { background:var(--ink); color:var(--card); border-color:var(--ink); }
   .chip.solid { background:var(--blue); color:#fff; border-color:var(--blue); font-weight:600; }
   .stage { display:grid; grid-template-columns:1fr 280px; gap:1rem; align-items:start; }
   @media (max-width:820px){ .stage { grid-template-columns:1fr; } }
   .mapwrap { position:relative; border:1px solid var(--hairline); border-radius:12px;
-             overflow:hidden; background:var(--wash); }
+             overflow:hidden; background:#f4f4f2; }
   canvas { display:block; width:100%; height:auto; cursor:grab; touch-action:none; }
   canvas.grabbing { cursor:grabbing; }
-  .tip { position:absolute; pointer-events:none; background:var(--ink); color:#fff; border-radius:6px;
+  .tip { position:absolute; pointer-events:none; background:var(--ink); color:var(--card); border-radius:6px;
          padding:.35rem .65rem; font-size:.8rem; display:none; white-space:nowrap; z-index:5; }
   .panel { border:1px solid var(--hairline); border-radius:12px; padding:1rem 1.1rem; font-size:.88rem; }
   .panel h3 { margin:0 0 .1rem; font-size:1rem; }
@@ -63,7 +82,7 @@
                border-bottom:1px solid var(--hairline); }
   .panel .kv b { font-variant-numeric:tabular-nums; }
   .panel .open { margin-top:.8rem; width:100%; padding:.5rem; border-radius:8px;
-                 border:1px solid var(--ink); background:var(--ink); color:#fff; font:inherit; cursor:pointer; }
+                 border:1px solid var(--ink); background:var(--ink); color:var(--card); font:inherit; cursor:pointer; }
   .panel .empty { color:var(--muted); }
   .nb { margin-top:.7rem; }
   .nb button { display:block; width:100%; text-align:left; background:none; border:0; font:inherit;
@@ -87,7 +106,7 @@
   .a11y th, .a11y td { text-align:right; padding:.3rem .6rem; border-bottom:1px solid var(--hairline);
                        font-variant-numeric:tabular-nums; white-space:nowrap; }
   .a11y th:first-child, .a11y td:first-child { text-align:left; }
-  .a11y thead th { position:sticky; top:0; background:#fff; border-bottom:1px solid var(--ink); }
+  .a11y thead th { position:sticky; top:0; background:var(--card); border-bottom:1px solid var(--ink); }
   .a11y td a { color:var(--blue); }
   .mobonly { display:none; }
   @media (max-width:760px){ .mobonly { display:inline; } }
@@ -97,7 +116,7 @@
 <a class="skiplink" href="#a11y-table">Skip to the district table</a>
 <div class="shell">
   <header>
-    <div class="brand">Texas ISD Financial Resource Guide<a href="/">← dashboard</a><a href="/map">seating chart</a></div>
+    <div class="brand">Texas ISD Financial Resource Guide<a href="/">← dashboard</a><a href="/map">seating chart</a><button class="btn-theme" id="btnTheme" type="button" aria-label="Toggle dark mode">◐ Theme</button></div>
   </header>
 
   <div class="eyebrow">The real map · fiscal <span id="yr">2024</span> · <span id="count">—</span> districts</div>
@@ -504,6 +523,18 @@ fetch('/district-geo').then(r => r.json()).then(d => {
   const ro = $('readout'); ro.style.display = 'block';
   ro.textContent = 'The map data could not be loaded right now. Please try again in a moment.';
 });
+
+/* Theme toggle — shares tisd_theme with the portal so the choice follows the reader. */
+(function () {
+  var b = document.getElementById('btnTheme');
+  if (!b) return;
+  b.addEventListener('click', function () {
+    var dark = document.documentElement.getAttribute('data-theme') === 'dark';
+    if (dark) document.documentElement.removeAttribute('data-theme');
+    else document.documentElement.setAttribute('data-theme', 'dark');
+    try { localStorage.setItem('tisd_theme', dark ? 'light' : 'dark'); } catch (e) {}
+  });
+})();
 </script>
 <!-- Vercel Web Analytics was referenced here but is not enabled on the
      project, so this 404'd on every page load. See the note in index.html
