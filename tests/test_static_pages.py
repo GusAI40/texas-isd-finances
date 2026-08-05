@@ -111,6 +111,29 @@ def test_index_has_flash_free_theme_toggle():
     assert "data-theme" in head, "theme is applied after <head>, which causes a flash"
 
 
+def test_chart_png_export_serializes_a_clone_and_reports_failure():
+    """"Chart as image" shipped broken and SILENT: the code string-prepended
+    xmlns/width onto '<svg', but XMLSerializer already emits xmlns and the
+    element already has width="100%" — so the payload had duplicate attributes,
+    was invalid XML, the Image fired onerror, and with no onerror handler the
+    button did nothing at all. Pin the three properties of the fix."""
+    html = (STATIC / "index.html").read_text(encoding="utf-8")
+    fn = html.split("function pngDownload(")[1].split("\n}")[0]
+    # 1. Serialize a clone with real attributes — never string-splice '<svg'.
+    assert "cloneNode(true)" in fn, "pngDownload must serialize a clone"
+    assert "setAttribute('xmlns'" in fn, "xmlns must be set, not prepended"
+    assert "replace('<svg'" not in fn, (
+        "string-prepending onto '<svg' duplicates attributes and breaks the export"
+    )
+    # 2. A rasterised SVG inherits nothing, so the var(--x) colours it draws
+    #    with must be re-declared on the exported root.
+    assert "PNG_VARS" in html and "getPropertyValue" in fn, (
+        "CSS variables must be inlined or the exported chart loses its colours"
+    )
+    # 3. Never fail silently again.
+    assert "img.onerror" in fn, "a failed export must tell the reader, not do nothing"
+
+
 def test_ask_footer_names_only_the_llm_actually_used():
     """The ask box must not claim a multi-LLM stack it does not have."""
     html = (STATIC / "index.html").read_text(encoding="utf-8")

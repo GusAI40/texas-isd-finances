@@ -3404,25 +3404,60 @@ function csvDownload(rows, name) {
   a.download = name;
   a.click();
 }
+/* Colours the charts draw with. A rasterised SVG has no document to inherit
+   from, so every var(--x) used inside must be re-declared on the exported
+   root or it resolves to nothing and the chart comes out blank/black. */
+const PNG_VARS = ['--ink', '--ink-2', '--muted', '--faint', '--hairline', '--wash',
+  '--blue', '--orange', '--good', '--bad', '--bg', '--card',
+  '--c-teach', '--c-debt', '--c-yes', '--c-focus'];
+
 function pngDownload(svgId) {
   const svg = $(svgId);
-  const vb = svg.viewBox.baseVal;
-  const xml = new XMLSerializer().serializeToString(svg);
+  if (!svg) return;
+  const vb = svg.viewBox && svg.viewBox.baseVal;
+  const w = Math.round((vb && vb.width) || svg.getBoundingClientRect().width || 892);
+  const h = Math.round((vb && vb.height) || svg.getBoundingClientRect().height || 300);
+
+  /* Serialize a CLONE and set attributes with setAttribute. The old code
+     string-prepended xmlns/width onto '<svg', but XMLSerializer already emits
+     xmlns and the element already carries width="100%" — so the result had
+     DUPLICATE attributes, was invalid XML, and the Image always fired onerror.
+     With no onerror handler the button did nothing at all, silently. */
+  const clone = svg.cloneNode(true);
+  clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+  clone.setAttribute('width', w);
+  clone.setAttribute('height', h);
+  const cs = getComputedStyle(document.documentElement);
+  clone.setAttribute('style', PNG_VARS
+    .map(v => `${v}:${cs.getPropertyValue(v).trim()}`).filter(d => !d.endsWith(':'))
+    .join(';'));
+
+  const xml = new XMLSerializer().serializeToString(clone);
+  const name = (state.district?.name || 'chart').replace(/\W+/g, '_') + '_' + svgId + '.png';
   const img = new Image();
   img.onload = () => {
     const scale = 2;
     const canvas = document.createElement('canvas');
-    canvas.width = vb.width * scale; canvas.height = vb.height * scale;
+    canvas.width = w * scale; canvas.height = h * scale;
     const ctx = canvas.getContext('2d');
-    ctx.fillStyle = '#ffffff';
+    // Match the page so dark-mode text stays legible in the exported image.
+    ctx.fillStyle = cs.getPropertyValue('--bg').trim() || '#ffffff';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
     const a = document.createElement('a');
     a.href = canvas.toDataURL('image/png');
-    a.download = (state.district?.name || 'chart').replace(/\W+/g, '_') + '_' + svgId + '.png';
+    a.download = name;
+    document.body.appendChild(a);   // Firefox ignores clicks on detached anchors
     a.click();
+    a.remove();
   };
-  img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(xml.replace('<svg', `<svg xmlns="http://www.w3.org/2000/svg" width="${vb.width}" height="${vb.height}"`));
+  // Never fail silently again — tell the reader, and leave a console trail.
+  img.onerror = () => {
+    console.error('chart image export failed for', svgId);
+    alert('Sorry — that chart could not be exported as an image. '
+          + 'The "Data as CSV" button next to it still works.');
+  };
+  img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(xml);
 }
 
 /* ---------- tutorial ---------- */
