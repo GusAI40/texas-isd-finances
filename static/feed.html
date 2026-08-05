@@ -37,7 +37,7 @@
               color:var(--ink); padding:.6rem 1rem; border:1px solid var(--ink); border-radius:4px; }
   .skiplink:focus { left:.5rem; top:.5rem; }
   @media (prefers-reduced-motion: reduce){ *{animation:none!important;transition:none!important} }
-  .shell { max-width:760px; margin:0 auto; padding:0 1.1rem 4rem; }
+  .shell { max-width:1120px; margin:0 auto; padding:0 1.1rem 4rem; }
   header { padding:1.4rem 0 .3rem; }
   .brand { font-weight:800; letter-spacing:-.02em; font-size:1.05rem; }
   .brand .hot { color:var(--hot); }
@@ -57,8 +57,13 @@
   .filters button { font:inherit; font-size:.78rem; padding:.28rem .6rem; border-radius:20px; cursor:pointer;
           border:1px solid var(--hair); background:var(--card); color:var(--ink-2); }
   .filters button[aria-pressed="true"] { background:var(--ink); color:var(--card); border-color:var(--ink); }
-  .card { border:1px solid var(--hair); border-radius:14px; padding:1.05rem 1.15rem; margin:0 0 1rem;
+  /* Layout: one lead story, then a scannable grid of compact cards, then a
+     Load-more so the page has a clear end instead of an endless scroll. */
+  .card { border:1px solid var(--hair); border-radius:14px; padding:1.05rem 1.15rem;
           background:var(--card); }
+  .lead { margin:0 0 1.2rem; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(300px, 1fr));
+          gap:1rem; align-items:start; }
   .meta { display:flex; align-items:center; gap:.5rem; flex-wrap:wrap; margin-bottom:.5rem; }
   .badge { font-size:.68rem; font-weight:700; letter-spacing:.04em; text-transform:uppercase;
            padding:.16rem .5rem; border-radius:5px; white-space:nowrap; }
@@ -67,24 +72,32 @@
   .badge.t2 { background:var(--newsbg); color:var(--blue); }
   .badge.t3 { background:var(--warnbg); color:var(--warn); }
   .when { font-size:.76rem; color:var(--muted); margin-left:auto; }
-  .hook { font-size:1.28rem; font-weight:700; letter-spacing:-.01em; line-height:1.28; margin:.1rem 0 .55rem;
+  .hook { font-weight:700; letter-spacing:-.01em; line-height:1.28;
           font-family:ui-serif,Georgia,"Times New Roman",serif; }
+  .lead .hook { font-size:1.6rem; margin:.1rem 0 .55rem; }
+  .mini .hook { font-size:1.05rem; margin:.1rem 0 .5rem; }
   .said { font-size:.9rem; color:var(--ink-2); margin:0 0 .55rem; }
   .said a { color:var(--ink-2); }
   .said .src { color:var(--muted); }
+  .mini .said { font-size:.82rem; margin:0 0 .45rem; }
   .receipt { background:var(--wash); border-left:3px solid var(--blue); border-radius:0 8px 8px 0;
              padding:.5rem .8rem; font-size:.88rem; margin:0 0 .6rem; }
   .receipt b { color:var(--ink); }
   .receipt.contradiction { border-left-color:var(--hot); }
-  .nums { display:flex; flex-wrap:wrap; gap:.3rem .5rem; margin:.35rem 0 0; }
-  .nums span { font-size:.74rem; background:var(--tint); color:var(--ink-2); padding:.12rem .45rem; border-radius:12px; }
+  .nums { display:flex; flex-wrap:wrap; gap:.3rem .4rem; margin:.35rem 0 .6rem; }
+  .nums span { font-size:.72rem; background:var(--tint); color:var(--ink-2); padding:.12rem .45rem; border-radius:12px; }
   .actions { display:flex; gap:.4rem; flex-wrap:wrap; align-items:center; }
-  .actions button, .actions a { font:inherit; font-size:.8rem; padding:.32rem .7rem; border-radius:8px;
+  .actions button, .actions a { font:inherit; font-size:.78rem; padding:.3rem .65rem; border-radius:8px;
           border:1px solid var(--hair); background:var(--card); color:var(--ink); cursor:pointer;
           text-decoration:none; }
   .actions .share { background:var(--blue); color:#fff; border-color:var(--blue); font-weight:600; }
   .actions a:hover, .actions button:hover { background:var(--wash); }
   .actions .share:hover { filter:brightness(1.05); background:var(--blue); }
+  .more { text-align:center; margin:1.6rem 0 .4rem; }
+  .more button { font:inherit; font-size:.9rem; font-weight:600; padding:.6rem 1.4rem; border-radius:10px;
+          border:1px solid var(--ink); background:var(--ink); color:var(--card); cursor:pointer; }
+  .more button:hover { filter:brightness(1.1); }
+  .more .count { display:block; font-size:.78rem; color:var(--muted); font-weight:400; margin-top:.5rem; }
   .empty { color:var(--muted); padding:2rem 0; text-align:center; }
   .warn { background:var(--warnbg); border:1px solid var(--hair); border-radius:8px; padding:.7rem .9rem;
           margin:.8rem 0; font-size:.88rem; display:none; }
@@ -111,7 +124,12 @@
   </header>
 
   <div class="warn" id="warn"></div>
-  <main id="stream"></main>
+  <main id="stream">
+    <article class="card lead" id="lead" hidden></article>
+    <div class="grid" id="grid"></div>
+    <div class="more" id="more" hidden></div>
+    <p class="empty" id="empty" hidden>Nothing in this beat yet.</p>
+  </main>
 
   <details class="a11y">
     <summary>Read the feed as a table (screen-reader friendly)</summary>
@@ -165,34 +183,82 @@ function numChips(r) {
 
 let ALL = [];
 let activeBeat = 'all';
+const PAGE = 8;          // grid cards revealed per "Load more"
+let shown = PAGE;        // how many grid cards are currently visible
+
+function metaRow(f) {
+  const beat = BEATS[f.beat] || BEATS.general;
+  const tier = TIER[f.source_tier] || TIER[3];
+  return `<div class="meta">
+      <span class="badge beat">${beat.emoji} ${esc(beat.label)}</span>
+      <span class="badge ${tier.c}">${esc(tier.t)}</span>
+      <span class="when">${whenText(f.published_at)}</span>
+    </div>`;
+}
+
+function actionRow(f, i) {
+  const dlink = f.district_number
+    ? `<a href="/?d=${esc(f.district_number)}">Full district</a>` : '';
+  return `<div class="actions">
+      <button class="share" type="button" data-share="${i}">Share</button>
+      ${dlink}
+      <a href="${esc(f.url)}" target="_blank" rel="noopener">Source</a>
+    </div>`;
+}
+
+function leadCard(f, i) {
+  const contradiction = f.comparison_status === 'contradiction';
+  return metaRow(f)
+    + `<p class="hook">${esc(f.hook || f.headline || '')}</p>`
+    + `<p class="said">What was reported: <a href="${esc(f.url)}" target="_blank" rel="noopener">${esc(f.headline)}</a> <span class="src">— ${esc(f.source_name)}</span></p>`
+    + `<div class="receipt${contradiction ? ' contradiction' : ''}"><b>The receipt:</b> ${esc(f.what_our_data_says)}${numChips(f.receipts)}</div>`
+    + actionRow(f, i);
+}
+
+function miniCard(f, i) {
+  // Compact: the hook, the numbers (the receipt as data), the source, actions.
+  return `<article class="card mini">
+      ${metaRow(f)}
+      <p class="hook">${esc(f.hook || f.headline || '')}</p>
+      ${numChips(f.receipts)}
+      <p class="said"><a href="${esc(f.url)}" target="_blank" rel="noopener">${esc(f.headline)}</a> <span class="src">— ${esc(f.source_name)}</span></p>
+      ${actionRow(f, i)}
+    </article>`;
+}
 
 function render() {
-  const stream = $('stream');
-  const items = activeBeat === 'all' ? ALL : ALL.filter(f => (f.beat || 'general') === activeBeat);
-  if (!items.length) { stream.innerHTML = '<p class="empty">Nothing in this beat yet.</p>'; return; }
-  stream.innerHTML = items.map((f, i) => {
-    const beat = BEATS[f.beat] || BEATS.general;
-    const tier = TIER[f.source_tier] || TIER[3];
-    const hook = f.hook || f.headline || '';
-    const contradiction = f.comparison_status === 'contradiction';
-    const dlink = f.district_number ? `<a href="/?d=${esc(f.district_number)}">See the full district →</a>` : '';
-    return `<article class="card" data-i="${i}">
-      <div class="meta">
-        <span class="badge beat">${beat.emoji} ${esc(beat.label)}</span>
-        <span class="badge ${tier.c}">${esc(tier.t)}</span>
-        <span class="when">${whenText(f.published_at)}</span>
-      </div>
-      <p class="hook">${esc(hook)}</p>
-      <p class="said">What was reported: <a href="${esc(f.url)}" target="_blank" rel="noopener">${esc(f.headline)}</a> <span class="src">— ${esc(f.source_name)}</span></p>
-      <div class="receipt${contradiction ? ' contradiction' : ''}"><b>The receipt:</b> ${esc(f.what_our_data_says)}${numChips(f.receipts)}</div>
-      <div class="actions">
-        <button class="share" type="button" data-share="${i}">Share</button>
-        ${dlink ? `<a href="/?d=${esc(f.district_number)}">Full district</a>` : ''}
-        <a href="${esc(f.url)}" target="_blank" rel="noopener">Source</a>
-      </div>
-    </article>`;
-  }).join('');
-  stream.querySelectorAll('[data-share]').forEach(b =>
+  const items = activeBeat === 'all'
+    ? ALL : ALL.filter(f => (f.beat || 'general') === activeBeat);
+  const lead = $('lead'), grid = $('grid'), more = $('more'), empty = $('empty');
+
+  if (!items.length) {
+    lead.hidden = true; grid.innerHTML = ''; more.hidden = true; empty.hidden = false;
+    return;
+  }
+  empty.hidden = true;
+
+  // Lead story: the single strongest item, full treatment.
+  lead.hidden = false;
+  lead.innerHTML = leadCard(items[0], 0);
+
+  // The rest: a scannable grid, revealed a page at a time.
+  const rest = items.slice(1);
+  const visible = rest.slice(0, shown);
+  grid.innerHTML = visible.map((f, k) => miniCard(f, k + 1)).join('');
+
+  if (rest.length > visible.length) {
+    const remaining = rest.length - visible.length;
+    more.hidden = false;
+    more.innerHTML = `<button type="button" id="loadmore">Load ${Math.min(PAGE, remaining)} more</button>`
+      + `<span class="count">Showing ${1 + visible.length} of ${items.length} stories</span>`;
+    $('loadmore').addEventListener('click', () => { shown += PAGE; render(); });
+  } else {
+    more.hidden = false;
+    more.innerHTML = `<span class="count">That's all ${items.length} stories for today.</span>`;
+  }
+
+  // Wire share buttons (indices map into the filtered `items`).
+  document.querySelectorAll('#stream [data-share]').forEach(b =>
     b.addEventListener('click', () => shareItem(items[+b.getAttribute('data-share')])));
 }
 
@@ -230,9 +296,11 @@ function buildFilters() {
   $('filters').querySelectorAll('[data-beat]').forEach(btn =>
     btn.addEventListener('click', () => {
       activeBeat = btn.getAttribute('data-beat');
+      shown = PAGE;                       // start each filter fresh, not deep in a list
       $('filters').querySelectorAll('[data-beat]').forEach(b =>
         b.setAttribute('aria-pressed', b === btn ? 'true' : 'false'));
       render();
+      $('stream').scrollIntoView({behavior: 'smooth', block: 'start'});
     }));
 }
 
