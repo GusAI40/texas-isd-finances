@@ -63,8 +63,12 @@ CATEGORY_RULES: dict[str, list[str]] = {
                    "attendance", "consolidat"],
     "facilities": ["new school", "new campus", "rezon", "attendance zone", "boundary",
                    "construction", "land purchase", "closure", "closing"],
-    "safety": ["cybersecurity", "data breach", "ransomware", "threat", "lockdown",
-               "security"],
+    # "security" and "threat" alone are too loose: they matched "First Security
+    # Bank hosts a Back-to-School Round-Up" and made a community event the
+    # feed's lead SAFETY story. Require the school-safety sense explicitly.
+    "safety": ["cybersecurity", "data breach", "ransomware", "lockdown",
+               "school security", "campus security", "security threat",
+               "bomb threat", "threat against", "active shooter", "safety plan"],
     "personnel": ["teacher shortage", "layoff", "hiring", "pay raise", "salary",
                   "labor dispute", "strike"],
     "legal": ["lawsuit", "investigation", "open records", "civil rights", "grievance",
@@ -326,7 +330,11 @@ _BEAT_KEYWORDS = [
     ("enrollment", ["enrollment", "enrolment", "student count", "consolidat"]),
     ("facilities", ["new school", "new campus", "rezon", "attendance zone",
                     "boundary", "construction", "closure", "closing"]),
-    ("safety",     ["cybersecurity", "data breach", "ransomware", "threat", "lockdown"]),
+    # Same tightening as CATEGORY_RULES: a bare "threat"/"security" mislabels
+    # ordinary school news as a safety incident.
+    ("safety",     ["cybersecurity", "data breach", "ransomware", "lockdown",
+                    "school security", "campus security", "security threat",
+                    "bomb threat", "threat against", "active shooter"]),
 ]
 
 _SUFFIX_KEEP = {"isd", "cisd", "msd"}   # keep these upper in a titled name

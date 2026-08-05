@@ -396,6 +396,24 @@ def test_findings_expose_receipts_for_the_feed():
     assert isinstance(f.receipts, dict)
 
 
+def test_bank_name_does_not_become_a_safety_story():
+    """"First Security Bank hosts a Back-to-School Round-Up" led the live feed
+    tagged SAFETY, because the bare keyword "security" matched inside the bank's
+    name. Ordinary school news must not be labelled a safety incident."""
+    text = ("First Security Bank hosts Rangers Back-to-School Round-Up for "
+            "Hardin-Jefferson ISD students")
+    assert "safety" not in categorize(text)
+    assert pick_beat(text, categorize(text)) != "safety"
+
+
+def test_real_safety_news_still_classifies():
+    for text in ("District cancels class after a bomb threat",
+                 "Campus security review follows the incident",
+                 "Ransomware attack hits the district's network",
+                 "Schools placed on lockdown this morning"):
+        assert "safety" in categorize(text), text
+
+
 def test_feed_is_newest_first():
     """A transparency feed leads with the latest, not the highest-impact — an
     older 2024 item must never sit above a 2026 one."""
