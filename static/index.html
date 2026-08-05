@@ -3617,6 +3617,16 @@ $('btn-tour').onclick = () => { tourBuild(); tourShow(0); };
 $('tour-next').onclick = () => tourShow(tourI + 1);
 $('tour-skip').onclick = tourEnd;
 $('overlay').onclick = closeSheets;
+/* Escape closes any open sheet — the standard dialog dismissal. Without it a
+   keyboard user could only close a modal by clicking the dim overlay, which is
+   not discoverable and not the expected behavior. Also clears the tour
+   highlight so nothing is left visually stuck. */
+addEventListener('keydown', ev => {
+  if (ev.key !== 'Escape') return;
+  if ($('overlay').style.display !== 'block') return;
+  closeSheets();
+  document.querySelectorAll('.tour-highlight').forEach(el => el.classList.remove('tour-highlight'));
+});
 $('btn-disclaimer').onclick = () => { $('overlay').style.display = 'block'; $('disc-modal').style.display = 'block'; };
 $('open-disc').onclick = e => { e.preventDefault(); $('overlay').style.display = 'block'; $('disc-modal').style.display = 'block'; };
 $('disc-close').onclick = closeSheets;
