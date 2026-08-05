@@ -403,8 +403,26 @@ def _usd_full(n) -> str:
     return f"${round(n):,}" if n is not None else ""
 
 
-def house_headline(district_name: Optional[str], beat: str, r: dict) -> str:
-    """A punchy hook grounded in a receipt. Institution-level, never personal."""
+# Only a tier-1 source with explicit appointment language lets a hook assert a
+# takeover as fact. Everything else is framed as a topic ("takeover pressure"),
+# never as a completed event — a rule-based keyword match cannot tell a real
+# board-of-managers appointment from an article about a takeover *threat*, and
+# asserting the wrong one is a false statement about a real institution.
+_TAKEOVER_CONFIRM = ("board of managers", "appoints a board", "appointed a board",
+                     "names a new superintendent", "board of managers and")
+
+
+def is_confirmed_takeover(text: str, source_tier: int) -> bool:
+    low = text.lower()
+    return source_tier == 1 and any(k in low for k in _TAKEOVER_CONFIRM)
+
+
+def house_headline(district_name: Optional[str], beat: str, r: dict,
+                   confirmed: bool = False) -> str:
+    """A punchy hook grounded in a receipt. Two rules keep it out of court:
+    it frames the beat as the story's TOPIC rather than asserting an event has
+    happened (a confirmed tier-1 takeover is the one exception), and it never
+    names or characterizes an individual. The receipts carry the specificity."""
     D = nice_name(district_name)
     students = f"{r['students']:,}" if r.get("students") else None
     spend = _usd_full(r.get("spend_per_student")) if r.get("spend_per_student") else None
@@ -421,43 +439,45 @@ def house_headline(district_name: Optional[str], beat: str, r: dict) -> str:
             bits.append(f"{econ} low-income")
         return " · ".join(bits)
 
+    def clause() -> str:
+        t = tag()
+        return f" {t}." if t else ""
+
     if beat == "takeover":
-        rc = tag() or "the elected board is out"
-        extra = f" Just {meets} were at grade level last STAAR." if meets else ""
-        return f"The state stepped into {D}. {rc}.{extra}"
+        meets_c = f" {meets} at grade level last STAAR." if meets else ""
+        if confirmed:
+            rc = tag() or "the elected board is out"
+            return f"The state moved in on {D}. {rc}.{meets_c}"
+        # Not confirmed: a takeover is in the story, not asserted as done.
+        return f"Takeover pressure on {D}.{clause()}{meets_c}"
     if beat == "super_exit":
-        rc = tag()
-        tail = f" Whoever takes it inherits {rc}." if rc else ""
-        return f"{D} needs a new superintendent.{tail}"
+        return f"Leadership shake-up in the headlines at {D}.{clause()}"
     if beat == "bond":
         if r.get("bond_count"):
             yr, amt = r.get("bond_last_year"), _usd(r.get("bond_last_amount"))
-            if r.get("bond_last_passed") is False:
-                return (f"{D} is back for another bond. Voters killed the last one — "
-                        f"{amt} in {yr}.")
-            return (f"{D} is asking taxpayers for a new bond. Its last one passed: "
-                    f"{amt} in {yr}.")
-        return f"{D}'s first bond on record is on the table. {tag()}."
+            outcome = "voters rejected" if r.get("bond_last_passed") is False else "voters passed"
+            return f"{D} and the bond question. Last time, {outcome} {amt} in {yr}."
+        return f"{D} and a possible first bond.{clause()}"
     if beat == "budget":
         if spend and r.get("spend_state_median"):
-            return (f"{D} says the money's short. It spends {spend}/student — the "
-                    f"state median is {_usd_full(r['spend_state_median'])}.")
-        return f"{D} is staring at a budget hole. {tag() or 'The numbers are in the story.'}"
+            return (f"Budget pressure at {D}. It spends {spend}/student — the state "
+                    f"median is {_usd_full(r['spend_state_median'])}.")
+        return f"Budget pressure at {D}.{clause()}"
     if beat == "rating":
         if meets:
             gap = r.get("beats_gap")
             g = (f", {abs(gap):.0f} points {'above' if gap >= 0 else 'below'} what its "
                  f"demographics predict") if gap is not None else ""
-            return f"{D}'s report card is back in the news — {meets} at grade level{g}."
-        return f"{D}'s accountability is in the story. {tag()}."
+            return f"{D}'s report card is in the news — {meets} at grade level{g}."
+        return f"{D}'s accountability is in the story.{clause()}"
     if beat == "legal":
-        return f"{D} is in a legal fight. {tag() or 'Public money, public record.'}"
+        return f"{D} is in the legal news.{clause() or ' Public money, public record.'}"
     if beat == "enrollment":
         return f"{D}'s enrollment is the story. Our TEA count: {students or 'on file'} students."
     if beat == "facilities":
-        return f"{D} is redrawing its footprint. {tag() or 'New buildings, same taxpayers.'}"
+        return f"{D} is reworking its footprint.{clause() or ' New buildings, same taxpayers.'}"
     if beat == "safety":
-        return f"A safety story at {D}. {tag()}."
+        return f"A safety story at {D}.{clause()}"
     rc = tag()
     return f"{D} is in the news. {rc}." if rc else f"{D} is in the news."
 
@@ -496,7 +516,8 @@ def analyze(items: list[NewsItem], districts: list[dict], ref: dict,
         # source didn't make, no named individual.
         the_beat = pick_beat(text, cats)
         rc = receipts(res.district_number, ref)
-        hook = house_headline(res.district_name, the_beat, rc)
+        confirmed = is_confirmed_takeover(text, it.source_tier)
+        hook = house_headline(res.district_name, the_beat, rc, confirmed=confirmed)
         findings.append(Finding(
             headline=it.title, summary=it.summary, url=it.url,
             source_name=it.source_name, source_tier=it.source_tier,
@@ -520,7 +541,28 @@ def analyze(items: list[NewsItem], districts: list[dict], ref: dict,
     return unique
 
 
+def _collapse_by_district_beat(findings: list[Finding]) -> list[Finding]:
+    """One card per (district, beat) per day — a running story, not the same
+    event three times from three outlets. Keep the strongest source (most
+    official tier, then highest impact). Unresolved items (no district) pass
+    through untouched; they are review-queue bound and must not collapse
+    together just because they share a beat."""
+    best: dict = {}
+    passthrough: list[Finding] = []
+    for f in findings:
+        if not f.district_number:
+            passthrough.append(f)
+            continue
+        key = (f.district_number, f.beat)
+        cur = best.get(key)
+        # lower source_tier is more official; then higher impact wins.
+        if cur is None or (f.source_tier, -f.impact_score) < (cur.source_tier, -cur.impact_score):
+            best[key] = f
+    return passthrough + list(best.values())
+
+
 def build_briefing(findings: list[Finding], run_date: str) -> dict:
+    findings = _collapse_by_district_beat(findings)
     ranked = sorted(findings, key=lambda f: (f.impact_score, f.urgency_score), reverse=True)
     return {
         "meta": {

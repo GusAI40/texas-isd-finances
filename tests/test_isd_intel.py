@@ -389,3 +389,46 @@ def test_findings_expose_receipts_for_the_feed():
     f = _find("Connally ISD board of managers appointed by TEA",
               "Connally Independent School District taken over.")
     assert isinstance(f.receipts, dict)
+
+
+def test_unconfirmed_takeover_never_asserts_the_event_as_fact():
+    """A tier-2/3 article about a takeover THREAT must not become a hook saying
+    the state 'stepped into' or 'moved in on' the district — that would be a
+    false statement. It frames the topic ('takeover pressure') instead."""
+    it = NewsItem("Austin ISD faces growing takeover threat, critics warn",
+                  "Austin Independent School District activists respond.",
+                  "https://ex.com/a", "Local Paper", "2026-01-10", 2)
+    f = analyze([it], DISTRICTS, REF)[0]
+    assert f.beat == "takeover"
+    assert "moved in" not in f.hook.lower()
+    assert "stepped into" not in f.hook.lower()
+    assert "pressure" in f.hook.lower()
+
+
+def test_confirmed_tier1_takeover_may_assert_it():
+    """The one exception: a tier-1 (tea.texas.gov) release that appoints a board
+    of managers IS the state moving in, and may say so."""
+    it = NewsItem("Texas Education Agency Appoints Board of Managers for Beaumont ISD",
+                  "", "https://tea.texas.gov/x", "Texas Education Agency", "2026-01-10", 1)
+    f = analyze([it], DISTRICTS, REF)[0]
+    assert f.beat == "takeover"
+    assert "moved in" in f.hook.lower()
+
+
+def test_feed_collapses_one_card_per_district_and_beat():
+    """Three outlets on the same takeover story must become one card, keeping
+    the most official source — a running story, not the same event three times."""
+    items = [
+        NewsItem("Austin ISD takeover threat grows", "Austin Independent School District.",
+                 "https://ex.com/1", "Blog", "2026-01-10", 3),
+        NewsItem("Austin ISD takeover looms as TEA weighs options",
+                 "Austin Independent School District.", "https://ex.com/2", "Statesman", "2026-01-10", 2),
+        NewsItem("Austin ISD and the takeover question", "Austin Independent School District.",
+                 "https://ex.com/3", "Wire", "2026-01-10", 3),
+    ]
+    briefing = build_briefing(analyze(items, DISTRICTS, REF), "2026-01-10")
+    austin = [f for f in briefing["top_findings"]
+              if f["district_name"] and "austin" in f["district_name"].lower()
+              and f["beat"] == "takeover"]
+    assert len(austin) == 1, "same district+beat should collapse to one card"
+    assert austin[0]["source_tier"] == 2, "should keep the most official source"

@@ -62,7 +62,7 @@
         "needs_verification": true
       },
       "beat": "bond",
-      "hook": "Fort Worth ISD is back for another bond. Voters killed the last one \u2014 $76M in 2021.",
+      "hook": "Fort Worth ISD and the bond question. Last time, voters rejected $76M in 2021.",
       "receipts": {
         "students": 70903,
         "spend_per_student": 14212,
@@ -117,7 +117,7 @@
       "content_hash": "b1a3f55c14f1fa0b",
       "enrichment": null,
       "beat": "takeover",
-      "hook": "The state stepped into Connally ISD. 2,288 students \u00b7 $15,627/student. Just 23% were at grade level last STAAR.",
+      "hook": "The state moved in on Connally ISD. 2,288 students \u00b7 $15,627/student. 23% at grade level last STAAR.",
       "receipts": {
         "students": 2288,
         "spend_per_student": 15627,
@@ -172,7 +172,7 @@
       "content_hash": "8fcdacf7dc0508c6",
       "enrichment": null,
       "beat": "takeover",
-      "hook": "The state stepped into Beaumont ISD. 16,775 students \u00b7 $13,428/student. Just 28% were at grade level last STAAR.",
+      "hook": "The state moved in on Beaumont ISD. 16,775 students \u00b7 $13,428/student. 28% at grade level last STAAR.",
       "receipts": {
         "students": 16775,
         "spend_per_student": 13428,
@@ -227,7 +227,7 @@
       "content_hash": "777188127299ed66",
       "enrichment": null,
       "beat": "takeover",
-      "hook": "The state stepped into Lake Worth ISD. 3,232 students \u00b7 $15,705/student. Just 22% were at grade level last STAAR.",
+      "hook": "The state moved in on Lake Worth ISD. 3,232 students \u00b7 $15,705/student. 22% at grade level last STAAR.",
       "receipts": {
         "students": 3232,
         "spend_per_student": 15705,
@@ -282,7 +282,7 @@
       "content_hash": "a0ed08fb1e9675ad",
       "enrichment": null,
       "beat": "takeover",
-      "hook": "The state stepped into Fort Worth ISD. 70,903 students \u00b7 $14,212/student. Just 30% were at grade level last STAAR.",
+      "hook": "The state moved in on Fort Worth ISD. 70,903 students \u00b7 $14,212/student. 30% at grade level last STAAR.",
       "receipts": {
         "students": 70903,
         "spend_per_student": 14212,
