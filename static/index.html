@@ -492,13 +492,33 @@
   /* ---- Hero ----
      Display face is a serif on purpose: this is a public record, and it should
      read like one rather than like every other dashboard. Body stays sans. */
-  h1.hero-h, h2.action, .bignum, .guide .gbig, .atom h3 {
+  .hero-h, h2.action, .bignum, .guide .gbig, .atom h3, .welcome-h {
     font-family: ui-serif, Georgia, "Iowan Old Style", "Times New Roman", serif;
   }
-  h1.hero-h {
+  .hero-h {
     font-size: clamp(1.9rem, 3.8vw, 2.9rem); line-height: 1.14; letter-spacing: -.02em;
     font-weight: 600; margin: .25rem 0 .9rem; max-width: 20em; text-wrap: balance;
   }
+  /* First-visit orientation: what this is, who it's for, what you can do —
+     answered before any data. Steps aside once a district is chosen so
+     returning readers land straight on their numbers. */
+  .welcome { margin: .4rem 0 1.6rem; }
+  html.has-district .welcome { display: none; }
+  .welcome-h { font-weight: 600; font-size: clamp(1.9rem, 4vw, 2.9rem); line-height: 1.12;
+    letter-spacing: -.02em; margin: .1rem 0 .7rem; max-width: 17em; text-wrap: balance; color: var(--ink); }
+  .welcome-sub { color: var(--ink-2); font-size: 1.05rem; line-height: 1.5; max-width: 40rem; margin: 0 0 .7rem; }
+  .welcome-who { color: var(--ink-2); font-size: .95rem; margin: 0 0 1.15rem; max-width: 40rem; }
+  .welcome-who b { color: var(--ink); }
+  .welcome-cta { display: flex; flex-wrap: wrap; gap: .6rem; }
+  .welcome-cta a { display: inline-flex; align-items: center; gap: .4rem; font: inherit; font-size: .95rem;
+    font-weight: 600; text-decoration: none; padding: .62rem 1.15rem; border-radius: 10px;
+    border: 1px solid var(--hairline); color: var(--ink); background: var(--card); cursor: pointer; }
+  .welcome-cta a:hover { background: var(--wash); }
+  .welcome-cta .cta-primary { background: var(--blue); color: #fff; border-color: var(--blue); }
+  .welcome-cta .cta-primary:hover { filter: brightness(1.06); }
+  .welcome-strip { display: flex; flex-wrap: wrap; gap: .25rem .7rem; margin: 1rem 0 0;
+    font-size: .8rem; color: var(--muted); }
+  .welcome-strip b { color: var(--ink-2); font-weight: 600; }
   .hero-num { color: var(--blue); white-space: nowrap; }
   .nowrap { white-space: nowrap; }
   .hero-row { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 2.8rem; align-items: start; }
@@ -649,10 +669,30 @@
   <div class="warnbar" id="dbwarn">The database is not reachable right now. If this persists,
     the project may be paused — an administrator can wake it in the Supabase dashboard.</div>
 
+  <section class="welcome" id="welcome" aria-labelledby="welcome-h">
+    <h1 class="welcome-h" id="welcome-h">Where your Texas school district's money comes from,
+      where it goes, and what it buys.</h1>
+    <p class="welcome-sub">A free, plain-English guide to all 1,310 Texas school districts — built
+      entirely from the state's own official records, with a source on every number. No login, no
+      spin, nothing to sell.</p>
+    <p class="welcome-who">Made for the people the money belongs to — <b>parents, taxpayers, teachers,
+      reporters, and school board members</b> — not the agencies that spend it.</p>
+    <div class="welcome-cta">
+      <a class="cta-primary" href="#search" id="wc-find">🔎 Find your district</a>
+      <a href="/feed">🔥 What's happening now</a>
+      <a href="/geomap">🗺️ Explore the map</a>
+      <a href="#" id="wc-tour">▶︎ 60-second tour</a>
+    </div>
+    <div class="welcome-strip">
+      <b>Official TEA &amp; Comptroller data</b><span>·</span><span>Independent — not a TEA product</span>
+      <span>·</span><span>17 years, fiscal 2009–2025</span><span>·</span><span>Open source</span>
+    </div>
+  </section>
+
   <section id="picker-section" class="hero" tabindex="-1">
     <div class="eyebrow">Storytelling with data · a story of Texas ISD</div>
-    <h1 class="hero-h" id="picker-title">Texas school districts spend
-      <span class="hero-num" id="hero-num" style="opacity:.25">$—</span> a year. Here is where every penny goes.</h1>
+    <h2 class="hero-h" id="picker-title">Texas school districts spend
+      <span class="hero-num" id="hero-num" style="opacity:.25">$—</span> a year. Here is where every penny goes.</h2>
     <p class="hero-sub" id="hero-sub"><b>What this is:</b> a public record of what every Texas school
       district collects, spends, borrows and achieves — in plain English, from official state figures,
       with a source on every number.</p>
@@ -3616,6 +3656,14 @@ $('lensbar').addEventListener('click', e => {
   renderExec();
 });
 $('btn-tour').onclick = () => { tourBuild(); tourShow(0); };
+/* Welcome-band actions: send a first-time visitor straight into the finder or
+   the tour. The other two CTAs are plain links (/feed, /geomap). */
+if ($('wc-find')) $('wc-find').onclick = (e) => {
+  e.preventDefault();
+  const s = $('search');
+  if (s) { s.scrollIntoView({ behavior: 'smooth', block: 'center' }); setTimeout(() => s.focus(), 350); }
+};
+if ($('wc-tour')) $('wc-tour').onclick = (e) => { e.preventDefault(); tourBuild(); tourShow(0); };
 $('tour-next').onclick = () => tourShow(tourI + 1);
 $('tour-skip').onclick = tourEnd;
 $('overlay').onclick = closeSheets;
