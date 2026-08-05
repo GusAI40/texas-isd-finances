@@ -769,6 +769,19 @@ def test_vercel_json_still_has_no_rewrites():
     assert cfg["crons"][0]["path"] == "/api/cron/isd-intelligence"
 
 
+def test_vercelignore_ships_the_runtime_script():
+    """The cron does `from scripts import isd_intel` at request time. If
+    .vercelignore excludes it, the daily run ImportErrors in production and the
+    feed can never refresh past its snapshot. Ship the package marker + module."""
+    from pathlib import Path
+    lines = (Path(__file__).resolve().parent.parent / ".vercelignore").read_text().splitlines()
+    assert "!scripts/isd_intel.py" in lines, "cron's module is not un-ignored for deploy"
+    assert "!scripts/__init__.py" in lines, "scripts package marker is not un-ignored"
+    # And a blanket `scripts/` (without the negations) must not slip back in —
+    # it would re-exclude the file the negations just rescued.
+    assert "scripts/" not in lines, "blanket scripts/ exclude would defeat the negation"
+
+
 # --- Mapbox heatmap: token from env, CSP scoped to one page ------------------
 
 def test_mapbox_token_served_from_env(client, monkeypatch):

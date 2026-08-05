@@ -1,0 +1,75 @@
+name: Deploy to Vercel (production)
+
+# Brings the site to life on every push to master — the same working-tree
+# deploy the runbook describes (`vercel deploy --prod`), run in CI instead of
+# on someone's laptop, so shipping no longer depends on a local Vercel login.
+#
+# INERT until configured. It does nothing until three repo secrets exist, so
+# merging this file changes nothing on its own:
+#   VERCEL_TOKEN       a Vercel access token owned by a TAG-ai team seat holder
+#   VERCEL_ORG_ID      the TAG-ai team id     (team_…)  — NOT GOAT-UIX
+#   VERCEL_PROJECT_ID  the texas-isd-finances project id (prj_…) that owns txisd.dev
+# Add them under Settings → Secrets and variables → Actions. The ORG/PROJECT
+# ids target the RIGHT project by id, so a same-named project on another team
+# can never be deployed by accident.
+#
+# It uploads the working tree (honoring .vercelignore) and builds on Vercel —
+# identical to the laptop flow — so vercel.json's framework preset and the
+# project's env vars (SUPABASE_DB_URL, OPENAI_API_KEY, NLP_DB_URL, CRON_SECRET,
+# MAPBOX_TOKEN) apply exactly as they do today.
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:   # a manual "Run workflow" button, for on-demand deploys
+
+concurrency:
+  group: vercel-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+    steps:
+      - name: Skip if the deploy secrets are not set
+        if: ${{ env.VERCEL_TOKEN == '' }}
+        run: |
+          echo "::notice::VERCEL_TOKEN is not set — skipping deploy."
+          echo "Add VERCEL_TOKEN, VERCEL_ORG_ID and VERCEL_PROJECT_ID as repo"
+          echo "secrets to enable production deploys on push to master."
+
+      - name: Checkout
+        if: ${{ env.VERCEL_TOKEN != '' }}
+        uses: actions/checkout@v4
+
+      - name: Set up Node (for the Vercel CLI)
+        if: ${{ env.VERCEL_TOKEN != '' }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Deploy to production
+        if: ${{ env.VERCEL_TOKEN != '' }}
+        run: |
+          npm i -g vercel@latest
+          # ORG/PROJECT ids in env pin the target project — no `vercel link`,
+          # no chance of hitting the wrong same-named project.
+          url=$(vercel deploy --prod --yes --token="$VERCEL_TOKEN")
+          echo "Deployed: $url"
+          echo "### Deployed to production :rocket:" >> "$GITHUB_STEP_SUMMARY"
+          echo "$url" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Verify the feed is live
+        if: ${{ env.VERCEL_TOKEN != '' }}
+        run: |
+          for path in /health /feed /briefing; do
+            code=$(curl -s -o /dev/null -w '%{http_code}' "https://txisd.dev$path")
+            echo "GET $path -> $code"
+            case "$path" in
+              /health|/feed) test "$code" = "200" || { echo "::error::$path returned $code"; exit 1; } ;;
+            esac
+          done
