@@ -332,14 +332,20 @@ _BEAT_KEYWORDS = [
 _SUFFIX_KEEP = {"isd", "cisd", "msd"}   # keep these upper in a titled name
 
 
+def _cap_word(w: str) -> str:
+    """Title-case a single token, respecting hyphens (Hardin-Jefferson,
+    Pharr-San Juan-Alamo) and keeping ISD/CISD upper."""
+    if w.lower() in _SUFFIX_KEEP:
+        return w.upper()
+    return "-".join(p.upper() if p.lower() in _SUFFIX_KEEP else p.capitalize()
+                    for p in w.split("-"))
+
+
 def nice_name(name: Optional[str]) -> str:
     """'FORT WORTH ISD' -> 'Fort Worth ISD'. District, not person — safe to style."""
     if not name:
         return "This district"
-    out = []
-    for w in name.split():
-        out.append(w.upper() if w.lower() in _SUFFIX_KEEP else w.capitalize())
-    return " ".join(out)
+    return " ".join(_cap_word(w) for w in name.split())
 
 
 def pick_beat(text: str, cats: list[str]) -> str:

@@ -327,6 +327,11 @@ def test_nice_name_titlecases_but_keeps_isd_upper():
     assert nice_name(None) == "This district"
 
 
+def test_nice_name_capitalizes_across_hyphens():
+    assert nice_name("HARDIN-JEFFERSON ISD") == "Hardin-Jefferson ISD"
+    assert nice_name("PHARR-SAN JUAN-ALAMO ISD") == "Pharr-San Juan-Alamo ISD"
+
+
 def test_pick_beat_prioritizes_takeover_over_generic_governance():
     assert pick_beat("TEA appoints board of managers for Beaumont ISD", ["governance"]) == "takeover"
 
