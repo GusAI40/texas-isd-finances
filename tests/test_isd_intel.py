@@ -391,6 +391,23 @@ def test_findings_expose_receipts_for_the_feed():
     assert isinstance(f.receipts, dict)
 
 
+def test_feed_shows_only_resolved_non_review_findings():
+    """An unresolved item ('This district …') must never become a public feed
+    card — it has no district and no receipts. It belongs in the review queue."""
+    items = [
+        NewsItem("AISD superintendent resigns", "No district context.",
+                 "https://ex.com/x", "Wire", "2026-01-10", 3),           # unresolved
+        NewsItem("Beaumont ISD board of managers appointed by TEA",
+                 "Beaumont Independent School District.", "https://tea.texas.gov/y",
+                 "Texas Education Agency", "2026-01-10", 1),               # resolved
+    ]
+    b = build_briefing(analyze(items, DISTRICTS, REF), "2026-01-10")
+    for f in b["top_findings"]:
+        assert f["district_number"], "an unresolved item leaked into the public feed"
+        assert f["district_name"] != "This district"
+        assert not f["review_required"]
+
+
 def test_unconfirmed_takeover_never_asserts_the_event_as_fact():
     """A tier-2/3 article about a takeover THREAT must not become a hook saying
     the state 'stepped into' or 'moved in on' the district — that would be a

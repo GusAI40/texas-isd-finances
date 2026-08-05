@@ -577,7 +577,12 @@ def build_briefing(findings: list[Finding], run_date: str) -> dict:
                     "structured facts, which come from an LLM reading only that "
                     "source snippet as untrusted data.",
         },
-        "top_findings": [asdict(f) for f in ranked[:25]],
+        # The public feed shows only confidently-resolved district news: a card
+        # needs a real district (so it has a name and receipts) and must not be
+        # flagged for review. Unresolved items ("This district …") and
+        # contradictions stay in the review queue, never on the public feed.
+        "top_findings": [asdict(f) for f in ranked
+                         if f.district_number and not f.review_required][:25],
         "review_queue": [asdict(f) for f in ranked if f.review_required],
     }
 
