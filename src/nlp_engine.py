@@ -6,6 +6,11 @@ toolkit. Note: `langchain-community` (home of SQLDatabase/SQLDatabaseToolkit)
 was sunset in June 2026; it still works but is no longer actively maintained.
 Track https://github.com/langchain-ai/langchain-community/issues/674 for the
 migration path to standalone integration packages.
+
+The model provider is resolved in src/llm_config.py. DeepSeek and OpenAI are
+both reachable through `ChatOpenAI` because DeepSeek implements the OpenAI
+request format, including the tool-calling protocol this agent depends on —
+only the base URL and model name change.
 """
 import os
 from typing import Any, Dict, Optional
@@ -16,6 +21,7 @@ from langchain_community.agent_toolkits import SQLDatabaseToolkit
 from langchain_community.utilities import SQLDatabase
 from langchain_openai import ChatOpenAI
 
+from .llm_config import resolve_llm_config
 from .sample_queries import SAMPLE_QUERIES
 
 load_dotenv()
@@ -96,16 +102,28 @@ class TexasFinanceNLPEngine:
                 include_tables=["v_finance_summary", "v_anomaly_flags"],
                 view_support=True,
             )
-        if llm is None and not os.getenv("OPENAI_API_KEY"):
-            raise ValueError("OPENAI_API_KEY not found in environment variables")
+        cfg = resolve_llm_config()
+        if llm is None and not cfg.configured:
+            raise ValueError(
+                f"{cfg.key_env_name} not found in environment variables "
+                f"(provider: {cfg.provider})"
+            )
 
         self.db = db
 
-        self.llm = llm or ChatOpenAI(
-            model=os.getenv("NLP_MODEL", "gpt-4o-mini"),
-            temperature=0,
-            api_key=os.getenv("OPENAI_API_KEY"),
-        )
+        # DeepSeek speaks the OpenAI protocol, so the same client class serves
+        # both providers — only base_url and the model name differ. See
+        # src/llm_config.py for how the provider is chosen.
+        if llm is None:
+            kwargs = {
+                "model": cfg.model,
+                "temperature": cfg.temperature,
+                "api_key": cfg.api_key,
+            }
+            if cfg.base_url:
+                kwargs["base_url"] = cfg.base_url
+            llm = ChatOpenAI(**kwargs)
+        self.llm = llm
 
         toolkit = SQLDatabaseToolkit(db=self.db, llm=self.llm)
         self.agent = create_agent(

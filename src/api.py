@@ -18,7 +18,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, PlainTextResponse, Response
 from pydantic import BaseModel, Field
 
-from . import analytics, site_gate
+from . import analytics, llm_config, site_gate
 from .sample_queries import SAMPLE_QUERIES
 
 load_dotenv()
@@ -424,9 +424,12 @@ async def nlp_query(request: NLPQueryRequest, http_request: Request):
     try:
         engine = get_nlp_engine()
     except Exception:
+        # Name the key the CONFIGURED provider actually needs — telling a
+        # DeepSeek deploy to set OPENAI_API_KEY sends the operator in circles.
         raise HTTPException(
             status_code=503,
-            detail="NLP engine not configured. Set OPENAI_API_KEY and NLP_DB_URL.",
+            detail=(f"NLP engine not configured. Set "
+                    f"{llm_config.resolve_llm_config().key_env_name} and NLP_DB_URL."),
         )
     # engine.query() is synchronous and can take ~10s. Awaiting it directly
     # blocked the event loop, so one slow question stalled every other request
@@ -1634,7 +1637,7 @@ async def cron_isd_intelligence(request: Request):
         # is set AND a key is present; capped at ISD_LLM_MAX_CALLS per run so it
         # cannot become a surprise bill — the same discipline as the /query cap.
         enrich = None
-        if os.getenv("ISD_LLM_EXTRACT") == "1" and os.getenv("OPENAI_API_KEY"):
+        if os.getenv("ISD_LLM_EXTRACT") == "1" and llm_config.resolve_llm_config().configured:
             budget = isd_intel.LlmBudget(int(os.getenv("ISD_LLM_MAX_CALLS", "25")))
             client = isd_intel.make_openai_client()
             enrich = lambda it: isd_intel.extract_with_llm(it, client, budget)  # noqa: E731
@@ -1689,14 +1692,20 @@ async def get_stats(request: Request):
 
 @app.get("/health", tags=["General"])
 async def health_check(request: Request):
-    """Health check endpoint"""
+    """Health check endpoint.
+
+    Reports which language-model provider is actually live, so a provider
+    switch can be confirmed from outside without reading env vars. `llm` is a
+    key-free description (provider:model via host) — never the API key itself.
+    """
+    llm = llm_config.describe()
     pool = request.app.state.db_pool
     if pool is None:
-        return {"status": "degraded", "database": "not configured"}
+        return {"status": "degraded", "database": "not configured", "llm": llm}
     try:
         async with pool.acquire() as conn:
             await conn.fetchval("SELECT 1")
-        return {"status": "healthy", "database": "connected"}
+        return {"status": "healthy", "database": "connected", "llm": llm}
     except Exception as e:
         raise HTTPException(status_code=503, detail=f"Database connection failed: {str(e)}")
 

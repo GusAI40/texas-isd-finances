@@ -891,16 +891,30 @@ def _valid_extraction(out) -> bool:
 
 def make_openai_client(model: Optional[str] = None):  # pragma: no cover - needs a key
     """Build the real client callable. Only called when enrichment is enabled
-    and OPENAI_API_KEY is set — never in tests."""
-    import os as _os
+    and a provider key is set — never in tests.
 
+    Uses the same provider the /query agent uses (src/llm_config.py), so the
+    site can never end up billing two different accounts. DeepSeek implements
+    the OpenAI request format, so one client class serves both — only base_url
+    and the model name change.
+    """
+    import sys as _sys
+    from pathlib import Path as _Path
+    _sys.path.insert(0, str(_Path(__file__).resolve().parent.parent))
     from openai import OpenAI
-    oa = OpenAI(api_key=_os.getenv("OPENAI_API_KEY"))
-    mdl = model or _os.getenv("NLP_MODEL", "gpt-4o-mini")
+
+    from src.llm_config import resolve_llm_config
+
+    cfg = resolve_llm_config()
+    kwargs = {"api_key": cfg.api_key}
+    if cfg.base_url:
+        kwargs["base_url"] = cfg.base_url
+    oa = OpenAI(**kwargs)
+    mdl = model or cfg.model
 
     def _call(messages: list, schema: dict) -> dict:
         resp = oa.chat.completions.create(
-            model=mdl, messages=messages, temperature=0,
+            model=mdl, messages=messages, temperature=cfg.temperature,
             response_format={"type": "json_object"})
         return json.loads(resp.choices[0].message.content)
 

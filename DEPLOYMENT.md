@@ -117,9 +117,13 @@ disables asyncpg's statement cache so it is pooler-compatible.
 |---|---|---|
 | `SUPABASE_DB_URL` | for data endpoints | Postgres connection string (owner) |
 | `NLP_DB_URL` | for `/query` | Least-privilege `nlp_reader` connection. Falls back to `SUPABASE_DB_URL` if unset — that works, but runs model-authored SQL as the owner. Set it. |
-| `OPENAI_API_KEY` | for `/query` | LLM for natural-language questions |
+| `DEEPSEEK_API_KEY` | for `/query` (DeepSeek) | **Setting this switches the site to DeepSeek.** See below. |
+| `OPENAI_API_KEY` | for `/query` (OpenAI) | Used when no DeepSeek key is present |
+| `NLP_PROVIDER` | no (auto) | Force `deepseek` or `openai` when both keys exist |
 | `CORS_ALLOW_ORIGINS` | no (default `*`) | Comma-separated allowed origins |
-| `NLP_MODEL` | no (default `gpt-4o-mini`) | OpenAI model for NLP queries |
+| `NLP_MODEL` | no (per provider) | Model id. Defaults: `deepseek-v4-flash` / `gpt-4o-mini` |
+| `NLP_BASE_URL` | no (per provider) | Override the API endpoint |
+| `NLP_TEMPERATURE` | no (default `0`) | Determinism for SQL generation |
 | `NLP_VERBOSE` | no (default `false`) | Log agent reasoning |
 | `DATA_MIN_YEAR` / `DATA_MAX_YEAR` | no (2009/2025) | Data coverage bounds |
 | `QUERY_RATE_LIMIT` | no (default 10) | `/query` per IP, per minute. Per-process; spoofable via `X-Forwarded-For`, so this only stops one honest user hogging the box. |
@@ -127,6 +131,36 @@ disables asyncpg's statement cache so it is pooler-compatible.
 | `QUERY_DAILY_LIMIT` | no (default 5000) | `/query` all callers, per day. **This is the one that bounds the bill** — a per-minute cap alone still permits 86,400 calls a day. |
 | `SITE_PASSWORD` | no (unset = public) | Locks the **whole site** behind a browser password prompt. See below. |
 | `SITE_USERNAME` | no (default `txisd`) | Username for that prompt; the password is what actually gates. |
+
+### Choosing the language model (DeepSeek or OpenAI)
+
+`/query` and the optional news enrichment both read one config
+(`src/llm_config.py`), so they can never split across two providers and bill
+two accounts.
+
+**To run on DeepSeek**, set one variable and redeploy:
+
+```bash
+vercel env add DEEPSEEK_API_KEY production --scope tag-ai-projects
+vercel deploy --prod --scope tag-ai-projects        # env is baked at deploy time
+curl -s https://txisd.dev/health                    # "llm":"deepseek:deepseek-v4-flash …"
+```
+
+**To go back to OpenAI**, remove `DEEPSEEK_API_KEY` (or set
+`NLP_PROVIDER=openai`) and redeploy.
+
+DeepSeek implements the OpenAI request format — including the tool-calling the
+SQL agent depends on — so only the base URL (`https://api.deepseek.com`) and
+the model name change. Nothing else in the pipeline is provider-specific.
+
+Cost, per DeepSeek's published pricing at time of writing: **$0.14 in / $0.28
+out per million tokens** (and $0.0028 per million on a cache hit), against
+gpt-4o-mini's $0.15 in / $0.60 out — roughly half the output cost, and far less
+on repeated prompts. `deepseek-v4-pro` is available for harder questions at
+$0.435 in / $0.87 out; set it with `NLP_MODEL`.
+
+`/health` reports the live provider and model, so a switch can be confirmed
+from outside without reading environment variables. It never echoes the key.
 
 ### Locking the site for a private preview
 

@@ -23,7 +23,9 @@ read-only Postgres views on Supabase. MIT-licensed, built for public use.
 | Health check | `GET /health` → expect `{"status":"healthy","database":"connected"}` |
 | Database | Supabase project `texas-isd-finances`, ref `zwhvabkvrexphlskubog`, us-east-1, org "GOAT-UIX" |
 | Data loaded | 20,587 rows · 1,310 districts · fiscal 2009–2025 (TEA "Summarized PEIMS Actual Financial Data") |
-| Secrets | ONLY in Vercel env vars (`SUPABASE_DB_URL`, `OPENAI_API_KEY`). Never in repo, never in this file, never in the log. |
+| Secrets | ONLY in Vercel env vars (`SUPABASE_DB_URL`, `DEEPSEEK_API_KEY`/`OPENAI_API_KEY`, `CRON_SECRET`, `SITE_PASSWORD`). Never in repo, never in this file, never in the log. |
+| LLM provider | One config: `src/llm_config.py`. `DEEPSEEK_API_KEY` present → DeepSeek (`deepseek-v4-flash` @ `https://api.deepseek.com`); else OpenAI. DeepSeek is OpenAI-protocol compatible (incl. tool calls), so `ChatOpenAI` serves both — only base URL + model change. `/health` reports the live provider. |
+| Site lock | `SITE_PASSWORD` set → whole site behind a browser password. `/health` and `/api/cron/*` stay open by design. Unset it to go public. |
 | GitHub | https://github.com/GusAI40/texas-isd-finances — default branch `master` (PR #1 merged 2026-07-23); work branch `claude/audit-public-launch-ocd7ra` restarts from master |
 
 ## Invariants (violate these and production breaks)

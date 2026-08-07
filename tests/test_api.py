@@ -37,7 +37,18 @@ def test_docs_available(client):
 def test_health_degraded_without_db(client):
     res = client.get("/health")
     assert res.status_code == 200
-    assert res.json() == {"status": "degraded", "database": "not configured"}
+    body = res.json()
+    assert body["status"] == "degraded"
+    assert body["database"] == "not configured"
+    # /health also names the live model provider, so a provider switch can be
+    # confirmed from outside. It must never carry the API key itself.
+    assert "llm" in body
+    for provider in ("deepseek", "openai"):
+        if provider in body["llm"]:
+            break
+    else:
+        raise AssertionError(f"/health does not name a provider: {body['llm']!r}")
+    assert "sk-" not in body["llm"]
 
 
 @pytest.mark.parametrize("path", [
