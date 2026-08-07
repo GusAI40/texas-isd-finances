@@ -18,6 +18,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, PlainTextResponse, Response
 from pydantic import BaseModel, Field
 
+from . import analytics
 from .sample_queries import SAMPLE_QUERIES
 
 load_dotenv()
@@ -132,6 +133,77 @@ async def security_headers(request: Request, call_next):
             "connect-src 'self'; frame-ancestors 'self'; base-uri 'self'; "
             "form-action 'self'",
         )
+    return resp
+
+
+# ---------------------------------------------------------------------------
+# First-party usage counting. See src/analytics.py for what is deliberately NOT
+# collected — in short, nothing that identifies a person.
+
+
+async def _record_visit(pool, path: str, device: str, ref_host: str) -> None:
+    """Bump today's counter for (path, device, referrer). Fails open: a metric
+    is never worth failing a page view over."""
+    if pool is None:
+        return
+    try:
+        async with pool.acquire() as conn:
+            await conn.execute(
+                "INSERT INTO public.site_visits (day, path, device, referrer_host, hits) "
+                "VALUES (current_date, $1, $2, $3, 1) "
+                "ON CONFLICT (day, path, device, referrer_host) "
+                "DO UPDATE SET hits = public.site_visits.hits + 1",
+                path, device, ref_host)
+    except Exception as exc:                       # table missing, DB asleep…
+        print(f"WARNING: visit not counted: {exc}")
+
+
+async def _log_question(pool, question: str, ok: bool, ms: int) -> None:
+    """Store WHAT was asked, never WHO asked it.
+
+    Knowing what Texans want to know about their schools is what should shape
+    this site, so the question text is kept. Nothing accompanies it — no IP, no
+    user-agent, no session or visitor id — so two questions can never be tied
+    to each other or to a person. The site's privacy note says exactly this;
+    keep them in step. Fails open: a log line is not worth losing an answer.
+    """
+    if pool is None:
+        return
+    text = analytics.clean_question(question)
+    if not text:
+        return
+    try:
+        async with pool.acquire() as conn:
+            await conn.execute(
+                "INSERT INTO public.nlp_questions (question, ok, ms) VALUES ($1, $2, $3)",
+                text, ok, ms)
+    except Exception as exc:
+        print(f"WARNING: question not logged: {exc}")
+
+
+@app.middleware("http")
+async def count_page_views(request: Request, call_next):
+    """Count page views server-side: no script, no cookie, no third party.
+
+    Only successful GETs of real page routes are counted, and only from
+    non-bot clients — half this site's raw traffic is an exploit scanner, and
+    counting it would make the numbers a lie. The write happens AFTER the
+    response is produced and is wrapped so it can never break a page.
+    """
+    resp = await call_next(request)
+    try:
+        if request.method == "GET" and resp.status_code == 200:
+            route = analytics.countable_path(request.url.path)
+            if route:
+                ua = request.headers.get("user-agent")
+                if not analytics.is_bot(ua):
+                    await _record_visit(
+                        request.app.state.db_pool, route,
+                        analytics.device_of(ua),
+                        analytics.referrer_host(request.headers.get("referer"),
+                                                request.headers.get("host")))
+    except Exception as exc:
+        print(f"WARNING: page-view counting failed: {exc}")
     return resp
 
 
@@ -332,16 +404,21 @@ async def nlp_query(request: NLPQueryRequest, http_request: Request):
     # blocked the event loop, so one slow question stalled every other request
     # on the instance. Off to a worker thread, with a hard ceiling so a hung
     # model call cannot pin a thread forever.
+    started = time.monotonic()
     try:
         result = await asyncio.wait_for(
             run_in_threadpool(engine.query, request.question),
             timeout=float(os.getenv("QUERY_TIMEOUT_SECONDS", "45")),
         )
     except asyncio.TimeoutError:
+        await _log_question(http_request.app.state.db_pool, request.question,
+                            ok=False, ms=int((time.monotonic() - started) * 1000))
         raise HTTPException(
             status_code=504,
             detail="That question took too long to answer. Try a narrower one.",
         )
+    await _log_question(http_request.app.state.db_pool, request.question,
+                        ok=True, ms=int((time.monotonic() - started) * 1000))
     return NLPQueryResponse(**result)
 
 

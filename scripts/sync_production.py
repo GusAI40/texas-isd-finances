@@ -42,6 +42,8 @@ MIGRATIONS = [
      "the /query spend ceiling (per-minute + per-day, shared across instances)"),
     ("create_isd_intel.sql", "public.isd_briefings",
      "the daily ISD-intelligence briefing + review-queue store"),
+    ("create_analytics.sql", "public.site_visits",
+     "first-party usage counting (daily page-view totals + asked questions)"),
 ]
 
 
