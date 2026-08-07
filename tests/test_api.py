@@ -836,6 +836,24 @@ def test_vercel_json_still_has_no_rewrites():
     assert cfg["crons"][0]["path"] == "/api/cron/isd-intelligence"
 
 
+def test_design_stylesheet_is_actually_served(client):
+    """Every page links /static/design.css. There is no StaticFiles mount, so
+    without an explicit route that link 404s and the entire site renders
+    unstyled — which is exactly what happened the first time."""
+    res = client.get("/static/design.css")
+    assert res.status_code == 200, "the design system 404s; every page would be unstyled"
+    assert "text/css" in res.headers.get("content-type", "")
+    assert "--accent" in res.text and ':root[data-theme="dark"]' in res.text
+
+
+def test_static_directory_is_not_blanket_mounted(client):
+    """The committed data artefacts live in static/ too. Serving one stylesheet
+    must not expose the rest at guessable URLs."""
+    for leaky in ("/static/outcomes_data.json", "/static/bond_data.json",
+                  "/static/index.html", "/static/isd_briefing.json"):
+        assert client.get(leaky).status_code == 404, f"{leaky} should not be served"
+
+
 def test_vercelignore_ships_the_runtime_script():
     """The cron does `from scripts import isd_intel` at request time. If
     .vercelignore excludes it, the daily run ImportErrors in production and the

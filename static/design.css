@@ -1,0 +1,464 @@
+/* ==========================================================================
+   Texas ISD Financial Resource Guide — design system
+   --------------------------------------------------------------------------
+   One source of truth for tokens, type, spacing and components.
+
+   Why this file exists
+   --------------------
+   Seven pages each carried their own copy of the tokens, and they drifted:
+   45 distinct font sizes (fifteen of them between .78 and .95rem), 84 hex
+   literals, 46 spacing values, 16 radii, and --good defined as three
+   different greens. Divergence was inevitable because there was no shared
+   definition to diverge from. There is now.
+
+   Rules
+   -----
+   - Every page links this file FIRST, then adds only page-specific layout.
+   - No page may redefine a token or invent a component variant.
+   - One accent (--accent) carries the data story. Grey carries all context.
+     Semantic colour appears only where a value is genuinely directional.
+   - Type: one scale, tabular figures on every number, three weights.
+   - Space: an 8px grid. Nothing between the steps.
+   - No gradients, no drop shadows on data, no decoration that is not
+     carrying information.
+
+   It is loaded with <link>, which is render-blocking, so tokens are in force
+   before first paint — no flash, and no need to duplicate them inline.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. TOKENS — light is the base; dark redefines only what must change.
+   -------------------------------------------------------------------------- */
+:root {
+  /* Surfaces */
+  --bg:        #ffffff;   /* page ground */
+  --surface:   #ffffff;   /* cards, sheets, popovers */
+  --surface-2: #f7f7f5;   /* recessed wells, table stripes */
+  --overlay:   rgba(20, 20, 20, 0.45);
+
+  /* Ink. Four steps is enough hierarchy; more invites inconsistency. */
+  --ink:       #17171a;   /* headlines, figures */
+  --ink-2:     #4b4a47;   /* body */
+  --ink-3:     #6f6d67;   /* secondary, captions */
+  --ink-4:     #96948d;   /* disabled, watermark */
+  --on-ink:    #ffffff;   /* text ON an --ink surface — never plain white */
+
+  /* Lines */
+  --rule:      #e6e5e0;   /* hairlines */
+  --rule-2:    #d2d0c9;   /* emphasised divider */
+
+  /* The one accent. Everything else is grey. */
+  --accent:      #1c5cab;
+  --accent-ink:  #ffffff; /* text on --accent */
+  --accent-soft: #eef3fa; /* tint for chips and wells */
+
+  /* Directional colour. Used only where a value has a direction. */
+  --pos:      #10633a;
+  --pos-soft: #e8f2ec;
+  --neg:      #a32a20;
+  --neg-soft: #fbecea;
+  --warn:     #8a6314;
+  --warn-soft:#fdf5e6;
+
+  /* Comparison series (the second district in compare mode). */
+  --compare:  #b4530f;
+
+  /* Type ------------------------------------------------------------------ */
+  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue",
+               Arial, sans-serif;
+  --font-serif: ui-serif, Georgia, "Iowan Old Style", "Times New Roman", serif;
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+               "Liberation Mono", monospace;
+
+  /* One scale. Nine steps, no values between them. */
+  --fs-micro:   0.75rem;    /* 12px — eyebrows, badges, table micro-labels */
+  --fs-xs:      0.8125rem;  /* 13px — dense UI, table cells */
+  --fs-sm:      0.875rem;   /* 14px — secondary text, captions */
+  --fs-base:    0.9375rem;  /* 15px — default body */
+  --fs-md:      1rem;       /* 16px — lead paragraphs */
+  --fs-lg:      1.25rem;    /* 20px — h3, card headlines */
+  --fs-xl:      1.5rem;     /* 24px — h2 */
+  --fs-2xl:     1.875rem;   /* 30px — h1 on interior pages */
+  --fs-display: clamp(2rem, 4vw, 2.75rem); /* hero only */
+
+  --lh-tight: 1.15;   /* headlines */
+  --lh-snug:  1.35;   /* subheads, card copy */
+  --lh-body:  1.6;    /* running prose */
+
+  --fw-regular: 400;
+  --fw-medium:  500;
+  --fw-bold:    700;
+
+  --tracking-eyebrow: 0.12em;
+  --tracking-tight:  -0.02em;
+
+  /* Space — 8px grid. */
+  --s-1: 0.25rem;  /*  4 */
+  --s-2: 0.5rem;   /*  8 */
+  --s-3: 0.75rem;  /* 12 */
+  --s-4: 1rem;     /* 16 */
+  --s-5: 1.5rem;   /* 24 */
+  --s-6: 2rem;     /* 32 */
+  --s-7: 3rem;     /* 48 */
+  --s-8: 4rem;     /* 64 */
+
+  /* Radius — four steps. */
+  --r-sm:   4px;
+  --r-md:   8px;
+  --r-lg:   12px;
+  --r-pill: 999px;
+
+  /* Elevation. Used sparingly and never on data. */
+  --shadow-1: 0 1px 2px rgba(20, 20, 20, 0.06);
+  --shadow-2: 0 8px 28px rgba(20, 20, 20, 0.14);
+
+  --measure: 38rem;      /* comfortable reading width */
+  --page-max: 1180px;
+
+  /* Motion */
+  --ease: cubic-bezier(0.2, 0, 0.2, 1);
+  --dur: 140ms;
+}
+
+/* Dark. Only what must change; the structure is identical, which is the point. */
+:root[data-theme="dark"] {
+  --bg:        #101216;
+  --surface:   #191c22;
+  --surface-2: #21242c;
+  --overlay:   rgba(0, 0, 0, 0.6);
+
+  --ink:       #edeef1;
+  --ink-2:     #c2c4cb;
+  --ink-3:     #9a9ca6;
+  --ink-4:     #6f7280;
+  --on-ink:    #101216;
+
+  --rule:      #2a2e37;
+  --rule-2:    #3a3f4a;
+
+  --accent:      #6aa5e8;
+  --accent-ink:  #0d1117;
+  --accent-soft: #17232f;
+
+  --pos:      #5cc48a;
+  --pos-soft: #14261d;
+  --neg:      #f0847a;
+  --neg-soft: #2b1a19;
+  --warn:     #e0b968;
+  --warn-soft:#2a2318;
+
+  --compare:  #e8955a;
+
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --shadow-2: 0 8px 28px rgba(0, 0, 0, 0.6);
+}
+
+/* --------------------------------------------------------------------------
+   1b. CATEGORICAL DATA PALETTE
+   For the penny-of-the-dollar breakdown and the bond charts. These encode
+   categories, so they are chosen for distinguishability (including for the
+   most common colour-vision deficiencies) rather than for brand. They are
+   tokens like everything else — never inline literals in a chart.
+   -------------------------------------------------------------------------- */
+:root {
+  --c-teach:  #1c5cab;   /* classroom teaching */
+  --c-debt:   #b4530f;   /* debt service */
+  --c-other:  #1f7a5c;   /* everything else */
+  --c-no:     #9a988f;   /* unfunded / defeated */
+  --c-yes:    #1c5cab;   /* passed */
+  --c-focus:  #b4530f;   /* the highlighted series */
+}
+:root[data-theme="dark"] {
+  --c-teach:  #6aa5e8;
+  --c-debt:   #e8955a;
+  --c-other:  #4fb894;
+  --c-no:     #74727c;
+  --c-yes:    #6aa5e8;
+  --c-focus:  #e8955a;
+}
+
+/* --------------------------------------------------------------------------
+   1c. LEGACY ALIASES
+   The seven pages grew 35 token names for roughly 14 ideas — --hair,
+   --hairline and --edge all meant "rule"; --muted, --faint and --ink-3 all
+   meant "quieter ink". Rather than rewrite every rule in every page (a large,
+   risky diff), each old name is defined ONCE here in terms of a system token.
+   The pages keep working, the values stop diverging, and new work should use
+   the system names directly. Nothing below introduces a new colour.
+   -------------------------------------------------------------------------- */
+:root, :root[data-theme="dark"] {
+  --card:        var(--surface);
+  --wash:        var(--surface-2);
+  --hair:        var(--rule);
+  --hairline:    var(--rule);
+  --edge:        var(--rule-2);
+  --muted:       var(--ink-3);
+  --faint:       var(--ink-4);
+  --ink-invert:  var(--on-ink);
+  --blue:        var(--accent);
+  --tint:        var(--accent-soft);
+  --newsbg:      var(--accent-soft);
+  --orange:      var(--compare);
+  --good:        var(--pos);
+  --goodbg:      var(--pos-soft);
+  --bad:         var(--neg);
+  --flag:        var(--neg);
+  --hot:         var(--neg);
+  --amber:       var(--warn);
+  --warnbg:      var(--warn-soft);
+  --revbg:       var(--warn-soft);
+  --revbd:       var(--rule-2);
+  --hi-blue:     var(--accent-soft);
+  --hi-warm:     var(--warn-soft);
+  --nav-bg:      var(--surface);
+  --shadow:      var(--shadow-1);
+}
+
+/* --------------------------------------------------------------------------
+   2. BASE
+   -------------------------------------------------------------------------- */
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink-2);
+  font-family: var(--font-sans);
+  font-size: var(--fs-base);
+  line-height: var(--lh-body);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Every figure is tabular. Numbers that do not align read as unreliable. */
+table, .num, .stat, .kpi, tbody td, .figure { font-variant-numeric: tabular-nums; }
+
+h1, h2, h3, h4 {
+  font-family: var(--font-serif);
+  font-weight: var(--fw-bold);
+  color: var(--ink);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--tracking-tight);
+  margin: 0 0 var(--s-3);
+  text-wrap: balance;
+}
+h1 { font-size: var(--fs-2xl); }
+h2 { font-size: var(--fs-xl); }
+h3 { font-size: var(--fs-lg); }
+h4 { font-size: var(--fs-md); font-family: var(--font-sans); font-weight: var(--fw-bold); }
+
+p { margin: 0 0 var(--s-3); max-width: var(--measure); }
+
+a { color: var(--accent); text-underline-offset: 0.15em; }
+a:hover { text-decoration-thickness: 2px; }
+
+strong, b { font-weight: var(--fw-bold); color: var(--ink); }
+
+hr, .rule {
+  border: 0;
+  border-top: 1px solid var(--rule);
+  margin: var(--s-6) 0;
+}
+
+/* Focus is a design element, not an afterthought. One treatment everywhere. */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: var(--r-sm);
+}
+
+::selection { background: var(--accent-soft); color: var(--ink); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   3. LAYOUT
+   -------------------------------------------------------------------------- */
+.shell { max-width: var(--page-max); margin: 0 auto; padding: 0 var(--s-5) var(--s-8); }
+.shell-narrow { max-width: 800px; }
+
+.eyebrow {
+  font-family: var(--font-sans);
+  font-size: var(--fs-micro);
+  font-weight: var(--fw-bold);
+  letter-spacing: var(--tracking-eyebrow);
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin: 0 0 var(--s-2);
+}
+
+.lede { font-size: var(--fs-md); color: var(--ink-2); line-height: var(--lh-snug); }
+.caption { font-size: var(--fs-sm); color: var(--ink-3); }
+.micro { font-size: var(--fs-micro); color: var(--ink-3); }
+
+/* Accessibility: the keyboard route into the page. Never display:none. */
+.skiplink {
+  position: absolute; left: -9999px; top: 0; z-index: 100;
+  background: var(--surface); color: var(--ink);
+  padding: var(--s-2) var(--s-4);
+  border: 1px solid var(--ink); border-radius: var(--r-sm);
+  font-size: var(--fs-sm);
+}
+.skiplink:focus { left: var(--s-2); top: var(--s-2); }
+
+/* --------------------------------------------------------------------------
+   4. COMPONENTS — identical construction on every page.
+   -------------------------------------------------------------------------- */
+
+/* Buttons. Three ranks: primary, default, quiet. No page-local variants. */
+.btn {
+  display: inline-flex; align-items: center; gap: var(--s-2);
+  font: inherit; font-size: var(--fs-sm); font-weight: var(--fw-medium);
+  line-height: 1;
+  padding: 0.55rem var(--s-4);
+  border: 1px solid var(--rule-2);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background var(--dur) var(--ease), border-color var(--dur) var(--ease);
+}
+.btn:hover { background: var(--surface-2); border-color: var(--ink-4); }
+.btn:disabled, .btn[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; }
+
+.btn-primary {
+  background: var(--accent); border-color: var(--accent); color: var(--accent-ink);
+  font-weight: var(--fw-bold);
+}
+.btn-primary:hover { background: var(--accent); border-color: var(--accent); filter: brightness(1.08); }
+
+.btn-quiet { background: none; border-color: transparent; color: var(--ink-3); }
+.btn-quiet:hover { background: var(--surface-2); color: var(--ink); }
+
+.btn-sm { font-size: var(--fs-xs); padding: 0.35rem var(--s-3); }
+
+/* Chips — a toggle set. aria-pressed carries the state, not a colour class. */
+.chip {
+  display: inline-flex; align-items: center; gap: var(--s-2);
+  font: inherit; font-size: var(--fs-xs); line-height: 1;
+  padding: 0.4rem var(--s-3);
+  border: 1px solid var(--rule-2); border-radius: var(--r-pill);
+  background: var(--surface); color: var(--ink-2);
+  cursor: pointer; white-space: nowrap;
+  transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
+}
+.chip:hover { background: var(--surface-2); color: var(--ink); }
+.chip[aria-pressed="true"] {
+  background: var(--ink); border-color: var(--ink); color: var(--on-ink);
+  font-weight: var(--fw-medium);
+}
+
+/* Cards */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-lg);
+  padding: var(--s-5);
+}
+.card-tight { padding: var(--s-4); }
+
+/* Badges — categorical labels. Typographic, never coloured for decoration. */
+.badge {
+  display: inline-flex; align-items: center; gap: 0.35rem;
+  font-size: var(--fs-micro); font-weight: var(--fw-bold);
+  letter-spacing: 0.06em; text-transform: uppercase;
+  padding: 0.2rem 0.5rem; border-radius: var(--r-sm);
+  background: var(--surface-2); color: var(--ink-2);
+  white-space: nowrap;
+}
+.badge-solid { background: var(--ink); color: var(--on-ink); }
+.badge-accent { background: var(--accent-soft); color: var(--accent); }
+.badge-pos { background: var(--pos-soft); color: var(--pos); }
+.badge-neg { background: var(--neg-soft); color: var(--neg); }
+.badge-warn { background: var(--warn-soft); color: var(--warn); }
+
+/* Statistics — the primary way this site states a finding. */
+.stat { display: inline-flex; flex-direction: column; gap: 0.1rem; }
+.stat-value {
+  font-family: var(--font-serif); font-size: var(--fs-xl);
+  font-weight: var(--fw-bold); color: var(--ink);
+  letter-spacing: var(--tracking-tight); line-height: 1.05;
+}
+.stat-label {
+  font-size: var(--fs-micro); color: var(--ink-3);
+  text-transform: uppercase; letter-spacing: var(--tracking-eyebrow);
+  font-weight: var(--fw-medium);
+}
+
+/* Tables — the workhorse. Hairlines, no zebra, numbers right-aligned. */
+.table { width: 100%; border-collapse: collapse; font-size: var(--fs-xs); }
+.table caption { text-align: left; padding: var(--s-2) 0; color: var(--ink-3); font-size: var(--fs-micro); }
+.table th, .table td {
+  text-align: right; padding: var(--s-2) var(--s-3);
+  border-bottom: 1px solid var(--rule); white-space: nowrap;
+}
+.table th:first-child, .table td:first-child { text-align: left; }
+.table thead th {
+  font-size: var(--fs-micro); text-transform: uppercase;
+  letter-spacing: 0.06em; color: var(--ink-3); font-weight: var(--fw-bold);
+  border-bottom: 1px solid var(--ink-4);
+}
+.table tbody tr:hover { background: var(--surface-2); }
+
+/* Inputs */
+.input {
+  font: inherit; font-size: var(--fs-sm);
+  padding: 0.5rem var(--s-3);
+  border: 1px solid var(--rule-2); border-radius: var(--r-md);
+  background: var(--surface); color: var(--ink);
+  min-width: 14rem;
+}
+.input::placeholder { color: var(--ink-4); }
+
+/* Notes and callouts — a rule, not a box. */
+.note {
+  border-left: 2px solid var(--accent);
+  background: var(--surface-2);
+  padding: var(--s-3) var(--s-4);
+  border-radius: 0 var(--r-md) var(--r-md) 0;
+  font-size: var(--fs-sm);
+  margin: var(--s-4) 0;
+}
+.note-warn { border-left-color: var(--warn); background: var(--warn-soft); }
+.note-neg  { border-left-color: var(--neg);  background: var(--neg-soft); }
+
+/* --------------------------------------------------------------------------
+   5. ICONS — the emoji replacement.
+   Monochrome, one stroke weight, drawn on a 16-unit grid, inheriting
+   currentColor so they work in both themes and inside any component.
+   Usage: <svg class="ico" aria-hidden="true"><use href="#i-map"/></svg>
+   -------------------------------------------------------------------------- */
+.ico {
+  width: 1em; height: 1em;
+  flex: 0 0 auto;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vertical-align: -0.125em;
+}
+.ico-lg { width: 1.25em; height: 1.25em; }
+.icon-sprite { position: absolute; width: 0; height: 0; overflow: hidden; }
+
+/* --------------------------------------------------------------------------
+   6. PRINT — this guide is meant to be quoted in board meetings.
+   -------------------------------------------------------------------------- */
+@media print {
+  :root { --bg: #fff; --surface: #fff; --ink: #000; --ink-2: #222; }
+  body { font-size: 11pt; }
+  .no-print, nav, .btn, .chip { display: none !important; }
+  .card { border: 1px solid #ccc; break-inside: avoid; }
+  a[href^="http"]::after { content: " (" attr(href) ")"; font-size: 9pt; color: #555; }
+}

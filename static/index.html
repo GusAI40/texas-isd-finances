@@ -32,6 +32,9 @@
 <meta name="twitter:title" content="Texas ISD Financial Resource Guide">
 <meta name="twitter:description" content="$109 billion a year across 1,310 districts. Where every penny goes, and what it actually buys.">
 <title>Texas ISD Finances — District Dashboard</title>
+<!-- design-system:start -->
+<link rel="stylesheet" href="/static/design.css">
+<!-- design-system:end -->
 <style>
   /* Keyboard users reach the content without tabbing the whole header. The
      link is off-screen until focused, so it costs the visual design nothing.
@@ -39,62 +42,24 @@
      order, which is the one thing it exists to be in. */
   .skiplink { position:absolute; left:-9999px; top:0; z-index:100;
               background: var(--bg); color:var(--ink); padding:.6rem 1rem;
-              border:1px solid var(--ink); border-radius:4px; font-size:.9rem; }
+              border:1px solid var(--ink); border-radius:var(--r-sm); font-size:var(--fs-base); }
   .skiplink:focus { left:.5rem; top:.5rem; }
   /* White-minimalist system: whitespace over boxes, hairlines over borders,
      gray carries context, ONE blue carries the data story. */
-  :root {
-    --bg: #ffffff;        /* page background — flips in dark mode */
-    --ink-invert: #ffffff; /* text that sits ON --ink surfaces */
-    --card: #ffffff;      /* raised surfaces: sheets, popovers */
-    --ink: #1a1a1a;
-    --ink-2: #55534e;
-    --muted: #8b897f;
-    --faint: #b8b6ad;
-    --hairline: #e9e8e3;
-    --wash: #f7f7f5;
-    --blue: #2a78d6;      /* the story color: always "your district" */
-    --orange: #eb6834;    /* only in compare mode: the other district */
-    --good: #006300;
-    --bad: #c23934;
-    --shadow: rgba(20,20,20,.12);
-    --nav-bg: rgba(255,255,255,.94);
-    --hi-warm: #fdf5f1;   /* bundled-bond highlight */
-    --hi-blue: #f4f8fd;   /* "your district" table row */
-  }
-  /* Dark theme: the same ink-on-paper hierarchy, inverted. The blue lifts a
+/* Dark theme: the same ink-on-paper hierarchy, inverted. The blue lifts a
      little so it still reads as the story color on a dark ground; greens/reds
      lift for contrast. Applied via data-theme on <html>, set before first
      paint (see the head script) so there is never a flash of light. */
-  :root[data-theme="dark"] {
-    --bg: #14151a;
-    --ink-invert: #14151a;
-    --card: #1c1e26;
-    --ink: #e9e9ec;
-    --ink-2: #b6b6be;
-    --muted: #8c8c96;
-    --faint: #5c5c66;
-    --hairline: #2c2e39;
-    --wash: #1c1e26;
-    --blue: #5a9be0;
-    --orange: #f08a5c;
-    --good: #5bbd6b;
-    --bad: #e0736c;
-    --shadow: rgba(0,0,0,.5);
-    --nav-bg: rgba(20,21,26,.94);
-    --hi-warm: #2b231f;
-    --hi-blue: #182430;
-  }
-  /* The proof row: what am I looking at, answered before any scrolling. Four
+/* The proof row: what am I looking at, answered before any scrolling. Four
      counted facts, not adjectives. */
   .proof { display: flex; flex-wrap: wrap; gap: .2rem 2.2rem; margin: 1rem 0 .9rem;
     padding: .8rem 0; border-top: 1px solid var(--hairline); border-bottom: 1px solid var(--hairline); }
   .proof span { display: inline-flex; flex-direction: column; }
-  .proof b { font-size: 1.5rem; font-weight: 700; letter-spacing: -.02em; line-height: 1.1; color: var(--ink); }
-  .proof i { font-style: normal; font-size: .78rem; color: var(--muted); text-transform: uppercase;
+  .proof b { font-size: var(--fs-xl); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; color: var(--ink); }
+  .proof i { font-style: normal; font-size: var(--fs-xs); color: var(--muted); text-transform: uppercase;
     letter-spacing: .05em; margin-top: .15rem; }
-  .hero-why { color: var(--ink-2); font-size: .95rem; max-width: 46rem; margin: 0 0 .4rem; }
-  @media (max-width: 600px) { .proof { gap: .6rem 1.6rem; } .proof b { font-size: 1.25rem; } }
+  .hero-why { color: var(--ink-2); font-size: var(--fs-base); max-width: 46rem; margin: 0 0 .4rem; }
+  @media (max-width: 600px) { .proof { gap: .6rem 1.6rem; } .proof b { font-size: var(--fs-lg); } }
   /* Progress rail + section nav. Both are navigation chrome, so they stay
      visually quiet — a 3px hairline and small grey chips — and never compete
      with the figures they sit above. */
@@ -109,7 +74,7 @@
     max-width: 940px; margin: 0 auto; padding: .45rem 1.5rem; }
   .navchips::-webkit-scrollbar { display: none; }
   .navchips button { flex: 0 0 auto; background: none; border: none; font: inherit;
-    font-size: .82rem; color: var(--muted); padding: .3rem .6rem; border-radius: 6px;
+    font-size: var(--fs-xs); color: var(--muted); padding: .3rem .6rem; border-radius: var(--r-md);
     cursor: pointer; white-space: nowrap; border-bottom: 2px solid transparent; }
   .navchips button:hover { color: var(--ink); background: var(--wash); }
   .navchips button.on { color: var(--ink); font-weight: 600; border-bottom-color: var(--blue); }
@@ -118,11 +83,11 @@
   /* Numbers shown AS numbers. Each of these replaced a paragraph — a reader
      scanning the page should get the finding without reading a sentence. */
   .stat { display: inline-flex; flex-direction: column; margin: .1rem 1.6rem .4rem 0; vertical-align: top; }
-  .stat b { font-size: 1.75rem; font-weight: 700; letter-spacing: -.02em; line-height: 1.05; color: var(--ink); }
-  .stat i { font-style: normal; font-size: .8rem; color: var(--muted); margin-top: .1rem; }
+  .stat b { font-size: var(--fs-2xl); font-weight: 700; letter-spacing: -.02em; line-height: 1.05; color: var(--ink); }
+  .stat i { font-style: normal; font-size: var(--fs-xs); color: var(--muted); margin-top: .1rem; }
   .stat.up b { color: var(--c-debt); }
   .stat.down b { color: var(--c-teach); }
-  .stat-note { display: inline-block; font-size: .8rem; color: var(--muted); vertical-align: bottom;
+  .stat-note { display: inline-block; font-size: var(--fs-xs); color: var(--muted); vertical-align: bottom;
     padding-bottom: .5rem; }
   .bond-key i.k-yes { width: 11px; height: 11px; border-radius: 50%; background: var(--c-yes); display: inline-block; }
   .bond-key i.k-no { width: 11px; height: 11px; border-radius: 50%; background: var(--bg);
@@ -130,69 +95,63 @@
   /* the debt share compared with the state, so "is that a lot?" is answered visually */
   .vsbar { margin: .6rem 0 0; }
   .vsbar .row { display: grid; grid-template-columns: 7.5rem 1fr auto; gap: .6rem;
-    align-items: center; margin-bottom: .3rem; font-size: .85rem; }
-  .vsbar .track { background: var(--wash); border-radius: 4px; height: 14px; overflow: hidden; }
-  .vsbar .fill { height: 100%; border-radius: 4px; }
+    align-items: center; margin-bottom: .3rem; font-size: var(--fs-sm); }
+  .vsbar .track { background: var(--wash); border-radius: var(--r-sm); height: 14px; overflow: hidden; }
+  .vsbar .fill { height: 100%; border-radius: var(--r-sm); }
   .vsbar .lab { color: var(--ink-2); }
   .vsbar b { font-variant-numeric: tabular-nums; }
   .tk-checks { display: grid; grid-template-columns: repeat(3, 1fr); gap: .8rem; margin: 1.2rem 0 .4rem; }
   @media (max-width: 700px) { .tk-checks { grid-template-columns: 1fr; } }
   .tk-checks .chk { border: 1px solid var(--hairline); border-left: 3px solid var(--good);
-    border-radius: 0 10px 10px 0; padding: .75rem .9rem; font-size: .87rem; }
+    border-radius: 0 10px 10px 0; padding: .75rem .9rem; font-size: var(--fs-sm); }
   .tk-checks .chk.warn { border-left-color: var(--c-focus); }
   /* Only the leading label is a block heading — styling every <b> turned each
      emphasised figure inside the body into its own uppercase line. */
-  .tk-checks .chk > b:first-child { display: block; font-size: .78rem; text-transform: uppercase;
+  .tk-checks .chk > b:first-child { display: block; font-size: var(--fs-xs); text-transform: uppercase;
     letter-spacing: .05em; color: var(--muted); margin-bottom: .2rem; }
   /* Bond story. Storytelling-with-data discipline: grey is the default and
      carries context, one accent carries the point being made, and every chart
      title states the finding rather than naming the topic. */
-  :root { --c-yes: #2a78d6; --c-no: #b8b6ad; --c-focus: #eb6834; }
-  .bond-detail { border: 1px solid var(--hairline); border-left: 3px solid var(--c-yes);
+.bond-detail { border: 1px solid var(--hairline); border-left: 3px solid var(--c-yes);
     border-radius: 0 10px 10px 0; padding: .8rem 1rem; margin: .4rem 0 0; min-height: 3.4rem;
-    background: var(--wash); font-size: .9rem; }
+    background: var(--wash); font-size: var(--fs-base); }
   .bond-detail .bd-h { font-weight: 700; }
   .bond-detail .bd-m { color: var(--ink-2); }
   .bond-detail.none { border-left-color: var(--faint); color: var(--muted); }
   .bond-detail.lost { border-left-color: var(--c-focus); }
-  .bond-key { display: flex; flex-wrap: wrap; gap: .3rem 1.2rem; font-size: .82rem;
+  .bond-key { display: flex; flex-wrap: wrap; gap: .3rem 1.2rem; font-size: var(--fs-xs);
     color: var(--ink-2); margin: .1rem 0 .4rem; }
   .bond-key span { display: inline-flex; align-items: center; gap: .35rem; }
   .bond-bundle { display: grid; grid-template-columns: repeat(3, 1fr); gap: .8rem; margin-top: .6rem; }
   @media (max-width: 700px) { .bond-bundle { grid-template-columns: 1fr; } }
-  .bond-bundle .bb { border: 1px solid var(--hairline); border-radius: 12px; padding: .9rem 1rem; }
+  .bond-bundle .bb { border: 1px solid var(--hairline); border-radius: var(--r-lg); padding: .9rem 1rem; }
   .bond-bundle .bb.hi { border-color: var(--c-focus); background: var(--hi-warm); }
-  .bond-bundle .bb h5 { margin: 0 0 .3rem; font-size: .82rem; text-transform: uppercase;
+  .bond-bundle .bb h5 { margin: 0 0 .3rem; font-size: var(--fs-xs); text-transform: uppercase;
     letter-spacing: .05em; color: var(--muted); font-weight: 600; }
-  .bond-bundle .bb .pct { font-size: 1.9rem; font-weight: 700; letter-spacing: -.02em; line-height: 1.05; }
-  .bond-bundle .bb .cap { color: var(--ink-2); font-size: .85rem; margin-top: .25rem; }
+  .bond-bundle .bb .pct { font-size: var(--fs-2xl); font-weight: 700; letter-spacing: -.02em; line-height: 1.05; }
+  .bond-bundle .bb .cap { color: var(--ink-2); font-size: var(--fs-sm); margin-top: .25rem; }
   .bond-close { border-top: 1px solid var(--hairline); margin-top: 1.6rem; padding-top: 1rem;
-    font-size: 1.02rem; }
+    font-size: var(--fs-md); }
   /* Economics section. Categorical hues are fixed by role and never cycled:
      blue = teaching, orange = buildings and debt, green = everything else.
      The set passes the colour-vision separation checks against a white
      surface, and every series is also directly labelled, so nothing on this
      page is identified by colour alone. */
-  :root {
-    --c-teach: #2a78d6;
-    --c-debt:  #eb6834;
-    --c-other: #2f8f6f;
-  }
-  .econ-h { font-size: 1.05rem; margin: 2.2rem 0 .3rem; letter-spacing: -.01em; }
+.econ-h { font-size: var(--fs-md); margin: 2.2rem 0 .3rem; letter-spacing: -.01em; }
   .econ-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1.2rem 0 0; }
   @media (max-width: 700px) { .econ-grid { grid-template-columns: 1fr; } }
-  .econ-card { border: 1px solid var(--hairline); border-radius: 12px; padding: 1rem 1.1rem; }
-  .econ-card h4 { margin: 0 0 .15rem; font-size: .8rem; text-transform: uppercase;
+  .econ-card { border: 1px solid var(--hairline); border-radius: var(--r-lg); padding: 1rem 1.1rem; }
+  .econ-card h4 { margin: 0 0 .15rem; font-size: var(--fs-xs); text-transform: uppercase;
     letter-spacing: .06em; color: var(--muted); font-weight: 600; }
-  .econ-big { font-size: 2.1rem; font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
-  .econ-sub { color: var(--ink-2); font-size: .9rem; margin-top: .35rem; }
-  .econ-split { display: flex; height: 26px; border-radius: 5px; overflow: hidden; margin: .7rem 0 .3rem; }
+  .econ-big { font-size: var(--fs-2xl); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .econ-sub { color: var(--ink-2); font-size: var(--fs-base); margin-top: .35rem; }
+  .econ-split { display: flex; height: 26px; border-radius: var(--r-sm); overflow: hidden; margin: .7rem 0 .3rem; }
   .econ-split i { display: block; height: 100%; }
   .econ-split i + i { margin-left: 2px; }        /* 2px surface gap between fills */
-  .econ-legend { display: flex; flex-wrap: wrap; gap: .3rem 1.1rem; font-size: .82rem;
+  .econ-legend { display: flex; flex-wrap: wrap; gap: .3rem 1.1rem; font-size: var(--fs-xs);
     color: var(--ink-2); margin: .2rem 0 .5rem; }
   .econ-legend span { display: inline-flex; align-items: center; gap: .35rem; }
-  .econ-legend i { width: 11px; height: 11px; border-radius: 3px; display: inline-block; }
+  .econ-legend i { width: 11px; height: 11px; border-radius: var(--r-sm); display: inline-block; }
   .econ-fig { margin: .5rem 0 0; }
   .chartwrap { overflow-x: auto; }
   /* On a phone these must SCROLL, not shrink — a 700-unit viewBox squeezed into
@@ -204,27 +163,27 @@
   .econ-fig text { font: 11px system-ui, sans-serif; fill: var(--ink-2); }
   .econ-fig .lbl { font-weight: 600; }
   .econ-fig .tick { fill: var(--muted); }
-  .econ-peers { border: 1px solid var(--hairline); border-radius: 12px; overflow-x: auto; margin-top: .6rem; }
-  .econ-peers table { border-collapse: collapse; width: 100%; font-size: .87rem; }
+  .econ-peers { border: 1px solid var(--hairline); border-radius: var(--r-lg); overflow-x: auto; margin-top: .6rem; }
+  .econ-peers table { border-collapse: collapse; width: 100%; font-size: var(--fs-sm); }
   .econ-peers th, .econ-peers td { padding: .5rem .7rem; text-align: right;
     border-bottom: 1px solid var(--hairline); white-space: nowrap; }
   .econ-peers th:first-child, .econ-peers td:first-child { text-align: left; }
-  .econ-peers thead th { background: var(--wash); font-size: .78rem; text-transform: uppercase;
+  .econ-peers thead th { background: var(--wash); font-size: var(--fs-xs); text-transform: uppercase;
     letter-spacing: .05em; color: var(--muted); }
   .econ-peers tr.you td { background: var(--hi-blue); font-weight: 600; }
   .econ-peers td a { color: var(--blue); }
-  .econ-note { font-size: .85rem; color: var(--ink-2); margin: .5rem 0 0; }
+  .econ-note { font-size: var(--fs-sm); color: var(--ink-2); margin: .5rem 0 0; }
   .a11y { margin: 1.2rem 0 0; }
-  .a11y summary { cursor: pointer; font-size: .85rem; color: var(--ink-2); padding: .35rem 0; }
+  .a11y summary { cursor: pointer; font-size: var(--fs-sm); color: var(--ink-2); padding: .35rem 0; }
   .a11y summary:focus-visible { outline: 2px solid var(--blue); outline-offset: 3px; }
-  .a11y-scroll { max-height: 22rem; overflow: auto; border: 1px solid var(--hairline); border-radius: 10px; }
-  .a11y table { border-collapse: collapse; width: 100%; font-size: .82rem; }
-  .a11y caption { text-align: left; padding: .5rem .7rem; color: var(--muted); font-size: .78rem; }
+  .a11y-scroll { max-height: 22rem; overflow: auto; border: 1px solid var(--hairline); border-radius: var(--r-lg); }
+  .a11y table { border-collapse: collapse; width: 100%; font-size: var(--fs-xs); }
+  .a11y caption { text-align: left; padding: .5rem .7rem; color: var(--muted); font-size: var(--fs-xs); }
   .a11y th, .a11y td { text-align: right; padding: .3rem .6rem; border-bottom: 1px solid var(--hairline); }
   .a11y th:first-child, .a11y td:first-child { text-align: left; }
   .a11y thead th { position: sticky; top: 0; background: var(--bg); border-bottom: 1px solid var(--ink); }
   .econ-tip { position: absolute; pointer-events: none; background: var(--ink); color:var(--ink-invert);
-    padding: .4rem .55rem; border-radius: 6px; font-size: .78rem; line-height: 1.35;
+    padding: .4rem .55rem; border-radius: var(--r-md); font-size: var(--fs-xs); line-height: 1.35;
     opacity: 0; transition: opacity .12s; z-index: 30; white-space: nowrap; }
   * { box-sizing: border-box; }
   html { scroll-behavior: smooth; }
@@ -239,58 +198,58 @@
     display: flex; flex-wrap: wrap; gap: .75rem; align-items: baseline;
     justify-content: space-between; padding: 2rem 0 0;
   }
-  .brand { font-weight: 700; font-size: 1.02rem; letter-spacing: -.01em; }
-  .brand .tag { color: var(--muted); font-weight: 400; font-size: .85rem; margin-left: .5rem; }
+  .brand { font-weight: 700; font-size: var(--fs-md); letter-spacing: -.01em; }
+  .brand .tag { color: var(--muted); font-weight: 400; font-size: var(--fs-sm); margin-left: .5rem; }
   .hbtns { display: flex; gap: .35rem; flex-wrap: wrap; }
   .hbtns button {
-    background: none; border: none; color: var(--ink-2); font: inherit; font-size: .85rem;
-    cursor: pointer; padding: .25rem .5rem; border-radius: 6px;
+    background: none; border: none; color: var(--ink-2); font: inherit; font-size: var(--fs-sm);
+    cursor: pointer; padding: .25rem .5rem; border-radius: var(--r-md);
   }
   .hbtns button:hover { background: var(--wash); }
   /* The map is the most compelling thing here; it was hidden in a row of quiet
      text links and people could not find it. */
   .hbtns button.feature {
     background: var(--blue); color:var(--ink-invert); font-weight: 600; padding: .3rem .8rem;
-    border-radius: 99px;
+    border-radius: var(--r-pill);
   }
-  .hbtns button.feature:hover { background: #1c5cab; }
+  .hbtns button.feature:hover { background: var(--accent); }
   section { padding: 2.6rem 0 0; }
   .eyebrow {
-    font-size: .72rem; letter-spacing: .14em; text-transform: uppercase;
+    font-size: var(--fs-micro); letter-spacing: .14em; text-transform: uppercase;
     color: var(--muted); font-weight: 600; margin-bottom: .3rem;
   }
   h2.action {
-    font-size: 1.32rem; line-height: 1.3; margin: 0 0 .35rem; font-weight: 700;
+    font-size: var(--fs-lg); line-height: 1.3; margin: 0 0 .35rem; font-weight: 700;
     letter-spacing: -.015em; max-width: 42rem; text-wrap: balance;
   }
-  .support { color: var(--ink-2); font-size: .92rem; max-width: 40rem; margin: 0 0 1.1rem; }
+  .support { color: var(--ink-2); font-size: var(--fs-base); max-width: 40rem; margin: 0 0 1.1rem; }
   .rule { border: none; border-top: 1px solid var(--hairline); margin: 2.6rem 0 0; }
   /* exec summary */
   .exec {
-    background: var(--wash); border-radius: 12px; padding: 1.3rem 1.5rem; margin-top: 1.1rem;
-    font-size: 1.02rem; max-width: 46rem;
+    background: var(--wash); border-radius: var(--r-lg); padding: 1.3rem 1.5rem; margin-top: 1.1rem;
+    font-size: var(--fs-md); max-width: 46rem;
   }
   .exec strong { color: var(--ink); }
   /* KPI band */
   .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 2rem 2.5rem; margin-top: 1.4rem; }
-  .kpi .label { font-size: .74rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
-  .kpi .value { font-size: 2.1rem; font-weight: 700; letter-spacing: -.02em; line-height: 1.15; font-variant-numeric: tabular-nums; }
-  .kpi .delta { font-size: .84rem; font-variant-numeric: tabular-nums; }
-  .kpi .plain { font-size: .82rem; color: var(--ink-2); margin-top: .2rem; max-width: 24ch; }
+  .kpi .label { font-size: var(--fs-micro); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+  .kpi .value { font-size: var(--fs-2xl); font-weight: 700; letter-spacing: -.02em; line-height: 1.15; font-variant-numeric: tabular-nums; }
+  .kpi .delta { font-size: var(--fs-xs); font-variant-numeric: tabular-nums; }
+  .kpi .plain { font-size: var(--fs-xs); color: var(--ink-2); margin-top: .2rem; max-width: 24ch; }
   .up { color: var(--good); } .down { color: var(--bad); } .flat { color: var(--muted); }
   /* controls */
   input[type=text], input[type=search] {
     width: 100%; padding: .6rem .8rem; font: inherit; color: var(--ink);
-    background: var(--bg); border: 1px solid var(--faint); border-radius: 8px;
+    background: var(--bg); border: 1px solid var(--faint); border-radius: var(--r-md);
   }
   input:focus-visible, button:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
   button.primary {
-    font: inherit; padding: .55rem 1rem; border-radius: 8px; cursor: pointer;
+    font: inherit; padding: .55rem 1rem; border-radius: var(--r-md); cursor: pointer;
     border: 1px solid var(--ink); background: var(--ink); color:var(--ink-invert);
   }
   button.primary:hover { opacity: .85; }
   button.quiet {
-    font: inherit; font-size: .84rem; padding: .35rem .7rem; border-radius: 7px; cursor: pointer;
+    font: inherit; font-size: var(--fs-xs); padding: .35rem .7rem; border-radius: var(--r-md); cursor: pointer;
     border: 1px solid var(--hairline); background: var(--bg); color: var(--ink-2);
   }
   button.quiet:hover { border-color: var(--faint); }
@@ -299,44 +258,44 @@
   ul.results { list-style: none; padding: 0; margin: .5rem 0 0; max-width: 34rem; }
   ul.results button {
     width: 100%; text-align: left; background: none; border: none; font: inherit;
-    color: var(--blue); padding: .35rem .3rem; border-radius: 6px; cursor: pointer;
+    color: var(--blue); padding: .35rem .3rem; border-radius: var(--r-md); cursor: pointer;
   }
   ul.results button:hover { background: var(--wash); }
   /* charts */
   .chartwrap { position: relative; margin-top: .4rem; }
   .tooltip {
     position: absolute; pointer-events: none; background: var(--ink); color:var(--ink-invert);
-    border-radius: 6px; padding: .35rem .65rem; font-size: .8rem; display: none;
+    border-radius: var(--r-md); padding: .35rem .65rem; font-size: var(--fs-xs); display: none;
     white-space: nowrap; z-index: 5;
   }
   .tabs { display: flex; gap: .3rem; margin: .2rem 0 .4rem; flex-wrap: wrap; }
   .tabs button {
-    font: inherit; font-size: .84rem; padding: .3rem .75rem; border-radius: 99px;
+    font: inherit; font-size: var(--fs-xs); padding: .3rem .75rem; border-radius: var(--r-pill);
     border: 1px solid var(--hairline); background: var(--bg); color: var(--ink-2); cursor: pointer;
   }
   .tabs button.active { background: var(--ink); color:var(--ink-invert); border-color: var(--ink); }
-  .legend { display: flex; gap: 1.1rem; font-size: .8rem; color: var(--ink-2); margin-top: .2rem; flex-wrap: wrap; }
-  .legend .key { display: inline-block; width: 14px; height: 3px; border-radius: 2px; vertical-align: middle; margin-right: .35rem; }
-  table { border-collapse: collapse; width: 100%; margin-top: .6rem; font-size: .86rem; }
+  .legend { display: flex; gap: 1.1rem; font-size: var(--fs-xs); color: var(--ink-2); margin-top: .2rem; flex-wrap: wrap; }
+  .legend .key { display: inline-block; width: 14px; height: 3px; border-radius: var(--r-sm); vertical-align: middle; margin-right: .35rem; }
+  table { border-collapse: collapse; width: 100%; margin-top: .6rem; font-size: var(--fs-sm); }
   th, td { text-align: right; padding: .38rem .6rem; border-bottom: 1px solid var(--hairline); font-variant-numeric: tabular-nums; }
   th:first-child, td:first-child { text-align: left; }
-  th { color: var(--muted); font-weight: 600; font-size: .76rem; text-transform: uppercase; letter-spacing: .06em; }
+  th { color: var(--muted); font-weight: 600; font-size: var(--fs-micro); text-transform: uppercase; letter-spacing: .06em; }
   tr.me td { font-weight: 650; }
   details.tbl { margin-top: .5rem; }
-  details.tbl summary { font-size: .82rem; color: var(--muted); cursor: pointer; }
-  .cite { font-size: .76rem; color: var(--faint); margin-top: .7rem; }
+  details.tbl summary { font-size: var(--fs-xs); color: var(--muted); cursor: pointer; }
+  .cite { font-size: var(--fs-micro); color: var(--faint); margin-top: .7rem; }
   .cite a { color: var(--muted); }
   .exports { display: flex; gap: .4rem; margin-top: .7rem; flex-wrap: wrap; }
   /* flags */
   .flagcard {
     border-left: 3px solid var(--bad); padding: .7rem 1rem; margin-top: .7rem;
-    background: var(--wash); border-radius: 0 10px 10px 0; font-size: .9rem; max-width: 44rem;
+    background: var(--wash); border-radius: 0 10px 10px 0; font-size: var(--fs-base); max-width: 44rem;
   }
   .flagcard.ok { border-left-color: var(--good); }
   .flagcard .nums { color: var(--ink-2); font-variant-numeric: tabular-nums; }
   .answer {
-    white-space: pre-wrap; background: var(--wash); border-radius: 10px;
-    padding: .9rem 1.1rem; margin-top: .75rem; display: none; max-width: 44rem; font-size: .94rem;
+    white-space: pre-wrap; background: var(--wash); border-radius: var(--r-lg);
+    padding: .9rem 1.1rem; margin-top: .75rem; display: none; max-width: 44rem; font-size: var(--fs-base);
   }
   /* The answer arrives all at once from the server; we reveal it a word at a
      time so it reads as if it is being written. Each word fades up from
@@ -351,13 +310,13 @@
   /* Skeleton "thinking" shimmer — three lines that pulse while the model runs,
      so the wait feels like progress instead of a frozen box. */
   .skeleton { display:grid; gap:.5rem; }
-  .skeleton i { height:.72rem; border-radius:4px; display:block;
+  .skeleton i { height:.72rem; border-radius:var(--r-sm); display:block;
                 background:linear-gradient(90deg,#eeece7 25%,#f6f5f2 37%,#eeece7 63%);
                 background-size:400% 100%; animation: shimmer 1.4s ease infinite; }
   .skeleton i:nth-child(1){ width:92%; } .skeleton i:nth-child(2){ width:78%; }
   .skeleton i:nth-child(3){ width:54%; }
   @keyframes shimmer { 0%{ background-position:100% 0; } 100%{ background-position:0 0; } }
-  .thinking { color:var(--muted); font-size:.82rem; margin-bottom:.6rem;
+  .thinking { color:var(--muted); font-size:var(--fs-xs); margin-bottom:.6rem;
               display:flex; align-items:center; gap:.5rem; }
   .thinking .dots b { display:inline-block; width:5px; height:5px; border-radius:50%;
                       background:var(--muted); margin-left:2px; animation: bounce 1.2s infinite; }
@@ -371,28 +330,28 @@
     border-left: 3px solid var(--bad); padding: .6rem 1rem; background: var(--wash);
     color: var(--ink-2); margin-top: 1.2rem; border-radius: 0 8px 8px 0; display: none;
   }
-  .comparebar { font-size: .86rem; color: var(--ink-2); margin-top: .4rem; }
+  .comparebar { font-size: var(--fs-sm); color: var(--ink-2); margin-top: .4rem; }
   .comparebar b { color: var(--orange); }
-  footer { color: var(--muted); font-size: .8rem; padding: 3rem 0 2.5rem; max-width: 46rem; }
+  footer { color: var(--muted); font-size: var(--fs-xs); padding: 3rem 0 2.5rem; max-width: 46rem; }
   footer a { color: var(--ink-2); }
   /* overlays */
   .overlay { position: fixed; inset: 0; background: rgba(20,20,20,.5); z-index: 50; display: none; }
   .sheet {
-    position: fixed; z-index: 60; background: var(--bg); border-radius: 14px;
+    position: fixed; z-index: 60; background: var(--bg); border-radius: var(--r-lg);
     padding: 1.2rem 1.4rem; max-width: 460px; width: calc(100vw - 3rem);
     box-shadow: 0 12px 40px rgba(0,0,0,.25); display: none;
   }
   .sheet.tour { left: 50%; transform: translateX(-50%); bottom: 2rem; }
   .sheet.modal { left: 50%; top: 50%; transform: translate(-50%,-50%); max-width: 560px; max-height: 80vh; overflow-y: auto; }
-  .sheet h3 { margin: 0 0 .4rem; font-size: 1rem; }
-  .sheet p, .sheet li { font-size: .9rem; color: var(--ink-2); }
-  .tour-highlight { outline: 3px solid var(--blue); outline-offset: 6px; border-radius: 4px; }
+  .sheet h3 { margin: 0 0 .4rem; font-size: var(--fs-md); }
+  .sheet p, .sheet li { font-size: var(--fs-base); color: var(--ink-2); }
+  .tour-highlight { outline: 3px solid var(--blue); outline-offset: 6px; border-radius: var(--r-sm); }
   .hidden { display: none !important; }
   /* ---- Audience lens ---- */
   .lensbar { display:flex; gap:.4rem; flex-wrap:wrap; align-items:center; margin:.9rem 0 0; }
-  .lensbar .lbl { font-size:.8rem; color:var(--muted); margin-right:.2rem; }
+  .lensbar .lbl { font-size:var(--fs-xs); color:var(--muted); margin-right:.2rem; }
   .lensbar button {
-    font:inherit; font-size:.84rem; padding:.32rem .8rem; border-radius:99px; cursor:pointer;
+    font:inherit; font-size:var(--fs-xs); padding:.32rem .8rem; border-radius:var(--r-pill); cursor:pointer;
     border:1px solid var(--hairline); background: var(--bg); color:var(--ink-2);
   }
   .lensbar button[aria-pressed=true] { background:var(--ink); color:var(--ink-invert); border-color:var(--ink); }
@@ -407,7 +366,7 @@
   }
   .ticker-tag {
     flex:none; display:flex; align-items:center; padding:.45rem .7rem;
-    background:var(--ink); color:var(--ink-invert); font-size:.68rem; font-weight:700;
+    background:var(--ink); color:var(--ink-invert); font-size:var(--fs-micro); font-weight:700;
     letter-spacing:.1em; text-transform:uppercase; white-space:nowrap;
   }
   .ticker-view { flex:1; overflow:hidden; position:relative; }
@@ -418,26 +377,26 @@
   }
   .ticker:hover .ticker-track, .ticker:focus-within .ticker-track { animation-play-state:paused; }
   @keyframes ticker-scroll { from { transform:translateX(0); } to { transform:translateX(-50%); } }
-  .tick { font-size:.82rem; color:var(--ink-2); font-variant-numeric:tabular-nums; }
+  .tick { font-size:var(--fs-xs); color:var(--ink-2); font-variant-numeric:tabular-nums; }
   .tick b { color:var(--ink); }
   .tick .up { color:var(--good); font-weight:700; }
   .tick .dn { color:var(--bad); font-weight:700; }
   .tick .who { color:var(--muted); font-weight:700; letter-spacing:.06em;
-               text-transform:uppercase; font-size:.7rem; margin-right:.35rem; }
+               text-transform:uppercase; font-size:var(--fs-micro); margin-right:.35rem; }
   @media (prefers-reduced-motion: reduce) {
     .ticker-track { animation:none; }
     .ticker-view { overflow-x:auto; }
   }
   @media (max-width:620px) {
     .ticker-track { gap:1.5rem; padding:.4rem .8rem; }
-    .tick { font-size:.76rem; }
-    .ticker-tag { padding:.4rem .5rem; font-size:.62rem; }
+    .tick { font-size:var(--fs-micro); }
+    .ticker-tag { padding:.4rem .5rem; font-size:var(--fs-micro); }
   }
   @media print { .ticker { display:none !important; } }
   /* ---- One child: the whole report at human scale ---- */
-  .onechild { border:1px solid var(--hairline); border-radius:14px; padding:1.4rem 1.5rem;
+  .onechild { border:1px solid var(--hairline); border-radius:var(--r-lg); padding:1.4rem 1.5rem;
               margin:.2rem 0 1.5rem; max-width:1000px; background: var(--bg); }
-  .onechild .oh { font-size:.72rem; letter-spacing:.14em; text-transform:uppercase;
+  .onechild .oh { font-size:var(--fs-micro); letter-spacing:.14em; text-transform:uppercase;
                   color:var(--muted); font-weight:700; margin-bottom:1rem; }
   .onechild .beats { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:1.6rem; }
   .onechild .beat .big {
@@ -446,49 +405,49 @@
     color:var(--ink); margin:0 0 .3rem;
   }
   .onechild .beat .big em { font-style:normal; color:var(--blue); }
-  .onechild .beat p { font-size:.89rem; color:var(--ink-2); margin:0; }
+  .onechild .beat p { font-size:var(--fs-sm); color:var(--ink-2); margin:0; }
   .onechild .ask {
-    margin:1.3rem 0 0; padding:.9rem 1.1rem; background:var(--wash); border-radius:10px;
-    font-size:.92rem; color:var(--ink-2);
+    margin:1.3rem 0 0; padding:.9rem 1.1rem; background:var(--wash); border-radius:var(--r-lg);
+    font-size:var(--fs-base); color:var(--ink-2);
   }
   .onechild .ask b { color:var(--ink); }
-  .onechild .note { font-size:.76rem; color:var(--faint); margin:.9rem 0 0; }
+  .onechild .note { font-size:var(--fs-micro); color:var(--faint); margin:.9rem 0 0; }
   /* ---- What the money buys ---- */
   .whobar { display:flex; flex-wrap:wrap; gap:.5rem .6rem; margin:.2rem 0 1.4rem; }
   .whobar .who {
-    border:1px solid var(--hairline); border-radius:10px; padding:.5rem .8rem;
-    font-size:.83rem; color:var(--ink-2); background: var(--bg);
+    border:1px solid var(--hairline); border-radius:var(--r-lg); padding:.5rem .8rem;
+    font-size:var(--fs-xs); color:var(--ink-2); background: var(--bg);
   }
   .whobar .who b { color:var(--ink); font-variant-numeric:tabular-nums; }
   .whobar .who span { color:var(--muted); }
   .drivers { display:grid; grid-template-columns:repeat(auto-fit,minmax(255px,1fr)); gap:.9rem; max-width:1000px; }
-  .driver { border:1px solid var(--hairline); border-radius:12px; padding:.9rem 1rem; }
-  .driver .dl { font-size:.8rem; color:var(--muted); letter-spacing:.02em; }
-  .driver .dv { font-size:1.7rem; font-weight:700; letter-spacing:-.02em; font-variant-numeric:tabular-nums;
+  .driver { border:1px solid var(--hairline); border-radius:var(--r-lg); padding:.9rem 1rem; }
+  .driver .dl { font-size:var(--fs-xs); color:var(--muted); letter-spacing:.02em; }
+  .driver .dv { font-size:var(--fs-2xl); font-weight:700; letter-spacing:-.02em; font-variant-numeric:tabular-nums;
                 margin:.1rem 0 .35rem; line-height:1.1; }
-  .driver .dcmp { font-size:.8rem; color:var(--ink-2); }
+  .driver .dcmp { font-size:var(--fs-xs); color:var(--ink-2); }
   .driver .dcmp b { font-variant-numeric:tabular-nums; }
   /* one bar: your value against the peer median, direction-aware */
-  .dbar { position:relative; height:7px; border-radius:4px; background:var(--hairline);
+  .dbar { position:relative; height:7px; border-radius:var(--r-sm); background:var(--hairline);
           margin:.5rem 0 .4rem; overflow:hidden; }
-  .dbar i { position:absolute; top:0; bottom:0; left:0; border-radius:4px; }
+  .dbar i { position:absolute; top:0; bottom:0; left:0; border-radius:var(--r-sm); }
   .dbar u { position:absolute; top:-3px; bottom:-3px; width:2px; background:var(--ink); }
   .driver.good .dv { color:var(--good); }
   .driver.watch .dv { color:var(--bad); }
-  .driver .tag { font-size:.72rem; letter-spacing:.06em; text-transform:uppercase; font-weight:700; }
+  .driver .tag { font-size:var(--fs-micro); letter-spacing:.06em; text-transform:uppercase; font-weight:700; }
   .driver.good .tag { color:var(--good); }
   .driver.watch .tag { color:var(--bad); }
   .driver.flat .tag { color:var(--muted); }
-  .lever { background:var(--wash); border-radius:12px; padding:1.1rem 1.3rem; margin:1.4rem 0 0;
-           max-width:1000px; font-size:.89rem; color:var(--ink-2); }
-  .lever h4 { margin:0 0 .5rem; font-size:.95rem; color:var(--ink); }
+  .lever { background:var(--wash); border-radius:var(--r-lg); padding:1.1rem 1.3rem; margin:1.4rem 0 0;
+           max-width:1000px; font-size:var(--fs-sm); color:var(--ink-2); }
+  .lever h4 { margin:0 0 .5rem; font-size:var(--fs-base); color:var(--ink); }
   .lever .bars { margin:.7rem 0 .3rem; }
   .lever .lrow { display:grid; grid-template-columns:15rem minmax(0,1fr) 3.6rem; align-items:center;
-                 gap:.6rem; margin-bottom:.28rem; font-size:.82rem; }
-  .lever .lrow i { display:block; height:12px; border-radius:3px; background:var(--blue); }
+                 gap:.6rem; margin-bottom:.28rem; font-size:var(--fs-xs); }
+  .lever .lrow i { display:block; height:12px; border-radius:var(--r-sm); background:var(--blue); }
   .lever .lrow.dim i { background:var(--faint); }
   .lever .lrow b { font-variant-numeric:tabular-nums; text-align:right; }
-  @media (max-width:620px){ .lever .lrow { grid-template-columns:9.5rem minmax(0,1fr) 3.2rem; font-size:.76rem; } }
+  @media (max-width:620px){ .lever .lrow { grid-template-columns:9.5rem minmax(0,1fr) 3.2rem; font-size:var(--fs-micro); } }
   /* ---- Hero ----
      Display face is a serif on purpose: this is a public record, and it should
      read like one rather than like every other dashboard. Body stays sans. */
@@ -506,35 +465,35 @@
   html.has-district .welcome { display: none; }
   .welcome-h { font-weight: 600; font-size: clamp(1.9rem, 4vw, 2.9rem); line-height: 1.12;
     letter-spacing: -.02em; margin: .1rem 0 .7rem; max-width: 17em; text-wrap: balance; color: var(--ink); }
-  .welcome-sub { color: var(--ink-2); font-size: 1.05rem; line-height: 1.5; max-width: 40rem; margin: 0 0 .7rem; }
-  .welcome-who { color: var(--ink-2); font-size: .95rem; margin: 0 0 1.15rem; max-width: 40rem; }
+  .welcome-sub { color: var(--ink-2); font-size: var(--fs-md); line-height: 1.5; max-width: 40rem; margin: 0 0 .7rem; }
+  .welcome-who { color: var(--ink-2); font-size: var(--fs-base); margin: 0 0 1.15rem; max-width: 40rem; }
   .welcome-who b { color: var(--ink); }
   .welcome-cta { display: flex; flex-wrap: wrap; gap: .6rem; }
-  .welcome-cta a { display: inline-flex; align-items: center; gap: .4rem; font: inherit; font-size: .95rem;
-    font-weight: 600; text-decoration: none; padding: .62rem 1.15rem; border-radius: 10px;
+  .welcome-cta a { display: inline-flex; align-items: center; gap: .4rem; font: inherit; font-size: var(--fs-base);
+    font-weight: 600; text-decoration: none; padding: .62rem 1.15rem; border-radius: var(--r-lg);
     border: 1px solid var(--hairline); color: var(--ink); background: var(--card); cursor: pointer; }
   .welcome-cta a:hover { background: var(--wash); }
-  .welcome-cta .cta-primary { background: var(--blue); color: #fff; border-color: var(--blue); }
+  .welcome-cta .cta-primary { background: var(--blue); color: var(--surface); border-color: var(--blue); }
   .welcome-cta .cta-primary:hover { filter: brightness(1.06); }
   .welcome-strip { display: flex; flex-wrap: wrap; gap: .25rem .7rem; margin: 1rem 0 0;
-    font-size: .8rem; color: var(--muted); }
+    font-size: var(--fs-xs); color: var(--muted); }
   .welcome-strip b { color: var(--ink-2); font-weight: 600; }
   .hero-num { color: var(--blue); white-space: nowrap; }
   .nowrap { white-space: nowrap; }
   .hero-row { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 2.8rem; align-items: start; }
-  .hero-sub { color: var(--ink-2); font-size: .95rem; max-width: 42rem; margin: 0 0 1rem; }
+  .hero-sub { color: var(--ink-2); font-size: var(--fs-base); max-width: 42rem; margin: 0 0 1rem; }
   .credential {
     display:flex; flex-wrap:wrap; gap:.4rem 1.4rem; margin:0 0 1.6rem;
-    font-size:.82rem; color:var(--ink-2); border-top:1px solid var(--hairline);
+    font-size:var(--fs-xs); color:var(--ink-2); border-top:1px solid var(--hairline);
     border-bottom:1px solid var(--hairline); padding:.7rem 0;
   }
   .credential b { color:var(--ink); font-variant-numeric:tabular-nums; }
   .finder { max-width: 30rem; }
-  .finder-lab { display:block; font-size:.74rem; letter-spacing:.09em; text-transform:uppercase;
+  .finder-lab { display:block; font-size:var(--fs-micro); letter-spacing:.09em; text-transform:uppercase;
                 color:var(--muted); font-weight:700; margin-bottom:.4rem; }
   .chips { display:flex; flex-wrap:wrap; gap:.4rem; margin-top:.85rem; }
   .chips button {
-    font:inherit; font-size:.83rem; padding:.34rem .8rem; border-radius:99px; cursor:pointer;
+    font:inherit; font-size:var(--fs-xs); padding:.34rem .8rem; border-radius:var(--r-pill); cursor:pointer;
     border:1px solid var(--hairline); background: var(--bg); color:var(--ink-2);
   }
   .chips button:hover { border-color:var(--ink); color:var(--ink); }
@@ -542,11 +501,11 @@
   .hero-fig { margin:0; }
   .hero-fig .pennies { max-width:100%; margin:.2rem 0 .7rem; }
   .hero-fig .pennies i { cursor:default; }
-  .hero-fig figcaption { font-size:.83rem; color:var(--ink-2); }
+  .hero-fig figcaption { font-size:var(--fs-xs); color:var(--ink-2); }
   .hero-fig figcaption b { color:var(--ink); }
-  .tx-legend { display:flex; flex-wrap:wrap; gap:.3rem .9rem; margin-top:.7rem; font-size:.79rem; color:var(--muted); }
+  .tx-legend { display:flex; flex-wrap:wrap; gap:.3rem .9rem; margin-top:.7rem; font-size:var(--fs-xs); color:var(--muted); }
   .tx-legend span { display:inline-flex; align-items:center; gap:.3rem; }
-  .tx-legend i { width:9px; height:9px; border-radius:2px; display:inline-block; }
+  .tx-legend i { width:9px; height:9px; border-radius:var(--r-sm); display:inline-block; }
   .tx-legend .rest { font-style:italic; }
   /* once a district is chosen the hero steps out of the way */
   /* The hero stays put on every visit — it carries the statewide dollar, which
@@ -562,75 +521,75 @@
   }
   /* ---- The dollar: 100 pennies, guided ---- */
   .pennies { display:grid; grid-template-columns:repeat(20,1fr); gap:3px; max-width:520px; margin:.9rem 0 .6rem; }
-  .pennies i { display:block; aspect-ratio:1; border-radius:2px; cursor:pointer;
+  .pennies i { display:block; aspect-ratio:1; border-radius:var(--r-sm); cursor:pointer;
                transition:opacity .12s ease, transform .12s ease; }
   .pennies.focusing i { opacity:.3; }
   .pennies.focusing i.on { opacity:1; box-shadow:0 0 0 1.5px var(--ink); }
-  .penny-legend { display:flex; flex-wrap:wrap; gap:.35rem .5rem; font-size:.85rem; color:var(--ink-2); }
+  .penny-legend { display:flex; flex-wrap:wrap; gap:.35rem .5rem; font-size:var(--fs-sm); color:var(--ink-2); }
   .penny-legend button {
     font:inherit; display:inline-flex; align-items:center; gap:.35rem; cursor:pointer;
     border:1px solid transparent; background:none; color:var(--ink-2);
-    padding:.18rem .45rem; border-radius:99px; transition:background .12s, border-color .12s;
+    padding:.18rem .45rem; border-radius:var(--r-pill); transition:background .12s, border-color .12s;
   }
   .penny-legend button:hover, .penny-legend button:focus-visible { background:var(--wash); border-color:var(--hairline); }
   .penny-legend button[aria-pressed=true] { background:var(--ink); color:var(--ink-invert); border-color:var(--ink); }
-  .penny-legend i { width:11px; height:11px; border-radius:2px; display:inline-block; flex:none; }
+  .penny-legend i { width:11px; height:11px; border-radius:var(--r-sm); display:inline-block; flex:none; }
   .penny-legend b { font-variant-numeric:tabular-nums; }
-  .penny-legend .tiny-note { flex-basis:100%; font-size:.78rem; color:var(--muted); padding:.2rem .45rem; }
-  /* zoom ladder: Texas → district → category */
+  .penny-legend .tiny-note { flex-basis:100%; font-size:var(--fs-xs); color:var(--muted); padding:.2rem .45rem; }
+  /* zoom ladder: Texas <svg class="ico" aria-hidden="true"><use href="#i-arrow-right"/></svg> district <svg class="ico" aria-hidden="true"><use href="#i-arrow-right"/></svg> category */
   .ladder { display:flex; flex-wrap:wrap; align-items:center; gap:.25rem;
-            font-size:.78rem; letter-spacing:.02em; color:var(--muted); margin:.1rem 0 .9rem; }
+            font-size:var(--fs-xs); letter-spacing:.02em; color:var(--muted); margin:.1rem 0 .9rem; }
   .ladder button { font:inherit; border:0; background:none; color:var(--ink-2);
-                   cursor:pointer; padding:.15rem .35rem; border-radius:5px; }
+                   cursor:pointer; padding:.15rem .35rem; border-radius:var(--r-sm); }
   .ladder button:hover { background:var(--wash); color:var(--ink); }
   .ladder .here { color:var(--ink); font-weight:700; padding:.15rem .35rem; }
   .ladder .sep { color:var(--faint); }
   /* guided layout: grid on the left, the guide panel on the right */
   .dollar-lay { display:grid; grid-template-columns:minmax(0,520px) minmax(0,1fr); gap:1.6rem; align-items:start; }
   @media (max-width:780px) { .dollar-lay { grid-template-columns:1fr; gap:1rem; } }
-  .guide { background:var(--wash); border-radius:12px; padding:1rem 1.15rem; min-height:190px; }
-  .guide .rest { color:var(--muted); font-size:.88rem; }
+  .guide { background:var(--wash); border-radius:var(--r-lg); padding:1rem 1.15rem; min-height:190px; }
+  .guide .rest { color:var(--muted); font-size:var(--fs-sm); }
   .guide .gcat { display:flex; align-items:center; gap:.45rem; font-weight:700; color:var(--ink); }
-  .guide .gcat i { width:13px; height:13px; border-radius:3px; display:inline-block; }
-  .guide .gbig { font-size:2.1rem; font-weight:700; letter-spacing:-.02em; line-height:1.1; margin:.25rem 0 .1rem; }
-  .guide .gsub { font-size:.86rem; color:var(--ink-2); font-variant-numeric:tabular-nums; }
-  .guide .gwhat { font-size:.85rem; color:var(--ink-2); margin:.6rem 0 .1rem; }
-  .guide .gcodes { font-size:.74rem; color:var(--faint); }
-  .guide .gstake { font-size:.88rem; color:var(--ink); margin:.65rem 0 0; }
+  .guide .gcat i { width:13px; height:13px; border-radius:var(--r-sm); display:inline-block; }
+  .guide .gbig { font-size:var(--fs-2xl); font-weight:700; letter-spacing:-.02em; line-height:1.1; margin:.25rem 0 .1rem; }
+  .guide .gsub { font-size:var(--fs-sm); color:var(--ink-2); font-variant-numeric:tabular-nums; }
+  .guide .gwhat { font-size:var(--fs-sm); color:var(--ink-2); margin:.6rem 0 .1rem; }
+  .guide .gcodes { font-size:var(--fs-micro); color:var(--faint); }
+  .guide .gstake { font-size:var(--fs-sm); color:var(--ink); margin:.65rem 0 0; }
   .guide .gstake b { font-variant-numeric:tabular-nums; }
-  .guide .ghint { font-size:.78rem; color:var(--muted); margin-top:.6rem; }
+  .guide .ghint { font-size:var(--fs-xs); color:var(--muted); margin-top:.6rem; }
   /* three 100¢ bars: you / similar districts / all Texas */
   .cmpbars { margin:1.3rem 0 .2rem; max-width:760px; }
   .cmprow { display:grid; grid-template-columns:8.5rem minmax(0,1fr) 3.2rem; align-items:center;
             gap:.6rem; margin-bottom:.4rem; }
-  .cmprow .lab { font-size:.8rem; color:var(--ink-2); text-align:right; }
-  .cmprow .val { font-size:.82rem; color:var(--ink); font-variant-numeric:tabular-nums; }
-  .bar { display:flex; height:16px; border-radius:4px; overflow:hidden; background:var(--hairline); }
+  .cmprow .lab { font-size:var(--fs-xs); color:var(--ink-2); text-align:right; }
+  .cmprow .val { font-size:var(--fs-xs); color:var(--ink); font-variant-numeric:tabular-nums; }
+  .bar { display:flex; height:16px; border-radius:var(--r-sm); overflow:hidden; background:var(--hairline); }
   .bar span { display:block; height:100%; transition:opacity .12s ease; }
   .cmpbars.focusing .bar span { opacity:.16; }
   .cmpbars.focusing .bar span.on { opacity:1; }
-  .cmpnote { font-size:.78rem; color:var(--muted); margin-top:.5rem; max-width:44rem; }
+  .cmpnote { font-size:var(--fs-xs); color:var(--muted); margin-top:.5rem; max-width:44rem; }
   /* atom: the pinned deep dive */
   .atom { border-left:3px solid var(--blue); background:var(--wash); border-radius:0 12px 12px 0;
           padding:1.1rem 1.3rem; margin:1.4rem 0 .2rem; max-width:760px; }
-  .atom h3 { margin:0 0 .5rem; font-size:1.02rem; line-height:1.35; }
-  .atom p { font-size:.88rem; color:var(--ink-2); margin:.45rem 0; }
+  .atom h3 { margin:0 0 .5rem; font-size:var(--fs-md); line-height:1.35; }
+  .atom p { font-size:var(--fs-sm); color:var(--ink-2); margin:.45rem 0; }
   .atom .spark { margin:.7rem 0 .2rem; }
-  .atom .comps { display:flex; flex-wrap:wrap; gap:.4rem 1.4rem; font-size:.85rem;
+  .atom .comps { display:flex; flex-wrap:wrap; gap:.4rem 1.4rem; font-size:var(--fs-sm);
                  color:var(--ink-2); font-variant-numeric:tabular-nums; margin:.5rem 0 0; }
-  .atom .closebtn { font:inherit; font-size:.8rem; border:1px solid var(--hairline); background: var(--bg);
-                    color:var(--ink-2); border-radius:99px; padding:.25rem .7rem; cursor:pointer; }
+  .atom .closebtn { font:inherit; font-size:var(--fs-xs); border:1px solid var(--hairline); background: var(--bg);
+                    color:var(--ink-2); border-radius:var(--r-pill); padding:.25rem .7rem; cursor:pointer; }
   .bignum { font-size:clamp(2.1rem,6vw,3.1rem); font-weight:700; letter-spacing:-.03em; line-height:1.05; }
-  .bignum small { font-size:1rem; font-weight:400; color:var(--ink-2); letter-spacing:0; }
+  .bignum small { font-size:var(--fs-md); font-weight:400; color:var(--ink-2); letter-spacing:0; }
   /* ---- Footer ---- */
   footer .block { max-width:46rem; margin-bottom:1rem; }
   footer .tag {
     border-top:1px solid var(--hairline); padding-top:1rem; margin-top:1rem;
     display:flex; flex-wrap:wrap; gap:.4rem 1.4rem; align-items:baseline;
   }
-  footer .tag .brand { font-weight:700; color:var(--ink); font-size:.95rem; }
+  footer .tag .brand { font-weight:700; color:var(--ink); font-size:var(--fs-base); }
   footer .tag .lic { color:var(--faint); }
-  footer .collab .collab-h { font-size:.72rem; letter-spacing:.14em; text-transform:uppercase;
+  footer .collab .collab-h { font-size:var(--fs-micro); letter-spacing:.14em; text-transform:uppercase;
                              color:var(--muted); font-weight:700; margin-bottom:.4rem; }
   footer .collab p { margin:.5rem 0; }
   footer .collab .indep { border-left:2px solid var(--hairline); padding-left:.8rem; color:var(--muted); }
@@ -643,6 +602,48 @@
 </style>
 </head>
 <body>
+<!-- icon-sprite:start -->
+<svg class="icon-sprite" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg"><defs>
+
+  <!-- navigation and controls -->
+  <symbol id="i-search" viewBox="0 0 16 16"><circle cx="7" cy="7" r="4.25"/><path d="M10.2 10.2 14 14"/></symbol>
+  <symbol id="i-pin" viewBox="0 0 16 16"><path d="M8 14.5s5-4.6 5-8a5 5 0 1 0-10 0c0 3.4 5 8 5 8Z"/><circle cx="8" cy="6.5" r="1.9"/></symbol>
+  <symbol id="i-map" viewBox="0 0 16 16"><path d="M1.75 4 6 2.25l4 1.75 4.25-1.75v9.5L10 13.75l-4-1.75-4.25 1.75V4Z"/><path d="M6 2.25v9.75M10 4v9.75"/></symbol>
+  <symbol id="i-grid" viewBox="0 0 16 16"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></symbol>
+  <symbol id="i-layers" viewBox="0 0 16 16"><path d="M8 1.75 14.25 5 8 8.25 1.75 5 8 1.75Z"/><path d="m1.75 8.5 6.25 3.25 6.25-3.25"/><path d="m1.75 11.5 6.25 3.25 6.25-3.25"/></symbol>
+  <symbol id="i-activity" viewBox="0 0 16 16"><path d="M1.5 8.5h3l2-5 3 10 2-5h3"/></symbol>
+  <symbol id="i-book" viewBox="0 0 16 16"><path d="M2.5 2.75h4A2 2 0 0 1 8 4.5v9a1.7 1.7 0 0 0-1.4-1H2.5Z"/><path d="M13.5 2.75h-4A2 2 0 0 0 8 4.5v9a1.7 1.7 0 0 1 1.4-1h4.1Z"/></symbol>
+  <symbol id="i-play" viewBox="0 0 16 16"><path d="M5.25 3.4v9.2l7-4.6-7-4.6Z"/></symbol>
+  <symbol id="i-print" viewBox="0 0 16 16"><path d="M4.5 6V2.5h7V6"/><path d="M4.5 11.5h-2v-4a1 1 0 0 1 1-1h9a1 1 0 0 1 1 1v4h-2"/><rect x="4.5" y="9.5" width="7" height="4"/></symbol>
+  <symbol id="i-contrast" viewBox="0 0 16 16"><circle cx="8" cy="8" r="5.75"/><path d="M8 2.25a5.75 5.75 0 0 1 0 11.5Z" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-close" viewBox="0 0 16 16"><path d="m4 4 8 8M12 4l-8 8"/></symbol>
+  <symbol id="i-download" viewBox="0 0 16 16"><path d="M8 2.5v7.5"/><path d="m4.75 7 3.25 3.25L11.25 7"/><path d="M2.75 13h10.5"/></symbol>
+  <symbol id="i-external" viewBox="0 0 16 16"><path d="M9 2.75h4.25V7"/><path d="M13.25 2.75 7.5 8.5"/><path d="M12 9.75v2.5a1 1 0 0 1-1 1H3.75a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h2.5"/></symbol>
+
+  <!-- direction -->
+  <symbol id="i-arrow-right" viewBox="0 0 16 16"><path d="M2.75 8h10.5"/><path d="M9.5 4.25 13.25 8 9.5 11.75"/></symbol>
+  <symbol id="i-arrow-left" viewBox="0 0 16 16"><path d="M13.25 8H2.75"/><path d="M6.5 4.25 2.75 8l3.75 3.75"/></symbol>
+  <symbol id="i-arrow-down" viewBox="0 0 16 16"><path d="M8 2.75v10.5"/><path d="M4.25 9.5 8 13.25 11.75 9.5"/></symbol>
+  <symbol id="i-chevron-down" viewBox="0 0 16 16"><path d="m4 6 4 4 4-4"/></symbol>
+  <symbol id="i-chevron-up" viewBox="0 0 16 16"><path d="m4 10 4-4 4 4"/></symbol>
+  <symbol id="i-chevron-right" viewBox="0 0 16 16"><path d="m6 4 4 4-4 4"/></symbol>
+  <symbol id="i-trend-up" viewBox="0 0 16 16"><path d="M1.75 11.5 6 7.25l2.5 2.5 5.75-5.75"/><path d="M10.25 4h4v4"/></symbol>
+  <symbol id="i-trend-down" viewBox="0 0 16 16"><path d="M1.75 4.5 6 8.75l2.5-2.5 5.75 5.75"/><path d="M10.25 12h4V8"/></symbol>
+
+  <!-- editorial beats: one mark per category on the feed -->
+  <symbol id="i-institution" viewBox="0 0 16 16"><path d="M2 6.25 8 2.5l6 3.75"/><path d="M3.5 6.75v5.5M6.5 6.75v5.5M9.5 6.75v5.5M12.5 6.75v5.5"/><path d="M2 13.25h12"/></symbol>
+  <symbol id="i-exit" viewBox="0 0 16 16"><path d="M9.5 2.75H4a1 1 0 0 0-1 1v8.5a1 1 0 0 0 1 1h5.5"/><path d="M7 8h6.25"/><path d="M11 5.5 13.5 8 11 10.5"/></symbol>
+  <symbol id="i-money" viewBox="0 0 16 16"><rect x="1.75" y="4" width="12.5" height="8" rx="1.25"/><circle cx="8" cy="8" r="1.9"/><path d="M4.25 8h.01M11.75 8h.01"/></symbol>
+  <symbol id="i-chart" viewBox="0 0 16 16"><path d="M2.25 13.25h11.5"/><path d="M4.5 13V8.5M8 13V3.5M11.5 13V6.5"/></symbol>
+  <symbol id="i-scale" viewBox="0 0 16 16"><path d="M8 2.75v10.5"/><path d="M4.5 13.25h7"/><path d="M3 5.5h10"/><path d="M3 5.5 1.25 9.5h3.5L3 5.5Z"/><path d="M13 5.5 11.25 9.5h3.5L13 5.5Z"/></symbol>
+  <symbol id="i-people" viewBox="0 0 16 16"><circle cx="6" cy="5.5" r="2.25"/><path d="M1.75 13.25c0-2.2 1.9-3.75 4.25-3.75s4.25 1.55 4.25 3.75"/><path d="M11 4.1a2.25 2.25 0 0 1 0 4.3"/><path d="M11.75 9.9c1.5.45 2.5 1.6 2.5 3.35"/></symbol>
+  <symbol id="i-build" viewBox="0 0 16 16"><path d="M2.5 13.25h11"/><path d="M4.25 13.25V6.5h4.5v6.75"/><path d="M8.75 13.25V3.5h3v9.75"/><path d="M5.75 8.75h1.5M5.75 11h1.5"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 16 16"><path d="M8 2.5 14.5 13.5h-13L8 2.5Z"/><path d="M8 6.75v3"/><path d="M8 11.75h.01"/></symbol>
+  <symbol id="i-ballot" viewBox="0 0 16 16"><rect x="2" y="7" width="12" height="6.5" rx="1"/><path d="M5 7V3.5h6V7"/><path d="m6.25 5 1.25 1.25L10 3.75"/></symbol>
+  <symbol id="i-marker" viewBox="0 0 16 16"><circle cx="8" cy="8" r="2.5" fill="currentColor" stroke="none"/><circle cx="8" cy="8" r="5.5"/></symbol>
+
+</defs></svg>
+<!-- icon-sprite:end -->
 <a class="skiplink" href="#picker-section">Skip to the data</a>
 <div class="shell">
   <div id="progresswrap"><i id="progressbar"></i></div>
@@ -650,15 +651,15 @@
   <header class="top">
     <div class="brand">Texas ISD Financial Resource Guide<span class="tag">Official TEA &amp; Comptroller data · independent, not a TEA product</span></div>
     <div class="hbtns">
-      <button id="btn-feed" class="feature">🔥 The Feed</button>
-      <button id="btn-geomap" class="feature">🗺️ Map of Texas</button>
+      <button id="btn-feed" class="feature"><svg class="ico" aria-hidden="true"><use href="#i-activity"/></svg> The Feed</button>
+      <button id="btn-geomap" class="feature"><svg class="ico" aria-hidden="true"><use href="#i-map"/></svg> Map of Texas</button>
       <button id="btn-heatmap" class="feature">Heatmap</button>
       <button id="btn-map">Seating chart</button>
       <button id="btn-about">About</button>
       <button id="btn-tour">Tutorial</button>
       <button id="btn-disclaimer">Disclaimer</button>
       <button id="btn-print" title="Print or save as PDF">Print</button>
-      <button id="btn-theme" title="Switch light / dark" aria-label="Switch light or dark theme">🌙</button>
+      <button id="btn-theme" title="Switch light / dark" aria-label="Switch light or dark theme"><svg class="ico" aria-hidden="true"><use href="#i-contrast"/></svg></button>
     </div>
   </header>
 
@@ -679,11 +680,11 @@
     <p class="welcome-who">Made for the people the money belongs to — <b>parents, taxpayers, teachers,
       reporters, and school board members</b> — not the agencies that spend it.</p>
     <div class="welcome-cta">
-      <a class="cta-primary" href="#search" id="wc-find">🔎 Find your district</a>
-      <a href="/feed">🔥 What's happening now</a>
-      <a href="/geomap">🗺️ Explore the map</a>
-      <a href="/about">📖 Why we built this</a>
-      <a href="#" id="wc-tour">▶︎ 60-second tour</a>
+      <a class="cta-primary" href="#search" id="wc-find"><svg class="ico" aria-hidden="true"><use href="#i-search"/></svg> Find your district</a>
+      <a href="/feed"><svg class="ico" aria-hidden="true"><use href="#i-activity"/></svg> What's happening now</a>
+      <a href="/geomap"><svg class="ico" aria-hidden="true"><use href="#i-map"/></svg> Explore the map</a>
+      <a href="/about"><svg class="ico" aria-hidden="true"><use href="#i-book"/></svg> Why we built this</a>
+      <a href="#" id="wc-tour"><svg class="ico" aria-hidden="true"><use href="#i-play"/></svg> 60-second tour</a>
     </div>
     <div class="welcome-strip">
       <b>Official TEA &amp; Comptroller data</b><span>·</span><span>Independent — not a TEA product</span>
@@ -746,7 +747,7 @@
       <div class="kpis" id="kpis"></div>
       <div class="exports">
         <button class="quiet" id="btn-compare">+ Compare with another district</button>
-        <button class="quiet hidden" id="btn-uncompare">✕ Remove comparison</button>
+        <button class="quiet hidden" id="btn-uncompare"><svg class="ico" aria-hidden="true"><use href="#i-close"/></svg> Remove comparison</button>
       </div>
       <div class="cite" id="kpi-cite"></div>
     </section>
@@ -940,16 +941,15 @@
         <button data-m="revspend">Revenue vs. spending</button>
       </div>
       <div class="chartwrap">
-        <svg id="trendchart" width="100%" height="300" role="img" aria-label="Trend chart"></svg>
-        <div class="tooltip" id="trendtip"></div>
+        <svg id="trendchart" width="100%" height="300" role="img" aria-label="Trend chart"></svg> <div class="tooltip" id="trendtip"></div>
       </div>
       <div class="legend" id="trendlegend"></div>
       <details class="tbl"><summary>Show the numbers behind this chart</summary>
         <div style="overflow-x:auto"><table id="trendtable"></table></div>
       </details>
       <div class="exports">
-        <button class="quiet" data-png="trendchart">⬇ Chart as image</button>
-        <button class="quiet" id="btn-trendcsv">⬇ Data as CSV</button>
+        <button class="quiet" data-png="trendchart"><svg class="ico" aria-hidden="true"><use href="#i-download"/></svg> Chart as image</button>
+        <button class="quiet" id="btn-trendcsv"><svg class="ico" aria-hidden="true"><use href="#i-download"/></svg> Data as CSV</button>
       </div>
       <div class="cite" id="trend-cite"></div>
     </section>
@@ -960,15 +960,14 @@
       <h2 class="action" id="peers-title"></h2>
       <p class="support" id="peers-why"></p>
       <div class="chartwrap">
-        <svg id="peerchart" width="100%" height="360" role="img" aria-label="Peer comparison chart"></svg>
-        <div class="tooltip" id="peertip"></div>
+        <svg id="peerchart" width="100%" height="360" role="img" aria-label="Peer comparison chart"></svg> <div class="tooltip" id="peertip"></div>
       </div>
       <details class="tbl"><summary>Show the numbers behind this chart</summary>
         <div style="overflow-x:auto"><table id="peertable"></table></div>
       </details>
       <div class="exports">
-        <button class="quiet" data-png="peerchart">⬇ Chart as image</button>
-        <button class="quiet" id="btn-peercsv">⬇ Data as CSV</button>
+        <button class="quiet" data-png="peerchart"><svg class="ico" aria-hidden="true"><use href="#i-download"/></svg> Chart as image</button>
+        <button class="quiet" id="btn-peercsv"><svg class="ico" aria-hidden="true"><use href="#i-download"/></svg> Data as CSV</button>
       </div>
       <div class="cite" id="peers-cite"></div>
     </section>
@@ -979,15 +978,14 @@
       <h2 class="action" id="money-title"></h2>
       <p class="support" id="money-support"></p>
       <div class="chartwrap">
-        <svg id="moneychart" width="100%" height="330" role="img" aria-label="Spending breakdown"></svg>
-        <div class="tooltip" id="moneytip"></div>
+        <svg id="moneychart" width="100%" height="330" role="img" aria-label="Spending breakdown"></svg> <div class="tooltip" id="moneytip"></div>
       </div>
       <details class="tbl"><summary>Show the numbers behind this chart</summary>
         <div style="overflow-x:auto"><table id="moneytable"></table></div>
       </details>
       <div class="exports">
-        <button class="quiet" data-png="moneychart">⬇ Chart as image</button>
-        <button class="quiet" id="btn-moneycsv">⬇ Data as CSV</button>
+        <button class="quiet" data-png="moneychart"><svg class="ico" aria-hidden="true"><use href="#i-download"/></svg> Chart as image</button>
+        <button class="quiet" id="btn-moneycsv"><svg class="ico" aria-hidden="true"><use href="#i-download"/></svg> Data as CSV</button>
       </div>
       <div class="cite" id="money-cite"></div>
     </section>
@@ -1000,8 +998,7 @@
         which department spent it. Schools are people-intensive, so payroll dominates almost everywhere;
         the interesting signal is how much goes to outside <em>contracted services</em> instead.</p>
       <div class="chartwrap">
-        <svg id="objchart" width="100%" height="150" role="img" aria-label="Spending by object"></svg>
-        <div class="tooltip" id="objtip"></div>
+        <svg id="objchart" width="100%" height="150" role="img" aria-label="Spending by object"></svg> <div class="tooltip" id="objtip"></div>
       </div>
       <div class="cite" id="object-cite"></div>
     </section>
@@ -1014,8 +1011,7 @@
         teacher's salary is both "payroll" and "special education") — this view answers "how much reaches
         each population," not a separate pot of money. Blank = the district reported none separately.</p>
       <div class="chartwrap">
-        <svg id="progchart" width="100%" height="230" role="img" aria-label="Spending by program"></svg>
-        <div class="tooltip" id="progtip"></div>
+        <svg id="progchart" width="100%" height="230" role="img" aria-label="Spending by program"></svg> <div class="tooltip" id="progtip"></div>
       </div>
       <div class="cite" id="program-cite"></div>
     </section>
@@ -1082,14 +1078,14 @@
     <p class="support">This guide is meant to be quoted in board meetings, news stories, and policy work —
       so nothing is a black box. Here is exactly where the numbers come from and how they're calculated.</p>
     <details class="tbl" open>
-      <summary style="font-size:.9rem;color:var(--ink)">Where the data comes from</summary>
+      <summary style="font-size:var(--fs-base);color:var(--ink)">Where the data comes from</summary>
       <p class="support" style="margin-top:.5rem">Every figure originates in the Texas Education Agency's
         <a href="https://tea.texas.gov/finance-and-grants/state-funding/state-funding-reports-and-data/peims-financial-data-downloads" target="_blank" rel="noopener">Summarized PEIMS Actual Financial Data</a>
         — the state's official roll-up of each district's audited annual financial report, fiscal years
         2009–2025. We load it unchanged; we do not estimate, model, or adjust any dollar figure.</p>
     </details>
     <details class="tbl">
-      <summary style="font-size:.9rem;color:var(--ink)">How each number is calculated</summary>
+      <summary style="font-size:var(--fs-base);color:var(--ink)">How each number is calculated</summary>
       <div class="support" style="margin-top:.5rem">
         <p><strong>Per student</strong> = the dollar total ÷ fall survey enrollment. Very small districts can
           show extreme per-student values — that's arithmetic, not scandal.</p>
@@ -1113,7 +1109,7 @@
       </div>
     </details>
     <details class="tbl">
-      <summary style="font-size:.9rem;color:var(--ink)">Known limits — read before citing</summary>
+      <summary style="font-size:var(--fs-base);color:var(--ink)">Known limits — read before citing</summary>
       <div class="support" style="margin-top:.5rem">
         <p>• The data cannot isolate specific purchases such as HVAC systems or total technology spending;
           the state's summary reports don't break out that detail.</p>
@@ -1124,7 +1120,7 @@
       </div>
     </details>
     <details class="tbl">
-      <summary style="font-size:.9rem;color:var(--ink)">How to cite this guide</summary>
+      <summary style="font-size:var(--fs-base);color:var(--ink)">How to cite this guide</summary>
       <div class="answer" style="display:block;margin-top:.5rem" id="citation-text"></div>
       <div class="exports"><button class="quiet" id="btn-cite">Copy citation</button></div>
     </details>
@@ -1190,7 +1186,7 @@
   <div class="row" style="justify-content:space-between;align-items:center">
     <button class="quiet" id="tour-skip">Skip</button>
     <span class="cite" id="tour-step"></span>
-    <button class="primary" id="tour-next">Next →</button>
+    <button class="primary" id="tour-next">Next <svg class="ico" aria-hidden="true"><use href="#i-arrow-right"/></svg></button>
   </div>
 </div>
 <div class="sheet modal" id="disc-modal">
@@ -1382,7 +1378,7 @@ function guideHTML(k) {
     `<div class="gcodes">${p.codes}</div>` +
     (cmp.length ? `<div class="gstake">For comparison, ${cmp.join('; ')}. ${stake}</div>`
                 : (stake ? `<div class="gstake">${stake}</div>` : '')) +
-    `<div class="ghint">${trend}${state.dollarPin === k ? 'Open below ↓' : 'Click for the full detail ↓'}</div>`;
+    `<div class="ghint">${trend}${state.dollarPin === k ? 'Open below <svg class="ico" aria-hidden="true"><use href="#i-arrow-down"/></svg>' : 'Click for the full detail <svg class="ico" aria-hidden="true"><use href="#i-arrow-down"/></svg>'}</div>`;
 }
 
 /* ---- atom: the pinned category, all the way down ---- */
@@ -1465,7 +1461,7 @@ function renderAtom() {
     sparkSVG(hist, p.peer_cents, p.color) +
     (trend ? `<p>${trend}</p>` : '') +
     `<p><strong>Question worth asking:</strong> ${DOLLAR_QUESTIONS[p.key] || ''}</p>` +
-    `<button class="closebtn" type="button" id="atom-close">✕ Close this category</button>`;
+    `<button class="closebtn" type="button" id="atom-close"><svg class="ico" aria-hidden="true"><use href="#i-close"/></svg> Close this category</button>`;
   $('atom-close').onclick = () => pinCat(state.dollarPin);
 }
 
@@ -1623,7 +1619,7 @@ function renderOutcomes() {
     `<div class="bars">` + Object.entries(L).sort((a, b) => b[1] - a[1]).map(([k, v]) =>
       `<div class="lrow ${v < 1 ? 'dim' : ''}"><span>${names[k] || k}</span>` +
       `<i style="width:${Math.max(1.5, 100 * v / top)}%"></i><b>${v}%</b></div>`).join('') +
-    `</div><p style="margin:.6rem 0 0;font-size:.8rem;color:var(--muted)">These are associations across ` +
+    `</div><p style="margin:.6rem 0 0;font-size:var(--fs-xs);color:var(--muted)">These are associations across ` +
     `districts, not proof of cause. They say where to look, not what to do. ` +
     `<a href="https://github.com/GusAI40/texas-isd-finances/blob/master/docs/WHAT_A_DOLLAR_BUYS.md" ` +
     `target="_blank" rel="noopener">Full method and limits</a>.</p>`;
@@ -1680,7 +1676,7 @@ function renderOneChild(o) {
       likely to stay than this suggests.</p>`;
 }
 
-/* ---- the zoom ladder: state → district → category ---- */
+/* ---- the zoom ladder: state <svg class="ico" aria-hidden="true"><use href="#i-arrow-right"/></svg> district <svg class="ico" aria-hidden="true"><use href="#i-arrow-right"/></svg> category ---- */
 function renderLadder() {
   const d = state.dollar;
   if (!d) return;
@@ -2016,7 +2012,7 @@ function renderKPIs() {
     if (a == null || b == null) return '';
     const p = 100 * (a - b) / b;
     const cls = p > 1 ? 'up' : p < -1 ? 'down' : 'flat';
-    return `<div class="delta ${cls}">${p > 1 ? '▲' : p < -1 ? '▼' : '◆'} ${Math.abs(p).toFixed(1)}% vs prior year</div>`;
+    return `<div class="delta ${cls}">${p > 1 ? '<svg class="ico" aria-hidden="true"><use href="#i-chevron-up"/></svg>' : p < -1 ? '<svg class="ico" aria-hidden="true"><use href="#i-chevron-down"/></svg>' : '<svg class="ico" aria-hidden="true"><use href="#i-marker"/></svg>'} ${Math.abs(p).toFixed(1)}% vs prior year</div>`;
   };
   const pctile = st.spend_percentile != null ? Number(st.spend_percentile) : null;
   const declineYears = consecutiveEnrollmentDeclines();
@@ -2774,7 +2770,7 @@ function renderTakeover() {
     chk(false, 'Did the student body change?',
         `Houston lost <b>${Math.abs(c.houston.enrolment_change_pct)}%</b> of its enrolment against ` +
         `${Math.abs(c.comparison.enrolment_change_pct)}% for the group. Its poverty share held ` +
-        `(${c.houston.poor_before}% → ${c.houston.poor_after}%), so the leavers were not mostly poor — ` +
+        `(${c.houston.poor_before}% <svg class="ico" aria-hidden="true"><use href="#i-arrow-right"/></svg> ${c.houston.poor_after}%), so the leavers were not mostly poor — ` +
         `but a composition effect cannot be ruled out.`);
 
   $('tk-limits').innerHTML = '<b>What this is not.</b> ' + t.meta.limits.join(' ');
@@ -2801,7 +2797,7 @@ function renderEconomics() {
       : 'Every dollar of your school tax stays in this district.';
     $('econ-bill').innerHTML =
       '<h4>Your school tax, on a ' + money(t.home_value) + ' home</h4>' +
-      '<div class="econ-big">' + money(t.bill_on_home) + '<span style="font-size:1rem;font-weight:400;color:var(--muted)"> / year</span></div>' +
+      '<div class="econ-big">' + money(t.bill_on_home) + '<span style="font-size:var(--fs-md);font-weight:400;color:var(--muted)"> / year</span></div>' +
       (t.leaves_district > 0
         ? '<div class="econ-split"><i style="background:' + ECON_C.teach + ';width:' +
           (keeps / t.bill_on_home * 100).toFixed(1) + '%"></i><i style="background:' + ECON_C.debt +
@@ -3183,7 +3179,7 @@ function renderBonds() {
       `<span><i style="background:${BOND_C.focus}"></i>bond defeated (${w.defeated_n}) ${arrow(w.defeated_change)}</span>` +
       `</div>` +
       `<div class="econ-big" style="color:${w.distinguishable_from_zero ? ECON_C.teach : 'var(--muted)'}">` +
-      `${arrow(w.difference)}<span style="font-size:1rem;font-weight:400;color:var(--muted)"> points</span></div>` +
+      `${arrow(w.difference)}<span style="font-size:var(--fs-md);font-weight:400;color:var(--muted)"> points</span></div>` +
       `<div class="econ-sub">` +
       (w.distinguishable_from_zero
         ? `p = ${w.p_value}. `
@@ -3236,7 +3232,7 @@ function renderInsights() {
     const goodWhenHigh = it.metric === 'Classroom instruction';
     const bad = up !== goodWhenHigh;
     const cls = bad ? '' : 'ok';
-    const arrow = up ? '▲' : '▼';
+    const arrow = up ? '<svg class="ico" aria-hidden="true"><use href="#i-chevron-up"/></svg>' : '<svg class="ico" aria-hidden="true"><use href="#i-chevron-down"/></svg>';
     const val = it.unit.includes('per student') ? fmtMoney(it.your_value) : (it.your_value * 100).toFixed(1) + '%';
     const pm = it.unit.includes('per student') ? fmtMoney(it.peer_median) : (it.peer_median * 100).toFixed(1) + '%';
     return `<div class="flagcard ${cls}">
@@ -3500,7 +3496,7 @@ function tourShow(i) {
   $('tour-title').textContent = title;
   $('tour-text').textContent = text;
   $('tour-step').textContent = (i + 1) + ' / ' + tourSteps.length;
-  $('tour-next').textContent = i === tourSteps.length - 1 ? 'Done' : 'Next →';
+  $('tour-next').innerHTML = i === tourSteps.length - 1 ? 'Done' : 'Next <svg class="ico" aria-hidden="true"><use href="#i-arrow-right"/></svg>';
   const el = $(target);
   if (el) { el.classList.add('tour-highlight'); el.scrollIntoView({ block: 'center' }); }
 }
@@ -3566,7 +3562,7 @@ function renderQuickPicks(largest) {
     `${titleCase(d.district_name).replace(/ ISD$/, '')}</button>`).join('') +
     `<button type="button" class="ghost" id="chip-random">Surprise me</button>` +
     `<button type="button" class="ghost" id="chip-map">See the map of Texas</button>` +
-    `<button type="button" class="ghost" id="chip-heatmap">🗺️ Heatmap</button>` +
+    `<button type="button" class="ghost" id="chip-heatmap"><svg class="ico" aria-hidden="true"><use href="#i-map"/></svg> Heatmap</button>` +
     (localStorage.getItem('tisd_toured') ? ''
       : `<button type="button" class="ghost" id="chip-tour">New here? 60-second tour</button>`);
   el.querySelectorAll('button[data-num]').forEach(b =>
@@ -3646,9 +3642,15 @@ $('askbtn').onclick = ask;
 $('question').addEventListener('keydown', e => { if (e.key === 'Enter') ask(); });
 $('btn-print').onclick = () => window.print();
 function applyThemeIcon() {
+  // The icon is a single contrast mark that reads correctly in either theme,
+  // so it never needs swapping — only the state and the label change. (It
+  // previously assigned markup via textContent, which printed the raw <svg>
+  // tag on screen.)
   const dark = document.documentElement.getAttribute('data-theme') === 'dark';
-  $('btn-theme').textContent = dark ? '☀️' : '🌙';
-  $('btn-theme').setAttribute('aria-pressed', dark ? 'true' : 'false');
+  const btn = $('btn-theme');
+  btn.setAttribute('aria-pressed', dark ? 'true' : 'false');
+  btn.setAttribute('title', dark ? 'Switch to light' : 'Switch to dark');
+  btn.setAttribute('aria-label', dark ? 'Switch to light theme' : 'Switch to dark theme');
 }
 $('btn-theme').onclick = () => {
   const dark = document.documentElement.getAttribute('data-theme') === 'dark';

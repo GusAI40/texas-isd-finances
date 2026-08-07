@@ -11,7 +11,8 @@ from pathlib import Path
 
 import pytest
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT))
 from scripts.check_static_js import STATIC, check_page, inline_scripts  # noqa: E402
 
 PAGES = sorted(STATIC.glob("*.html"))
@@ -97,18 +98,113 @@ def test_prototype_url_never_appears():
 
 def test_index_has_flash_free_theme_toggle():
     """Dark mode must be decided before first paint (no flash) and must be a
-    real toggle, not just a word. index.html carries the pre-paint script, the
-    button, an inverted-text variable for surfaces that sit on --ink, and a
-    dark variable block."""
+    real toggle, not just a word.
+
+    The palette moved into static/design.css when the design system was
+    introduced — one definition instead of seven drifting copies — so the
+    token half of this invariant is asserted there. The pre-paint script and
+    the button still have to live in the page itself.
+    """
     html = (STATIC / "index.html").read_text(encoding="utf-8")
-    assert "data-theme" in html and ':root[data-theme="dark"]' in html
+    css = (STATIC / "design.css").read_text(encoding="utf-8")
+    assert ':root[data-theme="dark"]' in css, "no dark palette in the design system"
+    assert "--on-ink" in css, "text on --ink surfaces needs an inverted colour, or it vanishes in dark"
     assert "tisd_theme" in html                     # persisted choice
     assert "prefers-color-scheme: dark" in html     # follows the device by default
     assert 'id="btn-theme"' in html
-    assert "--ink-invert" in html, "text on --ink surfaces needs an inverted color, or it vanishes in dark"
     # The pre-paint theme script must run in <head>, before the body renders.
     head = html.split("</head>")[0]
     assert "data-theme" in head, "theme is applied after <head>, which causes a flash"
+    # design.css must be linked in <head> too: a stylesheet loaded later would
+    # paint unstyled content first.
+    assert "design.css" in head, "the design system must load before first paint"
+
+
+DESIGN_CSS = STATIC / "design.css"
+
+
+def test_no_emoji_anywhere():
+    """82 emoji across seven pages were replaced by a drawn icon set. Emoji
+    render differently on every platform and carry colour nobody chose; on a
+    public-records site they read as unserious. Keep it at zero."""
+    import subprocess
+    r = subprocess.run(
+        [sys.executable, str(ROOT / "scripts" / "design_audit.py"), "--emoji"],
+        capture_output=True, text=True)
+    assert r.returncode == 0, f"emoji have come back:\n{r.stdout}"
+
+
+def test_design_tokens_pass_wcag_aa():
+    """Every foreground/background pair the system uses must clear AA in BOTH
+    themes. A palette that has not been measured is a guess."""
+    import subprocess
+    r = subprocess.run(
+        [sys.executable, str(ROOT / "scripts" / "contrast_check.py")],
+        capture_output=True, text=True)
+    assert r.returncode == 0, f"contrast failures:\n{r.stdout}"
+
+
+@pytest.mark.parametrize("page", PAGES, ids=lambda p: p.name)
+def test_every_page_links_the_design_system(page):
+    assert "design.css" in page.read_text(encoding="utf-8"), (
+        f"{page.name} does not load the design system, so it will drift"
+    )
+
+
+@pytest.mark.parametrize("page", PAGES, ids=lambda p: p.name)
+def test_pages_do_not_redefine_tokens(page):
+    """Seven copies of the palette is what produced three different greens all
+    called --good. Tokens belong to design.css alone."""
+    import re
+    html = page.read_text(encoding="utf-8")
+    blocks = re.findall(r":root[^{]*\{([^{}]*)\}", html)
+    offenders = [b for b in blocks if "--" in b]
+    assert not offenders, (
+        f"{page.name} redefines design tokens locally; move them to design.css"
+    )
+
+
+def test_type_scale_is_bounded():
+    """The pages carried 45 distinct font sizes, fifteen of them between .78
+    and .95rem — differences no reader could see but every maintainer had to
+    guess at. Literal sizes are allowed only where the scale genuinely cannot
+    express it (fluid clamp() hero type)."""
+    import re
+    literals = set()
+    for page in PAGES:
+        for value in re.findall(r"font-size:\s*([^;}\n]+)", page.read_text(encoding="utf-8")):
+            v = value.strip()
+            if v.startswith("var(") or v.startswith("clamp(") or v.startswith("inherit"):
+                continue
+            literals.add(v)
+    assert len(literals) <= 6, (
+        f"{len(literals)} hard-coded font sizes outside the scale: {sorted(literals)}"
+    )
+
+
+@pytest.mark.parametrize("page", PAGES, ids=lambda p: p.name)
+def test_icon_markup_is_never_assigned_via_textcontent(page):
+    """textContent cannot render markup — it prints the raw <svg ...> tag on
+    screen. Three of these shipped and were invisible until a specific state
+    fired (a geolocation callback, the tour's last step), so grep for the
+    pattern rather than trusting a screenshot to catch it."""
+    import re
+    html = page.read_text(encoding="utf-8")
+    bad = re.findall(r"(?:textContent|innerText)\s*=[^;\n]*<svg", html)
+    assert not bad, (
+        f"{page.name} assigns icon markup via textContent; use innerHTML: {bad[:2]}"
+    )
+
+
+def test_icon_sprite_is_present_and_monochrome():
+    """Icons must inherit currentColor, or they cannot work in both themes."""
+    css = DESIGN_CSS.read_text(encoding="utf-8")
+    assert ".ico" in css and "currentColor" in css
+    sprite = (STATIC / "_icons.svg").read_text(encoding="utf-8")
+    assert sprite.count("<symbol") >= 20, "icon set is too small to replace the emoji"
+    # No hard-coded colours in the sprite: every mark takes its colour from context.
+    import re
+    assert not re.search(r'(fill|stroke)="#', sprite), "icons must not hard-code colour"
 
 
 def test_chart_png_export_serializes_a_clone_and_reports_failure():

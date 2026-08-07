@@ -14,18 +14,14 @@
   } catch (e) {}
 </script>
 <title>Texas ISD Similarity Map</title>
+<!-- design-system:start -->
+<link rel="stylesheet" href="/static/design.css">
+<!-- design-system:end -->
 <style>
-  :root { --ink:#1a1a1a; --ink-2:#55534e; --muted:#8b897f; --hairline:#e9e8e3;
-          --wash:#f7f7f5; --blue:#2a78d6; --edge:#c9d8ef; --flag:#d9534f;
-          --bg:#fff; --card:#fff; }
-  /* Dark theme for the page chrome. The seating-chart plate stays light on
+/* Dark theme for the page chrome. The seating-chart plate stays light on
      purpose — the canvas paints its own #fff ground and the dot ramp is tuned
      for it; a dark plate would swallow the pale, low-spending districts. */
-  :root[data-theme="dark"] {
-    --ink:#e9e9ec; --ink-2:#b6b6be; --muted:#8c8c96; --hairline:#2c2e39;
-    --wash:#1c1e26; --blue:#5a9be0; --edge:#c9d8ef; --flag:#e0736c;
-    --bg:#14151a; --card:#1c1e26; }
-  * { box-sizing: border-box; }
+* { box-sizing: border-box; }
   body { margin:0; background:var(--bg); color:var(--ink);
          font-family: system-ui,-apple-system,"Segoe UI",sans-serif; line-height:1.5; }
   /* The canvas cannot be tabbed into, so a keyboard user's route to the data
@@ -33,7 +29,7 @@
      focused; never display:none, which would drop it from the tab order. */
   .skiplink { position:absolute; left:-9999px; top:0; z-index:100;
               background:var(--card); color:var(--ink); padding:.6rem 1rem;
-              border:1px solid var(--ink); border-radius:4px; font-size:.9rem; }
+              border:1px solid var(--ink); border-radius:var(--r-sm); font-size:var(--fs-base); }
   .skiplink:focus { left:.5rem; top:.5rem; }
   @media (prefers-reduced-motion: reduce) {
     * { animation-duration:.01ms !important; animation-iteration-count:1 !important;
@@ -43,58 +39,58 @@
   header { display:flex; flex-wrap:wrap; gap:.75rem; align-items:baseline;
            justify-content:space-between; padding:1.4rem 0 .3rem; }
   .brand { font-weight:700; }
-  .brand a { color:var(--ink-2); font-weight:400; font-size:.85rem; margin-left:.6rem; text-decoration:none; }
+  .brand a { color:var(--ink-2); font-weight:400; font-size:var(--fs-sm); margin-left:.6rem; text-decoration:none; }
   .brand a:hover { color:var(--blue); }
-  .btn-theme { background:none; border:1px solid var(--hairline); color:var(--ink-2); border-radius:6px;
-          font:inherit; font-size:.8rem; padding:.15rem .5rem; margin-left:.6rem; cursor:pointer; }
+  .btn-theme { background:none; border:1px solid var(--hairline); color:var(--ink-2); border-radius:var(--r-md);
+          font:inherit; font-size:var(--fs-xs); padding:.15rem .5rem; margin-left:.6rem; cursor:pointer; }
   .btn-theme:hover { background:var(--wash); }
-  .eyebrow { font-size:.72rem; letter-spacing:.14em; text-transform:uppercase;
+  .eyebrow { font-size:var(--fs-micro); letter-spacing:.14em; text-transform:uppercase;
              color:var(--muted); font-weight:600; margin:.8rem 0 .3rem; }
-  h1 { font-size:1.3rem; margin:0 0 .3rem; letter-spacing:-.015em; }
-  .support { color:var(--ink-2); font-size:.9rem; max-width:46rem; margin:0 0 .8rem; }
+  h1 { font-size:var(--fs-lg); margin:0 0 .3rem; letter-spacing:-.015em; }
+  .support { color:var(--ink-2); font-size:var(--fs-base); max-width:46rem; margin:0 0 .8rem; }
   .toolbar { display:flex; gap:.5rem; flex-wrap:wrap; align-items:center; margin-bottom:.5rem; }
   input[type=search] { padding:.45rem .7rem; font:inherit; border:1px solid var(--hairline);
-          border-radius:8px; min-width:220px; background:var(--card); color:var(--ink); }
-  .chip { font:inherit; font-size:.82rem; padding:.4rem .8rem; border-radius:99px; cursor:pointer;
+          border-radius:var(--r-md); min-width:220px; background:var(--card); color:var(--ink); }
+  .chip { font:inherit; font-size:var(--fs-xs); padding:.4rem .8rem; border-radius:var(--r-pill); cursor:pointer;
           border:1px solid var(--hairline); background:var(--card); color:var(--ink-2); }
   .chip[aria-pressed=true] { background:var(--ink); color:var(--card); border-color:var(--ink); }
   .stage { display:grid; grid-template-columns: 1fr 260px; gap:1rem; align-items:start; }
   @media (max-width: 760px){ .stage { grid-template-columns:1fr; } }
-  .mapwrap { position:relative; border:1px solid var(--hairline); border-radius:12px; overflow:hidden;
-             background:#fff; }
+  .mapwrap { position:relative; border:1px solid var(--hairline); border-radius:var(--r-lg); overflow:hidden;
+             background:var(--surface); }
   canvas { display:block; width:100%; height:auto; cursor:grab; touch-action:none; }
   canvas.grabbing { cursor:grabbing; }
   .tooltip { position:absolute; pointer-events:none; background:var(--ink); color:var(--card);
-             border-radius:6px; padding:.35rem .65rem; font-size:.8rem; display:none;
+             border-radius:var(--r-md); padding:.35rem .65rem; font-size:var(--fs-xs); display:none;
              white-space:nowrap; z-index:6; box-shadow:0 2px 10px rgba(0,0,0,.25); }
-  .panel { border:1px solid var(--hairline); border-radius:12px; padding:1rem 1.1rem; font-size:.88rem; }
-  .panel h3 { margin:0 0 .1rem; font-size:1rem; }
-  .panel .sub { color:var(--muted); font-size:.8rem; margin-bottom:.6rem; }
+  .panel { border:1px solid var(--hairline); border-radius:var(--r-lg); padding:1rem 1.1rem; font-size:var(--fs-sm); }
+  .panel h3 { margin:0 0 .1rem; font-size:var(--fs-md); }
+  .panel .sub { color:var(--muted); font-size:var(--fs-xs); margin-bottom:.6rem; }
   .panel .kv { display:flex; justify-content:space-between; padding:.2rem 0; border-bottom:1px solid var(--hairline); }
   .panel .kv b { font-variant-numeric:tabular-nums; }
   .panel .nbrs { margin:.6rem 0 0; }
   .panel .nbrs button { display:block; width:100%; text-align:left; background:none; border:none;
-          font:inherit; font-size:.85rem; color:var(--blue); padding:.22rem .1rem; cursor:pointer; border-radius:5px; }
+          font:inherit; font-size:var(--fs-sm); color:var(--blue); padding:.22rem .1rem; cursor:pointer; border-radius:var(--r-sm); }
   .panel .nbrs button:hover { background:var(--wash); }
-  .panel .open { margin-top:.7rem; width:100%; padding:.5rem; border-radius:8px; border:1px solid var(--ink);
+  .panel .open { margin-top:.7rem; width:100%; padding:.5rem; border-radius:var(--r-md); border:1px solid var(--ink);
           background:var(--ink); color:var(--card); font:inherit; cursor:pointer; }
   .panel .empty { color:var(--muted); }
-  .legend { display:flex; gap:1.4rem; align-items:center; font-size:.8rem;
+  .legend { display:flex; gap:1.4rem; align-items:center; font-size:var(--fs-xs);
             color:var(--ink-2); margin-top:.6rem; flex-wrap:wrap; }
   .swatch { display:inline-flex; gap:3px; vertical-align:middle; margin-right:.35rem; }
-  .swatch i { width:16px; height:10px; border-radius:2px; display:inline-block; }
+  .swatch i { width:16px; height:10px; border-radius:var(--r-sm); display:inline-block; }
   .dotflag { display:inline-block; width:10px; height:10px; border-radius:50%; border:2px solid var(--flag); vertical-align:middle; margin-right:.3rem; }
-  .cite { font-size:.76rem; color:var(--muted); margin-top:.8rem; max-width:48rem; }
+  .cite { font-size:var(--fs-micro); color:var(--muted); margin-top:.8rem; max-width:48rem; }
   .cite a { color:var(--ink-2); }
   .explainer { max-width:44rem; margin:0 0 1rem; }
-  .explainer p { font-size:.94rem; color:var(--ink-2); margin:0 0 .55rem; }
-  .explainer .tryit { color:var(--ink); background:var(--wash); border-radius:8px; padding:.6rem .85rem; margin-top:.7rem; }
+  .explainer p { font-size:var(--fs-base); color:var(--ink-2); margin:0 0 .55rem; }
+  .explainer .tryit { color:var(--ink); background:var(--wash); border-radius:var(--r-md); padding:.6rem .85rem; margin-top:.7rem; }
   .a11y { margin:.9rem 0 0; }
-  .a11y summary { cursor:pointer; font-size:.85rem; color:var(--ink-2); padding:.35rem 0; }
+  .a11y summary { cursor:pointer; font-size:var(--fs-sm); color:var(--ink-2); padding:.35rem 0; }
   .a11y summary:focus-visible { outline:2px solid var(--blue); outline-offset:3px; }
-  .a11y-scroll { max-height:22rem; overflow:auto; border:1px solid var(--hairline); border-radius:10px; }
-  .a11y table { border-collapse:collapse; width:100%; font-size:.82rem; }
-  .a11y caption { text-align:left; padding:.5rem .7rem; color:var(--muted); font-size:.78rem; }
+  .a11y-scroll { max-height:22rem; overflow:auto; border:1px solid var(--hairline); border-radius:var(--r-lg); }
+  .a11y table { border-collapse:collapse; width:100%; font-size:var(--fs-xs); }
+  .a11y caption { text-align:left; padding:.5rem .7rem; color:var(--muted); font-size:var(--fs-xs); }
   .a11y th, .a11y td { text-align:right; padding:.3rem .6rem; border-bottom:1px solid var(--hairline);
                        font-variant-numeric:tabular-nums; white-space:nowrap; }
   .a11y th:first-child, .a11y td:first-child { text-align:left; }
@@ -103,17 +99,59 @@
   .mobonly { display:none; }
   @media (max-width:760px){ .mobonly { display:inline; } }
   .readout {
-    background:var(--wash); border-radius:10px; padding:.85rem 1.05rem; margin:.7rem 0 0;
-    font-size:.95rem; max-width:44rem; display:none;
+    background:var(--wash); border-radius:var(--r-lg); padding:.85rem 1.05rem; margin:.7rem 0 0;
+    font-size:var(--fs-base); max-width:44rem; display:none;
   }
   .readout b { color:var(--ink); }
 </style>
 </head>
 <body>
+<!-- icon-sprite:start -->
+<svg class="icon-sprite" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg"><defs>
+
+  <!-- navigation and controls -->
+  <symbol id="i-search" viewBox="0 0 16 16"><circle cx="7" cy="7" r="4.25"/><path d="M10.2 10.2 14 14"/></symbol>
+  <symbol id="i-pin" viewBox="0 0 16 16"><path d="M8 14.5s5-4.6 5-8a5 5 0 1 0-10 0c0 3.4 5 8 5 8Z"/><circle cx="8" cy="6.5" r="1.9"/></symbol>
+  <symbol id="i-map" viewBox="0 0 16 16"><path d="M1.75 4 6 2.25l4 1.75 4.25-1.75v9.5L10 13.75l-4-1.75-4.25 1.75V4Z"/><path d="M6 2.25v9.75M10 4v9.75"/></symbol>
+  <symbol id="i-grid" viewBox="0 0 16 16"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></symbol>
+  <symbol id="i-layers" viewBox="0 0 16 16"><path d="M8 1.75 14.25 5 8 8.25 1.75 5 8 1.75Z"/><path d="m1.75 8.5 6.25 3.25 6.25-3.25"/><path d="m1.75 11.5 6.25 3.25 6.25-3.25"/></symbol>
+  <symbol id="i-activity" viewBox="0 0 16 16"><path d="M1.5 8.5h3l2-5 3 10 2-5h3"/></symbol>
+  <symbol id="i-book" viewBox="0 0 16 16"><path d="M2.5 2.75h4A2 2 0 0 1 8 4.5v9a1.7 1.7 0 0 0-1.4-1H2.5Z"/><path d="M13.5 2.75h-4A2 2 0 0 0 8 4.5v9a1.7 1.7 0 0 1 1.4-1h4.1Z"/></symbol>
+  <symbol id="i-play" viewBox="0 0 16 16"><path d="M5.25 3.4v9.2l7-4.6-7-4.6Z"/></symbol>
+  <symbol id="i-print" viewBox="0 0 16 16"><path d="M4.5 6V2.5h7V6"/><path d="M4.5 11.5h-2v-4a1 1 0 0 1 1-1h9a1 1 0 0 1 1 1v4h-2"/><rect x="4.5" y="9.5" width="7" height="4"/></symbol>
+  <symbol id="i-contrast" viewBox="0 0 16 16"><circle cx="8" cy="8" r="5.75"/><path d="M8 2.25a5.75 5.75 0 0 1 0 11.5Z" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-close" viewBox="0 0 16 16"><path d="m4 4 8 8M12 4l-8 8"/></symbol>
+  <symbol id="i-download" viewBox="0 0 16 16"><path d="M8 2.5v7.5"/><path d="m4.75 7 3.25 3.25L11.25 7"/><path d="M2.75 13h10.5"/></symbol>
+  <symbol id="i-external" viewBox="0 0 16 16"><path d="M9 2.75h4.25V7"/><path d="M13.25 2.75 7.5 8.5"/><path d="M12 9.75v2.5a1 1 0 0 1-1 1H3.75a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h2.5"/></symbol>
+
+  <!-- direction -->
+  <symbol id="i-arrow-right" viewBox="0 0 16 16"><path d="M2.75 8h10.5"/><path d="M9.5 4.25 13.25 8 9.5 11.75"/></symbol>
+  <symbol id="i-arrow-left" viewBox="0 0 16 16"><path d="M13.25 8H2.75"/><path d="M6.5 4.25 2.75 8l3.75 3.75"/></symbol>
+  <symbol id="i-arrow-down" viewBox="0 0 16 16"><path d="M8 2.75v10.5"/><path d="M4.25 9.5 8 13.25 11.75 9.5"/></symbol>
+  <symbol id="i-chevron-down" viewBox="0 0 16 16"><path d="m4 6 4 4 4-4"/></symbol>
+  <symbol id="i-chevron-up" viewBox="0 0 16 16"><path d="m4 10 4-4 4 4"/></symbol>
+  <symbol id="i-chevron-right" viewBox="0 0 16 16"><path d="m6 4 4 4-4 4"/></symbol>
+  <symbol id="i-trend-up" viewBox="0 0 16 16"><path d="M1.75 11.5 6 7.25l2.5 2.5 5.75-5.75"/><path d="M10.25 4h4v4"/></symbol>
+  <symbol id="i-trend-down" viewBox="0 0 16 16"><path d="M1.75 4.5 6 8.75l2.5-2.5 5.75 5.75"/><path d="M10.25 12h4V8"/></symbol>
+
+  <!-- editorial beats: one mark per category on the feed -->
+  <symbol id="i-institution" viewBox="0 0 16 16"><path d="M2 6.25 8 2.5l6 3.75"/><path d="M3.5 6.75v5.5M6.5 6.75v5.5M9.5 6.75v5.5M12.5 6.75v5.5"/><path d="M2 13.25h12"/></symbol>
+  <symbol id="i-exit" viewBox="0 0 16 16"><path d="M9.5 2.75H4a1 1 0 0 0-1 1v8.5a1 1 0 0 0 1 1h5.5"/><path d="M7 8h6.25"/><path d="M11 5.5 13.5 8 11 10.5"/></symbol>
+  <symbol id="i-money" viewBox="0 0 16 16"><rect x="1.75" y="4" width="12.5" height="8" rx="1.25"/><circle cx="8" cy="8" r="1.9"/><path d="M4.25 8h.01M11.75 8h.01"/></symbol>
+  <symbol id="i-chart" viewBox="0 0 16 16"><path d="M2.25 13.25h11.5"/><path d="M4.5 13V8.5M8 13V3.5M11.5 13V6.5"/></symbol>
+  <symbol id="i-scale" viewBox="0 0 16 16"><path d="M8 2.75v10.5"/><path d="M4.5 13.25h7"/><path d="M3 5.5h10"/><path d="M3 5.5 1.25 9.5h3.5L3 5.5Z"/><path d="M13 5.5 11.25 9.5h3.5L13 5.5Z"/></symbol>
+  <symbol id="i-people" viewBox="0 0 16 16"><circle cx="6" cy="5.5" r="2.25"/><path d="M1.75 13.25c0-2.2 1.9-3.75 4.25-3.75s4.25 1.55 4.25 3.75"/><path d="M11 4.1a2.25 2.25 0 0 1 0 4.3"/><path d="M11.75 9.9c1.5.45 2.5 1.6 2.5 3.35"/></symbol>
+  <symbol id="i-build" viewBox="0 0 16 16"><path d="M2.5 13.25h11"/><path d="M4.25 13.25V6.5h4.5v6.75"/><path d="M8.75 13.25V3.5h3v9.75"/><path d="M5.75 8.75h1.5M5.75 11h1.5"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 16 16"><path d="M8 2.5 14.5 13.5h-13L8 2.5Z"/><path d="M8 6.75v3"/><path d="M8 11.75h.01"/></symbol>
+  <symbol id="i-ballot" viewBox="0 0 16 16"><rect x="2" y="7" width="12" height="6.5" rx="1"/><path d="M5 7V3.5h6V7"/><path d="m6.25 5 1.25 1.25L10 3.75"/></symbol>
+  <symbol id="i-marker" viewBox="0 0 16 16"><circle cx="8" cy="8" r="2.5" fill="currentColor" stroke="none"/><circle cx="8" cy="8" r="5.5"/></symbol>
+
+</defs></svg>
+<!-- icon-sprite:end -->
 <a class="skiplink" href="#a11y-table">Skip to the district table</a>
 <div class="shell">
   <header>
-    <div class="brand">Texas ISD Finances<a href="/">← dashboard</a><a href="/geomap">map of Texas</a><button class="btn-theme" id="btnTheme" type="button" aria-label="Toggle dark mode">◐ Theme</button></div>
+    <div class="brand">Texas ISD Finances<a href="/"><svg class="ico" aria-hidden="true"><use href="#i-arrow-left"/></svg> dashboard</a><a href="/geomap">map of Texas</a><button class="btn-theme" id="btnTheme" type="button" aria-label="Toggle dark mode"><svg class="ico" aria-hidden="true"><use href="#i-contrast"/></svg> Theme</button></div>
     <div class="toolbar">
       <input type="search" id="find" placeholder="Type your district, press Enter…" aria-label="Find your district" autocomplete="off">
       <button class="chip" id="mode-spend" aria-pressed="true" title="Color dots by spending per student">Color: spending</button>
@@ -155,7 +193,7 @@
         <div class="kv"><span>Spend / student</span><b id="p-spend"></b></div>
         <div class="kv"><span>Recent flag</span><b id="p-flag"></b></div>
         <div class="nbrs"><div class="eyebrow" style="margin:.6rem 0 .2rem">Nearest peers</div><div id="p-nbrs"></div></div>
-        <button class="open" id="p-open">Open full dashboard →</button>
+        <button class="open" id="p-open">Open full dashboard <svg class="ico" aria-hidden="true"><use href="#i-arrow-right"/></svg></button>
       </div>
     </aside>
   </div>
@@ -182,7 +220,7 @@
     (<code>scripts/build_similarity_graph.py</code>). Source: TEA Summarized PEIMS Actual Financial Data.
     Independent transparency tool, not an official TEA product. <a href="/docs">API</a> · <a href="/">dashboard</a>.</p>
 
-  <footer style="color:var(--muted);font-size:.8rem;padding:1.2rem 0 2.5rem;max-width:46rem">
+  <footer style="color:var(--muted);font-size:var(--fs-xs);padding:1.2rem 0 2.5rem;max-width:46rem">
     <p style="margin:0 0 .8rem"><strong>AI disclosure:</strong> This portal uses artificial intelligence.
       Groupings, headlines, plain-English summaries, and peer comparisons are generated automatically by
       algorithms and AI language models. <strong>AI can be wrong.</strong> Verify any figure that matters
@@ -220,7 +258,7 @@ function resize() {
   draw();
 }
 function project(n) {
-  // data → screen (with view transform), accounting for dpr
+  // data <svg class="ico" aria-hidden="true"><use href="#i-arrow-right"/></svg> screen (with view transform), accounting for dpr
   const W = cv.width, H = cv.height, pad = 46 * dpr;
   const bx = (v) => pad + (W - 2*pad) * (v - bounds.x0) / (bounds.x1 - bounds.x0);
   const by = (v) => H - pad - (H - 2*pad) * (v - bounds.y0) / (bounds.y1 - bounds.y0);
@@ -249,11 +287,11 @@ function draw() {
 
   // PLAIN-ENGLISH axis labels drawn right on the map (landmarks, not jargon)
   ctx.fillStyle = '#a8a69d'; ctx.font = `600 ${12*dpr}px system-ui,sans-serif`;
-  ctx.textAlign = 'left';   ctx.fillText('← smaller districts', 12*dpr, H - 12*dpr);
-  ctx.textAlign = 'right';  ctx.fillText('bigger districts →', W - 12*dpr, H - 12*dpr);
+  ctx.textAlign = 'left';   ctx.fillText('<svg class="ico" aria-hidden="true"><use href="#i-arrow-left"/></svg> smaller districts', 12*dpr, H - 12*dpr);
+  ctx.textAlign = 'right';  ctx.fillText('bigger districts <svg class="ico" aria-hidden="true"><use href="#i-arrow-right"/></svg>', W - 12*dpr, H - 12*dpr);
   ctx.save();
   ctx.translate(14*dpr, H/2); ctx.rotate(-Math.PI/2); ctx.textAlign = 'center';
-  ctx.fillText('shrinking  ←→  growing', 0, 0);
+  ctx.fillText('shrinking  <svg class="ico" aria-hidden="true"><use href="#i-arrow-left"/></svg><svg class="ico" aria-hidden="true"><use href="#i-arrow-right"/></svg> growing', 0, 0);
   ctx.restore();
   ctx.textAlign = 'left';
 
@@ -475,7 +513,7 @@ function showPanel(n) {
     (n.s ? ` and spends <b>$${n.s.toLocaleString()} per student</b> — ${cmp}.` : '.') +
     (nb.length ? ` Its closest matches: <b>${nb.slice(0,3).map(m=>m.n).join(', ')}</b>.` : '') +
     (n.f ? ` Its numbers moved unusually in the last two years — worth a look.` : '') +
-    ` <a href="/" onclick="localStorage.setItem('tisd_district',JSON.stringify({num:'${n.d}',name:${JSON.stringify(n.n)}}))">See its full story →</a>`;
+    ` <a href="/" onclick="localStorage.setItem('tisd_district',JSON.stringify({num:'${n.d}',name:${JSON.stringify(n.n)}}))">See its full story <svg class="ico" aria-hidden="true"><use href="#i-arrow-right"/></svg></a>`;
   history.replaceState(null,'', '?d='+n.d);
 }
 function hidePanel() {
@@ -568,7 +606,10 @@ fetch('/map-data').then(r=>r.json()).then(d => {
   document.getElementById('ax').textContent = meta.x_label;
   document.getElementById('ay').textContent = meta.y_label;
   document.getElementById('var').textContent = Math.round((meta.pc_variance[0]+meta.pc_variance[1])*100)+'%';
-  document.getElementById('ramp-vals').textContent = `($${q(.2).toLocaleString()} → $${q(.8).toLocaleString()})`;
+  // An en dash, not an arrow icon: this is a numeric range, and textContent
+  // cannot render markup (it printed the raw <svg> tag before).
+  document.getElementById('ramp-vals').textContent =
+    `($${q(.2).toLocaleString()}–$${q(.8).toLocaleString()})`;
   document.getElementById('legend-arche').innerHTML = meta.archetypes.map(a =>
     `<span><span class="dotarche" style="display:inline-block;width:11px;height:11px;border-radius:50%;background:${a.color};vertical-align:middle;margin-right:.35rem"></span>${a.name} <span style="color:var(--muted)">(${a.count})</span></span>`
   ).join('');

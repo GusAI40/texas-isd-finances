@@ -1389,6 +1389,26 @@ async def get_houston_takeover():
     return data
 
 
+@app.get("/static/design.css", include_in_schema=False)
+async def design_stylesheet():
+    """The shared design system, linked by every page.
+
+    Served explicitly rather than by mounting the whole static/ directory:
+    that directory also holds the committed data artefacts (district_geo.json,
+    outcomes_data.json and friends), and a blanket mount would expose the lot
+    at guessable URLs. One asset, one route.
+
+    Long cache with revalidation — the file is small and changes rarely, but a
+    stale palette would be visible on every page, so it must not be cached
+    immutably.
+    """
+    css = STATIC_DIR / "design.css"
+    if not css.exists():
+        raise HTTPException(status_code=404, detail="Stylesheet not found")
+    return FileResponse(css, media_type="text/css",
+                        headers={"Cache-Control": "public, max-age=3600, must-revalidate"})
+
+
 @app.get("/robots.txt", include_in_schema=False)
 async def robots():
     """Let search engines in, and point them at the district index."""

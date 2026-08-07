@@ -20,37 +20,35 @@
 <meta property="og:title" content="Why this exists — Texas ISD Financial Resource Guide">
 <meta property="og:description" content="Public schools are the biggest thing your Texas taxes pay for. This is a free, independent, plain-English window into where that money goes — built from the state's own records.">
 <title>Why this exists — Texas ISD Financial Resource Guide</title>
+<!-- design-system:start -->
+<link rel="stylesheet" href="/static/design.css">
+<!-- design-system:end -->
 <style>
-  :root { --ink:#1a1a1a; --ink-2:#55534e; --muted:#8b897f; --hair:#e9e8e3;
-          --wash:#f7f7f5; --blue:#2a78d6; --bg:#fff; --card:#fff; --good:#0a7a34; }
-  :root[data-theme="dark"] {
-    --ink:#e9e9ec; --ink-2:#b6b6be; --muted:#8c8c96; --hair:#2c2e39;
-    --wash:#1c1e26; --blue:#5a9be0; --bg:#14151a; --card:#1c1e26; --good:#5bbd6b; }
-  * { box-sizing:border-box; }
+* { box-sizing:border-box; }
   body { margin:0; background:var(--bg); color:var(--ink); line-height:1.6;
          font-family:system-ui,-apple-system,"Segoe UI",sans-serif; }
   .skiplink { position:absolute; left:-9999px; top:0; z-index:100; background:var(--card);
-              color:var(--ink); padding:.6rem 1rem; border:1px solid var(--ink); border-radius:4px; }
+              color:var(--ink); padding:.6rem 1rem; border:1px solid var(--ink); border-radius:var(--r-sm); }
   .skiplink:focus { left:.5rem; top:.5rem; }
   @media (prefers-reduced-motion: reduce){ *{animation:none!important;transition:none!important} }
   .shell { max-width:760px; margin:0 auto; padding:0 1.25rem 4rem; }
   header { padding:1.4rem 0 .3rem; display:flex; align-items:baseline; flex-wrap:wrap; gap:.3rem 0; }
   .brand { font-weight:800; letter-spacing:-.02em; }
-  .brand a { color:var(--blue); text-decoration:none; font-weight:400; font-size:.86rem; margin-left:.7rem; }
-  .btn-theme { background:none; border:1px solid var(--hair); color:var(--ink-2); border-radius:6px;
-          font:inherit; font-size:.8rem; padding:.15rem .5rem; margin-left:.7rem; cursor:pointer; }
+  .brand a { color:var(--blue); text-decoration:none; font-weight:400; font-size:var(--fs-sm); margin-left:.7rem; }
+  .btn-theme { background:none; border:1px solid var(--hair); color:var(--ink-2); border-radius:var(--r-md);
+          font:inherit; font-size:var(--fs-xs); padding:.15rem .5rem; margin-left:.7rem; cursor:pointer; }
   .btn-theme:hover { background:var(--wash); }
-  .eyebrow { font-size:.72rem; letter-spacing:.14em; text-transform:uppercase; color:var(--muted);
+  .eyebrow { font-size:var(--fs-micro); letter-spacing:.14em; text-transform:uppercase; color:var(--muted);
              font-weight:700; margin:1.6rem 0 .4rem; }
   h1 { font-family:ui-serif,Georgia,"Times New Roman",serif; font-weight:600;
        font-size:clamp(2rem,4.5vw,2.9rem); line-height:1.12; letter-spacing:-.02em; margin:.2rem 0 .7rem;
        text-wrap:balance; }
-  h2 { font-family:ui-serif,Georgia,"Times New Roman",serif; font-weight:600; font-size:1.4rem;
+  h2 { font-family:ui-serif,Georgia,"Times New Roman",serif; font-weight:600; font-size:var(--fs-xl);
        letter-spacing:-.01em; margin:2.2rem 0 .5rem; }
-  .lede { font-size:1.15rem; color:var(--ink-2); max-width:38rem; }
+  .lede { font-size:var(--fs-md); color:var(--ink-2); max-width:38rem; }
   p { max-width:38rem; }
   .mission { border-left:3px solid var(--blue); background:var(--wash); border-radius:0 10px 10px 0;
-             padding:1rem 1.2rem; margin:1.4rem 0; font-size:1.05rem; }
+             padding:1rem 1.2rem; margin:1.4rem 0; font-size:var(--fs-md); }
   .mission b { color:var(--ink); }
   .who { list-style:none; padding:0; margin:1rem 0; }
   .who li { padding:.7rem 0; border-bottom:1px solid var(--hair); max-width:40rem; }
@@ -60,24 +58,66 @@
   .stats { display:flex; flex-wrap:wrap; gap:.4rem 2.2rem; margin:1.2rem 0; padding:.9rem 0;
            border-top:1px solid var(--hair); border-bottom:1px solid var(--hair); }
   .stats span { display:inline-flex; flex-direction:column; }
-  .stats b { font-size:1.5rem; font-weight:700; letter-spacing:-.02em; }
-  .stats i { font-style:normal; font-size:.76rem; color:var(--muted); text-transform:uppercase; letter-spacing:.05em; }
+  .stats b { font-size:var(--fs-xl); font-weight:700; letter-spacing:-.02em; }
+  .stats i { font-style:normal; font-size:var(--fs-micro); color:var(--muted); text-transform:uppercase; letter-spacing:.05em; }
   a.tlink { color:var(--blue); }
   .cta { display:flex; flex-wrap:wrap; gap:.6rem; margin:1.8rem 0 0; }
-  .cta a { display:inline-flex; align-items:center; gap:.4rem; font:inherit; font-size:.95rem; font-weight:600;
-           text-decoration:none; padding:.62rem 1.15rem; border-radius:10px; border:1px solid var(--hair);
+  .cta a { display:inline-flex; align-items:center; gap:.4rem; font:inherit; font-size:var(--fs-base); font-weight:600;
+           text-decoration:none; padding:.62rem 1.15rem; border-radius:var(--r-lg); border:1px solid var(--hair);
            color:var(--ink); background:var(--card); }
   .cta a:hover { background:var(--wash); }
-  .cta .primary { background:var(--blue); color:#fff; border-color:var(--blue); }
-  .foot { color:var(--muted); font-size:.82rem; margin-top:2.4rem; padding-top:1.1rem; border-top:1px solid var(--hair); }
+  .cta .primary { background:var(--blue); color:var(--surface); border-color:var(--blue); }
+  .foot { color:var(--muted); font-size:var(--fs-xs); margin-top:2.4rem; padding-top:1.1rem; border-top:1px solid var(--hair); }
   .foot b { color:var(--ink-2); }
 </style>
 </head>
 <body>
+<!-- icon-sprite:start -->
+<svg class="icon-sprite" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg"><defs>
+
+  <!-- navigation and controls -->
+  <symbol id="i-search" viewBox="0 0 16 16"><circle cx="7" cy="7" r="4.25"/><path d="M10.2 10.2 14 14"/></symbol>
+  <symbol id="i-pin" viewBox="0 0 16 16"><path d="M8 14.5s5-4.6 5-8a5 5 0 1 0-10 0c0 3.4 5 8 5 8Z"/><circle cx="8" cy="6.5" r="1.9"/></symbol>
+  <symbol id="i-map" viewBox="0 0 16 16"><path d="M1.75 4 6 2.25l4 1.75 4.25-1.75v9.5L10 13.75l-4-1.75-4.25 1.75V4Z"/><path d="M6 2.25v9.75M10 4v9.75"/></symbol>
+  <symbol id="i-grid" viewBox="0 0 16 16"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></symbol>
+  <symbol id="i-layers" viewBox="0 0 16 16"><path d="M8 1.75 14.25 5 8 8.25 1.75 5 8 1.75Z"/><path d="m1.75 8.5 6.25 3.25 6.25-3.25"/><path d="m1.75 11.5 6.25 3.25 6.25-3.25"/></symbol>
+  <symbol id="i-activity" viewBox="0 0 16 16"><path d="M1.5 8.5h3l2-5 3 10 2-5h3"/></symbol>
+  <symbol id="i-book" viewBox="0 0 16 16"><path d="M2.5 2.75h4A2 2 0 0 1 8 4.5v9a1.7 1.7 0 0 0-1.4-1H2.5Z"/><path d="M13.5 2.75h-4A2 2 0 0 0 8 4.5v9a1.7 1.7 0 0 1 1.4-1h4.1Z"/></symbol>
+  <symbol id="i-play" viewBox="0 0 16 16"><path d="M5.25 3.4v9.2l7-4.6-7-4.6Z"/></symbol>
+  <symbol id="i-print" viewBox="0 0 16 16"><path d="M4.5 6V2.5h7V6"/><path d="M4.5 11.5h-2v-4a1 1 0 0 1 1-1h9a1 1 0 0 1 1 1v4h-2"/><rect x="4.5" y="9.5" width="7" height="4"/></symbol>
+  <symbol id="i-contrast" viewBox="0 0 16 16"><circle cx="8" cy="8" r="5.75"/><path d="M8 2.25a5.75 5.75 0 0 1 0 11.5Z" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-close" viewBox="0 0 16 16"><path d="m4 4 8 8M12 4l-8 8"/></symbol>
+  <symbol id="i-download" viewBox="0 0 16 16"><path d="M8 2.5v7.5"/><path d="m4.75 7 3.25 3.25L11.25 7"/><path d="M2.75 13h10.5"/></symbol>
+  <symbol id="i-external" viewBox="0 0 16 16"><path d="M9 2.75h4.25V7"/><path d="M13.25 2.75 7.5 8.5"/><path d="M12 9.75v2.5a1 1 0 0 1-1 1H3.75a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h2.5"/></symbol>
+
+  <!-- direction -->
+  <symbol id="i-arrow-right" viewBox="0 0 16 16"><path d="M2.75 8h10.5"/><path d="M9.5 4.25 13.25 8 9.5 11.75"/></symbol>
+  <symbol id="i-arrow-left" viewBox="0 0 16 16"><path d="M13.25 8H2.75"/><path d="M6.5 4.25 2.75 8l3.75 3.75"/></symbol>
+  <symbol id="i-arrow-down" viewBox="0 0 16 16"><path d="M8 2.75v10.5"/><path d="M4.25 9.5 8 13.25 11.75 9.5"/></symbol>
+  <symbol id="i-chevron-down" viewBox="0 0 16 16"><path d="m4 6 4 4 4-4"/></symbol>
+  <symbol id="i-chevron-up" viewBox="0 0 16 16"><path d="m4 10 4-4 4 4"/></symbol>
+  <symbol id="i-chevron-right" viewBox="0 0 16 16"><path d="m6 4 4 4-4 4"/></symbol>
+  <symbol id="i-trend-up" viewBox="0 0 16 16"><path d="M1.75 11.5 6 7.25l2.5 2.5 5.75-5.75"/><path d="M10.25 4h4v4"/></symbol>
+  <symbol id="i-trend-down" viewBox="0 0 16 16"><path d="M1.75 4.5 6 8.75l2.5-2.5 5.75 5.75"/><path d="M10.25 12h4V8"/></symbol>
+
+  <!-- editorial beats: one mark per category on the feed -->
+  <symbol id="i-institution" viewBox="0 0 16 16"><path d="M2 6.25 8 2.5l6 3.75"/><path d="M3.5 6.75v5.5M6.5 6.75v5.5M9.5 6.75v5.5M12.5 6.75v5.5"/><path d="M2 13.25h12"/></symbol>
+  <symbol id="i-exit" viewBox="0 0 16 16"><path d="M9.5 2.75H4a1 1 0 0 0-1 1v8.5a1 1 0 0 0 1 1h5.5"/><path d="M7 8h6.25"/><path d="M11 5.5 13.5 8 11 10.5"/></symbol>
+  <symbol id="i-money" viewBox="0 0 16 16"><rect x="1.75" y="4" width="12.5" height="8" rx="1.25"/><circle cx="8" cy="8" r="1.9"/><path d="M4.25 8h.01M11.75 8h.01"/></symbol>
+  <symbol id="i-chart" viewBox="0 0 16 16"><path d="M2.25 13.25h11.5"/><path d="M4.5 13V8.5M8 13V3.5M11.5 13V6.5"/></symbol>
+  <symbol id="i-scale" viewBox="0 0 16 16"><path d="M8 2.75v10.5"/><path d="M4.5 13.25h7"/><path d="M3 5.5h10"/><path d="M3 5.5 1.25 9.5h3.5L3 5.5Z"/><path d="M13 5.5 11.25 9.5h3.5L13 5.5Z"/></symbol>
+  <symbol id="i-people" viewBox="0 0 16 16"><circle cx="6" cy="5.5" r="2.25"/><path d="M1.75 13.25c0-2.2 1.9-3.75 4.25-3.75s4.25 1.55 4.25 3.75"/><path d="M11 4.1a2.25 2.25 0 0 1 0 4.3"/><path d="M11.75 9.9c1.5.45 2.5 1.6 2.5 3.35"/></symbol>
+  <symbol id="i-build" viewBox="0 0 16 16"><path d="M2.5 13.25h11"/><path d="M4.25 13.25V6.5h4.5v6.75"/><path d="M8.75 13.25V3.5h3v9.75"/><path d="M5.75 8.75h1.5M5.75 11h1.5"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 16 16"><path d="M8 2.5 14.5 13.5h-13L8 2.5Z"/><path d="M8 6.75v3"/><path d="M8 11.75h.01"/></symbol>
+  <symbol id="i-ballot" viewBox="0 0 16 16"><rect x="2" y="7" width="12" height="6.5" rx="1"/><path d="M5 7V3.5h6V7"/><path d="m6.25 5 1.25 1.25L10 3.75"/></symbol>
+  <symbol id="i-marker" viewBox="0 0 16 16"><circle cx="8" cy="8" r="2.5" fill="currentColor" stroke="none"/><circle cx="8" cy="8" r="5.5"/></symbol>
+
+</defs></svg>
+<!-- icon-sprite:end -->
 <a class="skiplink" href="#mission">Skip to the mission</a>
 <div class="shell">
   <header>
-    <div class="brand">Texas ISD Financial Resource Guide<a href="/">← home</a><a href="/feed">the feed</a><a href="/geomap">map</a><button class="btn-theme" id="btnTheme" type="button" aria-label="Toggle dark mode">◐ Theme</button></div>
+    <div class="brand">Texas ISD Financial Resource Guide<a href="/"><svg class="ico" aria-hidden="true"><use href="#i-arrow-left"/></svg> home</a><a href="/feed">the feed</a><a href="/geomap">map</a><button class="btn-theme" id="btnTheme" type="button" aria-label="Toggle dark mode"><svg class="ico" aria-hidden="true"><use href="#i-contrast"/></svg> Theme</button></div>
   </header>
 
   <div class="eyebrow">Why this exists</div>
@@ -180,9 +220,9 @@
      nothing here is real estate, financial, or investment advice.</p>
 
   <div class="cta">
-    <a class="primary" href="/#search">🔎 Find your district</a>
-    <a href="/feed">🔥 See what's happening now</a>
-    <a href="/geomap">🗺️ Explore the map</a>
+    <a class="primary" href="/#search"><svg class="ico" aria-hidden="true"><use href="#i-search"/></svg> Find your district</a>
+    <a href="/feed"><svg class="ico" aria-hidden="true"><use href="#i-activity"/></svg> See what's happening now</a>
+    <a href="/geomap"><svg class="ico" aria-hidden="true"><use href="#i-map"/></svg> Explore the map</a>
   </div>
 
   <p class="foot"><b>Data disclaimer:</b> An independent transparency tool presenting Texas Education
