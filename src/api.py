@@ -417,8 +417,13 @@ async def nlp_query(request: NLPQueryRequest, http_request: Request):
             status_code=504,
             detail="That question took too long to answer. Try a narrower one.",
         )
+    # `ok` records whether the question was actually ANSWERED, not merely that
+    # it avoided a timeout. The engine returns success=False with an error for
+    # things like an exhausted OpenAI balance, and logging those as successes
+    # would hide an outage in the very table meant to reveal one.
     await _log_question(http_request.app.state.db_pool, request.question,
-                        ok=True, ms=int((time.monotonic() - started) * 1000))
+                        ok=bool(result.get("success")),
+                        ms=int((time.monotonic() - started) * 1000))
     return NLPQueryResponse(**result)
 
 
