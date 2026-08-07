@@ -125,6 +125,39 @@ disables asyncpg's statement cache so it is pooler-compatible.
 | `QUERY_RATE_LIMIT` | no (default 10) | `/query` per IP, per minute. Per-process; spoofable via `X-Forwarded-For`, so this only stops one honest user hogging the box. |
 | `QUERY_GLOBAL_LIMIT` | no (default 60) | `/query` all callers, per minute. Counted in the database, so it holds across every instance. |
 | `QUERY_DAILY_LIMIT` | no (default 5000) | `/query` all callers, per day. **This is the one that bounds the bill** — a per-minute cap alone still permits 86,400 calls a day. |
+| `SITE_PASSWORD` | no (unset = public) | Locks the **whole site** behind a browser password prompt. See below. |
+| `SITE_USERNAME` | no (default `txisd`) | Username for that prompt; the password is what actually gates. |
+
+### Locking the site for a private preview
+
+Setting `SITE_PASSWORD` turns the portal into a private preview — every page
+and API route returns `401` with a browser login prompt until the password is
+entered. Useful before a launch, or while showing the site to a few people.
+
+```bash
+vercel env add SITE_PASSWORD production --scope tag-ai-projects
+vercel deploy --prod --scope tag-ai-projects        # env is baked at deploy time
+```
+
+**To make the site public again — the state a transparency portal should
+normally be in — remove the variable and redeploy:**
+
+```bash
+vercel env rm SITE_PASSWORD production --scope tag-ai-projects
+vercel deploy --prod --scope tag-ai-projects
+```
+
+Two paths stay open while locked, by design:
+
+- **`/health`** — so uptime monitoring does not alarm over a deliberate lock.
+- **`/api/cron/isd-intelligence`** — the daily news run, which carries its own
+  `CRON_SECRET` bearer. Without this exemption the feed would silently stop
+  updating for as long as the lock is on. It still refuses a wrong secret.
+
+Neither reveals district data. Locked responses are sent `no-store` and
+`X-Robots-Tag: noindex`, so a preview is never cached or indexed. The password
+lives only in the environment — never in the repo, so it rotates without a code
+change and never enters git history.
 
 **Security notes for public operation**
 

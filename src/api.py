@@ -18,7 +18,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, PlainTextResponse, Response
 from pydantic import BaseModel, Field
 
-from . import analytics
+from . import analytics, site_gate
 from .sample_queries import SAMPLE_QUERIES
 
 load_dotenv()
@@ -83,6 +83,34 @@ app.add_middleware(
     allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
+
+@app.middleware("http")
+async def site_password_gate(request: Request, call_next):
+    """Keep the whole site private while SITE_PASSWORD is set.
+
+    Registered LAST so Starlette runs it FIRST: a blocked request never reaches
+    the page-view counter or any handler, so a locked site records no visits
+    and does no database work.
+
+    With SITE_PASSWORD unset this is a no-op and the portal is public — the
+    normal state for a public-records site, and the state a misconfigured
+    deploy falls back to.
+    """
+    if site_gate.should_block(request.url.path, request.headers.get("authorization")):
+        return Response(
+            content='{"detail":"This site is not open to the public yet."}',
+            status_code=401,
+            media_type="application/json",
+            headers={
+                # Prompts the browser for credentials rather than showing JSON.
+                "WWW-Authenticate": 'Basic realm="Texas ISD Financial Resource Guide"',
+                # A locked preview must never be indexed or cached publicly.
+                "Cache-Control": "no-store",
+                "X-Robots-Tag": "noindex, nofollow",
+            },
+        )
+    return await call_next(request)
+
 
 @app.middleware("http")
 async def security_headers(request: Request, call_next):
