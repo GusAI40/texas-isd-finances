@@ -17,6 +17,112 @@ Entry template:
 
 ---
 
+## 2026-08-09 — The bond join was wrong in both directions; fixing it moved a published finding, and the forensic file was built on the corrected base
+
+**What changed:** commit `55ac58a`, live on https://txisd.dev. 332 tests (was 313).
+
+### 1. The bond-to-district join was broken, and one failure mode was publishing to the wrong district
+
+The bond layer is the only one joined on a NAME rather than a TEA district
+number. It matched by squashing names to uppercase A-Z. That failed twice:
+
+- **147 propositions were silently dropped.** The source disambiguates Texas's
+  thirteen colliding district names with a trailing lowercase letter — "Wylie
+  ISDa" (Collin) vs "Wylie ISDb" (Taylor) — which squashes to `WYLIEISDA`, not
+  `WYLIEISD`. Wylie ISD's district page showed **none** of its twenty
+  propositions. Also lost: 11 Chapel Hill, 9 Northside, 7 Highland Park. A
+  second class of miss was pure spelling — TEA writes `STEPHENVILLE` with no
+  "ISD" at all, `PEWITT CISD` vs the source's "Pewitt ISD", `IRION COUNTY` vs
+  "Irion Co", and renames like Roscoe → Roscoe Collegiate.
+- **7 propositions were attached to a district that did not hold the election.**
+  "S and S CISD" (Grayson) and "Sands CISD" (Dawson) are different districts
+  that squash to the same `SANDSCISD`, and `drop_duplicates` kept whichever
+  sorted first. That is the worst failure this project can have: a published
+  claim on the wrong district.
+
+**Fix:** a TEA district number already carries its county in the first three
+digits (057 = Dallas), and the bond file records each election's county. New
+`scripts/district_match.py` resolves in order — name+county (exact), then a
+name unique statewide, then a prefix relation *inside the right county* for
+districts that renamed themselves — and **refuses rather than guesses**
+otherwise. New `scripts/audit_bond_match.py` prints the entire join
+(collisions, unmatched, weak) and **exits non-zero if a shared name was ever
+resolved without the county agreeing**. Result: **100% matched** (was 96.8%),
+**943 districts** (was 911), **0 risky**, 12 rename matches — both of them
+correct (Rio Grande City Grulla, West Rusk County).
+
+### 2. Correcting the join moved a published finding, so the wording moved with it
+
+The bond→outcome test was published as **p=0.061, not distinguishable from
+zero**. With the recovered elections it is **+1.31 points, CI +0.07 to +2.55,
+p=0.038** (310 bonds, 153 districts). It crossed the conventional line on a
+**3% change in sample**, which is exactly what a borderline result does.
+Rather than promote it to a finding, the payload now carries a `fragile` flag
+and a confidence interval, and the district page reads **"suggestive, not
+settled — read it as a lead, not a finding."** Do not let anyone quote this as
+proof that bonds raise test scores.
+
+### 3. The forensic file — built only after the base was trustworthy
+
+New `/forensics` page + `/forensics/texas` + `/district/{n}/forensics`, served
+from `static/forensic_data.json` (`scripts/build_forensic_data.py`), no
+database. It composes four questions Texas publishes in four incompatible
+files:
+
+1. **What sits OUTSIDE TEA's operating total** — $13.9B/yr statewide in debt
+   service, median $1,538/student, 90th pct $4,490. Composed with the
+   operating figure, never subtracted from it (a test asserts
+   `total == operating + debt` across 1,000+ districts).
+2. **Who pays** — from GROSS local collections, not TEA's net-of-recapture
+   figure, which makes property-funded districts look state-funded.
+3. **What the ballot promised** — the only public itemisation of school
+   facilities that exists.
+4. **Where it landed** — against what each district's own need predicts.
+
+**Deliberately no combined score** and **no per-district causal claim.** Flags
+are descriptions carrying their own number against a threshold published
+beside them. 1,013 of 1,202 districts carry at least one flag; the most common
+are beats/below prediction (461/425), locally funded (244), recapture (224).
+
+**Why:** the user asked for forensic-intelligence treatment of the ISD system.
+The honest version of that is not a risk score — it is finding the places
+where the official reporting structurally hides a number, and putting those
+numbers side by side. A composite ranking would have implied wrongdoing from
+four unrelated inputs, so tests now forbid a composite field, accusatory
+language, and any named individual in the payload.
+
+**Gotchas:**
+- `itertuples()` silently renames columns starting with `_` to positional
+  `_1`, `_2` — `r._county` raises AttributeError. Name assign() columns
+  without a leading underscore.
+- `.note` in `design.css` is a **callout component** (accent bar + tinted
+  well), not a caption class. Six captions in a row as callouts is visual
+  noise; the page uses `.sub-note` for captions and keeps `.note` for the one
+  disclaimer that earns the emphasis.
+- `grid-template-columns: repeat(auto-fit, minmax(280px, 1fr))` gives **three**
+  columns inside `--page-max`, so a four-card set renders 3 + an orphan.
+  Explicit `1fr 1fr` above 800px is what makes "four questions" read as 2×2.
+- The Vercel CLI printed `"deploy_failed" / "fetch failed"` and a non-zero
+  exit **while the deployment succeeded** — `vercel ls --prod` showed three
+  Ready production deploys from the "failed" runs. Check `ls` before retrying;
+  retrying just stacks duplicate deploys.
+- `curl` to `127.0.0.1` fails with code 000 in this container unless
+  `NO_PROXY='*'` is set — the agent proxy intercepts loopback.
+
+**Open items:**
+- 🔴 **Still open:** rotate the four credentials pasted into chat (DeepSeek,
+  Vercel, Supabase, GitHub PATs) and update them in Vercel env vars. DeepSeek
+  first — it has a live billable balance.
+- Set a monthly spend cap on DeepSeek.
+- Supabase free tier still pauses after ~7 days idle; the site now survives it
+  but the NLP path does not.
+- `sql/create_nlp_usage.sql` still needs applying to production to activate the
+  cross-instance `/query` ceiling.
+- Optional: PR from `claude/audit-public-launch-ocd7ra` to `master` (production
+  deploys from the working tree, so master is behind).
+
+**Notes:**
+
 ## 2026-07-27 (later) — Three accuracy fixes, two new layers, and a green deploy that served a dead site
 
 **What changed:** commits `06f694c` → `f797b0c`, all live on https://txisd.dev.
