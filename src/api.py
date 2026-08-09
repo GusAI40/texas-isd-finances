@@ -1317,6 +1317,62 @@ async def get_texas_bonds():
     return {k: v for k, v in data.items() if k != "districts"}
 
 
+_forensics_cache: Optional[Dict[str, Any]] = None
+
+
+def _forensics() -> Optional[Dict[str, Any]]:
+    global _forensics_cache
+    if _forensics_cache is None:
+        path = STATIC_DIR / "forensic_data.json"
+        if not path.exists():
+            return None
+        with path.open() as fh:
+            _forensics_cache = json.load(fh)
+    return _forensics_cache
+
+
+@app.get("/district/{district_number}/forensics", tags=["Districts"])
+async def get_district_forensics(district_number: str):
+    """The four money questions Texas reports in four incompatible places.
+
+    What sits OUTSIDE the operating total (debt service is not in it, so a
+    district can look lean on instruction while carrying the state's heaviest
+    debt); who actually pays, from GROSS local collections rather than the
+    net-of-recapture figure TEA publishes; what the ballot said the debt was
+    for, which is the only public itemisation of school facilities that exists;
+    and where the results landed against what this district's own student need
+    predicts.
+
+    `flags` are descriptions, not accusations: each one states a published
+    number against a threshold that is published beside it in `meta.thresholds`.
+    There is deliberately no combined score — the four measures are unrelated
+    and adding them would invent a ranking the data cannot support.
+    """
+    data = _forensics()
+    if data is None:
+        raise HTTPException(status_code=503,
+                            detail="Forensic data not built. Run scripts/build_forensic_data.py")
+    rec = data["districts"].get(district_number)
+    if rec is None:
+        raise HTTPException(status_code=404, detail="District not in the forensic dataset")
+    return {"meta": data["meta"], "statewide": data["statewide"], **rec}
+
+
+@app.get("/forensics/texas", tags=["Statewide"])
+async def get_texas_forensics():
+    """Statewide totals, the ranked tables, and one compact row per district.
+
+    `table` carries every district so the page can sort and filter without a
+    round trip; the full per-district file is at
+    `/district/{district_number}/forensics`. Serves with no database.
+    """
+    data = _forensics()
+    if data is None:
+        raise HTTPException(status_code=503,
+                            detail="Forensic data not built. Run scripts/build_forensic_data.py")
+    return {k: v for k, v in data.items() if k != "districts"}
+
+
 _equity_cache: Optional[Dict[str, Any]] = None
 
 
@@ -1444,8 +1500,9 @@ async def sitemap():
     """Every district is a page worth finding. Without this, a search for
     "is <name> ISD good" can never reach us — the district views are rendered
     client-side from ?d=, so crawlers need to be told they exist."""
-    urls = ["https://txisd.dev/", "https://txisd.dev/geomap", "https://txisd.dev/map",
-            "https://txisd.dev/docs"]
+    urls = ["https://txisd.dev/", "https://txisd.dev/about", "https://txisd.dev/feed",
+            "https://txisd.dev/forensics", "https://txisd.dev/geomap",
+            "https://txisd.dev/map", "https://txisd.dev/docs"]
     data = _outcomes()
     if data:
         urls += [f"https://txisd.dev/?d={n}" for n in sorted(data["districts"])]
@@ -1473,6 +1530,17 @@ async def feed_page():
     if page.exists():
         return FileResponse(page)
     raise HTTPException(status_code=404, detail="Feed not available")
+
+
+@app.get("/forensics", include_in_schema=False)
+async def forensics_page():
+    """The Forensic File: what sits outside the operating total, who pays, what
+    the ballot promised, and where it landed — statewide and district by
+    district."""
+    page = STATIC_DIR / "forensics.html"
+    if page.exists():
+        return FileResponse(page)
+    raise HTTPException(status_code=404, detail="Forensic file not available")
 
 
 @app.get("/about", include_in_schema=False)

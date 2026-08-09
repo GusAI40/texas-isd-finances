@@ -55,6 +55,9 @@ from pathlib import Path
 
 import pandas as pd
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from district_match import Resolver  # noqa: E402
+
 # Keyword rules, published in the payload so a reader can audit the labels.
 RULES = [
     ("athletics", r"stadium|athletic|gymnas|natatorium|field ?house|tennis|track|sports"),
@@ -65,6 +68,8 @@ RULES = [
     ("refinancing", r"refund"),
 ]
 MIN_PLAUSIBLE_VOTES = 20
+# Higher is weaker evidence. Used to label a district by its shakiest match.
+METHOD_RANK = {"name+county": 0, "name": 1, "prefix+county": 2}
 BUILDINGS = r"school building|building|classroom|campus|elementary|high school|renovat"
 
 
@@ -102,14 +107,39 @@ def load(path: Path) -> pd.DataFrame:
     return d.dropna(subset=["year"])
 
 
-def match_districts(d: pd.DataFrame, finance: Path) -> pd.DataFrame:
+def county_of_code(snapshot: Path) -> dict[str, str]:
+    """3-digit TEA county code -> county name, read from TEA's own Snapshot
+    file, which writes the two together as '057 DALLAS'."""
+    if not snapshot.exists():
+        return {}
+    sn = pd.read_csv(snapshot, dtype={"district_number": str}, low_memory=False)
+    if "county" not in sn.columns:
+        return {}
+    sn = sn.dropna(subset=["county", "district_number"])
+    return {num[:3]: str(c).split(" ", 1)[-1]
+            for num, c in zip(sn.district_number, sn.county)}
+
+
+def match_districts(d: pd.DataFrame, finance: Path, snapshot: Path) -> pd.DataFrame:
+    """Attach a TEA district number to every proposition, or refuse to.
+
+    Matching on name alone both dropped and mis-attributed elections; see
+    scripts/district_match.py for what went wrong and why county settles it.
+    The method used is kept on the row so the audit can report it.
+    """
     fin = pd.read_csv(finance, dtype={"district_number": str}, low_memory=False)
     names = fin.drop_duplicates("district_number")[["district_number", "district_name"]]
-    key = lambda s: s.astype(str).str.upper().str.replace(r"[^A-Z]", "", regex=True)  # noqa: E731
-    names["_k"] = key(names.district_name)
-    d["_k"] = key(d.Issuer)
-    # keep the first match per key; district names are unique in TEA's file
-    return d.merge(names.drop_duplicates("_k"), on="_k", how="left")
+    resolver = Resolver.from_tea(
+        list(zip(names.district_number, names.district_name)), county_of_code(snapshot))
+    tea_name = dict(zip(names.district_number, names.district_name))
+
+    resolved = [resolver.resolve(iss, cty)
+                for iss, cty in zip(d.Issuer, d.get("County", pd.Series([""] * len(d))))]
+    d = d.copy()
+    d["district_number"] = [num for num, _ in resolved]
+    d["match_method"] = [meth for _, meth in resolved]
+    d["district_name"] = [tea_name.get(num) for num, _ in resolved]
+    return d
 
 
 def bond_outcome_test(d: pd.DataFrame, snapshot: Path) -> dict | None:
@@ -168,8 +198,16 @@ def bond_outcome_test(d: pd.DataFrame, snapshot: Path) -> dict | None:
         "passed_n": int(len(a)), "passed_change": round(float(a.mean()), 2),
         "defeated_n": int(len(b)), "defeated_change": round(float(b.mean()), 2),
         "difference": round(float(a.mean() - b.mean()), 2),
+        "ci_low": round(float(a.mean() - b.mean() - 1.96 * se), 2),
+        "ci_high": round(float(a.mean() - b.mean() + 1.96 * se), 2),
         "p_value": round(pval, 3),
         "distinguishable_from_zero": bool(pval < 0.05),
+        # This result sat at p=0.061 until the district match was corrected and
+        # 147 previously-dropped propositions came back. It crossed 0.05 on a
+        # 3% change in sample, which is exactly what a borderline result does.
+        # Publishing it as settled would be overclaiming, so the flag travels
+        # with the number and the page reads it.
+        "fragile": bool(0.01 < pval < 0.05),
         "window": "results 2-4 years after the vote against the 3 years before, "
                   "each district compared with itself",
         "caveat": "A bond in a growing district buys seats, not scores, and safety "
@@ -189,7 +227,7 @@ def main() -> int:
         print(f"missing {args.bonds}", file=sys.stderr)
         return 1
 
-    d = match_districts(load(args.bonds), args.finance)
+    d = match_districts(load(args.bonds), args.finance, args.snapshot)
     matched = d.district_number.notna()
 
     # ---- beat 2: what voters back, by purpose ----
@@ -245,9 +283,15 @@ def main() -> int:
             "votes_reported": bool(r["votes_reported"]),
         } for _, r in g.iterrows()]
         asked, approved = float(g.amount.sum()), float(g[g.passed].amount.sum())
+        # If any of a district's elections needed the weakest method, say so
+        # for the whole file rather than per row — the reader is judging
+        # whether to trust the history, not one line of it.
+        method = max(g.match_method, key=lambda m: METHOD_RANK.get(m, 9))
         districts[num] = {
             "district_number": num,
             "district_name": str(g.district_name.iloc[0]),
+            "match": {"method": method, "exact": method == "name+county",
+                      "source_names": sorted(set(g.Issuer.astype(str)))},
             "elections": elections,
             "totals": {
                 "props": int(len(g)), "passed": int(g.passed.sum()),
@@ -264,6 +308,10 @@ def main() -> int:
             "propositions": int(len(d)),
             "districts_with_history": len(districts),
             "matched_pct": round(float(matched.mean()) * 100, 1),
+            "match_methods": {k: int(v) for k, v in
+                              d.match_method.value_counts().items()},
+            "unmatched_issuers": sorted(
+                {str(x) for x in d.loc[~matched, "Issuer"]}),
             "first_year": int(d.year.min()), "last_year": int(d.year.max()),
             "votes_reported_pct": round(float(d.votes_reported.mean()) * 100, 1),
             "total_asked": float(d.amount.sum()),

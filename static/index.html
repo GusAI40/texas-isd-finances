@@ -652,6 +652,7 @@
     <div class="brand">Texas ISD Financial Resource Guide<span class="tag">Official TEA &amp; Comptroller data · independent, not a TEA product</span></div>
     <div class="hbtns">
       <button id="btn-feed" class="feature"><svg class="ico" aria-hidden="true"><use href="#i-activity"/></svg> The Feed</button>
+      <button id="btn-forensics" class="feature"><svg class="ico" aria-hidden="true"><use href="#i-scale"/></svg> Forensic File</button>
       <button id="btn-geomap" class="feature"><svg class="ico" aria-hidden="true"><use href="#i-map"/></svg> Map of Texas</button>
       <button id="btn-heatmap" class="feature">Heatmap</button>
       <button id="btn-map">Seating chart</button>
@@ -683,6 +684,7 @@
       <a class="cta-primary" href="#search" id="wc-find"><svg class="ico" aria-hidden="true"><use href="#i-search"/></svg> Find your district</a>
       <a href="/feed"><svg class="ico" aria-hidden="true"><use href="#i-activity"/></svg> What's happening now</a>
       <a href="/geomap"><svg class="ico" aria-hidden="true"><use href="#i-map"/></svg> Explore the map</a>
+      <a href="/forensics"><svg class="ico" aria-hidden="true"><use href="#i-scale"/></svg> Follow the money</a>
       <a href="/about"><svg class="ico" aria-hidden="true"><use href="#i-book"/></svg> Why we built this</a>
       <a href="#" id="wc-tour"><svg class="ico" aria-hidden="true"><use href="#i-play"/></svg> 60-second tour</a>
     </div>
@@ -3181,10 +3183,18 @@ function renderBonds() {
       `<div class="econ-big" style="color:${w.distinguishable_from_zero ? ECON_C.teach : 'var(--muted)'}">` +
       `${arrow(w.difference)}<span style="font-size:var(--fs-md);font-weight:400;color:var(--muted)"> points</span></div>` +
       `<div class="econ-sub">` +
-      (w.distinguishable_from_zero
-        ? `p = ${w.p_value}. `
-        : `<b>p = ${w.p_value} &mdash; too close to call.</b> With ${w.bonds_tested} bonds across ` +
-          `${w.districts} districts, a difference this size is not distinguishable from no difference at all. `) +
+      (!w.distinguishable_from_zero
+        ? `<b>p = ${w.p_value} &mdash; too close to call.</b> With ${w.bonds_tested} bonds across ` +
+          `${w.districts} districts, a difference this size is not distinguishable from no difference at all. `
+        : w.fragile
+          ? `<b>p = ${w.p_value} &mdash; suggestive, not settled.</b> ` +
+            (w.ci_low != null ? `The range consistent with this data runs ${arrow(w.ci_low)} to ` +
+              `${arrow(w.ci_high)} points. ` : '') +
+            `That is just past the conventional line on ${w.bonds_tested} bonds, and it moved past it ` +
+            `when the district match was corrected. Read it as a lead, not a finding. `
+          : `p = ${w.p_value}. ` +
+            (w.ci_low != null ? `The range consistent with this data runs ${arrow(w.ci_low)} to ` +
+              `${arrow(w.ci_high)} points. ` : '')) +
       `${w.caveat}</div>`;
   } else {
     ['bond-b5-title','bond-b5-sub'].forEach(id => { $(id).textContent = ''; });
@@ -3192,7 +3202,9 @@ function renderBonds() {
   }
 
   $('bond-close').innerHTML =
-    `<b>Before the next ballot:</b> what is bundled into the proposition, and what it adds to the debt above.`;
+    `<b>Before the next ballot:</b> what is bundled into the proposition, and what it adds to the debt above. ` +
+    `<a href="/forensics?d=${encodeURIComponent(b.district_number)}">See this district's whole money file</a> ` +
+    `&mdash; the debt outside the operating total, who pays for it, and where the results landed.`;
 
   renderBondTable(b);
   armCounters($('bond-section'));
@@ -3665,6 +3677,7 @@ $('btn-geomap').onclick = () => { location.href = state.district ? '/geomap?d=' 
 $('btn-heatmap').onclick = () => { location.href = '/heatmap'; };
 $('btn-feed').onclick = () => { location.href = '/feed'; };
 $('btn-about').onclick = () => { location.href = '/about'; };
+$('btn-forensics').onclick = () => { location.href = '/forensics'; };
 $('btn-share').onclick = shareCard;
 
 /* Guided dollar: pointer, touch and keyboard all reach the same panel.

@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iNiIgZmlsbD0iI2ZmZiIvPjxyZWN0IHg9IjUiIHk9IjUiIHdpZHRoPSI5IiBoZWlnaHQ9IjkiIHJ4PSIxLjUiIGZpbGw9IiMyYTc4ZDYiLz48cmVjdCB4PSIxOCIgeT0iNSIgd2lkdGg9IjkiIGhlaWdodD0iOSIgcng9IjEuNSIgZmlsbD0iIzJhNzhkNiIvPjxyZWN0IHg9IjUiIHk9IjE4IiB3aWR0aD0iOSIgaGVpZ2h0PSI5IiByeD0iMS41IiBmaWxsPSIjMmE3OGQ2Ii8+PHJlY3QgeD0iMTgiIHk9IjE4IiB3aWR0aD0iOSIgaGVpZ2h0PSI5IiByeD0iMS41IiBmaWxsPSIjYjhiNmFkIi8+PC9zdmc+">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<script>
+  /* Theme before first paint (shared tisd_theme key with the portal). */
+  try {
+    var _t = localStorage.getItem('tisd_theme');
+    if (!_t && window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches) _t = 'dark';
+    if (_t === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+  } catch (e) {}
+</script>
+<meta name="description" content="The four school-money questions Texas reports in four incompatible places: the debt service that sits outside the operating total, who actually pays before recapture is deducted, what the ballot said the debt was for, and where the results landed.">
+<link rel="canonical" href="https://txisd.dev/forensics">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://txisd.dev/forensics">
+<meta property="og:title" content="The Forensic File — Texas ISD Financial Resource Guide">
+<meta property="og:description" content="Debt service is not in the operating total. Local revenue is reported after recapture is taken out. TEA does not itemise facilities. Four questions, 1,202 districts, all from the state's own records.">
+<title>The Forensic File — Texas ISD Financial Resource Guide</title>
+<!-- design-system:start -->
+<link rel="stylesheet" href="/static/design.css">
+<!-- design-system:end -->
+<style>
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); line-height:var(--lh-body);
+         font-family:var(--font-sans); font-size:var(--fs-base); }
+  .skiplink { position:absolute; left:-9999px; top:0; z-index:100; background:var(--surface);
+              color:var(--ink); padding:.6rem 1rem; border:1px solid var(--ink); border-radius:var(--r-sm); }
+  .skiplink:focus { left:.5rem; top:.5rem; }
+  @media (prefers-reduced-motion: reduce){ *{animation:none!important;transition:none!important} }
+
+  .shell { max-width:var(--page-max); margin:0 auto; padding:0 var(--s-5) var(--s-8); }
+  header { padding:var(--s-5) 0 var(--s-1); display:flex; align-items:baseline; flex-wrap:wrap; }
+  .brand { font-weight:var(--fw-bold); letter-spacing:var(--tracking-tight); }
+  .brand a { color:var(--accent); text-decoration:none; font-weight:var(--fw-regular);
+             font-size:var(--fs-sm); margin-left:.7rem; }
+  .brand a:hover { text-decoration:underline; }
+  .btn-theme { background:none; border:1px solid var(--rule); color:var(--ink-2); border-radius:var(--r-md);
+               font:inherit; font-size:var(--fs-xs); padding:.15rem .5rem; margin-left:.7rem; cursor:pointer; }
+  .btn-theme:hover { background:var(--surface-2); }
+
+  .eyebrow { font-size:var(--fs-micro); letter-spacing:var(--tracking-eyebrow); text-transform:uppercase;
+             color:var(--ink-3); font-weight:var(--fw-bold); margin:var(--s-6) 0 var(--s-2); }
+  h1 { font-family:var(--font-serif); font-weight:600; font-size:var(--fs-display);
+       line-height:var(--lh-tight); letter-spacing:var(--tracking-tight); margin:.2rem 0 var(--s-3);
+       text-wrap:balance; max-width:22ch; }
+  h2 { font-family:var(--font-serif); font-weight:600; font-size:var(--fs-xl);
+       letter-spacing:-.01em; margin:var(--s-7) 0 var(--s-2); }
+  h3 { font-size:var(--fs-lg); font-weight:var(--fw-bold); margin:0 0 var(--s-1);
+       letter-spacing:var(--tracking-tight); }
+  p { max-width:var(--measure); }
+  .lede { font-size:var(--fs-md); color:var(--ink-2); max-width:44rem; }
+  .sub-note { font-size:var(--fs-sm); color:var(--ink-3); max-width:44rem;
+             margin:var(--s-2) 0; }
+
+  /* --- the four statewide figures --- */
+  .band { display:grid; gap:var(--s-4); margin:var(--s-5) 0 var(--s-2);
+          grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); }
+  .fig { border:1px solid var(--rule); border-radius:var(--r-lg); padding:var(--s-4);
+         background:var(--surface); }
+  .fig b { display:block; font-size:var(--fs-2xl); font-weight:var(--fw-bold);
+           letter-spacing:var(--tracking-tight); line-height:1.1; }
+  .fig i { font-style:normal; display:block; font-size:var(--fs-micro); text-transform:uppercase;
+           letter-spacing:.05em; color:var(--ink-3); margin-bottom:var(--s-1); }
+  .fig span { display:block; font-size:var(--fs-sm); color:var(--ink-2); margin-top:var(--s-2); }
+
+  /* --- district picker --- */
+  .picker { display:flex; flex-wrap:wrap; gap:var(--s-2); align-items:center; margin:var(--s-4) 0; }
+  .picker input { flex:1 1 18rem; font:inherit; font-size:var(--fs-md); padding:.6rem .8rem;
+                  border:1px solid var(--rule-2); border-radius:var(--r-md);
+                  background:var(--surface); color:var(--ink); }
+  .picker input:focus { outline:2px solid var(--accent); outline-offset:1px; }
+  .hits { list-style:none; margin:0; padding:0; border:1px solid var(--rule); border-radius:var(--r-md);
+          max-height:15rem; overflow:auto; background:var(--surface); display:none; width:100%; }
+  .hits li { padding:.5rem .8rem; cursor:pointer; border-bottom:1px solid var(--rule);
+             display:flex; justify-content:space-between; gap:var(--s-3); font-size:var(--fs-sm); }
+  .hits li:last-child { border-bottom:0; }
+  .hits li:hover, .hits li[aria-selected="true"] { background:var(--accent-soft); }
+  .hits em { font-style:normal; color:var(--ink-3); }
+
+  /* --- the district file --- */
+  .file { display:none; margin-top:var(--s-5); }
+  .file.on { display:block; }
+  .filehead { display:flex; flex-wrap:wrap; align-items:baseline; gap:var(--s-3);
+              border-bottom:2px solid var(--ink); padding-bottom:var(--s-2); }
+  .filehead h2 { margin:0; font-size:var(--fs-2xl); }
+  .filehead .meta { color:var(--ink-3); font-size:var(--fs-sm); }
+  .cards { display:grid; gap:var(--s-4); margin-top:var(--s-4);
+           grid-template-columns:1fr; }
+  @media (min-width:800px) { .cards { grid-template-columns:1fr 1fr; } }
+  .card { border:1px solid var(--rule); border-radius:var(--r-lg); padding:var(--s-4);
+          background:var(--surface); }
+  .card .q { font-size:var(--fs-micro); text-transform:uppercase; letter-spacing:.08em;
+             color:var(--ink-3); font-weight:var(--fw-bold); }
+  .card .big { font-size:var(--fs-2xl); font-weight:var(--fw-bold); letter-spacing:var(--tracking-tight);
+               line-height:1.1; margin:var(--s-1) 0 var(--s-1); }
+  .card .sub { font-size:var(--fs-sm); color:var(--ink-2); }
+  .card dl { margin:var(--s-3) 0 0; font-size:var(--fs-sm); }
+  .card dl div { display:flex; justify-content:space-between; gap:var(--s-3);
+                 padding:.32rem 0; border-top:1px solid var(--rule); }
+  .card dt { color:var(--ink-3); }
+  .card dd { margin:0; font-variant-numeric:tabular-nums; font-weight:var(--fw-medium); }
+
+  /* percentile rule: where this district sits among all of them */
+  .rank { margin-top:var(--s-3); }
+  .rank .track { height:6px; border-radius:var(--r-pill); background:var(--surface-2);
+                 position:relative; overflow:hidden; }
+  .rank .fill { position:absolute; inset:0 auto 0 0; background:var(--accent); border-radius:var(--r-pill); }
+  .rank .cap { font-size:var(--fs-micro); color:var(--ink-3); margin-top:.25rem; }
+
+  .flags { list-style:none; padding:0; margin:var(--s-5) 0 0; }
+  .flags li { border-left:3px solid var(--rule-2); background:var(--surface-2);
+              border-radius:0 var(--r-md) var(--r-md) 0; padding:.7rem .9rem; margin-bottom:var(--s-2); }
+  .flags li.watch { border-left-color:var(--warn); }
+  .flags li.good  { border-left-color:var(--pos); }
+  .flags li.info  { border-left-color:var(--accent); }
+  .flags b { display:block; font-size:var(--fs-base); }
+  .flags span { font-size:var(--fs-sm); color:var(--ink-2); }
+  .noflags { font-size:var(--fs-sm); color:var(--ink-3); }
+
+  /* --- ranked tables --- */
+  .tabs { display:flex; flex-wrap:wrap; gap:var(--s-2); margin:var(--s-4) 0 var(--s-3); }
+  .tab { font:inherit; font-size:var(--fs-sm); padding:.35rem .8rem; border-radius:var(--r-pill);
+         border:1px solid var(--rule-2); background:var(--surface); color:var(--ink-2); cursor:pointer; }
+  .tab[aria-pressed="true"] { background:var(--ink); color:var(--on-ink); border-color:var(--ink); }
+  .tablewrap { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+  table { border-collapse:collapse; width:100%; font-size:var(--fs-sm); min-width:34rem; }
+  th, td { text-align:right; padding:.45rem .6rem; border-bottom:1px solid var(--rule); white-space:nowrap; }
+  th:first-child, td:first-child { text-align:left; white-space:normal; }
+  thead th { font-size:var(--fs-micro); text-transform:uppercase; letter-spacing:.06em;
+             color:var(--ink-3); border-bottom:1px solid var(--rule-2); }
+  tbody tr:hover { background:var(--surface-2); }
+  td.num { font-variant-numeric:tabular-nums; }
+  td a { color:var(--accent); text-decoration:none; }
+  td a:hover { text-decoration:underline; }
+  .rownum { color:var(--ink-4); font-variant-numeric:tabular-nums; }
+
+  .method { border:1px solid var(--rule); border-radius:var(--r-lg); padding:var(--s-4);
+            background:var(--surface-2); margin-top:var(--s-5); }
+  .method ul { margin:var(--s-2) 0 0; padding-left:1.1rem; }
+  .method li { font-size:var(--fs-sm); color:var(--ink-2); margin:.4rem 0; max-width:44rem; }
+  .method code { font-family:var(--font-mono); font-size:var(--fs-xs); }
+  .cta { display:flex; flex-wrap:wrap; gap:var(--s-2); margin:var(--s-5) 0 0; }
+  .cta a { display:inline-flex; align-items:center; gap:.4rem; font:inherit; font-size:var(--fs-base);
+           font-weight:600; text-decoration:none; padding:.62rem 1.15rem; border-radius:var(--r-lg);
+           border:1px solid var(--rule); color:var(--ink); background:var(--surface); }
+  .cta a:hover { background:var(--surface-2); }
+  .cta .primary { background:var(--accent); color:var(--accent-ink); border-color:var(--accent); }
+  .foot { color:var(--ink-3); font-size:var(--fs-xs); margin-top:var(--s-6);
+          padding-top:var(--s-4); border-top:1px solid var(--rule); max-width:52rem; }
+  .foot b { color:var(--ink-2); }
+  .err { color:var(--neg); font-size:var(--fs-sm); }
+  @media print { .picker, .tabs, .btn-theme, .cta { display:none } }
+</style>
+</head>
+<body>
+<!-- icon-sprite:start -->
+<svg class="icon-sprite" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg"><defs>
+
+  <!-- navigation and controls -->
+  <symbol id="i-search" viewBox="0 0 16 16"><circle cx="7" cy="7" r="4.25"/><path d="M10.2 10.2 14 14"/></symbol>
+  <symbol id="i-pin" viewBox="0 0 16 16"><path d="M8 14.5s5-4.6 5-8a5 5 0 1 0-10 0c0 3.4 5 8 5 8Z"/><circle cx="8" cy="6.5" r="1.9"/></symbol>
+  <symbol id="i-map" viewBox="0 0 16 16"><path d="M1.75 4 6 2.25l4 1.75 4.25-1.75v9.5L10 13.75l-4-1.75-4.25 1.75V4Z"/><path d="M6 2.25v9.75M10 4v9.75"/></symbol>
+  <symbol id="i-grid" viewBox="0 0 16 16"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></symbol>
+  <symbol id="i-layers" viewBox="0 0 16 16"><path d="M8 1.75 14.25 5 8 8.25 1.75 5 8 1.75Z"/><path d="m1.75 8.5 6.25 3.25 6.25-3.25"/><path d="m1.75 11.5 6.25 3.25 6.25-3.25"/></symbol>
+  <symbol id="i-activity" viewBox="0 0 16 16"><path d="M1.5 8.5h3l2-5 3 10 2-5h3"/></symbol>
+  <symbol id="i-book" viewBox="0 0 16 16"><path d="M2.5 2.75h4A2 2 0 0 1 8 4.5v9a1.7 1.7 0 0 0-1.4-1H2.5Z"/><path d="M13.5 2.75h-4A2 2 0 0 0 8 4.5v9a1.7 1.7 0 0 1 1.4-1h4.1Z"/></symbol>
+  <symbol id="i-play" viewBox="0 0 16 16"><path d="M5.25 3.4v9.2l7-4.6-7-4.6Z"/></symbol>
+  <symbol id="i-print" viewBox="0 0 16 16"><path d="M4.5 6V2.5h7V6"/><path d="M4.5 11.5h-2v-4a1 1 0 0 1 1-1h9a1 1 0 0 1 1 1v4h-2"/><rect x="4.5" y="9.5" width="7" height="4"/></symbol>
+  <symbol id="i-contrast" viewBox="0 0 16 16"><circle cx="8" cy="8" r="5.75"/><path d="M8 2.25a5.75 5.75 0 0 1 0 11.5Z" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-close" viewBox="0 0 16 16"><path d="m4 4 8 8M12 4l-8 8"/></symbol>
+  <symbol id="i-download" viewBox="0 0 16 16"><path d="M8 2.5v7.5"/><path d="m4.75 7 3.25 3.25L11.25 7"/><path d="M2.75 13h10.5"/></symbol>
+  <symbol id="i-external" viewBox="0 0 16 16"><path d="M9 2.75h4.25V7"/><path d="M13.25 2.75 7.5 8.5"/><path d="M12 9.75v2.5a1 1 0 0 1-1 1H3.75a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h2.5"/></symbol>
+
+  <!-- direction -->
+  <symbol id="i-arrow-right" viewBox="0 0 16 16"><path d="M2.75 8h10.5"/><path d="M9.5 4.25 13.25 8 9.5 11.75"/></symbol>
+  <symbol id="i-arrow-left" viewBox="0 0 16 16"><path d="M13.25 8H2.75"/><path d="M6.5 4.25 2.75 8l3.75 3.75"/></symbol>
+  <symbol id="i-arrow-down" viewBox="0 0 16 16"><path d="M8 2.75v10.5"/><path d="M4.25 9.5 8 13.25 11.75 9.5"/></symbol>
+  <symbol id="i-chevron-down" viewBox="0 0 16 16"><path d="m4 6 4 4 4-4"/></symbol>
+  <symbol id="i-chevron-up" viewBox="0 0 16 16"><path d="m4 10 4-4 4 4"/></symbol>
+  <symbol id="i-chevron-right" viewBox="0 0 16 16"><path d="m6 4 4 4-4 4"/></symbol>
+  <symbol id="i-trend-up" viewBox="0 0 16 16"><path d="M1.75 11.5 6 7.25l2.5 2.5 5.75-5.75"/><path d="M10.25 4h4v4"/></symbol>
+  <symbol id="i-trend-down" viewBox="0 0 16 16"><path d="M1.75 4.5 6 8.75l2.5-2.5 5.75 5.75"/><path d="M10.25 12h4V8"/></symbol>
+
+  <!-- editorial beats: one mark per category on the feed -->
+  <symbol id="i-institution" viewBox="0 0 16 16"><path d="M2 6.25 8 2.5l6 3.75"/><path d="M3.5 6.75v5.5M6.5 6.75v5.5M9.5 6.75v5.5M12.5 6.75v5.5"/><path d="M2 13.25h12"/></symbol>
+  <symbol id="i-exit" viewBox="0 0 16 16"><path d="M9.5 2.75H4a1 1 0 0 0-1 1v8.5a1 1 0 0 0 1 1h5.5"/><path d="M7 8h6.25"/><path d="M11 5.5 13.5 8 11 10.5"/></symbol>
+  <symbol id="i-money" viewBox="0 0 16 16"><rect x="1.75" y="4" width="12.5" height="8" rx="1.25"/><circle cx="8" cy="8" r="1.9"/><path d="M4.25 8h.01M11.75 8h.01"/></symbol>
+  <symbol id="i-chart" viewBox="0 0 16 16"><path d="M2.25 13.25h11.5"/><path d="M4.5 13V8.5M8 13V3.5M11.5 13V6.5"/></symbol>
+  <symbol id="i-scale" viewBox="0 0 16 16"><path d="M8 2.75v10.5"/><path d="M4.5 13.25h7"/><path d="M3 5.5h10"/><path d="M3 5.5 1.25 9.5h3.5L3 5.5Z"/><path d="M13 5.5 11.25 9.5h3.5L13 5.5Z"/></symbol>
+  <symbol id="i-people" viewBox="0 0 16 16"><circle cx="6" cy="5.5" r="2.25"/><path d="M1.75 13.25c0-2.2 1.9-3.75 4.25-3.75s4.25 1.55 4.25 3.75"/><path d="M11 4.1a2.25 2.25 0 0 1 0 4.3"/><path d="M11.75 9.9c1.5.45 2.5 1.6 2.5 3.35"/></symbol>
+  <symbol id="i-build" viewBox="0 0 16 16"><path d="M2.5 13.25h11"/><path d="M4.25 13.25V6.5h4.5v6.75"/><path d="M8.75 13.25V3.5h3v9.75"/><path d="M5.75 8.75h1.5M5.75 11h1.5"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 16 16"><path d="M8 2.5 14.5 13.5h-13L8 2.5Z"/><path d="M8 6.75v3"/><path d="M8 11.75h.01"/></symbol>
+  <symbol id="i-ballot" viewBox="0 0 16 16"><rect x="2" y="7" width="12" height="6.5" rx="1"/><path d="M5 7V3.5h6V7"/><path d="m6.25 5 1.25 1.25L10 3.75"/></symbol>
+  <symbol id="i-marker" viewBox="0 0 16 16"><circle cx="8" cy="8" r="2.5" fill="currentColor" stroke="none"/><circle cx="8" cy="8" r="5.5"/></symbol>
+
+</defs></svg>
+<!-- icon-sprite:end -->
+<a class="skiplink" href="#four">Skip to the four questions</a>
+<div class="shell">
+  <header>
+    <div class="brand">Texas ISD <span>·</span> The Forensic File<a href="/"><svg class="ico" aria-hidden="true"><use href="#i-arrow-left"/></svg> portal</a><a href="/feed">the feed</a><a href="/about">why this exists</a><a href="/geomap">map</a><button class="btn-theme" id="btnTheme" type="button" aria-label="Toggle dark mode"><svg class="ico" aria-hidden="true"><use href="#i-contrast"/></svg> Theme</button></div>
+  </header>
+
+  <p class="eyebrow" id="four">Four questions · 1,202 districts · state records only</p>
+  <h1>The money questions Texas answers in four different files</h1>
+  <p class="lede">None of this is secret. All of it is hard to see, because the numbers that
+     belong side by side are published apart — and two of the biggest are published in a form
+     that makes them look smaller than they are. This puts them together, for every district,
+     and shows its work.</p>
+
+  <div class="band" id="band"></div>
+  <p class="sub-note" id="band-note"></p>
+
+  <h2>Look up a district</h2>
+  <p class="sub-note">Type a name. Everything below is that district's own file — the same four
+     questions, answered with its own numbers and ranked against every other district.</p>
+  <div class="picker">
+    <input id="q" type="search" autocomplete="off" role="combobox" aria-expanded="false"
+           aria-controls="hits" aria-label="Search for a school district"
+           placeholder="Search 1,202 districts — try Dallas, Katy, Marfa">
+    <ul class="hits" id="hits" role="listbox" aria-label="Matching districts"></ul>
+  </div>
+
+  <section class="file" id="file" aria-live="polite">
+    <div class="filehead">
+      <h2 id="f-name"></h2>
+      <span class="meta" id="f-meta"></span>
+    </div>
+    <div class="cards" id="f-cards"></div>
+    <h3 style="margin-top:var(--s-6)">What stands out</h3>
+    <p class="note" id="f-flagnote">Each line below states a published number against a published
+       threshold. It is a description, not a finding of wrongdoing.</p>
+    <ul class="flags" id="f-flags"></ul>
+    <div class="cta" id="f-cta"></div>
+  </section>
+
+  <h2>Where every district ranks</h2>
+  <p class="sub-note">There is deliberately no combined score. Debt, recapture, borrowing and results
+     measure four unrelated things, and adding them would invent a league table the data cannot
+     support. Each list is ranked on one measure, on its own terms.</p>
+  <div class="tabs" id="tabs" role="group" aria-label="Choose a ranking"></div>
+  <div class="tablewrap"><table id="board"><thead></thead><tbody></tbody></table></div>
+  <p class="sub-note" id="board-note"></p>
+
+  <div class="method">
+    <h3>How this was built, and where it stops</h3>
+    <p class="sub-note" id="m-src"></p>
+    <ul id="m-limits"></ul>
+    <p class="sub-note" id="m-thresholds"></p>
+  </div>
+
+  <div class="cta">
+    <a class="primary" href="/#search"><svg class="ico" aria-hidden="true"><use href="#i-search"/></svg> Open the full district page</a>
+    <a href="/feed"><svg class="ico" aria-hidden="true"><use href="#i-activity"/></svg> What changed today</a>
+    <a href="/about"><svg class="ico" aria-hidden="true"><use href="#i-book"/></svg> Why this exists</a>
+  </div>
+
+  <p class="foot"><b>Data disclaimer:</b> An independent transparency tool presenting Texas Education
+     Agency and Comptroller data for informational purposes only. Not an official TEA product, not an
+     audit, and not financial, legal, or investment advice. District-level aggregates only. Nothing here
+     is an allegation about any person. Every number is traceable to the State of Texas.</p>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ---------- theme toggle (shares tisd_theme with the portal) ---------- */
+  var themeBtn = document.getElementById('btnTheme');
+  if (themeBtn) themeBtn.addEventListener('click', function () {
+    var dark = document.documentElement.getAttribute('data-theme') === 'dark';
+    if (dark) document.documentElement.removeAttribute('data-theme');
+    else document.documentElement.setAttribute('data-theme', 'dark');
+    try { localStorage.setItem('tisd_theme', dark ? 'light' : 'dark'); } catch (e) {}
+  });
+
+  /* ---------- formatting ---------- */
+  var $ = function (id) { return document.getElementById(id); };
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function n(v) { return v == null ? '—' : Number(v).toLocaleString('en-US'); }
+  function usd(v) { return v == null ? '—' : '$' + Math.round(v).toLocaleString('en-US'); }
+  function big(v) {
+    if (v == null) return '—';
+    var a = Math.abs(v);
+    if (a >= 1e9) return '$' + (v / 1e9).toFixed(1) + 'B';
+    if (a >= 1e6) return '$' + (v / 1e6).toFixed(1) + 'M';
+    return usd(v);
+  }
+  function signed(v, d) { return (v > 0 ? '+' : '') + Number(v).toFixed(d == null ? 1 : d); }
+  function title(s) {
+    return String(s || '').replace(/\S+/g, function (w) {
+      if (/^(ISD|CISD|CSD|CCSD|MSD)$/i.test(w)) return w.toUpperCase();
+      return w.charAt(0).toUpperCase() + w.slice(1).toLowerCase();
+    });
+  }
+  /* Percentile bar. Trusted static markup only — no user input reaches this. */
+  function rankBar(pct, caption) {
+    if (pct == null) return '';
+    return '<div class="rank"><div class="track"><div class="fill" style="width:' +
+      Math.max(2, Math.min(100, pct)) + '%"></div></div>' +
+      '<div class="cap">' + esc(caption) + '</div></div>';
+  }
+
+  /* ---------- state ---------- */
+  var TX = null;          /* /forensics/texas */
+  var BOARD = 'debt';     /* which ranking is showing */
+
+  var BOARDS = {
+    debt: {
+      label: 'Debt service per student',
+      key: 'debt', head: 'Debt / student / yr', fmt: usd,
+      note: 'Annual debt service, per student. This money is real and is not in the ' +
+            'operating total TEA reports, so it is invisible in most spending comparisons.'
+    },
+    recapture: {
+      label: 'Recapture paid per student',
+      key: 'recapture', head: 'Recapture / student', fmt: usd,
+      note: 'Local property tax collected here and sent to the state for redistribution. ' +
+            'TEA reports these districts’ revenue after it is taken out.'
+    },
+    approved_ps: {
+      label: 'Bond dollars approved per student',
+      key: 'approved_ps', head: 'Approved / student', fmt: usd,
+      note: 'Every bond the voters approved since 1958, divided by today’s enrolment. ' +
+            'Amounts are in the dollars of their own year and are not inflation-adjusted, ' +
+            'so an old district and a new one are not directly comparable.'
+    },
+    gap: {
+      label: 'Beats what its need predicts',
+      key: 'gap', head: 'Points vs predicted', fmt: function (v) { return signed(v); },
+      note: 'Percentage points at the Meets bar above what this district’s own poverty, ' +
+            'emergent-bilingual and special-education rates predict. The model explains ' +
+            'about half the spread; the rest is real difference, local context and noise.'
+    }
+  };
+
+  /* ---------- statewide band ---------- */
+  function renderBand() {
+    var s = TX.statewide, w = s.did_it_work;
+    var figs = [
+      { i: 'Outside the operating total', b: big(s.debt_total),
+        s: 'A year in debt service across Texas districts. TEA’s operating figure does not ' +
+           'include it, so it is composed with that figure here — never subtracted from it. ' +
+           'Median district: ' + usd(s.debt_median) + ' per student.' },
+      { i: 'Who actually pays', b: s.revenue.local_pct + '¢',
+        s: 'Of every dollar of school revenue is raised locally, from ' +
+           big(s.revenue.local) + ' in gross property collections. The state puts in ' +
+           s.revenue.state_pct + '¢ and Washington ' + s.revenue.federal_pct + '¢. ' +
+           s.recapture_payers.toLocaleString('en-US') + ' districts send some of theirs back.' },
+      { i: 'What the ballot promised', b: big(s.ballot.asked),
+        s: 'Asked of Texas voters in ' + n(s.ballot.propositions) + ' propositions since 1958; ' +
+           big(s.ballot.approved) + ' approved. The ballot is the only public record of what ' +
+           'school debt was FOR — TEA does not itemise facilities.' },
+      { i: 'Did the buildings help?',
+        b: w ? signed(w.difference) + ' pts' : 'not tested',
+        s: w ? ('Districts whose bond passed, against districts whose bond was defeated, ' +
+           'each compared with itself. ' + (w.fragile
+             ? 'p = ' + w.p_value + ' on ' + w.bonds_tested + ' bonds, with a range of ' +
+               signed(w.ci_low) + ' to ' + signed(w.ci_high) + '. Suggestive, not settled.'
+             : (w.distinguishable_from_zero
+                 ? 'p = ' + w.p_value + '.'
+                 : 'p = ' + w.p_value + ' — not distinguishable from no difference at all.')))
+          : 'Not enough matched elections to test.' }
+    ];
+    $('band').innerHTML = figs.map(function (f) {
+      return '<div class="fig"><i>' + esc(f.i) + '</i><b>' + esc(f.b) + '</b><span>' +
+        esc(f.s) + '</span></div>';
+    }).join('');
+    $('band-note').textContent =
+      'Fiscal ' + TX.meta.year + '. ' + n(s.districts) + ' districts with reported finances; ' +
+      n(s.ballot.districts) + ' with a bond election on record, matched to TEA district numbers ' +
+      'at ' + s.ballot.matched_pct + '%.';
+  }
+
+  /* ---------- district search ---------- */
+  var input = $('q'), hits = $('hits'), cursor = -1, shown = [];
+
+  function search(term) {
+    var t = term.trim().toLowerCase();
+    if (t.length < 2) return [];
+    var starts = [], contains = [];
+    for (var i = 0; i < TX.table.length && starts.length + contains.length < 60; i++) {
+      var r = TX.table[i], name = String(r.name || '').toLowerCase();
+      if (name.indexOf(t) === 0) starts.push(r);
+      else if (name.indexOf(t) > -1) contains.push(r);
+    }
+    return starts.concat(contains).slice(0, 12);
+  }
+
+  function paintHits(list) {
+    shown = list; cursor = -1;
+    if (!list.length) { hits.style.display = 'none'; input.setAttribute('aria-expanded', 'false'); return; }
+    hits.innerHTML = list.map(function (r, i) {
+      return '<li role="option" id="hit' + i + '" aria-selected="false" data-n="' + esc(r.n) + '">' +
+        '<span>' + esc(title(r.name)) + '</span><em>' + n(r.students) + ' students</em></li>';
+    }).join('');
+    hits.style.display = 'block';
+    input.setAttribute('aria-expanded', 'true');
+  }
+
+  function closeHits() {
+    hits.style.display = 'none';
+    input.setAttribute('aria-expanded', 'false');
+    cursor = -1;
+  }
+
+  input.addEventListener('input', function () { paintHits(search(input.value)); });
+  input.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') { closeHits(); return; }
+    if (!shown.length) return;
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      cursor = (cursor + (e.key === 'ArrowDown' ? 1 : shown.length - 1)) % shown.length;
+      Array.prototype.forEach.call(hits.children, function (li, i) {
+        li.setAttribute('aria-selected', i === cursor ? 'true' : 'false');
+      });
+      input.setAttribute('aria-activedescendant', 'hit' + cursor);
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      pick(shown[cursor < 0 ? 0 : cursor].n);
+    }
+  });
+  hits.addEventListener('click', function (e) {
+    var li = e.target.closest('li[data-n]');
+    if (li) pick(li.getAttribute('data-n'));
+  });
+  document.addEventListener('click', function (e) {
+    if (!e.target.closest('.picker')) closeHits();
+  });
+
+  /* ---------- the district file ---------- */
+  function pick(num) {
+    closeHits();
+    history.replaceState(null, '', '/forensics?d=' + encodeURIComponent(num));
+    load(num);
+  }
+
+  function load(num) {
+    fetch('/district/' + encodeURIComponent(num) + '/forensics')
+      .then(function (r) {
+        if (!r.ok) throw new Error('This district is not in the forensic dataset.');
+        return r.json();
+      })
+      .then(renderFile)
+      .catch(function (err) {
+        $('file').classList.add('on');
+        $('f-name').textContent = 'Not found';
+        $('f-meta').textContent = '';
+        $('f-cards').innerHTML = '<p class="err">' + esc(err.message) + '</p>';
+        $('f-flags').innerHTML = '';
+        $('f-cta').innerHTML = '';
+      });
+  }
+
+  function cardOutside(d) {
+    var o = d.outside_operating;
+    if (!o) return '';
+    return '<div class="card"><div class="q">1 · Outside the operating total</div>' +
+      '<div class="big">' + usd(o.per_student) + '</div>' +
+      '<div class="sub">per student, every year, in debt service. The state median is ' +
+      usd(o.state_median) + '.</div>' +
+      '<dl><div><dt>Operating, per student</dt><dd>' + usd(o.operating_per_student) + '</dd></div>' +
+      '<div><dt>Plus debt, per student</dt><dd>' + usd(o.per_student) + '</dd></div>' +
+      '<div><dt>Total, per student</dt><dd>' + usd(o.total_per_student) + '</dd></div>' +
+      (o.cents_per_dollar_taught != null
+        ? '<div><dt>Debt per $1 of instruction</dt><dd>' + o.cents_per_dollar_taught + '¢</dd></div>' : '') +
+      (o.annual_total != null
+        ? '<div><dt>Debt service, whole district</dt><dd>' + big(o.annual_total) + '</dd></div>' : '') +
+      '</dl>' +
+      rankBar(o.percentile, 'Higher debt than ' + o.percentile + '% of Texas districts') +
+      '</div>';
+  }
+
+  function cardPays(d) {
+    var p = d.who_pays;
+    if (!p) return '';
+    return '<div class="card"><div class="q">2 · Who pays</div>' +
+      '<div class="big">' + p.local_pct + '¢</div>' +
+      '<div class="sub">of every revenue dollar is raised here, from local property — against ' +
+      p.state_local_pct + '¢ statewide. Measured on gross collections, before recapture is deducted.</div>' +
+      '<dl>' +
+      (p.tax_bill_on_home != null
+        ? '<div><dt>School tax on a ' + big(p.home_value) + ' home</dt><dd>' + usd(p.tax_bill_on_home) + '</dd></div>' +
+          '<div><dt>Of that, leaves the district</dt><dd>' + usd(p.leaves_district) + '</dd></div>'
+        : '<div><dt>School tax on a home</dt><dd>no tax jurisdiction</dd></div>') +
+      '<div><dt>State share</dt><dd>' + p.state_pct + '¢</dd></div>' +
+      '<div><dt>Federal share</dt><dd>' + p.federal_pct + '¢</dd></div>' +
+      (p.recapture_per_student
+        ? '<div><dt>Recapture, per student</dt><dd>' + usd(p.recapture_per_student) + '</dd></div>' +
+          '<div><dt>Recapture, whole district</dt><dd>' + big(p.recapture_paid) + '</dd></div>'
+        : '<div><dt>Recapture</dt><dd>pays none</dd></div>') +
+      '</dl>' +
+      rankBar(p.local_percentile,
+        'More locally funded than ' + p.local_percentile + '% of Texas districts') +
+      '</div>';
+  }
+
+  function cardBallot(d) {
+    var b = d.ballot;
+    if (!b) {
+      return '<div class="card"><div class="q">3 · What the ballot promised</div>' +
+        '<div class="big">None</div>' +
+        '<div class="sub">This district has no bond election on record. It has never asked ' +
+        'voters for building debt, or its elections predate the file.</div></div>';
+    }
+    var last = b.last_election;
+    return '<div class="card"><div class="q">3 · What the ballot promised</div>' +
+      '<div class="big">' + big(b.approved) + '</div>' +
+      '<div class="sub">approved by voters across ' + b.props + ' proposition' +
+      (b.props === 1 ? '' : 's') + ' since ' + b.first_year + ' — ' +
+      (b.approved_per_student != null ? usd(b.approved_per_student) + ' per student today.' : '') +
+      '</div>' +
+      '<dl><div><dt>Asked</dt><dd>' + big(b.asked) + '</dd></div>' +
+      '<div><dt>Refused by voters</dt><dd>' + big(b.refused) + '</dd></div>' +
+      '<div><dt>Pass rate</dt><dd>' + b.pass_rate + '%</dd></div>' +
+      '<div><dt>Named athletics (upper bound)</dt><dd>' + b.athletics_share_pct + '%</dd></div>' +
+      (last ? '<div><dt>Last on the ballot</dt><dd>' + esc(last.date) + ' · ' +
+        (last.passed ? 'carried' : 'defeated') + '</dd></div>' : '') +
+      '</dl>' +
+      (last ? '<div class="cap" style="font-size:var(--fs-micro);color:var(--ink-3);margin-top:.4rem">' +
+        'Stated purpose: ' + esc(last.purpose) + '</div>' : '') +
+      (b.match_exact === false
+        ? '<div class="cap" style="font-size:var(--fs-micro);color:var(--ink-3);margin-top:.4rem">' +
+          'Matched to this district by ' + esc(b.match_method) + ' — this district renamed itself, ' +
+          'so the join is on the county and the stem of the name.</div>'
+        : '') +
+      '</div>';
+  }
+
+  function cardLanded(d) {
+    var l = d.where_it_landed;
+    if (!l) return '';
+    var good = l.gap >= 0;
+    return '<div class="card"><div class="q">4 · Where it landed</div>' +
+      '<div class="big" style="color:' + (good ? 'var(--pos)' : 'var(--neg)') + '">' +
+      signed(l.gap) + ' pts</div>' +
+      '<div class="sub">against what this district’s own student need predicts — ' +
+      l.actual + '% at Meets where ' + l.expected + '% was predicted.</div>' +
+      '<dl><div><dt>Spending, per student</dt><dd>' + usd(l.spend_per_student) + '</dd></div>' +
+      '<div><dt>State median spending</dt><dd>' + usd(l.spend_state_median) + '</dd></div>' +
+      (l.need ? '<div><dt>Economically disadvantaged</dt><dd>' + l.need.pct_econ_disadv + '%</dd></div>' +
+        '<div><dt>Emergent bilingual</dt><dd>' + l.need.pct_emergent_bilingual + '%</dd></div>' +
+        '<div><dt>Special education</dt><dd>' + l.need.pct_special_ed + '%</dd></div>' : '') +
+      '</dl>' +
+      '<div class="cap" style="font-size:var(--fs-micro);color:var(--ink-3);margin-top:.5rem">' +
+      'School year ' + l.year + '. The model explains about ' +
+      Math.round((l.model_r2 || 0) * 100) + '% of the spread between districts; the rest is real ' +
+      'difference, local context and noise.</div>' +
+      '</div>';
+  }
+
+  function renderFile(d) {
+    $('file').classList.add('on');
+    $('f-name').textContent = title(d.district_name) + ' — the file';
+    $('f-meta').textContent = n(d.students) + ' students · district ' + d.district_number +
+      ' · finances fiscal ' + d.year;
+    $('f-cards').innerHTML = cardOutside(d) + cardPays(d) + cardBallot(d) + cardLanded(d);
+
+    $('f-flags').innerHTML = (d.flags && d.flags.length)
+      ? d.flags.map(function (f) {
+        return '<li class="' + esc(f.tone) + '"><b>' + esc(f.label) + '</b>' +
+          '<span>' + esc(f.detail) + '</span></li>';
+      }).join('')
+      : '<li class="info"><b>Nothing crosses a threshold</b><span>Every measure on this ' +
+        'district sits inside the ordinary range for Texas. That is a statement about ' +
+        'these four measures, not a clean bill of health.</span></li>';
+
+    $('f-cta').innerHTML =
+      '<a class="primary" href="/?d=' + encodeURIComponent(d.district_number) + '">' +
+      '<svg class="ico" aria-hidden="true"><use href="#i-arrow-right"/></svg> ' +
+      'Full page for ' + esc(title(d.district_name)) + '</a>' +
+      '<a href="/district/' + encodeURIComponent(d.district_number) + '/forensics">' +
+      '<svg class="ico" aria-hidden="true"><use href="#i-download"/></svg> This file as JSON</a>';
+
+    $('file').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  /* ---------- ranked tables ---------- */
+  function renderTabs() {
+    $('tabs').innerHTML = Object.keys(BOARDS).map(function (k) {
+      return '<button class="tab" type="button" data-b="' + k + '" aria-pressed="' +
+        (k === BOARD) + '">' + esc(BOARDS[k].label) + '</button>';
+    }).join('');
+  }
+
+  function renderBoard() {
+    var cfg = BOARDS[BOARD];
+    var rows = TX.leaderboards[BOARD === 'debt' ? 'debt_per_student'
+      : BOARD === 'recapture' ? 'recapture_per_student'
+        : BOARD === 'approved_ps' ? 'approved_per_student' : 'beats_prediction'] || [];
+    var t = $('board');
+    t.tHead.innerHTML = '<tr><th>#</th><th>District</th><th>Students</th><th>' +
+      esc(cfg.head) + '</th><th>Flags</th></tr>';
+    t.tBodies[0].innerHTML = rows.map(function (r, i) {
+      return '<tr><td class="rownum">' + (i + 1) + '</td>' +
+        '<td><a href="/forensics?d=' + esc(r.n) + '" data-n="' + esc(r.n) + '">' +
+        esc(title(r.name)) + '</a></td>' +
+        '<td class="num">' + n(r.students) + '</td>' +
+        '<td class="num">' + esc(cfg.fmt(r[cfg.key])) + '</td>' +
+        '<td class="num">' + r.flags + '</td></tr>';
+    }).join('');
+    $('board-note').textContent = cfg.note;
+    Array.prototype.forEach.call($('tabs').children, function (b) {
+      b.setAttribute('aria-pressed', String(b.getAttribute('data-b') === BOARD));
+    });
+  }
+
+  $('tabs').addEventListener('click', function (e) {
+    var b = e.target.closest('button[data-b]');
+    if (!b) return;
+    BOARD = b.getAttribute('data-b');
+    renderBoard();
+  });
+
+  $('board').addEventListener('click', function (e) {
+    var a = e.target.closest('a[data-n]');
+    if (!a) return;
+    e.preventDefault();
+    pick(a.getAttribute('data-n'));
+  });
+
+  /* ---------- method ---------- */
+  function renderMethod() {
+    var m = TX.meta;
+    $('m-src').textContent = 'Built entirely from files already published on this site (' +
+      m.built_from.join(', ') + '), which are themselves built from: ' +
+      (m.sources || []).join('; ') + '.';
+    $('m-limits').innerHTML = (m.limits || []).map(function (l) {
+      return '<li>' + esc(l) + '</li>';
+    }).join('');
+    var t = m.thresholds || {};
+    $('m-thresholds').textContent =
+      'Thresholds, so you can disagree with them explicitly: "among the highest" means the top ' +
+      (100 - t.top_decile) + '% of districts; "debt costs more than half of instruction" means ' +
+      t.debt_cents_per_dollar_taught + ' cents or more per dollar taught; "paid for locally" means ' +
+      t.local_share_high_pct + '% or more of gross revenue; "athletics in most of the ask" means ' +
+      t.athletics_share_pct + '% or more of lifetime asks naming athletics; better or worse than ' +
+      'predicted means ' + t.beats_prediction_points + ' points or more at Meets; a pass rate is ' +
+      'only shown as meaningful from ' + t.min_propositions_for_a_pass_rate + ' propositions up.';
+  }
+
+  /* ---------- boot ---------- */
+  fetch('/forensics/texas')
+    .then(function (r) {
+      if (!r.ok) throw new Error('The forensic dataset is not available right now.');
+      return r.json();
+    })
+    .then(function (data) {
+      TX = data;
+      renderBand();
+      renderTabs();
+      renderBoard();
+      renderMethod();
+      var d = new URLSearchParams(location.search).get('d');
+      if (d) load(d);
+    })
+    .catch(function (err) {
+      $('band').innerHTML = '<p class="err">' + esc(err.message) + '</p>';
+      $('band-note').textContent = '';
+    });
+})();
+</script>
+</body>
+</html>
