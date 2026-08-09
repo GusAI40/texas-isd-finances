@@ -121,6 +121,44 @@
   .flags span { font-size:var(--fs-sm); color:var(--ink-2); }
   .noflags { font-size:var(--fs-sm); color:var(--ink-3); }
 
+  /* --- the seventeen-year trajectory --- */
+  .findings { display:grid; gap:var(--s-3); margin:var(--s-4) 0;
+              grid-template-columns:1fr; }
+  @media (min-width:760px) { .findings { grid-template-columns:1fr 1fr; } }
+  .finding { border-left:3px solid var(--warn); background:var(--surface-2);
+             border-radius:0 var(--r-md) var(--r-md) 0; padding:var(--s-3) var(--s-4); }
+  .finding.good { border-left-color:var(--pos); }
+  .finding h4 { margin:0 0 var(--s-1); font-size:var(--fs-base); line-height:var(--lh-snug); }
+  .finding .num { font-size:var(--fs-lg); font-weight:var(--fw-bold);
+                  letter-spacing:var(--tracking-tight); font-variant-numeric:tabular-nums;
+                  display:block; margin-bottom:var(--s-1); }
+  .finding p { margin:0; font-size:var(--fs-sm); color:var(--ink-2); max-width:none; }
+
+  .trends { display:grid; gap:var(--s-4); margin:var(--s-4) 0;
+            grid-template-columns:1fr; }
+  @media (min-width:700px)  { .trends { grid-template-columns:1fr 1fr; } }
+  @media (min-width:1040px) { .trends { grid-template-columns:1fr 1fr 1fr; } }
+  .tcard { border:1px solid var(--rule); border-radius:var(--r-lg);
+           padding:var(--s-4); background:var(--surface); }
+  .tcard h4 { margin:0; font-size:var(--fs-base); line-height:var(--lh-snug); }
+  .tcard .ask { font-size:var(--fs-micro); color:var(--ink-3); margin:.2rem 0 var(--s-2); }
+  .tcard svg.tline { display:block; width:100%; height:110px; overflow:visible; }
+  .tcard .yrs { display:flex; justify-content:space-between; font-size:var(--fs-micro);
+                color:var(--ink-4); margin-top:.2rem; font-variant-numeric:tabular-nums; }
+  .tcard .rd { font-size:var(--fs-sm); margin-top:var(--s-2);
+               font-variant-numeric:tabular-nums; }
+  .tcard .rd b { font-weight:var(--fw-bold); }
+  .tcard .delta.up   { color:var(--pos); }
+  .tcard .delta.down { color:var(--neg); }
+  .tcard .steep { display:block; font-size:var(--fs-micro); color:var(--warn);
+                  margin-top:.25rem; font-weight:var(--fw-medium); }
+  .tkey { display:flex; gap:var(--s-3); font-size:var(--fs-micro); color:var(--ink-3);
+          margin-top:.3rem; flex-wrap:wrap; }
+  .tkey i { font-style:normal; display:inline-flex; align-items:center; gap:.3rem; }
+  .tkey i::before { content:""; width:14px; height:0; border-top:2px solid currentColor; }
+  .tkey .dist { color:var(--accent); }
+  .tkey .st   { color:var(--ink-4); }
+
   /* --- ranked tables --- */
   .tabs { display:flex; flex-wrap:wrap; gap:var(--s-2); margin:var(--s-4) 0 var(--s-3); }
   .tab { font:inherit; font-size:var(--fs-sm); padding:.35rem .8rem; border-radius:var(--r-pill);
@@ -238,6 +276,19 @@
     <div class="cta" id="f-cta"></div>
   </section>
 
+  <h2 id="trajectory">Seventeen years, and which way it is moving</h2>
+  <p class="lede" id="tj-lede">One year tells a board where it stands. It cannot tell them
+     which way they are going — and that is the part still open to a decision. Every figure
+     below is in constant 2024 dollars, from fiscal 2009 to 2025.</p>
+  <div class="findings" id="tj-findings"></div>
+  <p class="sub-note" id="tj-panel"></p>
+
+  <h3 style="margin-top:var(--s-6)" id="tj-charts-h">The six measures, statewide</h3>
+  <p class="sub-note" id="tj-charts-note">Pick a district above and its own line is drawn
+     against the state's.</p>
+  <div class="trends" id="tj-charts"></div>
+  <p class="sub-note" id="tj-limits"></p>
+
   <h2>Where every district ranks</h2>
   <p class="sub-note">There is deliberately no combined score. Debt, recapture, borrowing and results
      measure four unrelated things, and adding them would invent a league table the data cannot
@@ -311,6 +362,9 @@
 
   /* ---------- state ---------- */
   var TX = null;          /* /forensics/texas */
+  var TJ = null;          /* /trends/texas */
+  var TJD = null;         /* the selected district's trends, or null */
+  var trajectoryAnchored = false;
   var BOARD = 'debt';     /* which ranking is showing */
 
   var BOARDS = {
@@ -450,6 +504,7 @@
         return r.json();
       })
       .then(renderFile)
+      .then(function () { return loadTrend(num); })
       .catch(function (err) {
         $('file').classList.add('on');
         $('f-name').textContent = 'Not found';
@@ -458,6 +513,15 @@
         $('f-flags').innerHTML = '';
         $('f-cta').innerHTML = '';
       });
+  }
+
+  /* A district with fewer than eight reported years has no trend, which is a
+     404 by design. That must not blank the statewide charts. */
+  function loadTrend(num) {
+    return fetch('/district/' + encodeURIComponent(num) + '/trends')
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .catch(function () { return null; })
+      .then(function (t) { TJD = t; renderTrajectory(); });
   }
 
   function cardOutside(d) {
@@ -580,7 +644,9 @@
       '<a href="/district/' + encodeURIComponent(d.district_number) + '/forensics">' +
       '<svg class="ico" aria-hidden="true"><use href="#i-download"/></svg> This file as JSON</a>';
 
-    $('file').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (location.hash !== '#trajectory') {
+      $('file').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   }
 
   /* ---------- ranked tables ---------- */
@@ -627,6 +693,138 @@
     pick(a.getAttribute('data-n'));
   });
 
+  /* ---------- the seventeen-year trajectory ---------- */
+
+  /* A line chart small enough to read six at a time. Drawn in a 100x40 user
+     space and stretched by CSS, so one geometry serves every card width and
+     nothing has to be re-measured on resize. */
+  var VW = 100, VH = 40;
+
+  function pathFor(years, vals, x0, x1, lo, hi) {
+    var span = (hi - lo) || 1, xs = (x1 - x0) || 1, d = '', pen = false;
+    for (var i = 0; i < vals.length; i++) {
+      if (vals[i] == null) { pen = false; continue; }
+      var x = (years[i] - x0) / xs * VW;
+      var y = VH - (vals[i] - lo) / span * VH;
+      d += (pen ? 'L' : 'M') + x.toFixed(2) + ' ' + y.toFixed(2) + ' ';
+      pen = true;
+    }
+    return d.trim();
+  }
+
+  function chart(key, cfg) {
+    var st = TJ.statewide.series[key], yrs = TJ.statewide.years;
+    var dis = TJD ? TJD.series[key] : null, dyr = TJD ? TJD.years : null;
+    var all = st.filter(function (v) { return v != null; });
+    if (dis) all = all.concat(dis.filter(function (v) { return v != null; }));
+    if (!all.length) return '';
+    var lo = Math.min.apply(null, all), hi = Math.max.apply(null, all);
+    /* Money and share charts both read better with zero in frame when the
+       series can go negative — an operating balance crossing zero is the
+       whole point of that chart. */
+    if (lo > 0 && cfg.unit === '$' && key === 'operating_balance_ps') lo = 0;
+    if (lo < 0 && hi > 0) { /* keep both sides, draw the zero rule below */ }
+    var pad = (hi - lo) * 0.08 || 1;
+    lo -= pad; hi += pad;
+    var x0 = yrs[0], x1 = yrs[yrs.length - 1];
+
+    var zero = (lo < 0 && hi > 0)
+      ? '<line x1="0" x2="' + VW + '" y1="' + (VH - (0 - lo) / (hi - lo) * VH).toFixed(2) +
+        '" y2="' + (VH - (0 - lo) / (hi - lo) * VH).toFixed(2) +
+        '" stroke="var(--rule-2)" stroke-width=".4" stroke-dasharray="2 2"/>'
+      : '';
+    var sp = pathFor(yrs, st, x0, x1, lo, hi);
+    var dp = dis ? pathFor(dyr, dis, x0, x1, lo, hi) : '';
+    return '<svg viewBox="0 0 ' + VW + ' ' + VH + '" preserveAspectRatio="none" ' +
+      'class="tline" role="img" aria-label="' + esc(cfg.aria) + '">' + zero +
+      '<path d="' + sp + '" fill="none" stroke="var(--ink-4)" stroke-width="' +
+      (dp ? '.7' : '1') + '" stroke-dasharray="' + (dp ? '2 1.5' : '0') +
+      '" vector-effect="non-scaling-stroke"/>' +
+      (dp ? '<path d="' + dp + '" fill="none" stroke="var(--accent)" stroke-width="1.4" ' +
+        'vector-effect="non-scaling-stroke" stroke-linejoin="round"/>' : '') +
+      '</svg>';
+  }
+
+  function money(v) {
+    /* "$-354" reads as a typo; the sign belongs in front of the currency mark. */
+    return v == null ? '—' : (v < 0 ? '\u2212' : '') + usd(Math.abs(v));
+  }
+
+  function fmtBy(unit, v) {
+    if (v == null) return '—';
+    return unit === '%' ? Number(v).toFixed(1) + '%' : money(v);
+  }
+
+  function renderTrajectory() {
+    if (!TJ) return;
+    /* The statewide findings. All six are squeeze stories; the tone stays
+       neutral and the number carries the weight. */
+    $('tj-findings').innerHTML = TJ.findings.map(function (f) {
+      return '<div class="finding"><h4>' + esc(f.headline) + '</h4>' +
+        '<span class="num">' + esc(f.figure) + '</span>' +
+        '<p>' + esc(f.detail) + '</p></div>';
+    }).join('');
+
+    var p = TJ.meta.balanced_panel_check;
+    $('tj-panel').textContent =
+      'Every figure above was re-derived on only the ' + n(p.districts) + ' districts that ' +
+      'reported in both ' + TJ.meta.first_year + ' and ' + TJ.meta.last_year + '. ' +
+      'Instruction’s share falls ' + Math.abs(p.instruction_share_all) + ' points across ' +
+      'all reporting districts and ' + Math.abs(p.instruction_share_panel) + ' points on that ' +
+      'fixed set — so the trend is not a change in who reports.';
+
+    var M = TJ.meta.measures;
+    $('tj-charts-h').textContent = TJD
+      ? title(TJD.district_name) + ' against Texas, ' + TJ.meta.first_year + '–' + TJ.meta.last_year
+      : 'The six measures, statewide';
+    $('tj-charts-note').textContent = TJD
+      ? (TJD.small_district ? TJD.note
+        : 'The solid line is this district. The dotted line is Texas as a whole.')
+      : 'Pick a district above and its own line is drawn against the state’s.';
+
+    $('tj-charts').innerHTML = Object.keys(M).map(function (key) {
+      var cfg = M[key];
+      var src = TJD ? TJD.change[key] : TJ.statewide.change[key];
+      if (!src) return '';
+      var vs = TJD && TJD.vs_state ? TJD.vs_state[key] : null;
+      /* fall_is_worrying says which direction is the bad one for THIS measure,
+         so a rise in debt and a fall in instruction both read as a warning. */
+      var worse = cfg.fall_is_worrying ? src.change < 0 : src.change > 0;
+      var arrow = (src.change > 0 ? '+' : '') +
+        (cfg.unit === '%' ? Math.abs(src.change).toFixed(1) + ' pts'
+          : usd(Math.abs(src.change)));
+      if (src.change < 0) arrow = '\u2212' + arrow;
+      return '<div class="tcard"><h4>' + esc(cfg.label) + '</h4>' +
+        '<div class="ask">' + esc(cfg.question) + '</div>' +
+        chart(key, { unit: cfg.unit, aria: cfg.label + ', ' + TJ.meta.first_year + ' to ' +
+          TJ.meta.last_year + ': ' + fmtBy(cfg.unit, src.first) + ' to ' +
+          fmtBy(cfg.unit, src.last) }) +
+        '<div class="yrs" aria-hidden="true"><span>' + TJ.meta.first_year +
+        '</span><span>' + TJ.meta.last_year + '</span></div>' +
+        '<div class="rd"><b>' + fmtBy(cfg.unit, src.first) + '</b> <svg class="ico" aria-hidden="true"><use href="#i-arrow-right"/></svg> <b>' +
+        fmtBy(cfg.unit, src.last) + '</b> <span class="delta ' + (worse ? 'down' : 'up') +
+        '">' + esc(arrow) + '</span>' +
+        (vs && vs.steeper_than_state
+          ? '<span class="steep">Moving that way faster than Texas as a whole — a gap of ' +
+            esc(cfg.unit === '%' ? Math.abs(vs.gap_vs_state).toFixed(1) + ' points'
+              : usd(Math.abs(vs.gap_vs_state))) + '.</span>'
+          : '') +
+        '</div>' +
+        (TJD ? '<div class="tkey"><i class="dist">' + esc(title(TJD.district_name)) +
+          '</i><i class="st">Texas</i></div>' : '') +
+        '</div>';
+    }).join('');
+
+    $('tj-limits').textContent = TJ.meta.limits.join(' ');
+
+    var wantsDistrict = new URLSearchParams(location.search).get('d');
+    if (location.hash === '#trajectory' && !trajectoryAnchored &&
+        (!wantsDistrict || TJD)) {
+      trajectoryAnchored = true;
+      $('trajectory').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+
   /* ---------- method ---------- */
   function renderMethod() {
     var m = TX.meta;
@@ -648,6 +846,21 @@
   }
 
   /* ---------- boot ---------- */
+  /* The trajectory is a second, independent fetch: if it fails the rest of the
+     page must still work, which is the same rule the portal already follows. */
+  fetch('/trends/texas')
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .catch(function () { return null; })
+    .then(function (t) {
+      TJ = t;
+      if (t) renderTrajectory();
+      else {
+        $('tj-findings').innerHTML =
+          '<p class="err">The seventeen-year series is not available right now.</p>';
+        $('tj-charts').innerHTML = '';
+      }
+    });
+
   fetch('/forensics/texas')
     .then(function (r) {
       if (!r.ok) throw new Error('The forensic dataset is not available right now.');

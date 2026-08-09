@@ -1373,6 +1373,68 @@ async def get_texas_forensics():
     return {k: v for k, v in data.items() if k != "districts"}
 
 
+_trends_cache: Optional[Dict[str, Any]] = None
+
+
+def _trends() -> Optional[Dict[str, Any]]:
+    global _trends_cache
+    if _trends_cache is None:
+        path = STATIC_DIR / "trend_data.json"
+        if not path.exists():
+            return None
+        with path.open() as fh:
+            _trends_cache = json.load(fh)
+    return _trends_cache
+
+
+@app.get("/district/{district_number}/trends", tags=["Districts"])
+async def get_district_trends(district_number: str):
+    """Seventeen fiscal years of this district, against the state's own line.
+
+    Every other view on this site reports one year, which can tell a board
+    where it stands but not which way it is moving. This returns the series
+    for six measures — instruction's share of the operating dollar, instruction
+    per student, debt service, security, operating balance and federal revenue
+    — in constant 2024 dollars, plus each measure's first-to-last change and
+    how that change compares with the statewide one.
+
+    `vs_state.steeper_than_state` is true when this district is moving in the
+    worrying direction faster than Texas as a whole. It describes a direction,
+    not a cause: a falling instruction share can be a district cutting
+    classrooms or a district opening them, and this data cannot tell the two
+    apart.
+
+    Districts under 500 students carry `small_district`, because one retirement
+    moves their per-student figures more than a policy would.
+    """
+    data = _trends()
+    if data is None:
+        raise HTTPException(status_code=503,
+                            detail="Trend data not built. Run scripts/build_trend_data.py")
+    rec = data["districts"].get(district_number)
+    if rec is None:
+        raise HTTPException(
+            status_code=404,
+            detail="No trend for this district. Districts reporting fewer than eight of "
+                   "the seventeen years are excluded — too little to call a trend.")
+    return {"meta": data["meta"], "statewide": data["statewide"], **rec}
+
+
+@app.get("/trends/texas", tags=["Statewide"])
+async def get_texas_trends():
+    """The seventeen-year statewide series and the six findings in it.
+
+    Carries the balanced-panel check: every headline was re-derived on only the
+    districts reporting in both the first and last year, so a trend cannot be
+    an artefact of which districts report. Serves with no database.
+    """
+    data = _trends()
+    if data is None:
+        raise HTTPException(status_code=503,
+                            detail="Trend data not built. Run scripts/build_trend_data.py")
+    return {k: v for k, v in data.items() if k != "districts"}
+
+
 _equity_cache: Optional[Dict[str, Any]] = None
 
 

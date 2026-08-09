@@ -953,6 +953,7 @@
         <button class="quiet" data-png="trendchart"><svg class="ico" aria-hidden="true"><use href="#i-download"/></svg> Chart as image</button>
         <button class="quiet" id="btn-trendcsv"><svg class="ico" aria-hidden="true"><use href="#i-download"/></svg> Data as CSV</button>
       </div>
+      <p class="support" id="trend-more"></p>
       <div class="cite" id="trend-cite"></div>
     </section>
 
@@ -2097,6 +2098,8 @@ function trendTitle() {
 }
 function renderTrend() {
   $('trend-title').textContent = trendTitle();
+  $('trend-more').innerHTML = state.district
+    ? `Money in, money out. For where it <b>went</b> over the same seventeen years — the share reaching a classroom, debt service, security — and how that compares with Texas as a whole, see <a href="/forensics?d=${encodeURIComponent(state.district.num)}#trajectory">this district's seventeen-year trajectory</a>.` : '';
   const { series, money } = trendSeries();
   const svg = $('trendchart'), tip = $('trendtip');
   const W = svg.clientWidth || 900, H = 300, m = { t: 18, r: 130, b: 28, l: 64 };
