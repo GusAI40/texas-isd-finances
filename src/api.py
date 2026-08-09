@@ -18,7 +18,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, PlainTextResponse, Response
 from pydantic import BaseModel, Field
 
-from . import analytics, llm_config, site_gate
+from . import analytics, llm_config, scanner, site_gate
 from .sample_queries import SAMPLE_QUERIES
 
 load_dotenv()
@@ -83,6 +83,25 @@ app.add_middleware(
     allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
+
+@app.middleware("http")
+async def reject_scanner_probes(request: Request, call_next):
+    """Turn away vulnerability scanners before any other work happens.
+
+    Registered LAST so Starlette runs it FIRST: a probe never reaches the
+    password gate, the page-view counter, the router, or the database. It was
+    always going to 404; this makes that answer immediate and, more usefully,
+    keeps the runtime log readable — about half of all requests to this site
+    are one scanner hunting for WordPress, and real errors were drowning in it.
+
+    404, never 403: a 403 tells an attacker something is there to protect.
+    """
+    if request.method in ("GET", "HEAD", "POST") and scanner.is_scanner_path(request.url.path):
+        return Response(status_code=404, content='{"detail":"Not Found"}',
+                        media_type="application/json",
+                        headers={"Cache-Control": "no-store"})
+    return await call_next(request)
+
 
 @app.middleware("http")
 async def site_password_gate(request: Request, call_next):
