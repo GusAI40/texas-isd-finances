@@ -17,6 +17,101 @@ Entry template:
 
 ---
 
+## 2026-08-09 (later) — The forensic file becomes a trajectory, and one revenue column nearly published a 30-point error
+
+**What changed:** commit `9222f76`, live on https://txisd.dev. 351 tests (was 332).
+
+New `/trends/texas`, `/district/{n}/trends`, and a "Seventeen years, and which
+way it is moving" section on `/forensics`, from `static/trend_data.json`
+(`scripts/build_trend_data.py`), no database. Six measures per district,
+fiscal 2009–2025, constant 2024 dollars, each drawn against the state's own
+line. The portal's Trends section links into a district's trajectory
+(`/forensics?d=…#trajectory`) and the forensic file links back.
+
+**Why:** every view on the site reported one year. That tells a board where it
+stands and not which way it is going, and the direction is the part still open
+to a decision. The user asked whether the data could be seen per year and
+whether the trends told a story for leadership; it does, and it is one story.
+
+### The statewide squeeze, all six measures
+
+| | 2009 | 2025 |
+|---|---|---|
+| instruction's share of the operating dollar | 57.8% | **54.5%** |
+| instruction per student (real) | $7,249 | **$6,880** |
+| security & monitoring per student | $96 | **$232 (2.4×)** |
+| debt service per student | $1,507 | **$2,441 (1.6×)** |
+| federal revenue per student | $1,452 | $1,432 (peak **$2,798** in 2022) |
+| operating revenue − operating spend | +$0.15B | **−$1.58B** |
+
+Total spending per student rose ~$1,010 real, but a shrinking share reaches a
+classroom because debt service and security absorbed it; the federal money
+that masked it for three years is gone; and enrolment growth fell from ~68,900
+a year through the 2010s to 12,807. Library/media fell $79/student (−42%) over
+the same window — the second-largest cut after instruction.
+
+### ⚠️ The column that nearly published a 30-point error
+
+An operating deficit was first computed against
+`all_funds_total_operating_revenue_and_other_revenue_and_reca`, giving **12%**
+of districts short in 2025. Against `all_funds_total_operating_revenue` it is
+**44.4%**. The difference is `all_funds_other_revenue`, and that column tracks
+debt service almost exactly year by year — $5.3B vs $4.9B in 2009 through
+$14.3B vs $13.9B in 2025. **It is the I&S debt tax levy.** Counting it as
+operating revenue while excluding debt service from operating cost understates
+deficits badly. The measure now excludes debt from BOTH sides, which is also
+what stops a routine construction year reading as a crisis. An intermediate
+answer of "3.4% → 12.1%" was given to the user before this was caught and has
+been corrected to them in writing.
+
+The finding that survives is stronger than the one that was nearly published:
+in this seventeen-year window Texas districts had **never** collectively spent
+more on operations than operating revenue covered. 2025 is the first time
+(+$3.0B in 2022 → −$1.6B), 44.4% of districts are short against a previous
+worst of 27.1%, and they enrol 67.7% of students.
+
+### Guards
+
+- **Balanced panel.** Every headline re-derived on only the 1,142 districts
+  present in both end years: instruction's share falls 3.2 points there vs 3.3
+  across all reporting districts. The check ships in the payload and the page
+  quotes it, because a trend that only exists because the roster changed is not
+  a trend.
+- **Findings are generated from the series**, so tests re-derive each headline
+  from the data it came from — the share figures, the federal peak YEAR, the
+  deficit percentages, and the claim of a "first" against every earlier year's
+  margin.
+- **Direction is per measure.** A rise in debt and a fall in instruction are
+  both bad news; `fall_is_worrying` carries that per measure, and a test asserts
+  `steeper_than_state` respects it on 1,000+ comparisons. A single sign test
+  would have inverted half of them.
+- Districts under 500 students keep their series but are flagged and excluded
+  from rankings. Districts with fewer than 8 reported years 404 by design.
+
+**Gotchas:**
+- `json.dumps` writes bare `NaN`, which strict parsers reject. Missing years
+  must be `None`. The test loads the artefact with `parse_constant` so this
+  can never ship.
+- `.tcard svg { height:110px }` also matched the arrow icon `apply_design.py`
+  injects in place of a text "→", rendering it 110px tall. Scope chart CSS to
+  a class (`svg.tline`), never to the element.
+- `usd(-354)` renders `$-354`, which reads as a typo. Operating balance is the
+  one measure routinely negative — the sign goes before the currency mark.
+- Two `scrollIntoView` calls raced: the district file scrolled itself in, then
+  the trajectory did. If the reader followed a `#trajectory` link the file must
+  stand down, and the anchor must wait until the district's own lines are in.
+- The portal's Trends section only renders when the database answers, so the
+  cross-link is invisible with `SUPABASE_DB_URL` unset. Verify it by replaying
+  a real production `/summary` response through `page.route()`.
+- The Vercel CLI again exited non-zero with a JSON "deploy_failed" blob while
+  the deployment succeeded. `vercel ls --prod` is the source of truth.
+
+**Open items:** unchanged from the entry below — the four pasted credentials
+still need rotating, `sql/create_nlp_usage.sql` still needs applying, and
+Supabase is still on the free tier.
+
+**Notes:**
+
 ## 2026-08-09 — The bond join was wrong in both directions; fixing it moved a published finding, and the forensic file was built on the corrected base
 
 **What changed:** commit `55ac58a`, live on https://txisd.dev. 332 tests (was 313).
