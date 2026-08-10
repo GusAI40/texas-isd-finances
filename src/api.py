@@ -15,10 +15,10 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.concurrency import run_in_threadpool
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, PlainTextResponse, Response
+from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse, Response
 from pydantic import BaseModel, Field
 
-from . import analytics, llm_config, scanner, site_gate
+from . import analytics, llm_config, mcp_protocol, mcp_tools, scanner, site_gate
 from .sample_queries import SAMPLE_QUERIES
 
 load_dotenv()
@@ -29,6 +29,16 @@ MIN_YEAR = int(os.getenv("DATA_MIN_YEAR", "2009"))
 MAX_YEAR = int(os.getenv("DATA_MAX_YEAR", "2025"))
 
 STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
+
+# Browser origins allowed to POST /mcp. The check only fires when an Origin
+# header is present, which means a direct API client or a desktop MCP host is
+# unaffected; it exists so a random web page cannot use someone's browser as a
+# confused deputy against a local instance (DNS rebinding). Empty disables it.
+MCP_ALLOWED_ORIGINS = tuple(
+    o.strip() for o in os.getenv(
+        "MCP_ALLOWED_ORIGINS",
+        "https://txisd.dev,https://claude.ai,http://localhost,http://127.0.0.1",
+    ).split(",") if o.strip())
 
 
 @asynccontextmanager
@@ -1373,6 +1383,24 @@ async def get_texas_forensics():
     return {k: v for k, v in data.items() if k != "districts"}
 
 
+_fallback_cache: Optional[Dict[str, Any]] = None
+
+
+def _fallback_index() -> Optional[Dict[str, Any]]:
+    """Parsed form of fallback_index.json, for callers that need the districts
+    rather than the bytes. The /fallback-index endpoint still streams the file
+    with FileResponse — parsing it there would cost every visitor nothing but
+    latency."""
+    global _fallback_cache
+    if _fallback_cache is None:
+        path = STATIC_DIR / "fallback_index.json"
+        if not path.exists():
+            return None
+        with path.open() as fh:
+            _fallback_cache = json.load(fh)
+    return _fallback_cache
+
+
 _trends_cache: Optional[Dict[str, Any]] = None
 
 
@@ -1592,6 +1620,45 @@ async def feed_page():
     if page.exists():
         return FileResponse(page)
     raise HTTPException(status_code=404, detail="Feed not available")
+
+
+@app.post("/mcp", include_in_schema=False)
+async def mcp_endpoint(request: Request):
+    """Model Context Protocol 2026-07-28, so an assistant can answer questions
+    about Texas school money from the state's own records instead of guessing.
+
+    Stateless by construction: no handshake, no session id, no server-initiated
+    requests. That is what makes it possible here at all — this app runs behind
+    a round-robin with no sticky routing, and every earlier MCP revision
+    required session affinity.
+
+    Read-only. Every tool reads a committed JSON artefact, so nothing here
+    touches the database, spends an LLM token, or can be prompt-injected. See
+    src/mcp_protocol.py for the wire format and src/mcp_tools.py for the tools.
+    """
+    raw = await request.body()
+    headers = {k.lower(): v for k, v in request.headers.items()}
+    status, body = mcp_protocol.handle(
+        raw, headers,
+        call_tool=mcp_tools.call_tool,
+        list_tools=mcp_tools.list_tools,
+        instructions=mcp_tools.INSTRUCTIONS,
+        allowed_origins=MCP_ALLOWED_ORIGINS,
+    )
+    if body is None:                      # a notification: 202, no content
+        return Response(status_code=status)
+    return JSONResponse(status_code=status, content=body,
+                        headers={"Cache-Control": "no-store"})
+
+
+@app.api_route("/mcp", methods=["GET", "DELETE"], include_in_schema=False)
+async def mcp_endpoint_rejected():
+    """2026-07-28 removed the GET stream and the DELETE session teardown. The
+    spec asks a server that implements only this revision to answer 405 so an
+    older client fails fast instead of hanging on a stream that never opens."""
+    return JSONResponse(
+        status_code=405, content=mcp_protocol.legacy_initialize_error(),
+        headers={"Allow": "POST", "Cache-Control": "no-store"})
 
 
 @app.get("/forensics", include_in_schema=False)
