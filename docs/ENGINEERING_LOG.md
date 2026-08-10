@@ -17,6 +17,106 @@ Entry template:
 
 ---
 
+## 2026-08-10 — txisd speaks MCP 2026-07-28, and the caveats travel with the numbers
+
+**What changed:** commit `5708370`, live on https://txisd.dev/mcp. 388 tests
+(was 351). `docs/MCP.md` is the reference.
+
+`POST /mcp` implements Model Context Protocol **2026-07-28** (final; the RC
+window closed on schedule and all four Tier 1 SDKs speak it). Seven read-only
+tools over committed JSON: `find_district`, `district_money`,
+`district_forensics`, `district_trends`, `district_bonds`, `texas_overview`,
+`compare_districts`.
+
+**Why this, and why now.** People increasingly ask an assistant where their
+school tax goes, and those answers are ungrounded. The point is not the tools —
+it is that **every result returns the payload's own `limits` array**, and the
+headline caveat is in the text a model reads most closely. "Suggestive, not
+settled" now travels with the bond finding into someone else's chat instead of
+sitting on a page nobody scrolled.
+
+**Why it was cheap.** Earlier MCP revisions established a connection-scoped
+session with an `initialize` handshake and an `Mcp-Session-Id` header. This app
+is Vercel serverless behind a round-robin with no sticky routing and no shared
+session store — the same reason `/query`'s call ceiling had to be counted in
+the database rather than in a process. An MCP server here would have needed
+affinity the architecture does not have. 2026-07-28 removed the handshake
+(SEP-2575) and the session (SEP-2567) and moved version, identity and
+capabilities into `_meta` on every request, so the server is just another
+stateless POST handler.
+
+### Hand-written, not the SDK
+
+Vercel builds this function from the `[project]` table under a 500 MB cap, and
+a dependency that fails to resolve fails **every** deploy, not just this
+feature. The surface actually needed — three methods, no sampling, no
+elicitation, no subscriptions, no resources — is small enough that the standard
+library is the smaller risk. `src/mcp_protocol.py` is the wire format,
+`src/mcp_tools.py` is the content. **No new dependency was added.**
+
+Implemented: `server/discover` / `tools/list` / `tools/call`; required `_meta`
+validated; `MCP-Protocol-Version`, `Mcp-Method`, `Mcp-Name` mirrored **and
+validated against the body** including the `=?base64?…?=` sentinel (−32020 —
+that error code exists because a gateway routing on the header while the server
+executes the body is a real hole); `x-mcp-header` mirrors `district_number`
+into `Mcp-Param-District`; unknown method → **404** with a JSON-RPC body (lets
+a client tell a modern server from a legacy one with no MCP endpoint); unknown
+tool → −32602; bad version → −32022 with the supported list; notifications →
+202; GET/DELETE → 405; a legacy `initialize` is told what this server speaks,
+because legacy clients cannot fall forward; `Origin` checked when present.
+`ttlMs` one day, `cacheScope` public — the data changes once a year at a TEA
+release.
+
+### 🔒 `/query` is deliberately NOT exposed — keep it that way
+
+It is the single path with a prompt-injection history (closed 2026-07-31 via
+`nlp_reader`), it spends DeepSeek tokens against a global ceiling, and exposing
+it would let arbitrary text in any chat reach a SQL agent. Every tool here is a
+deterministic read of a committed artefact: nothing to inject, nothing to
+spend, and **no database**, so a paused Supabase free tier cannot take the
+endpoint down. Tests assert all of it, including every tool still answering
+with `db_pool` set to `None`, and that the string "sql" appears nowhere in the
+tool surface.
+
+**Gotchas:**
+- Results **MUST** carry `resultType` in this revision, and `server/discover`
+  returns `supportedVersions` (plural) — not `protocolVersion`. Reading the
+  blog summary alone would have produced a subtly wrong server; the spec pages
+  were worth fetching.
+- Python 3.11 f-strings cannot contain a backslash or reuse the outer quote
+  inside the expression. A nested `f"{x:+.1f}"` inside an f-string is a
+  SyntaxError, not a style issue — extract a helper.
+- `src/api.py` imports `mcp_tools`, so `mcp_tools` must import `api` **inside**
+  the function, not at module level. That also avoids a second in-memory copy
+  of a 2.8 MB artefact.
+- There was no parsed loader for `fallback_index.json` — `/fallback-index`
+  streams the file with `FileResponse`, deliberately. Added `_fallback_index()`
+  alongside it rather than making every visitor pay to parse it.
+- Reading the actual tool OUTPUT caught three things the tests did not: an
+  operating balance rendering as `$-649`, statewide sums running to twelve
+  digits (`$291,455,942,461`) which invites a model to transcribe them wrong,
+  and `find_district("wylie")` returning two rows both reading "Wylie ISD" with
+  nothing to choose between them. It now carries enrolment — 19,334 in Collin
+  vs 5,595 in Taylor. **Print what the model will read; the tests will not tell
+  you it is unusable.**
+
+**Verified:** ruff clean, 388 tests, and a conforming client
+(`/tmp/mcp_client.py`, reproduced in `docs/MCP.md`) run against LIVE production
+over HTTPS: discovery, listing, all seven tools with their limits, the
+fragility label surviving the trip, and every spec-named error — header
+mismatch −32020, bad version −32022 with the supported list, unknown method
+404/−32601, unknown tool −32602, bad argument as `isError` rather than a
+protocol error, and GET → 405. All pass.
+
+**Open items:** unchanged — the four pasted credentials still need rotating,
+`sql/create_nlp_usage.sql` still needs applying, Supabase is still on the free
+tier. New: consider the **MCP Apps** extension (SEP-1865) later — the eight
+pages here are already self-contained with a strict CSP and no external
+scripts, which is close to what it wants, but it is an extension rather than
+core and can wait.
+
+**Notes:**
+
 ## 2026-08-09 (later) — The forensic file becomes a trajectory, and one revenue column nearly published a 30-point error
 
 **What changed:** commit `9222f76`, live on https://txisd.dev. 351 tests (was 332).
