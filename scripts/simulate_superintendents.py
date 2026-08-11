@@ -111,9 +111,17 @@ JOURNEYS: dict[str, list[tuple[str, str]]] = {
 # A step that answers 200 but has nothing in it. Checked per endpoint, because
 # "empty" means something different for each.
 def emptiness(path_kind: str, body) -> str | None:
-    """Return a DEAD END reason, or None if the answer had content."""
+    """Return a DEAD END reason, or None if the answer had content.
+
+    An explained absence is content. "None of the 14 districts most like you
+    reversed a sustained deficit in seventeen years" is an answer — a better
+    one than a list would have been. Only silence is a dead end.
+    """
     if body is None:
         return None
+    if isinstance(body, dict):
+        if body.get("absence") or body.get("absences"):
+            return None
     try:
         if path_kind == "bonds":
             return None if (body.get("elections") or []) else "no bond election on record"

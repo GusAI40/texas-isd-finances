@@ -119,6 +119,12 @@
   .flags li.info  { border-left-color:var(--accent); }
   .flags b { display:block; font-size:var(--fs-base); }
   .flags span { font-size:var(--fs-sm); color:var(--ink-2); }
+  .flags li.absent-finding { border-left-color:var(--compare); }
+  .flags li.absent-context { border-left-color:var(--rule-2); background:transparent;
+                             border:1px dashed var(--rule); border-left-width:3px; }
+  .flags li.absent-context b { color:var(--ink-2); font-weight:var(--fw-medium); }
+  .flags .why { display:block; font-size:var(--fs-micro); color:var(--ink-4);
+                margin-top:.2rem; }
   .noflags { font-size:var(--fs-sm); color:var(--ink-3); }
 
   /* --- the seventeen-year trajectory --- */
@@ -628,14 +634,30 @@
       ' · finances fiscal ' + d.year;
     $('f-cards').innerHTML = cardOutside(d) + cardPays(d) + cardBallot(d) + cardLanded(d);
 
-    $('f-flags').innerHTML = (d.flags && d.flags.length)
-      ? d.flags.map(function (f) {
-        return '<li class="' + esc(f.tone) + '"><b>' + esc(f.label) + '</b>' +
-          '<span>' + esc(f.detail) + '</span></li>';
-      }).join('')
-      : '<li class="info"><b>Nothing crosses a threshold</b><span>Every measure on this ' +
-        'district sits inside the ordinary range for Texas. That is a statement about ' +
-        'these four measures, not a clean bill of health.</span></li>';
+    /* An empty section was rendering as a blank box. Usually the emptiness is
+       the more interesting finding — "none of your 14 peers reversed a deficit
+       in seventeen years" is stronger than a list would have been — so a
+       did_not_happen absence is promoted and rendered like any other finding.
+       not_applicable and not_measured stay quiet: they are context, not news,
+       and conflating them would let "we don't know" read as "it didn't
+       happen". */
+    var flagHtml = (d.flags || []).map(function (f) {
+      return '<li class="' + esc(f.tone) + '"><b>' + esc(f.label) + '</b>' +
+        '<span>' + esc(f.detail) + '</span></li>';
+    }).join('');
+    var absent = (d.absences || []).slice().sort(function (a, b) {
+      return (b.is_finding ? 1 : 0) - (a.is_finding ? 1 : 0);
+    });
+    var absentHtml = absent.map(function (a) {
+      var cls = a.is_finding ? 'absent-finding' : 'absent-context';
+      var head = a.is_finding ? 'What did NOT happen' : 'Not shown, and why';
+      return '<li class="' + cls + '"><b>' + esc(head) + '</b>' +
+        '<span>' + esc(a.sentence) + '</span>' +
+        '<span class="why">' + esc(a.what_kind_means) + '</span></li>';
+    }).join('');
+    $('f-flags').innerHTML = (flagHtml + absentHtml) ||
+      '<li class="info"><b>Nothing to report</b><span>No measure on this district ' +
+      'crosses a published threshold, and nothing is missing.</span></li>';
 
     $('f-cta').innerHTML =
       '<a class="primary" href="/?d=' + encodeURIComponent(d.district_number) + '">' +

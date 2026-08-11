@@ -190,6 +190,9 @@ def district_forensics(args: dict) -> tuple[str, dict]:
     b, land = rec.get("ballot") or {}, rec.get("where_it_landed") or {}
     name = _title(rec.get("district_name", num))
     flags = rec.get("flags") or []
+    absent = rec.get("absences") or []
+    absent_findings = [a for a in absent if a.get("is_finding")]
+    absent_context = [a for a in absent if not a.get("is_finding")]
     text = (
         f"{name} ({num}) — the four money questions Texas reports separately.\n"
         f"1. OUTSIDE the operating total: {_usd(o.get('per_student'))} per student a "
@@ -207,6 +210,12 @@ def district_forensics(args: dict) -> tuple[str, dict]:
            f"({land.get('gap'):+.1f} points).\n" if land else "")
         + ("\nWhat stands out:\n" + "\n".join(
             f"  - {f['label']}: {f['detail']}" for f in flags) if flags else "")
+        + ("\n\nWhat did NOT happen (these are findings, not missing data):\n"
+           + "\n".join(f"  - {a['sentence']}" for a in absent_findings)
+           if absent_findings else "")
+        + ("\n\nNot shown, and why:\n"
+           + "\n".join(f"  - {a['sentence']}" for a in absent_context)
+           if absent_context else "")
         + "\n\nThese are descriptions of published numbers against published "
           "thresholds, not findings of wrongdoing, and there is deliberately no "
           "combined score."

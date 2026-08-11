@@ -18,7 +18,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse, Response
 from pydantic import BaseModel, Field
 
-from . import analytics, llm_config, mcp_protocol, mcp_tools, scanner, site_gate, sources
+from . import absences, analytics, llm_config, mcp_protocol, mcp_tools, scanner, site_gate, sources
 from .sample_queries import SAMPLE_QUERIES
 
 load_dotenv()
@@ -983,7 +983,9 @@ async def get_district_turnarounds(request: Request, district_number: str):
             ORDER BY s.peer_number, f.year
         """, district_number)
         if not peers:
-            return {"turnarounds": [], "peers_scanned": 0}
+            return {"turnarounds": [], "peers_scanned": 0,
+                    "absence": absences.no_peer_turnaround(
+                        _district_name(district_number), 0)}
 
         by_peer: Dict[str, List[Any]] = {}
         names: Dict[str, str] = {}
@@ -1027,7 +1029,15 @@ async def get_district_turnarounds(request: Request, district_number: str):
                                 "recovered_since": d1 + 1,
                             })
                             break
-        return {"turnarounds": results, "peers_scanned": len(by_peer)}
+        return {
+            "turnarounds": results, "peers_scanned": len(by_peer),
+            # An empty list is the more interesting answer here: it means
+            # nobody like you got out of this, which is worth knowing
+            # before anyone claims there is a local example to follow.
+            "absence": None if results else absences.no_peer_turnaround(
+                names.get(district_number) or _district_name(district_number),
+                len(by_peer)),
+        }
 
 
 # Actionable-intelligence metric definitions. Each is compared against the
@@ -1326,6 +1336,20 @@ async def get_texas_bonds():
         raise HTTPException(status_code=503,
                             detail="Bond data not built. Run scripts/build_bond_data.py")
     return {k: v for k, v in data.items() if k != "districts"}
+
+
+def _district_name(num: str) -> str:
+    """A readable name without a database round trip — the absence sentences
+    need one and the fallback index already carries every district."""
+    data = _fallback_index()
+    if data:
+        for r in data.get("districts", []):
+            if r.get("district_number") == num:
+                return " ".join(
+                    w.upper() if w.upper() in {"ISD", "CISD", "CSD", "CCSD", "MSD"}
+                    else w.capitalize()
+                    for w in str(r.get("district_name") or num).split())
+    return f"District {num}"
 
 
 _forensics_cache: Optional[Dict[str, Any]] = None

@@ -47,6 +47,9 @@ import json
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from src import absences as A  # noqa: E402
+
 # Thresholds, published in the payload rather than buried here, so a reader
 # can disagree with them explicitly.
 TOP_DECILE = 90          # percentile at which "among the highest" starts
@@ -55,6 +58,10 @@ LOCAL_SHARE_HIGH = 65     # % of gross revenue raised locally
 ATHLETICS_SHARE = 50      # % of lifetime asks naming athletics (upper bound)
 BEATS_BY = 3.0            # points at Meets, vs what student need predicts
 MIN_PROPS_FOR_RATE = 3    # a pass rate below this many elections is noise
+# Named so 'none of the N thresholds is crossed' quotes a real N.
+THRESHOLD_KEYS = ("debt_heavy", "debt_vs_instruction", "recapture",
+                  "locally_funded", "athletics", "voters_refuse",
+                  "beats_prediction", "below_prediction")
 
 
 def pct_rank(values: list[float], v: float) -> int:
@@ -231,9 +238,29 @@ def build(econ: dict, bonds: dict, outcomes: dict) -> dict:
                               f"predicted — {ex['gap']:+.1f} points.",
                 })
 
+        # --- what is NOT here, and what that means ---------------------------
+        # A blank box was reading as "nothing to see". Three different things
+        # were rendering identically: cannot exist, did not happen, not known.
+        name = e.get("district_name") or num
+        absent = []
+        if not (tax or {}).get("bill_on_home"):
+            # TEA's own numbering: the 4th digit is 8 for an open-enrolment
+            # charter, which levies no property tax by construction.
+            absent.append(A.no_tax_figure(name, is_charter=num[3] == "8"))
+        if b is None:
+            absent.append(A.no_bond_history(name))
+        if not e.get("who_does_better"):
+            absent.append(A.no_better_peer(name, (e.get("own") or {}).get("pct_poor")))
+        if o is None or not o.get("expectation"):
+            absent.append(A.no_outcome_join(name))
+        if not flags:
+            absent.append(A.nothing_crosses_a_threshold(name, len(THRESHOLD_KEYS)))
+
         districts[num] = {
             "district_number": num,
             "district_name": e.get("district_name"),
+            "absences": absent,
+            "absence_summary": A.summarise(absent),
             "students": students, "year": e.get("year"),
             "outside_operating": outside, "who_pays": pays,
             "ballot": ballot, "where_it_landed": landed,
@@ -264,6 +291,7 @@ def build(econ: dict, bonds: dict, outcomes: dict) -> dict:
         "debt_total": round(sum((E[r["n"]]["allocation"].get("debt_per_student") or 0)
                                 * (r["students"] or 0) for r in table)),
         "recapture_payers": sum(1 for r in table if r["recapture"]),
+        "absences": {},  # filled in below, once every district is built
         "ballot": {
             "propositions": bonds["meta"]["propositions"],
             "districts": bonds["meta"]["districts_with_history"],
@@ -272,6 +300,27 @@ def build(econ: dict, bonds: dict, outcomes: dict) -> dict:
             "matched_pct": bonds["meta"]["matched_pct"],
         },
         "did_it_work": bonds.get("did_it_work"),
+    }
+
+    from collections import Counter
+    sec = Counter()
+    kind = Counter()
+    students_by_section = {}
+    for num, d in districts.items():
+        for a in d["absences"]:
+            sec[a["section"]] += 1
+            kind[a["kind"]] += 1
+            students_by_section[a["section"]] = (
+                students_by_section.get(a["section"], 0) + (d["students"] or 0))
+    with_any = sum(1 for d in districts.values() if d["absences"])
+    statewide["absences"] = {
+        "districts_with_an_empty_section": with_any,
+        "pct_of_districts": round(with_any / len(districts) * 100, 1) if districts else 0,
+        "students_affected": sum(d["students"] or 0 for d in districts.values()
+                                 if d["absences"]),
+        "by_section": dict(sec.most_common()),
+        "students_by_section": students_by_section,
+        "by_kind": dict(kind),
     }
 
     return {
