@@ -1897,7 +1897,7 @@ async function selectDistrict(num, name) {
   state.econ = null; state.bonds = null; state.equity = null; state.takeover = null;
   $('results').innerHTML = ''; $('search').value = '';
   document.documentElement.classList.add('has-district');
-  await loadDashboard();
+  await loadDashboard({ scroll: true });
 }
 async function selectCompare(num, name) {
   closeSheets();
@@ -1907,8 +1907,52 @@ async function selectCompare(num, name) {
   renderAll();
 }
 
+/* ---------- who am I looking at, above the fold ---------- */
+/* A shared link used to open on a generic headline about all 1,310 districts,
+   with the one district the reader was sent to sitting 974px below. This
+   rewrites the top of the page to be about THEIR district, in one sentence,
+   before any chart. Everything it needs is already fetched. */
+function renderWelcomeFor(d) {
+  if (!d || !d.num) return;
+  /* Write into the HERO, not `.welcome`. `html.has-district` hides `.welcome`
+     the moment a district is known, so an earlier version of this personalised
+     an element nobody could see and the reader still landed on a statewide
+     headline about all 1,310 districts. */
+  const _esc = t => String(t == null ? '' : t).replace(/[&<>"']/g,
+    c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const h = $('picker-title'), sub = $('hero-sub');
+  if (!h || !sub) return;
+  const name = titleCase((state.district && state.district.name) || d.name || '');
+  if (!name || name === d.num) return;
+
+  const per = state.summary && state.summary.length
+    ? state.summary[state.summary.length - 1] : null;
+  const spend = per && per.spend_per_student ? usd(per.spend_per_student) : null;
+  const year = per && per.year ? per.year : null;
+
+  h.innerHTML = spend
+    ? _esc(name) + ' spends <span class="hero-num">' + _esc(spend) +
+      '</span> per student. Here is where that money goes.'
+    : _esc(name) + '. Here is where the money comes from, and where it goes.';
+  sub.innerHTML = '<b>What this page is:</b> everything the State of Texas ' +
+    'records about ' + _esc(name) + ' — what it collects, what it spends, what ' +
+    'it borrowed, and what its students achieved' +
+    (year ? ' (most recent full year: ' + _esc(year) + ')' : '') +
+    '. Scroll down and it reads in order. Every number links back to the state ' +
+    'file it came from.';
+  const why = $('hero-why');
+  if (why) why.innerHTML = '<b>Not the district you wanted?</b> ' +
+    '<a href="#search">Look up any of the 1,310 Texas school districts</a>.';
+}
+
 /* ---------- load ---------- */
-async function loadDashboard() {
+async function loadDashboard(opts) {
+  /* `scroll` is true only when the reader picked a district themselves. On
+     first arrival from a shared ?d= link they have seen nothing yet, and
+     scrolling 974px past the headline dropped them into the middle of a wall
+     of numbers with no idea what the site was. That is the single worst
+     first impression this page can make, and it was the default. */
+  const wantScroll = !!(opts && opts.scroll);
   const d = state.district;
   if (!d) return;
   $('dash').classList.remove('hidden');
@@ -1956,7 +2000,8 @@ async function loadDashboard() {
     // swallowed by the catch below, so anything throwing late in it silently
     // took the section nav with it.
     buildNav(); updateProgress();
-    $('dash').scrollIntoView({ block: 'start' });
+    renderWelcomeFor(d);
+    if (wantScroll) $('dash').scrollIntoView({ block: 'start' });
   } catch (e) { /* banner shown */ }
 }
 function renderAll() {
