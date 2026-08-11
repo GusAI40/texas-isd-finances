@@ -6,6 +6,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light dark">
 <script>
+  /* Every load starts at the top. The browser's default is
+     scrollRestoration 'auto', which puts a returning or refreshing reader back
+     at the pixel they left — sensible for a static article, wrong here. This
+     page fetches its data after load and rewrites its own headline, so the
+     content at a remembered scroll position is not the content that was there
+     before; a refresh dropped the reader into the middle of a district with no
+     heading, no name and no explanation in view. Set before first paint so the
+     browser never performs the restore. */
+  try { if ('scrollRestoration' in history) history.scrollRestoration = 'manual'; }
+  catch (e) {}
   /* Theme before first paint (shared tisd_theme key with the portal). */
   try {
     var _t = localStorage.getItem('tisd_theme');
