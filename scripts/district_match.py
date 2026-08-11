@@ -41,6 +41,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
+from pathlib import Path
 
 # Words that describe the KIND of district rather than which one it is. TEA,
 # the bond file and the Comptroller disagree about these constantly ("Pewitt
@@ -112,6 +113,37 @@ class Resolver:
             seen.setdefault(st, num)
         r.by_name = {k: v for k, v in seen.items() if k not in r.ambiguous_names}
         return r
+
+    @classmethod
+    def from_crosswalk(cls, path) -> "Resolver":
+        """Build from data/district_crosswalk.csv, which knows every name a
+        district has ever been called.
+
+        `from_tea` learns one name per district — whichever row pandas kept —
+        and that turns out to be the EARLIEST. 64 of the 103 districts that
+        renamed inside this window could not be resolved by the name they go by
+        today: "Rockport-Fulton ISD" was unmatched while "Aransas County ISD"
+        worked. A source using a district's current name would be silently
+        dropped, which is precisely how 147 bond propositions went missing the
+        first time.
+
+        Registering current name, former names and observed aliases together
+        fixes both directions. Collisions are unchanged: a name claimed by two
+        districts still requires the county, and still refuses rather than
+        guessing.
+        """
+        import csv as _csv
+        path = Path(path)
+        rows = list(_csv.DictReader(path.open(encoding="utf-8", newline="")))
+        districts, county_of = [], {}
+        for r in rows:
+            num = r["district_number"]
+            county_of[num[:3]] = r["county"]
+            for name in ([r["district_name"]]
+                         + [x for x in r["former_names"].split(" | ") if x]
+                         + [x for x in r["aliases"].split(" | ") if x]):
+                districts.append((num, name))
+        return cls.from_tea(districts, county_of)
 
     def resolve(self, name: str, county: str = "") -> tuple[str | None, str]:
         """Return (district_number or None, method)."""

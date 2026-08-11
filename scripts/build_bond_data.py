@@ -129,9 +129,21 @@ def match_districts(d: pd.DataFrame, finance: Path, snapshot: Path) -> pd.DataFr
     """
     fin = pd.read_csv(finance, dtype={"district_number": str}, low_memory=False)
     names = fin.drop_duplicates("district_number")[["district_number", "district_name"]]
-    resolver = Resolver.from_tea(
-        list(zip(names.district_number, names.district_name)), county_of_code(snapshot))
     tea_name = dict(zip(names.district_number, names.district_name))
+
+    # Prefer the crosswalk, which knows every name a district has ever carried.
+    # Building from the finance file alone learns only the EARLIEST name — 64 of
+    # the 103 districts that renamed were unresolvable by the name they go by
+    # today, so a source using a current name would be silently dropped. Falls
+    # back to the old path so this script still runs before the crosswalk is
+    # built (setup order matters: the crosswalk is built from the bond file).
+    crosswalk = Path(__file__).resolve().parent.parent / "data/district_crosswalk.csv"
+    if crosswalk.exists():
+        resolver = Resolver.from_crosswalk(crosswalk)
+    else:
+        resolver = Resolver.from_tea(
+            list(zip(names.district_number, names.district_name)),
+            county_of_code(snapshot))
 
     resolved = [resolver.resolve(iss, cty)
                 for iss, cty in zip(d.Issuer, d.get("County", pd.Series([""] * len(d))))]

@@ -153,3 +153,38 @@ def test_the_crosswalk_invents_no_identifier_of_its_own(rows):
     header = set(rows[0])
     for col in header:
         assert not any(b in col.lower() for b in banned), f"minted identifier: {col}"
+
+
+# --- the crosswalk is load-bearing, not decorative ---------------------------
+
+def test_every_name_a_district_ever_had_resolves_to_it():
+    """The reason to build this at all.
+
+    A resolver built from the finance file learns ONE name per district, and it
+    is the earliest: 64 of the 103 renamed districts could not be resolved by
+    the name they go by today. "Aransas County ISD" worked and "Rockport-Fulton
+    ISD" did not — so any source using a district's CURRENT name was silently
+    dropped, which is exactly how 147 bond propositions went missing.
+    """
+    import csv as _csv
+    sys.path.insert(0, str(ROOT / "scripts"))
+    from district_match import Resolver
+    r = Resolver.from_crosswalk(CSV)
+    rows = list(_csv.DictReader(CSV.open(encoding="utf-8", newline="")))
+    misses = []
+    for x in rows:
+        names = ([x["district_name"]]
+                 + [n for n in x["former_names"].split(" | ") if n]
+                 + [n for n in x["aliases"].split(" | ") if n])
+        for n in names:
+            if r.resolve(n, x["county"])[0] != x["district_number"]:
+                misses.append((n, x["district_number"]))
+    assert not misses, f"{len(misses)} names do not resolve, e.g. {misses[:5]}"
+
+
+def test_the_bond_builder_actually_uses_it():
+    """A crosswalk nothing reads is a route with no capability behind it —
+    the exact trap this project keeps finding elsewhere."""
+    src = (ROOT / "scripts" / "build_bond_data.py").read_text()
+    assert "from_crosswalk" in src
+    assert "district_crosswalk.csv" in src
