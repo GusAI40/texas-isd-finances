@@ -101,7 +101,7 @@
     backdrop-filter: blur(8px); border-bottom: 1px solid var(--hairline); margin-bottom: .2rem; }
   #sectionnav.hidden { display: none; }
   .navchips { display: flex; gap: .1rem; overflow-x: auto; scrollbar-width: none;
-    max-width: 940px; margin: 0 auto; padding: .45rem 1.5rem; }
+    max-width: 1240px; margin: 0 auto; padding: .45rem 1.5rem; }
   .navchips::-webkit-scrollbar { display: none; }
   .navchips button { flex: 0 0 auto; background: none; border: none; font: inherit;
     font-size: var(--fs-xs); color: var(--muted); padding: .3rem .6rem; border-radius: var(--r-md);
@@ -223,7 +223,11 @@
     line-height: 1.55;
     font-size: 16px;
   }
-  .shell { max-width: 940px; margin: 0 auto; padding: 0 1.5rem; }
+  /* 1240px, up from 940. At 100% zoom on an ordinary 1920 desktop the old
+     shell left a third of the screen empty on each side. Prose blocks keep
+     their own rem measures — a paragraph should not be 1200px wide — but
+     charts, tables and KPI rows get the room. */
+  .shell { max-width: 1240px; margin: 0 auto; padding: 0 1.5rem; }
   header.top {
     display: flex; flex-wrap: wrap; gap: .75rem; align-items: baseline;
     justify-content: space-between; padding: 2rem 0 0;
@@ -2029,9 +2033,22 @@ function renderWelcomeFor(d) {
   const spend = per && per.spend_per_student ? usd(per.spend_per_student) : null;
   const year = per && per.year ? per.year : null;
 
+  /* Same frame rule as the cards below (tests/test_framing.py): an all-funds
+     figure never leads unqualified. Where construction and debt are a material
+     share, the headline says so and names the operating figure — for Argyle
+     the difference is $31,704 vs $10,357, i.e. the difference between an
+     accusation and a growth story. */
+  const ops = per && per.operating_spend != null && per.enrollment
+    ? +per.operating_spend / +per.enrollment : null;
+  const nonOpShare = per && per.operating_spend != null && per.total_spend
+    ? 1 - (+per.operating_spend / +per.total_spend) : 0;
   h.innerHTML = spend
-    ? _esc(name) + ' spends <span class="hero-num">' + _esc(spend) +
-      '</span> per student. Here is where that money goes.'
+    ? (nonOpShare >= 0.2 && ops
+      ? _esc(name) + ' spends <span class="hero-num">' + _esc(spend) +
+        '</span> per student — ' + _esc(usd(ops)) +
+        ' running schools, the rest building them.'
+      : _esc(name) + ' spends <span class="hero-num">' + _esc(spend) +
+        '</span> per student. Here is where that money goes.')
     : _esc(name) + '. Here is where the money comes from, and where it goes.';
   sub.innerHTML = '<b>What this page is:</b> everything the State of Texas ' +
     'records about ' + _esc(name) + ' — what it collects, what it spends, what ' +

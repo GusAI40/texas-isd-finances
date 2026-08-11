@@ -127,3 +127,14 @@ def test_the_view_comment_records_why_operating_spend_exists():
     assert idx > -1
     context = SQL[max(0, idx - 700):idx]
     assert "Argyle" in context, "the worked example was removed from the view comment"
+
+
+def test_the_deep_link_hero_does_not_lead_with_an_unqualified_all_funds_figure():
+    """The headline a shared link opens on. It said "spends $31,704 per
+    student" about Argyle with no qualifier — the exact sentence the forensic
+    audit corrected on the cards below it."""
+    body = INDEX.split("function renderWelcomeFor", 1)[1].split("\nfunction ", 1)[0]
+    assert "nonOpShare" in body and "operating_spend" in body, (
+        "the hero no longer checks the construction share before leading with "
+        "the all-funds figure")
+    assert "building them" in body
