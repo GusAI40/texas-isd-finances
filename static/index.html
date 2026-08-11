@@ -274,6 +274,20 @@
   .kpi .value { font-size: var(--fs-2xl); font-weight: 700; letter-spacing: -.02em; line-height: 1.15; font-variant-numeric: tabular-nums; }
   .kpi .delta { font-size: var(--fs-xs); font-variant-numeric: tabular-nums; }
   .kpi .plain { font-size: var(--fs-xs); color: var(--ink-2); margin-top: .2rem; max-width: 24ch; }
+  .explain { display:inline-flex; align-items:center; justify-content:center;
+             width: 1.15rem; height: 1.15rem; margin-left:.35rem; padding:0;
+             border:1px solid var(--rule); border-radius:50%; background:var(--surface);
+             color:var(--ink-3); font-size:var(--fs-micro); font-weight:700; line-height:1;
+             cursor:pointer; vertical-align:.08em; }
+  .explain:hover, .explain:focus-visible { color:var(--accent); border-color:var(--accent); }
+  .explain-pop { position:absolute; z-index:60; max-width:20rem; background:var(--surface);
+                 border:1px solid var(--rule); border-radius:var(--r-md);
+                 box-shadow:0 6px 24px rgba(0,0,0,.12); padding:.75rem .9rem;
+                 font-size:var(--fs-sm); line-height:1.55; color:var(--ink);
+                 text-transform:none; letter-spacing:normal; font-weight:400; }
+  .explain-pop b { display:block; margin-bottom:.15rem; }
+  .explain-pop .close-x { float:right; border:0; background:none; color:var(--ink-3);
+                          font-size:var(--fs-base); cursor:pointer; padding:0 0 .2rem .5rem; }
   .up { color: var(--good); } .down { color: var(--bad); } .flat { color: var(--muted); }
   /* controls */
   input[type=text], input[type=search] {
@@ -871,7 +885,7 @@
 
     <hr class="rule">
     <section id="dollar-section" class="hidden">
-      <div class="eyebrow">Your dollar</div>
+      <div class="eyebrow">Your dollar <button class="explain" data-explain="dollar" aria-label="What does this mean?" title="What does this mean?">?</button></div>
       <h2 class="action" id="dollar-title"></h2>
       <p class="support" id="dollar-support"></p>
       <nav class="ladder" id="ladder" aria-label="How far in you are: state, district, category"></nav>
@@ -893,7 +907,7 @@
 
     <hr class="rule">
     <section id="outcomes-section" class="hidden">
-      <div class="eyebrow">What the money buys</div>
+      <div class="eyebrow">What the money buys <button class="explain" data-explain="outcomes" aria-label="What does this mean?" title="What does this mean?">?</button></div>
       <h2 class="action" id="outcomes-title"></h2>
       <p class="support" id="outcomes-support"></p>
       <div class="onechild" id="onechild"></div>
@@ -905,7 +919,7 @@
 
     <hr class="rule">
     <section id="econ-section" class="hidden">
-      <div class="eyebrow">What you pay, and what it buys</div>
+      <div class="eyebrow">What you pay, and what it buys <button class="explain" data-explain="pay" aria-label="What does this mean?" title="What does this mean?">?</button></div>
       <h2 class="action" id="econ-title"></h2>
       <p class="support" id="econ-support"></p>
 
@@ -946,7 +960,7 @@
 
     <hr class="rule">
     <section id="takeover-section" class="hidden">
-      <div class="eyebrow">The state takeover</div>
+      <div class="eyebrow">The state takeover <button class="explain" data-explain="takeover" aria-label="What does this mean?" title="What does this mean?">?</button></div>
       <h2 class="action" id="tk-title"></h2>
       <p class="support" id="tk-sub"></p>
       <figure class="econ-fig">
@@ -966,7 +980,7 @@
 
     <hr class="rule">
     <section id="equity-section" class="hidden">
-      <div class="eyebrow">Who this district works for</div>
+      <div class="eyebrow">Who this district works for <button class="explain" data-explain="works-for" aria-label="What does this mean?" title="What does this mean?">?</button></div>
       <h2 class="action" id="eq-title"></h2>
       <p class="support" id="eq-sub"></p>
 
@@ -990,7 +1004,7 @@
 
     <hr class="rule">
     <section id="bond-section" class="hidden">
-      <div class="eyebrow">The debt you voted for</div>
+      <div class="eyebrow">The debt you voted for <button class="explain" data-explain="bonds" aria-label="What does this mean?" title="What does this mean?">?</button></div>
       <h2 class="action" id="bond-bigidea"></h2>
       <p class="support" id="bond-lede"></p>
 
@@ -1050,7 +1064,7 @@
 
     <hr class="rule">
     <section id="trend-section">
-      <div class="eyebrow">Trends · 17 years</div>
+      <div class="eyebrow">Trends · 17 years <button class="explain" data-explain="trends" aria-label="What does this mean?" title="What does this mean?">?</button></div>
       <h2 class="action" id="trend-title"></h2>
       <div class="tabs" id="trend-tabs">
         <button data-m="spend" class="active">Spending per student</button>
@@ -1074,7 +1088,7 @@
 
     <hr class="rule">
     <section id="peers-section">
-      <div class="eyebrow">Peer comparison · districts your size</div>
+      <div class="eyebrow">Peer comparison · districts your size <button class="explain" data-explain="peers" aria-label="What does this mean?" title="What does this mean?">?</button></div>
       <h2 class="action" id="peers-title"></h2>
       <p class="support" id="peers-why"></p>
       <div class="chartwrap">
@@ -1092,7 +1106,7 @@
 
     <hr class="rule">
     <section id="money-section">
-      <div class="eyebrow">Where the money goes</div>
+      <div class="eyebrow">Where the money goes <button class="explain" data-explain="where-goes" aria-label="What does this mean?" title="What does this mean?">?</button></div>
       <h2 class="action" id="money-title"></h2>
       <p class="support" id="money-support"></p>
       <div class="chartwrap">
@@ -1110,7 +1124,7 @@
 
     <hr class="rule">
     <section id="object-section">
-      <div class="eyebrow">What the money buys</div>
+      <div class="eyebrow">What the money buys <button class="explain" data-explain="outcomes" aria-label="What does this mean?" title="What does this mean?">?</button></div>
       <h2 class="action" id="object-title"></h2>
       <p class="support">Operating spending by <em>object</em> — the kind of thing purchased, regardless of
         which department spent it. Schools are people-intensive, so payroll dominates almost everywhere;
@@ -1123,7 +1137,7 @@
 
     <hr class="rule">
     <section id="program-section">
-      <div class="eyebrow">Who the money serves</div>
+      <div class="eyebrow">Who the money serves <button class="explain" data-explain="serves" aria-label="What does this mean?" title="What does this mean?">?</button></div>
       <h2 class="action" id="program-title"></h2>
       <p class="support">Program spending by student group. These overlap the categories above (a special-ed
         teacher's salary is both "payroll" and "special education") — this view answers "how much reaches
@@ -1136,7 +1150,7 @@
 
     <hr class="rule">
     <section id="flags-section">
-      <div class="eyebrow">Anomaly check</div>
+      <div class="eyebrow">Anomaly check <button class="explain" data-explain="anomaly" aria-label="What does this mean?" title="What does this mean?">?</button></div>
       <h2 class="action" id="flags-title"></h2>
       <p class="support">A flag is a question, not an accusation — growth spurts, bond programs, and one-time
         grants trip these checks for perfectly good reasons. Each card shows the actual numbers so you can judge.</p>
@@ -1157,7 +1171,7 @@
 
     <hr class="rule">
     <section id="ask-section">
-      <div class="eyebrow">Ask anything</div>
+      <div class="eyebrow">Ask anything <button class="explain" data-explain="ask" aria-label="What does this mean?" title="What does this mean?">?</button></div>
       <h2 class="action">Plain English works here</h2>
       <p class="support">"How did our debt service change since 2020?" — an AI turns it into a database query
         against the same read-only data. Limited to 10 questions a minute.</p>
@@ -1178,7 +1192,7 @@
 
   <hr class="rule">
   <section id="statewide-section">
-    <div class="eyebrow">Statewide context</div>
+    <div class="eyebrow">Statewide context <button class="explain" data-explain="statewide" aria-label="What does this mean?" title="What does this mean?">?</button></div>
     <h2 class="action" id="state-title">Texas at a glance</h2>
     <div class="kpis">
       <div class="kpi"><div class="label">Districts</div><div class="value nowrap" id="t-districts">—</div></div>
@@ -2198,14 +2212,14 @@ function renderKPIs() {
   const declineYears = consecutiveEnrollmentDeclines();
   const cmp = state.compare ? latestOf(state.compareSummary, 'spend_per_student')[0] : null;
   $('kpis').innerHTML = `
-    <div class="kpi"><div class="label">Spend per student</div>
+    <div class="kpi"><div class="label">Spend per student ${xb('spend')}</div>
       <div class="value">${fmtMoney(cur.spend_per_student)}</div>
       ${delta(cur.spend_per_student, prev?.spend_per_student)}
       <div class="plain">State median ${fmtMoney(st.statewide_median_spend)}${cmp ? ' · ' + state.compare.name.split(' ')[0] + ' ' + fmtMoney(cmp.spend_per_student) : ''}${opsPerStudentNote(cur)}</div></div>
-    <div class="kpi"><div class="label">Statewide rank</div>
+    <div class="kpi"><div class="label">Statewide rank ${xb('rank')}</div>
       <div class="value">${pctile == null ? '—' : pctile + '<span style="font-size:1.1rem">th</span>'}</div>
       <div class="plain">${pctile == null ? '' : 'Spends more per student than ' + pctile + '% of Texas districts, counting construction & debt.'}</div></div>
-    <div class="kpi"><div class="label">Enrollment</div>
+    <div class="kpi"><div class="label">Enrollment ${xb('enrollment')}</div>
       <div class="value">${fmtNum(cur.enrollment)}</div>
       ${delta(cur.enrollment, prev?.enrollment)}
       <div class="plain">${declineYears >= 3 ? 'Down ' + declineYears + ' years in a row — a trend, not a blip.' : 'Fall survey count.'}</div></div>
@@ -2221,8 +2235,59 @@ function renderKPIs() {
    operating_spend the card now compares like with like and says where the rest
    went; where it does not (older cached deploys), it labels the old comparison
    honestly instead of calling it a budget balance. */
+/* "What does this mean?" — plain-English answers, one click, no jargon,
+   no AI call. Every entry says what the number IS, and what it is NOT —
+   the second half is what keeps a scary-looking number honest. */
+const EXPLAIN = {
+  'spend': 'This is everything the district spent this year, divided by its students. It includes building new schools with money voters approved. The cost of just running school day-to-day is the smaller number underneath.',
+  'rank': 'Out of 100 — higher means this district spent more per student than most of Texas this year. Building years push districts up this list without classrooms costing a dollar more.',
+  'enrollment': 'This is how many students showed up in the fall count. Money follows students, so fewer students year after year means a tighter budget.',
+  'balance': "This says whether day-to-day money coming in covered day-to-day bills. Construction is left out on purpose — voters pay for that separately with bonds, so it isn't overspending.",
+  'dollar': 'Take one dollar this district spent. Each square is one penny of it — teaching, buses, buildings, loan payments. Now you can see where the money actually goes.',
+  'outcomes': "This compares the district's results only with districts teaching similar students. Raw score comparisons are unfair — poverty moves scores everywhere. Above the prediction is good news; below it is a question to ask.",
+  'pay': 'This is what the district collects on a typical $300,000 home, and where it goes. If some is sent back to the state, that\'s Texas\'s "Robin Hood" sharing rule, not waste.',
+  'takeover': "In 2023 the state took over Houston ISD's board. This checks whether results improved compared with districts that looked just like Houston before. One district is a clue, not proof.",
+  'works-for': "Every district serves someone's priorities. This shows whose priorities this district's spending most resembles.",
+  'bonds': "Districts must ask voters before borrowing for buildings. This is every question this district ever put on a ballot, and how the vote went. A passed bond is the community's decision, not overspending.",
+  'debt': "This is what's still owed on past borrowing, counting all future interest — like a mortgage payoff quote. It looks huge because it covers decades, not one year.",
+  'trends': "The same measures every year since 2009, with inflation removed so dollars stay comparable. The grey line is all of Texas — so you can tell if it's this district changing, or everything.",
+  'peers': 'These are the districts most like this one in size and situation. Comparing to them is fair; comparing a small town to Dallas is not.',
+  'where-goes': 'This is the budget split by job: teaching, administration, buses, meals, buildings, debt. It shows what this district puts first.',
+  'serves': 'This is who the students are — poverty, English learners, special education. Same budget, different students, very different job.',
+  'anomaly': 'These flags mark sharp changes worth asking about. A flag is a question, not an accusation — the usual cause is a construction year voters approved.',
+  'ask': 'Type a question in plain English and an AI answers from the official numbers. AI can misread a question, so double-check anything important against the cards above.',
+  'statewide': 'This is all of Texas on one line — so you can tell whether what you just read is unusual, or just how Texas looks right now.',
+};
+document.addEventListener('click', e => {
+  const old = document.querySelector('.explain-pop');
+  const btn = e.target.closest('.explain');
+  if (old) old.remove();
+  if (!btn) return;
+  if (old && old.dataset.for === btn.dataset.explain) return;  // toggle off
+  const txt = EXPLAIN[btn.dataset.explain];
+  if (!txt) return;
+  const pop = document.createElement('div');
+  pop.className = 'explain-pop'; pop.dataset.for = btn.dataset.explain;
+  pop.setAttribute('role', 'note');
+  const dot = txt.indexOf('. ');
+  const lead = dot > -1 ? txt.slice(0, dot + 1) : txt;
+  const rest = dot > -1 ? txt.slice(dot + 2) : '';
+  pop.innerHTML = '<button class="close-x" aria-label="Close">\u00d7</button><b>' + lead + '</b>' + rest;
+  document.body.appendChild(pop);
+  const r = btn.getBoundingClientRect();
+  const left = Math.min(r.left + window.scrollX, window.scrollX + document.documentElement.clientWidth - pop.offsetWidth - 12);
+  pop.style.left = Math.max(8, left) + 'px';
+  pop.style.top = (r.bottom + window.scrollY + 8) + 'px';
+  pop.querySelector('.close-x').onclick = () => pop.remove();
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { const pop = document.querySelector('.explain-pop'); if (pop) pop.remove(); }
+});
+function xb(key) {
+  return '<button class="explain" data-explain="' + key + '" aria-label="What does this mean?" title="What does this mean?">?</button>';
+}
 function balanceCard(cur) {
-  const label = '<div class="kpi"><div class="label">Operating balance</div>';
+  const label = '<div class="kpi"><div class="label">Operating balance ' + xb('balance') + '</div>';
   if (cur.operating_spend != null) {
     const surplus = +cur.total_revenue >= +cur.operating_spend;
     const nonOp = +cur.total_spend - +cur.operating_spend;
@@ -2232,7 +2297,7 @@ function balanceCard(cur) {
       spending ${fmtMoney(cur.operating_spend)}.${nonOp > 1e6 ? ' A further ' + fmtMoney(nonOp) +
       ' went to construction and debt payments, funded by bonds — not the operating budget.' : ''}</div></div>`;
   }
-  return `<div class="kpi"><div class="label">All money in vs out</div>
+  return `<div class="kpi"><div class="label">All money in vs out ${xb('balance')}</div>
       <div class="value">${+cur.total_revenue >= +cur.total_spend ? 'In exceeds out' : 'Out exceeds in'}</div>
       <div class="plain">Operating revenue ${fmtMoney(cur.total_revenue)} vs ALL spending
       ${fmtMoney(cur.total_spend)} — the second includes bond-funded construction and debt,
