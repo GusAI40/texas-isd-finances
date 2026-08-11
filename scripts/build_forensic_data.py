@@ -243,12 +243,13 @@ def build(econ: dict, bonds: dict, outcomes: dict) -> dict:
         # were rendering identically: cannot exist, did not happen, not known.
         name = e.get("district_name") or num
         absent = []
+        # TEA's own numbering: the 4th digit is 8 for an open-enrolment charter,
+        # which levies no property tax and cannot hold a bond election.
+        is_charter = num[3] == "8"
         if not (tax or {}).get("bill_on_home"):
-            # TEA's own numbering: the 4th digit is 8 for an open-enrolment
-            # charter, which levies no property tax by construction.
-            absent.append(A.no_tax_figure(name, is_charter=num[3] == "8"))
+            absent.append(A.no_tax_figure(name, is_charter=is_charter))
         if b is None:
-            absent.append(A.no_bond_history(name))
+            absent.append(A.no_bond_history(name, is_charter=is_charter))
         if not e.get("who_does_better"):
             absent.append(A.no_better_peer(name, (e.get("own") or {}).get("pct_poor")))
         if o is None or not o.get("expectation"):

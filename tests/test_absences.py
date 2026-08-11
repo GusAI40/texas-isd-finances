@@ -54,6 +54,9 @@ def test_only_did_not_happen_is_a_finding():
     """A finding is promoted in the UI and quoted by MCP. 'We don't know' must
     never be promoted, because that is how an absence of data becomes a claim."""
     assert A.no_bond_history("X ISD")["is_finding"] is True
+    # A charter CANNOT hold a bond election, so its lack of one is not a
+    # choice and must never be promoted as one.
+    assert A.no_bond_history("X Academy", is_charter=True)["is_finding"] is False
     assert A.no_peer_turnaround("X ISD", 12)["is_finding"] is True
     assert A.no_better_peer("X ISD")["is_finding"] is True
     assert A.no_tax_figure("X ISD", is_charter=True)["is_finding"] is False
@@ -92,6 +95,7 @@ def test_every_absence_sentence_names_the_district_and_stands_alone():
     for a in (A.no_bond_history("Katy ISD"), A.no_peer_turnaround("Katy ISD", 9),
               A.no_better_peer("Katy ISD", 31.2), A.no_trend("Katy ISD", 5),
               A.no_tax_figure("Katy ISD", True), A.no_tax_figure("Katy ISD", False),
+              A.no_bond_history("Katy ISD", is_charter=True),
               A.no_equity_record("Katy ISD"), A.no_outcome_join("Katy ISD"),
               A.nothing_crosses_a_threshold("Katy ISD", 8)):
         assert "Katy ISD" in a["sentence"], a["section"]

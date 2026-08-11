@@ -74,8 +74,22 @@ def absence(section: str, kind: str, sentence: str, **extra: Any) -> dict:
 # the absences the data can produce
 # --------------------------------------------------------------------------
 
-def no_bond_history(name: str, since: int = 1958) -> dict:
-    """266 districts, 463,784 students. Not a gap — a decision, repeated."""
+def no_bond_history(name: str, is_charter: bool = False, since: int = 1958) -> dict:
+    """266 districts. But only 83 of them are a finding.
+
+    An open-enrolment charter cannot hold a bond election at all — it levies no
+    property tax and has no taxing jurisdiction to pledge against, so it
+    finances facilities another way. Reporting that as "never asked the voters"
+    would be the same error this module exists to prevent, pointed at charters:
+    an impossibility dressed up as a choice.
+    """
+    if is_charter:
+        return absence(
+            "bonds", NOT_APPLICABLE,
+            f"{name} is a charter district and cannot hold a bond election. "
+            f"Charters have no taxing jurisdiction to pledge against, so they "
+            f"finance buildings without going to the voters — there is no "
+            f"ballot record to show because there could not be one.")
     return absence(
         "bonds", DID_NOT_HAPPEN,
         f"{name} has never asked voters for building debt in the "
