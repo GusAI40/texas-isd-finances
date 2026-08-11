@@ -1,0 +1,101 @@
+{
+ "visitors_per_month": 100000,
+ "sample": 600,
+ "seed": 20260811,
+ "by_arrival": [
+  {
+   "arrival": "search for their own district",
+   "share": 0.417,
+   "requests_per_visit": 6,
+   "kb_per_visit": 313.4,
+   "db_requests_per_visit": 1,
+   "p50_seconds": 0.015,
+   "journeys_with_a_fault": 250
+  },
+  {
+   "arrival": "shared link to one district",
+   "share": 0.173,
+   "requests_per_visit": 5,
+   "kb_per_visit": 234.8,
+   "db_requests_per_visit": 1,
+   "p50_seconds": 0.012,
+   "journeys_with_a_fault": 104
+  },
+  {
+   "arrival": "news story about a finding",
+   "share": 0.153,
+   "requests_per_visit": 6,
+   "kb_per_visit": 446.0,
+   "db_requests_per_visit": 0,
+   "p50_seconds": 0.078,
+   "journeys_with_a_fault": 0
+  },
+  {
+   "arrival": "browsing the map",
+   "share": 0.095,
+   "requests_per_visit": 3,
+   "kb_per_visit": 551.3,
+   "db_requests_per_visit": 1,
+   "p50_seconds": 0.011,
+   "journeys_with_a_fault": 57
+  },
+  {
+   "arrival": "an assistant using the MCP tools",
+   "share": 0.073,
+   "requests_per_visit": 4,
+   "kb_per_visit": 11.1,
+   "db_requests_per_visit": 0,
+   "p50_seconds": 0.009,
+   "journeys_with_a_fault": 0
+  },
+  {
+   "arrival": "researcher or reporter digging",
+   "share": 0.05,
+   "requests_per_visit": 8,
+   "kb_per_visit": 300.2,
+   "db_requests_per_visit": 1,
+   "p50_seconds": 0.044,
+   "journeys_with_a_fault": 30
+  },
+  {
+   "arrival": "checking the sources",
+   "share": 0.038,
+   "requests_per_visit": 3,
+   "kb_per_visit": 50.8,
+   "db_requests_per_visit": 0,
+   "p50_seconds": 0.007,
+   "journeys_with_a_fault": 0
+  }
+ ],
+ "requests_per_month": 539500,
+ "bandwidth_gb_per_month": 31.72,
+ "db_requests_per_month": 73500,
+ "db_share": 0.1362,
+ "query_calls_per_month": 1500,
+ "deepseek_usd_per_month": 1.35,
+ "peak_requests_per_second": 3.75,
+ "peak_concurrency_at_p50": 1.1,
+ "peak_concurrency_at_p95": 3.8,
+ "service_seconds_input": 0.295,
+ "service_time_source": "measured against production, not this run",
+ "non_2xx_responses": 441,
+ "status_codes": {
+  "200": 2767,
+  "503": 441,
+  "404": 20
+ },
+ "faults": [
+  {
+   "title": "Supabase pauses after ~7 days idle (free tier)",
+   "detail": "14% of requests touch the database. A paused project degrades 73,500 requests/month to the fallback path. The pages still render \u2014 that was built \u2014 but the district summary, peers and insights go dark."
+  },
+  {
+   "title": "/query is the only unbounded cost",
+   "detail": "At 1.5% of visitors it is $1/month. At 10% it is $9. sql/create_nlp_usage.sql is NOT applied in production, so the ceiling is still per-serverless-instance rather than global \u2014 the one number here that can run away."
+  },
+  {
+   "title": "Vercel Hobby is non-commercial",
+   "detail": "31.7 GB/month uncompressed. Hobby includes 100 GB and forbids commercial use; this volume is a Pro conversation either way."
+  }
+ ]
+}
