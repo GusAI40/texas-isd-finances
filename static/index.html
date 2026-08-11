@@ -14,6 +14,26 @@
      browser never performs the restore. */
   try { if ('scrollRestoration' in history) history.scrollRestoration = 'manual'; }
   catch (e) {}
+  /* A returning reader opens on the HERO, not on the chrome above it.
+     `html.has-district` means they have been here before, so the brand line,
+     the nine navigation buttons and the live-figures ticker are ~280px of
+     furniture they have already seen, and the headline that says which
+     district this is starts below the fold.
+
+     This is deliberately NOT the scroll that was removed earlier. That one
+     fired after the data arrived and threw the reader 974px down into the
+     middle of a chart. This runs on DOMContentLoaded against markup that is
+     already in the HTML, lands on the first heading rather than past it, and
+     is instant — so there is nothing to see jumping. A first-time visitor has
+     no saved district, keeps `.welcome`, and is left at the very top where the
+     explanation of what this site is lives. */
+  document.addEventListener('DOMContentLoaded', function () {
+    try {
+      if (!document.documentElement.classList.contains('has-district')) return;
+      var hero = document.getElementById('picker-section');
+      if (hero) hero.scrollIntoView({ block: 'start', behavior: 'instant' });
+    } catch (e) {}
+  });
   /* Sets html.has-district before first paint so the finder's label reads
      "Look up a different district" from the very first frame. Anything
      above the fold that depends on localStorage has to be decided here —
@@ -473,6 +493,9 @@
      returning readers land straight on their numbers. */
   .welcome { margin: .4rem 0 1.6rem; }
   html.has-district .welcome { display: none; }
+  /* The section nav is sticky, so scrolling the hero to y=0 puts its eyebrow
+     underneath it. Clear the nav's height plus a little air. */
+  #picker-section { scroll-margin-top: 60px; }
   .welcome-h { font-weight: 600; font-size: clamp(1.9rem, 4vw, 2.9rem); line-height: 1.12;
     letter-spacing: -.02em; margin: .1rem 0 .7rem; max-width: 17em; text-wrap: balance; color: var(--ink); }
   .welcome-sub { color: var(--ink-2); font-size: var(--fs-md); line-height: 1.5; max-width: 40rem; margin: 0 0 .7rem; }
