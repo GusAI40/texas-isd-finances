@@ -165,10 +165,15 @@ def render_email(row: dict, postal: str, unsubscribe: str) -> tuple[str, str]:
 
 def _req(path: str, key: str, payload: dict | None = None) -> dict:
     data = json.dumps(payload).encode() if payload is not None else None
+    # The User-Agent matters: api.resend.com sits behind Cloudflare, which
+    # 403s Python's default urllib UA ("error 1010") while the same request
+    # from curl succeeds. Same trap as the Supabase Management API — the 403
+    # is NOT an auth failure, do not chase the key.
     r = urllib.request.Request(
         f"{API}{path}", data=data, method="POST" if data else "GET",
         headers={"Authorization": f"Bearer {key}",
-                 "Content-Type": "application/json"})
+                 "Content-Type": "application/json",
+                 "User-Agent": "txisd-outreach/1.0 (+https://txisd.dev)"})
     with urllib.request.urlopen(r, timeout=30,
                                 context=ssl.create_default_context()) as resp:
         return json.load(resp)
