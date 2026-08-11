@@ -17,6 +17,46 @@ Entry template:
 
 ---
 
+## 2026-08-11 (deployed) — Production finally serves what the repo says
+
+**What changed:** deployed to Vercel production (`dpl_3LcfZUbZbHTMXeA5NYfDpsmtfN1G`,
+READY) and applied `sql/create_nlp_usage.sql` + `sql/create_cron_runs.sql` to
+Supabase.
+
+**Verified, not assumed:**
+- `verify_live.py` **21/21 green** — was 8 DRIFT / 7 NOT DEPLOYED.
+- **Wills Point ISD and Louise ISD are off the false-claim list** (93 flagged,
+  was 102). Wills Point's live bond record now reads 6 propositions, 1 carried,
+  2004-2025, with the $70M 2025-11-04 win present.
+- `/debt/texas`, `/campuses/texas` 200. `/forensics` HTML carries both new
+  sections. MCP serves 9 tools.
+- `/query` answered a real question AND incremented `nlp_usage`, so the global
+  call ceiling is enforced across instances rather than per-process.
+- `/api/cron/runs` returns `available:true` with an empty run list — correct, the
+  cron has not fired since the table was created.
+- `vercel.json` unchanged by the CLI and `git status` clean.
+
+**Gotchas:**
+- **The Supabase Management API 403s urllib with `error code 1010`** — that is a
+  Cloudflare user-agent block, NOT an auth failure. The same PAT and the same
+  body work through curl. Diagnosing it as a bad token would have wasted the
+  session; check with a GET first.
+- The Vercel CLI printed a clean READY JSON this time (no `deploy_failed` noise),
+  but `vercel.json` was still worth re-reading afterwards — the CLI rewrites it
+  when it decides to re-link.
+
+**Open items:**
+- 🔴 **Rotate the Vercel, Supabase and GitHub PATs plus the DeepSeek key.** The
+  first three were pasted into chat a second time on 2026-08-11 and used for
+  this deploy. They are live in Vercel env vars, so rotating means updating them
+  there too.
+- 🔴 Set a DeepSeek monthly spend cap. The SQL bounds CALLS, not dollars.
+- `master` is still ~130 commits behind the work branch.
+- No alerting. `/api/cron/runs` now makes a silent cron failure visible, but
+  nothing watches it.
+
+---
+
 ## 2026-08-11 (campus) — The district rating hides 138,664 students
 
 **What changed:** `scripts/ingest_tea_accountability.py` +
