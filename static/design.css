@@ -462,3 +462,33 @@ hr, .rule {
   .card { border: 1px solid #ccc; break-inside: avoid; }
   a[href^="http"]::after { content: " (" attr(href) ")"; font-size: 9pt; color: #555; }
 }
+
+
+/* ===== The masthead — one header, every page, never trapped ============== */
+#masthead { background: var(--surface); border-bottom: 1px solid var(--rule); }
+#masthead .m-in { max-width: 1240px; margin: 0 auto; padding: .55rem 1.5rem;
+  display: flex; align-items: center; gap: 1.1rem; flex-wrap: wrap; }
+#masthead .m-brand { display: flex; align-items: center; gap: .55rem;
+  text-decoration: none; color: var(--ink); font-weight: var(--fw-bold);
+  letter-spacing: var(--tracking-tight); white-space: nowrap; }
+#masthead .m-mark { display: grid; grid-template-columns: 1fr 1fr; gap: 2px;
+  width: 18px; height: 18px; }
+#masthead .m-mark i { background: var(--accent); border-radius: 2px; }
+#masthead .m-mark i:last-child { background: var(--ink-3); }
+#masthead .m-sub { font-weight: var(--fw-regular); color: var(--ink-3);
+  font-size: var(--fs-xs); margin-left: .45rem; }
+#masthead .m-tabs { display: flex; gap: .15rem; flex: 1; min-width: 0;
+  overflow-x: auto; scrollbar-width: none; }
+#masthead .m-tabs::-webkit-scrollbar { display: none; }
+#masthead .m-tabs a { color: var(--ink-2); text-decoration: none;
+  font-size: var(--fs-sm); padding: .3rem .65rem; border-radius: var(--r-md);
+  white-space: nowrap; border-bottom: 2px solid transparent; }
+#masthead .m-tabs a:hover { color: var(--ink); background: var(--wash); }
+#masthead .m-tabs a[aria-current="page"] { color: var(--ink);
+  font-weight: var(--fw-bold); border-bottom-color: var(--accent); }
+#masthead .mast-theme { background: none; border: 1px solid var(--rule);
+  color: var(--ink-2); border-radius: var(--r-md); font: inherit;
+  font-size: var(--fs-xs); padding: .2rem .6rem; cursor: pointer; }
+/* the masthead's toggle replaces every page-local one */
+body:has(#masthead) .btn-theme, body:has(#masthead) #btn-theme { display: none; }
+@media (max-width: 640px) { #masthead .m-sub { display: none; } }

@@ -133,6 +133,26 @@
 </defs></svg>
 <!-- icon-sprite:end -->
 <a class="skiplink" href="#sources">Skip to the sources</a>
+<nav id="masthead" aria-label="Site">
+  <div class="m-in">
+    <a class="m-brand" href="/"><span class="m-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+      Texas ISD<span class="m-sub">Financial Resource Guide</span></a>
+    <div class="m-tabs"><a href="/">The Report</a><a href="/feed">The Feed</a><a href="/forensics">Forensic File</a><a href="/geomap">Map</a><a href="/heatmap">Heatmap</a><a href="/about">About</a><a href="/sources" aria-current="page">Sources</a></div>
+    <button class="mast-theme" id="mast-theme" type="button" aria-label="Toggle light and dark theme">Theme</button>
+  </div>
+</nav>
+<script>
+  (function () {
+    'use strict';
+    var b = document.getElementById('mast-theme');
+    if (!b) return;
+    b.onclick = function () {
+      var dark = document.documentElement.getAttribute('data-theme') === 'dark';
+      if (dark) { document.documentElement.removeAttribute('data-theme'); localStorage.setItem('tisd_theme', 'light'); }
+      else { document.documentElement.setAttribute('data-theme', 'dark'); localStorage.setItem('tisd_theme', 'dark'); }
+    };
+  }());
+</script>
 <div class="shell">
   <header>
     <div class="brand">Texas ISD <span>&middot;</span> Sources<a href="/"><svg class="ico" aria-hidden="true"><use href="#i-arrow-left"/></svg> portal</a><a href="/forensics">forensic file</a><a href="/about">why this exists</a><button class="btn-theme" id="btnTheme" type="button" aria-label="Toggle dark mode"><svg class="ico" aria-hidden="true"><use href="#i-contrast"/></svg> Theme</button></div>

@@ -114,6 +114,9 @@
   .navchips button.on { color: var(--ink); font-weight: 600; border-bottom-color: var(--blue); }
   .navchips button:focus-visible { outline: 2px solid var(--blue); outline-offset: 1px; }
   @media (prefers-reduced-motion: reduce) { #progressbar { transition: none; } }
+  /* the masthead carries brand + primary nav now; the old rows retire */
+  .top .brand { display: none; }
+  #btn-feed, #btn-forensics, #btn-geomap, #btn-heatmap, #btn-map, #btn-about { display: none; }
   /* Numbers shown AS numbers. Each of these replaced a paragraph — a reader
      scanning the page should get the finding without reading a sentence. */
   .stat { display: inline-flex; flex-direction: column; margin: .1rem 1.6rem .4rem 0; vertical-align: top; }
@@ -783,6 +786,26 @@
 </defs></svg>
 <!-- icon-sprite:end -->
 <a class="skiplink" href="#picker-section">Skip to the data</a>
+<nav id="masthead" aria-label="Site">
+  <div class="m-in">
+    <a class="m-brand" href="/"><span class="m-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+      Texas ISD<span class="m-sub">Financial Resource Guide</span></a>
+    <div class="m-tabs"><a href="/" aria-current="page">The Report</a><a href="/feed">The Feed</a><a href="/forensics">Forensic File</a><a href="/geomap">Map</a><a href="/heatmap">Heatmap</a><a href="/about">About</a><a href="/sources">Sources</a></div>
+    <button class="mast-theme" id="mast-theme" type="button" aria-label="Toggle light and dark theme">Theme</button>
+  </div>
+</nav>
+<script>
+  (function () {
+    'use strict';
+    var b = document.getElementById('mast-theme');
+    if (!b) return;
+    b.onclick = function () {
+      var dark = document.documentElement.getAttribute('data-theme') === 'dark';
+      if (dark) { document.documentElement.removeAttribute('data-theme'); localStorage.setItem('tisd_theme', 'light'); }
+      else { document.documentElement.setAttribute('data-theme', 'dark'); localStorage.setItem('tisd_theme', 'dark'); }
+    };
+  }());
+</script>
 <div class="shell">
   <div id="progresswrap"><i id="progressbar"></i></div>
   <nav id="sectionnav" class="hidden" aria-label="Jump to a section"></nav>

@@ -96,6 +96,19 @@ def test_prototype_url_never_appears():
         assert "texas-isd-finances.vercel.app" not in page.read_text(encoding="utf-8")
 
 
+def test_every_page_carries_the_same_masthead():
+    """Singularity: one identical header on every page — brand, the seven
+    primary destinations, and a theme toggle — so no reader is ever more
+    than one tap from anywhere, and no page is a trap."""
+    for page in PAGES:
+        html = page.read_text(encoding="utf-8")
+        assert 'id="masthead"' in html, f"{page.name} lost the masthead"
+        for dest in ('href="/feed"', 'href="/forensics"', 'href="/geomap"',
+                     'href="/heatmap"', 'href="/about"', 'href="/sources"'):
+            assert dest in html, f"{page.name} masthead lost {dest}"
+        assert 'id="mast-theme"' in html, f"{page.name} masthead lost its theme toggle"
+
+
 def test_every_page_carries_the_ai_disclosure_line():
     """The owner's rule: hit the truth head-on. Every page ends with the same
     disclosure — AI used across the entire system, margin of error, as-is, use
