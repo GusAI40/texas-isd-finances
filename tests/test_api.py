@@ -778,8 +778,9 @@ class _RecordingConn:
         self.store.setdefault("fetchval_args", []).append(arg)
         return None            # today's run does not exist yet
 
-    async def execute(self, _sql, *args):
-        self.store["execute_args"] = args
+    async def execute(self, sql, *args):
+        self.store.setdefault("executed", []).append((sql, args))
+        self.store["execute_args"] = args          # kept: last-statement args
         return "INSERT 0 1"
 
 
@@ -819,11 +820,55 @@ def test_cron_binds_a_date_not_a_string(client, monkeypatch):
     assert res.status_code == 200
     assert res.json()["stored"] is True
     # The run_date bound to BOTH the idempotency check and the INSERT must be a
-    # date object, not the isoformat string.
-    assert pool.store["execute_args"], "the INSERT never ran"
-    assert isinstance(pool.store["execute_args"][0], _dt.date)
-    assert not isinstance(pool.store["execute_args"][0], str)
+    # date object, not the isoformat string. Selected by statement rather than
+    # by position: the handler also writes a cron_runs breadcrumb after this
+    # one, and "the last execute" stopped meaning "the briefing insert".
+    briefing = [args for sql, args in pool.store["executed"]
+                if "isd_briefings" in sql]
+    assert briefing, "the briefing INSERT never ran"
+    assert isinstance(briefing[0][0], _dt.date)
+    assert not isinstance(briefing[0][0], str)
     assert all(isinstance(a, _dt.date) for a in pool.store.get("fetchval_args", []))
+
+
+def test_a_successful_cron_run_leaves_a_breadcrumb(client, monkeypatch):
+    """A job that never fires and a job that fires and writes nothing look the
+    same from outside — which is how the intel cron failed silently for four
+    days. The attempt itself must be recorded."""
+    import src.api as api
+    from scripts import isd_intel
+    monkeypatch.setenv("CRON_SECRET", "s3cret")
+    monkeypatch.setattr(isd_intel, "fetch_tea_newsroom", lambda *a, **k: [])
+    monkeypatch.setattr(isd_intel, "fetch_google_news_rss", lambda *a, **k: [])
+    pool = _RecordingPool()
+    monkeypatch.setattr(api.app.state, "db_pool", pool, raising=False)
+
+    client.get("/api/cron/isd-intelligence", headers={"authorization": "Bearer s3cret"})
+    runs = [args for sql, args in pool.store["executed"] if "cron_runs" in sql]
+    assert runs, "the run was not recorded"
+    job, _began, _ms, status, _rows, _detail = runs[0]
+    assert job == "isd-intelligence" and status == "ok"
+
+
+def test_a_cron_run_that_raises_is_still_recorded(client, monkeypatch):
+    """Previously this path left nothing behind at all, so a job failing every
+    day was indistinguishable from a job that was never scheduled."""
+    import src.api as api
+    from scripts import isd_intel
+    monkeypatch.setenv("CRON_SECRET", "s3cret")
+
+    def boom(*a, **k):
+        raise RuntimeError("feed exploded")
+    monkeypatch.setattr(isd_intel, "load_districts", boom)
+    pool = _RecordingPool()
+    monkeypatch.setattr(api.app.state, "db_pool", pool, raising=False)
+
+    with pytest.raises(RuntimeError):
+        client.get("/api/cron/isd-intelligence", headers={"authorization": "Bearer s3cret"})
+    runs = [args for sql, args in pool.store["executed"] if "cron_runs" in sql]
+    assert runs, "a failed run left no trace — the original bug"
+    assert runs[0][3] == "error"
+    assert "feed exploded" in (runs[0][5] or "")
 
 
 def test_vercel_json_still_has_no_rewrites():

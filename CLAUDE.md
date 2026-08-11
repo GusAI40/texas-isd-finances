@@ -78,7 +78,19 @@ read-only Postgres views on Supabase. MIT-licensed, built for public use.
 ```bash
 ruff check . && python -m pytest -q       # all must pass (count drifts; don't hardcode it)
 curl -s https://txisd.dev/health
+python scripts/verify_live.py             # does PRODUCTION serve what this tree says?
 ```
+
+**`verify_live.py` is the check the other three could not make.**
+`verify_sources.py` proves the publisher's file is the publisher's file,
+`test_provenance.py` re-derives every headline from it, `verify_artifacts.py`
+rebuilds and byte-diffs — and a repo can pass all three while the deployed site
+serves something else entirely. That is not hypothetical: the bond layer ran
+live for weeks two years stale, publicly naming districts as having no
+voter-approved bond after they had passed one, with a green suite throughout.
+It exits non-zero on drift, so it works as a deploy gate or a cron. Run it
+against a local server (`--base http://127.0.0.1:8000`) to confirm a build
+before shipping it.
 
 **Static pages need their own check — a 200 response proves nothing.** A
 `const` redeclaration once killed `static/map.html` entirely while the page
@@ -139,6 +151,8 @@ proxy), run `scratchpad/liveproxy.py` and point Playwright at
 - 🔴 OPEN: a fifth credential was pasted into chat 2026-08-11 (`od_live_…`, tryopendata.ai). Rotate with the other four. It was used read-only for discovery and never committed.
 - ⏭️ NEXT: deploy this branch (not yet deployed — production still serves the vendor bond file and has no `/debt/*`); apply `sql/create_nlp_usage.sql` to production; write the HISD finding up for a reporter; then the **TAPR campus file** (teacher certification, and the 77% invisible above campus level). Older plan: bake outcomes in as the **spine** (every money fact ends in what it bought, with an error bar) — first the bond→outcome test on the district page; then the **HISD board-of-managers analysis** (did the 2023 takeover change results vs matched districts?); then the **TAPR campus file** for teacher certification.
 - 📌 Measured within-district **at the Meets bar**: teacher pay +$5,000 → **+0.86** (CI +0.48/+1.23, the largest identifiable lever); class size −2 → +0.37; turnover −10 → +0.30 (**CI crosses zero**); spending +$2,000 → +0.15 (**crosses zero**); a passed building bond → −0.57 (crosses zero). The large thing is a persistent district effect, **77% unexplained**.
+- ✅ **Silent failure is now visible** (2026-08-11) — `sql/create_cron_runs.sql` + `/api/cron/runs`. A job that never fires and a job that fires and writes nothing look identical from outside, which is how the intel cron failed silently for four days. Every firing records status (`ok`/`skipped`/`error`), duration and `rows_written`; `gap_days` and `wrote_nothing` are what you read. **The failure path had no record at all before this** — an exception 500'd and left nothing. Fails open if the table is missing. **Apply the SQL to production to activate it.**
+- ✅ **One formatter, not three** (2026-08-11) — `src/format.py`. `_usd` existed in both `src/mcp_tools.py` (exact) and `scripts/isd_intel.py` (abbreviated) — **same name, opposite precision**: the briefing rendered $1.5M as **"$2M"** and $1,234 as "$1K", and still carried the `$-354` sign bug fixed in mcp_tools months earlier. Three name formatters (`_title`, `nice_name`, `_district_name`) each independently produced `D'hanis ISD` and `S And S CISD`. `tests/test_format.py` locks every one of those defects.
 - 🟡 WATCH: Supabase free tier pauses after ~7 days idle → portal shows "database not connected" until woken in dashboard. Vercel Hobby is non-commercial; upgrade both if pursuing revenue.
 
 ## Key docs

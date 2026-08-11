@@ -19,6 +19,7 @@ from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse, Res
 from pydantic import BaseModel, Field
 
 from . import absences, analytics, llm_config, mcp_protocol, mcp_tools, scanner, site_gate, sources
+from . import format as fmt
 from .sample_queries import SAMPLE_QUERIES
 
 load_dotenv()
@@ -1357,10 +1358,7 @@ def _district_name(num: str) -> str:
     if data:
         for r in data.get("districts", []):
             if r.get("district_number") == num:
-                return " ".join(
-                    w.upper() if w.upper() in {"ISD", "CISD", "CSD", "CCSD", "MSD"}
-                    else w.capitalize()
-                    for w in str(r.get("district_name") or num).split())
+                return fmt.district_name(r.get("district_name") or num)
     return f"District {num}"
 
 
@@ -2017,6 +2015,86 @@ async def get_briefing(request: Request):
                         detail="No briefing yet. Run the daily research (see docs/ISD_INTELLIGENCE.md).")
 
 
+async def _record_cron_run(pool, job: str, started: float, status: str,
+                           rows_written: int = 0, detail: str = None) -> None:
+    """Write one breadcrumb saying this job fired, and what came of it.
+
+    Fails open, deliberately and loudly-in-the-logs-only: a missing table must
+    never turn a working pipeline into a 500. The whole point of this record is
+    to make failures visible, so it cannot itself become one.
+
+    `detail` is truncated hard. Exception text from asyncpg can contain the
+    connection string, and this table is world-readable.
+    """
+    if pool is None:
+        return
+    from datetime import timedelta, timezone
+    elapsed_ms = int((time.monotonic() - started) * 1000)
+    began = datetime.now(timezone.utc) - timedelta(milliseconds=elapsed_ms)
+    try:
+        async with pool.acquire() as conn:
+            await conn.execute(
+                "INSERT INTO public.cron_runs "
+                "(job, started_at, duration_ms, status, rows_written, detail) "
+                "VALUES ($1, $2, $3, $4, $5, $6)",
+                job, began, elapsed_ms, status, rows_written,
+                (detail or "")[:500] or None)
+    except Exception as exc:
+        print(f"WARNING: could not record cron run (table missing?): {exc}")
+
+
+@app.get("/api/cron/runs", tags=["Intelligence"])
+async def get_cron_runs(request: Request, job: str = "isd-intelligence",
+                        limit: int = 30):
+    """Has the scheduled work actually been running?
+
+    A job that never fires and a job that fires and writes nothing look
+    identical from outside — which is how the daily intelligence run failed
+    silently for four days, with a briefing that simply stopped changing.
+
+    This reports the firings themselves, so **absence is visible**: `gap_days`
+    counts the days since the last successful run, and `wrote_nothing` counts
+    runs that reported success while producing zero rows, which is the exact
+    shape the original failure took. No request data, no identifiers — one row
+    per firing and nothing else.
+    """
+    pool = request.app.state.db_pool
+    if pool is None:
+        return {"job": job, "available": False,
+                "why": "No database configured, so firings are not recorded."}
+    try:
+        async with pool.acquire() as conn:
+            rows = await conn.fetch(
+                "SELECT started_at, duration_ms, status, rows_written, detail "
+                "FROM public.cron_runs WHERE job = $1 "
+                "ORDER BY started_at DESC LIMIT $2",
+                job, max(1, min(int(limit), 200)))
+    except Exception as exc:
+        return {"job": job, "available": False,
+                "why": f"cron_runs table not readable — apply "
+                       f"sql/create_cron_runs.sql ({type(exc).__name__})"}
+
+    from datetime import timezone
+    runs = [dict(r) for r in rows]
+    ok = [r for r in runs if r["status"] == "ok"]
+    last_ok = ok[0]["started_at"] if ok else None
+    gap = ((datetime.now(timezone.utc) - last_ok).days
+           if last_ok is not None else None)
+    return {
+        "job": job,
+        "available": True,
+        "runs": [{**r, "started_at": r["started_at"].isoformat()} for r in runs],
+        "last_success": last_ok.isoformat() if last_ok else None,
+        "gap_days": gap,
+        "wrote_nothing": sum(1 for r in ok if r["rows_written"] == 0),
+        "errors": sum(1 for r in runs if r["status"] == "error"),
+        "reading": (
+            "gap_days above 1 means the job has not completed since then. "
+            "wrote_nothing counts runs that succeeded and produced nothing, "
+            "which is what a silent failure looks like from the inside."),
+    }
+
+
 @app.get("/api/cron/isd-intelligence", include_in_schema=False)
 async def cron_isd_intelligence(request: Request):
     """Daily research run, triggered by Vercel Cron.
@@ -2041,6 +2119,7 @@ async def cron_isd_intelligence(request: Request):
     run_dt = datetime.now(timezone.utc).date()
     run_date = run_dt.isoformat()
     pool = request.app.state.db_pool
+    started = time.monotonic()
 
     # Idempotency: if today's run already exists, do not re-run.
     if pool is not None:
@@ -2049,6 +2128,11 @@ async def cron_isd_intelligence(request: Request):
                 existing = await conn.fetchval(
                     "SELECT 1 FROM public.isd_briefings WHERE run_date = $1", run_dt)
                 if existing:
+                    # A real outcome, not a failure: this endpoint is idempotent
+                    # by date and Vercel can retry. Recorded as its own status so
+                    # that a run of nothing but skips is still visibly a run.
+                    await _record_cron_run(pool, "isd-intelligence", started,
+                                           "skipped", 0, "already ran today")
                     return {"status": "already_ran", "run_date": run_date}
         except Exception as exc:
             print(f"WARNING: idempotency check failed, proceeding: {exc}")
@@ -2096,9 +2180,18 @@ async def cron_isd_intelligence(request: Request):
         findings = isd_intel.analyze(items, districts, ref, enrich=enrich)
         return isd_intel.build_briefing(findings, run_date)
 
-    briefing = await run_in_threadpool(_run)
+    try:
+        briefing = await run_in_threadpool(_run)
+    except Exception as exc:
+        # Record BEFORE re-raising. Previously this path left nothing behind, so
+        # a job failing every day was indistinguishable from a job that was
+        # never scheduled.
+        await _record_cron_run(pool, "isd-intelligence", started, "error", 0,
+                               f"{type(exc).__name__}: {exc}")
+        raise
 
     stored = False
+    store_error = None
     if pool is not None:
         try:
             async with pool.acquire() as conn:
@@ -2109,6 +2202,16 @@ async def cron_isd_intelligence(request: Request):
                 stored = True
         except Exception as exc:
             print(f"WARNING: could not store briefing (table missing?): {exc}")
+            store_error = f"{type(exc).__name__}: {exc}"
+
+    # rows_written is what makes the original failure legible after the fact:
+    # the run succeeded, analysed items, and persisted nothing. Recording a
+    # bare "ok" would have hidden it exactly as before.
+    await _record_cron_run(
+        pool, "isd-intelligence", started,
+        "ok" if stored else "error",
+        briefing["meta"]["items_analyzed"] if stored else 0,
+        None if stored else (store_error or "briefing built but not persisted"))
 
     return {"status": "ok", "run_date": run_date, "stored": stored,
             "items_analyzed": briefing["meta"]["items_analyzed"],

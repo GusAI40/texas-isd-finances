@@ -1,0 +1,162 @@
+{
+ "base": "https://txisd.dev",
+ "checks": [
+  {
+   "check": "bond propositions",
+   "endpoint": "/bonds/texas",
+   "expected": 4992,
+   "live": 4588,
+   "state": "DRIFT",
+   "error": null
+  },
+  {
+   "check": "bond districts",
+   "endpoint": "/bonds/texas",
+   "expected": 952,
+   "live": 943,
+   "state": "DRIFT",
+   "error": null
+  },
+  {
+   "check": "most recent bond year",
+   "endpoint": "/bonds/texas",
+   "expected": 2026,
+   "live": 2024,
+   "state": "DRIFT",
+   "error": null
+  },
+  {
+   "check": "total ever asked at the ballot",
+   "endpoint": "/bonds/texas",
+   "expected": 327565705853.0,
+   "live": 291455942461.0,
+   "state": "DRIFT",
+   "error": null
+  },
+  {
+   "check": "debt still owed",
+   "endpoint": "/debt/texas",
+   "expected": 236668766635,
+   "live": null,
+   "state": "MISSING LIVE",
+   "error": "HTTP 404"
+  },
+  {
+   "check": "interest not yet paid",
+   "endpoint": "/debt/texas",
+   "expected": 88318375274,
+   "live": null,
+   "state": "MISSING LIVE",
+   "error": "HTTP 404"
+  },
+  {
+   "check": "year the debt clears",
+   "endpoint": "/debt/texas",
+   "expected": 2061,
+   "live": null,
+   "state": "MISSING LIVE",
+   "error": "HTTP 404"
+  },
+  {
+   "check": "districts carrying CABs",
+   "endpoint": "/debt/texas",
+   "expected": 169,
+   "live": null,
+   "state": "MISSING LIVE",
+   "error": "HTTP 404"
+  },
+  {
+   "check": "districts with a trend",
+   "endpoint": "/trends/texas",
+   "expected": 1201,
+   "live": 1201,
+   "state": "ok",
+   "error": null
+  },
+  {
+   "check": "trend last year",
+   "endpoint": "/trends/texas",
+   "expected": 2025,
+   "live": 2025,
+   "state": "ok",
+   "error": null
+  },
+  {
+   "check": "districts in the forensic file",
+   "endpoint": "/forensics/texas",
+   "expected": 1202,
+   "live": 1202,
+   "state": "ok",
+   "error": null
+  },
+  {
+   "check": "statewide debt service",
+   "endpoint": "/forensics/texas",
+   "expected": 13859452749,
+   "live": 13859452749,
+   "state": "ok",
+   "error": null
+  },
+  {
+   "check": "recapture payers",
+   "endpoint": "/forensics/texas",
+   "expected": 224,
+   "live": 224,
+   "state": "ok",
+   "error": null
+  },
+  {
+   "check": "propositions in the ballot record",
+   "endpoint": "/forensics/texas",
+   "expected": null,
+   "live": null,
+   "state": "MISSING LIVE",
+   "error": null
+  },
+  {
+   "check": "districts with debt and no approved bond",
+   "endpoint": "/forensics/quality",
+   "expected": 93,
+   "live": 102,
+   "state": "DRIFT",
+   "error": null
+  },
+  {
+   "check": "figures tested by Benford",
+   "endpoint": "/forensics/quality",
+   "expected": 1197310,
+   "live": 1197310,
+   "state": "ok",
+   "error": null
+  },
+  {
+   "check": "bond publisher named on /sources",
+   "endpoint": "/sources",
+   "state": "DRIFT",
+   "error": null
+  },
+  {
+   "check": "the retired Secretary of State citation is gone",
+   "endpoint": "/sources",
+   "state": "DRIFT",
+   "error": null
+  }
+ ],
+ "drift": [
+  "bond propositions",
+  "bond districts",
+  "most recent bond year",
+  "total ever asked at the ballot",
+  "districts with debt and no approved bond",
+  "bond publisher named on /sources",
+  "the retired Secretary of State citation is gone"
+ ],
+ "not_deployed": [
+  "debt still owed (/debt/texas -> HTTP 404)",
+  "interest not yet paid (/debt/texas -> HTTP 404)",
+  "year the debt clears (/debt/texas -> HTTP 404)",
+  "districts carrying CABs (/debt/texas -> HTTP 404)",
+  "propositions in the ballot record"
+ ],
+ "unreachable": []
+}

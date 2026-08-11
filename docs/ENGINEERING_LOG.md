@@ -17,6 +17,58 @@ Entry template:
 
 ---
 
+## 2026-08-11 (later) — Nothing was checking the live site
+
+**What changed:**
+- `scripts/verify_live.py` (NEW) — fetches production and diffs 16 headline
+  figures plus 2 attribution claims against the committed artefacts. Run now:
+  **7 DRIFT, 5 NOT DEPLOYED**. Against a local server built from this tree:
+  all green. `docs/live_check.json`.
+- `sql/create_cron_runs.sql` + `/api/cron/runs` (NEW) — one row per firing,
+  with `status`/`duration_ms`/`rows_written`. The cron handler now records
+  `skipped`, `ok` and — new — `error`, before re-raising.
+- `src/format.py` (NEW) — one `usd`, one `big`, one `district_name`.
+  `src/mcp_tools.py`, `src/api.py` and `scripts/isd_intel.py` all point at it.
+- `tests/test_cron_log.py` (10), `tests/test_format.py` (13). 514 pass.
+
+**Why:**
+Asked whether the app was "god-mode". It is not, and the reason is not
+analytical: the live site was publicly wrong about a named school district
+while every check in the repo was green. Every guard ran inward from the
+deployed site. None of them had any idea what was on the internet.
+
+**Gotchas:**
+- **A 404 is not a network failure.** The first cut of verify_live classified
+  `/debt/texas -> 404` as UNREACHABLE, which is exactly the wrong answer: the
+  site answered, and it said it does not have that endpoint. Only transport
+  failures are unreachable now; an HTTP status is always a finding. Getting
+  this backwards would let a whole missing layer hide behind "no egress".
+- **`_usd` meant two different things in two modules.** `mcp_tools._usd` is
+  exact; `isd_intel._usd` abbreviated, rendering **$1,500,000 as "$2M"** and
+  $1,234 as "$1K" in emailed output — a third of the value gone. Any code moved
+  between the two silently changed precision. `isd_intel` also still had the
+  `$-354` sign bug fixed in `mcp_tools` months before and never propagated.
+- **All three name formatters had the same two bugs**, independently:
+  `D'hanis ISD` (plain `.capitalize()` after an apostrophe) and `S And S CISD`
+  — the latter being a real Grayson County district, and one of the two names
+  behind the original bond mis-attribution.
+- `_RecordingConn` in `tests/test_api.py` kept only the LAST `execute`, so
+  adding a second INSERT broke `test_cron_binds_a_date_not_a_string` on
+  position. It records every statement now and selects by SQL text.
+- `format.district_name` must NOT re-case input that is already mixed case:
+  TEA shouts, the Bond Review Board does not, and blindly title-casing turns
+  "Rio Grande City Grulla ISD" into "... Isd".
+
+**Open items:**
+- 🔴 **Deploy is blocked on the user.** No `VERCEL_TOKEN` in this container and
+  the Vercel MCP needs interactive approval. Production is still wrong about
+  Wills Point ISD and Louise ISD.
+- 🔴 Rotate the five credentials; apply `sql/create_nlp_usage.sql` and
+  `sql/create_cron_runs.sql`; set a DeepSeek monthly cap.
+- Wire `verify_live.py` into CI as a scheduled job once deployed.
+
+---
+
 ## 2026-08-11 — The bond data was the wrong publisher's copy, and the balance sheet was missing
 
 **What changed:**

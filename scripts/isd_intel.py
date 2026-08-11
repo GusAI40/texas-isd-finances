@@ -41,6 +41,15 @@ from typing import Callable, Optional
 
 ROOT = Path(__file__).resolve().parent.parent
 STATIC = ROOT / "static"
+
+# This script runs both as a module (imported by the cron handler) and as a
+# CLI from the repo root, so the package import has to work either way.
+if __package__:
+    from src import format as fmt
+else:                                             # pragma: no cover - CLI path
+    sys.path.insert(0, str(ROOT))
+    from src import format as fmt
+
 USER_AGENT = "texas-isd-finances/1.0 (+https://txisd.dev)"
 
 # ---------------------------------------------------------------------------
@@ -353,7 +362,7 @@ def nice_name(name: Optional[str]) -> str:
     """'FORT WORTH ISD' -> 'Fort Worth ISD'. District, not person — safe to style."""
     if not name:
         return "This district"
-    return " ".join(_cap_word(w) for w in name.split())
+    return fmt.district_name(name)
 
 
 def pick_beat(text: str, cats: list[str]) -> str:
@@ -398,23 +407,21 @@ def receipts(dnum: Optional[str], ref: dict) -> dict:
 
 
 def _usd(n) -> str:
-    """Abbreviated dollars for large figures: $1.2B, $200M, $76M. Used for
-    bond and budget amounts, which are always millions or more."""
-    if n is None:
-        return ""
-    n = float(n)
-    if n >= 1e9:
-        return f"${n/1e9:.1f}B"
-    if n >= 1e6:
-        return f"${n/1e6:.0f}M"
-    if n >= 1e3:
-        return f"${n/1e3:,.0f}K"
-    return f"${n:,.0f}"
+    """Abbreviated dollars for headline use: $1.2B, $200.0M, $76,000.
+
+    This used to be a local implementation that shared its NAME with the exact
+    formatter in src/mcp_tools, and did something else entirely: it rounded
+    $1.5m to "$2M" and $1,234 to "$1K", in output that gets emailed. It is now
+    src/format.big, which keeps a decimal at every magnitude and stops
+    abbreviating below a million, where abbreviating stops being a rounding and
+    starts being a different number.
+    """
+    return fmt.big(n, unknown="")
 
 
 def _usd_full(n) -> str:
     """Full dollars for per-student figures, where $13,000 must not become $13K."""
-    return f"${round(n):,}" if n is not None else ""
+    return fmt.usd(n, unknown="")
 
 
 # Only a tier-1 source with explicit appointment language lets a hook assert a

@@ -30,6 +30,8 @@ from __future__ import annotations
 
 from typing import Any, Callable
 
+from . import format as fmt
+
 # What an assistant is told this server is for, returned by server/discover.
 INSTRUCTIONS = (
     "Authoritative Texas school district finance data, built from the Texas "
@@ -72,33 +74,12 @@ class ToolError(Exception):
 # helpers
 # --------------------------------------------------------------------------
 
-def _usd(v: Any) -> str:
-    """`$-649` reads as a typo; the sign belongs in front of the currency mark.
-    Operating balance is routinely negative, so this is not an edge case."""
-    if v is None:
-        return "unknown"
-    return ("-$" if v < 0 else "$") + f"{round(abs(v)):,}"
-
-
-def _big(v: Any) -> str:
-    """$291,455,942,461 is unreadable and invites a model to transcribe it
-    wrong. Statewide sums are quoted in billions or millions."""
-    if v is None:
-        return "unknown"
-    a = abs(v)
-    if a >= 1e9:
-        return f"{'-' if v < 0 else ''}${a / 1e9:,.1f}B"
-    if a >= 1e6:
-        return f"{'-' if v < 0 else ''}${a / 1e6:,.1f}M"
-    return _usd(v)
-
-
-def _title(name: str) -> str:
-    out = []
-    for w in str(name or "").split():
-        out.append(w.upper() if w.upper() in {"ISD", "CISD", "CSD", "CCSD", "MSD"}
-                   else w.capitalize())
-    return " ".join(out)
+# These lived here as local copies and drifted from the ones in the briefing
+# generator — same names, different precision. They are now one implementation
+# in src/format.py; the aliases stay so call sites read unchanged.
+_usd = fmt.usd
+_big = fmt.big
+_title = fmt.district_name
 
 
 def _resolve(number: str) -> str:
