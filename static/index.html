@@ -2166,7 +2166,7 @@ function renderKPIs() {
     <div class="kpi"><div class="label">Spend per student</div>
       <div class="value">${fmtMoney(cur.spend_per_student)}</div>
       ${delta(cur.spend_per_student, prev?.spend_per_student)}
-      <div class="plain">State median ${fmtMoney(st.statewide_median_spend)}${cmp ? ' · ' + state.compare.name.split(' ')[0] + ' ' + fmtMoney(cmp.spend_per_student) : ''}</div></div>
+      <div class="plain">State median ${fmtMoney(st.statewide_median_spend)}${cmp ? ' · ' + state.compare.name.split(' ')[0] + ' ' + fmtMoney(cmp.spend_per_student) : ''}${opsPerStudentNote(cur)}</div></div>
     <div class="kpi"><div class="label">Statewide rank</div>
       <div class="value">${pctile == null ? '—' : pctile + '<span style="font-size:1.1rem">th</span>'}</div>
       <div class="plain">${pctile == null ? '' : 'Spends more per student than ' + pctile + '% of Texas districts.'}</div></div>
@@ -2174,9 +2174,42 @@ function renderKPIs() {
       <div class="value">${fmtNum(cur.enrollment)}</div>
       ${delta(cur.enrollment, prev?.enrollment)}
       <div class="plain">${declineYears >= 3 ? 'Down ' + declineYears + ' years in a row — a trend, not a blip.' : 'Fall survey count.'}</div></div>
-    <div class="kpi"><div class="label">Budget balance</div>
-      <div class="value">${cur.total_revenue >= cur.total_spend ? 'Surplus' : 'Deficit'}</div>
-      <div class="plain">Revenue ${fmtMoney(cur.total_revenue)} vs spending ${fmtMoney(cur.total_spend)}.</div></div>`;
+    ${balanceCard(cur)}`;
+}
+/* Operating vs total is the difference between an accusation and a fact.
+   `total_spend` is ALL money out the door — including bond-funded construction
+   and debt payments. Compared against OPERATING revenue it brands every
+   fast-growing district a deficit: Argyle ISD showed "Deficit — $63.9M vs
+   $193.8M" in a year its operations ran a $532k surplus, because the $130M gap
+   was voter-approved school construction. A reader ran a forensic check on
+   that card and was right not to believe it. Where the view provides
+   operating_spend the card now compares like with like and says where the rest
+   went; where it does not (older cached deploys), it labels the old comparison
+   honestly instead of calling it a budget balance. */
+function balanceCard(cur) {
+  const label = '<div class="kpi"><div class="label">Operating balance</div>';
+  if (cur.operating_spend != null) {
+    const surplus = +cur.total_revenue >= +cur.operating_spend;
+    const nonOp = +cur.total_spend - +cur.operating_spend;
+    return label +
+      `<div class="value">${surplus ? 'Surplus' : 'Deficit'}</div>
+      <div class="plain">Operating revenue ${fmtMoney(cur.total_revenue)} vs operating
+      spending ${fmtMoney(cur.operating_spend)}.${nonOp > 1e6 ? ' A further ' + fmtMoney(nonOp) +
+      ' went to construction and debt payments, funded by bonds — not the operating budget.' : ''}</div></div>`;
+  }
+  return `<div class="kpi"><div class="label">All money in vs out</div>
+      <div class="value">${+cur.total_revenue >= +cur.total_spend ? 'In exceeds out' : 'Out exceeds in'}</div>
+      <div class="plain">Operating revenue ${fmtMoney(cur.total_revenue)} vs ALL spending
+      ${fmtMoney(cur.total_spend)} — the second includes bond-funded construction and debt,
+      so this is not an operating deficit.</div></div>`;
+}
+function opsPerStudentNote(cur) {
+  if (cur.operating_spend == null || !cur.enrollment) return '';
+  const ops = +cur.operating_spend / +cur.enrollment;
+  const share = 1 - (+cur.operating_spend / +cur.total_spend);
+  if (share < 0.2) return '';
+  return ' · includes construction & debt — day-to-day operations run ' +
+    fmtMoney(ops) + '/student';
 }
 function consecutiveEnrollmentDeclines() {
   const rows = state.summary.filter(r => r.enrollment != null);

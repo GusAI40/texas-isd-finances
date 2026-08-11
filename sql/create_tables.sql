@@ -44,7 +44,13 @@ SELECT
     END AS revenue_per_student,
     all_funds_instruction_transfer_expend_fct11_95 AS instruction_spend,
     all_funds_debt_service_object_6500_for_td AS debt_service,
-    all_funds_capital_projects_object_6600_for_td AS capital_projects
+    all_funds_capital_projects_object_6600_for_td AS capital_projects,
+    -- Operating spend, separately from total disbursements. total_spend
+    -- includes bond-funded construction and debt service, so comparing it
+    -- with OPERATING revenue calls every fast-growing district a deficit:
+    -- Argyle ISD read "Deficit, $63.9M vs $193.8M" in a year its operations
+    -- ran a $532k surplus — the $130M gap was voter-approved buildings.
+    all_funds_total_operating_expenditures_by_obj AS operating_spend
 FROM public.texas_school_finance;
 
 -- Create materialized view for anomaly detection
