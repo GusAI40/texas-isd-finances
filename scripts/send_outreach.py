@@ -283,7 +283,11 @@ def main() -> int:
     ap.add_argument("--confirm", default="",
                     help="must be the literal word GO for --send")
     ap.add_argument("--limit", type=int, default=0,
-                    help="stop after N sends (0 = all); use for a pilot wave")
+                    help="stop after N sends (0 = all); use for a pilot wave. "
+                         "With --test: how many samples to send (default 2)")
+    ap.add_argument("--only", default="",
+                    help="comma-separated district numbers; with --test, send "
+                         "exactly these districts' emails as the samples")
     ap.add_argument("--previews", type=int, default=5,
                     help="dry run: how many HTML previews to write")
     args = ap.parse_args()
@@ -324,7 +328,15 @@ def main() -> int:
         return 1
 
     if args.test:
-        for row in rows[:2]:
+        if args.only:
+            wanted = {n.strip() for n in args.only.split(",")}
+            sample = [r for r in rows if r["district_number"] in wanted]
+            missing = wanted - {r["district_number"] for r in sample}
+            if missing:
+                print(f"not in the merge file: {sorted(missing)}")
+        else:
+            sample = rows[:args.limit or 2]
+        for row in sample:
             body, text = render_email(row, postal or "[postal address — set "
                                       "TAG_POSTAL_ADDRESS]", unsubscribe)
             got = _req("/emails", key, {
