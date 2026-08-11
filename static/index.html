@@ -546,6 +546,12 @@
   .nowrap { white-space: nowrap; }
   .hero-row { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 2.8rem; align-items: start; }
   .hero-sub { color: var(--ink-2); font-size: var(--fs-base); max-width: 42rem; margin: 0 0 1rem; }
+  .hero-truth { max-width: 42rem; margin: 0 0 1.1rem; padding: .55rem .9rem;
+                border-left: 3px solid var(--accent); background: var(--surface);
+                border-radius: 0 var(--r-md) var(--r-md) 0;
+                font-size: var(--fs-sm); color: var(--ink-2); line-height: 1.55; }
+  .hero-truth b { color: var(--ink); }
+  .hero-truth a { color: var(--accent); white-space: nowrap; }
   .credential {
     display:flex; flex-wrap:wrap; gap:.4rem 1.4rem; margin:0 0 1.6rem;
     font-size:var(--fs-xs); color:var(--ink-2); border-top:1px solid var(--hairline);
@@ -805,6 +811,11 @@
     <p class="hero-sub" id="hero-sub"><b>What this is:</b> a public record of what every Texas school
       district collects, spends, borrows and achieves — in plain English, from official state figures,
       with a source on every number.</p>
+    <p class="hero-truth" id="hero-truth"><svg class="ico" aria-hidden="true" style="width:.95em;height:.95em;vertical-align:-.1em;"><use href="#i-layers"/></svg>
+      <b>Built with AI, in the open:</b> orchestrated by artificial intelligence, verified against the
+      state&rsquo;s own files at thousands of checkpoints &mdash; and still capable of error. We say so
+      up front, not in the fine print. <a href="/transparency">How this was made, and the full
+      terms&nbsp;&rarr;</a></p>
     <div class="proof" id="proof">
       <span title="2,882,180 finance values · 2,248,478 STAAR · 894,286 Snapshot · 432,327 property and tax · 96,848 boundary coordinates · 51,744 bond records"><b id="proof-points">6.6 million</b><i>data points analysed</i></span>
       <span><b id="proof-districts">1,310</b><i>school districts</i></span>

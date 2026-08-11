@@ -108,6 +108,17 @@ def test_every_page_carries_the_ai_disclosure_line():
         assert "margin of" in html and "own risk" in html, page.name
 
 
+def test_the_disclosure_is_front_and_center_not_only_a_footnote():
+    """Owner's requirement: the AI statement leads, it doesn't hide. The hero
+    carries it above the proof row, before any number asks to be believed."""
+    html = (STATIC / "index.html").read_text(encoding="utf-8")
+    truth, proof = html.find('id="hero-truth"'), html.find('class="proof"')
+    assert truth != -1, "the hero transparency strip is gone"
+    assert proof == -1 or truth < proof, "the disclosure sank below the fold"
+    strip = html[truth:truth + 600]
+    assert "/transparency" in strip and "Built with AI" in strip
+
+
 def test_the_transparency_page_states_the_essentials():
     """The four commitments the page exists to make, each load-bearing:
     the disclosure, the limits, the liability line, and the invitation to
