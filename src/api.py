@@ -1699,6 +1699,52 @@ async def mcp_endpoint_rejected():
         headers={"Allow": "POST", "Cache-Control": "no-store"})
 
 
+_quality_cache: Optional[Dict[str, Any]] = None
+
+
+def _forensic_quality() -> Optional[Dict[str, Any]]:
+    global _quality_cache
+    if _quality_cache is None:
+        path = STATIC_DIR / "forensic_quality.json"
+        if not path.exists():
+            return None
+        with path.open() as fh:
+            _quality_cache = json.load(fh)
+    return _quality_cache
+
+
+@app.get("/forensics/quality", tags=["Statewide"])
+async def get_forensic_quality():
+    """Forensic-accounting tests on the filings themselves.
+
+    Three questions a forensic accountant asks of any book of account, applied
+    to 20,587 district-years of TEA's own data:
+
+    **Do the numbers look real?** Benford's Law across all 1.2M filed figures —
+    MAD 0.0004, close conformity. The per-district version is deliberately NOT
+    published: run naively it labels 1,104 of 1,211 districts "nonconforming",
+    and a null simulation shows perfect Benford data scores the same way at
+    these sample sizes. The refusal ships with its evidence.
+
+    **Does each filing add up?** Objects and revenue reconcile for 100% of
+    district-years; functions for 98.83%, and the gaps are named.
+
+    **Who approved the debt?** Texas permits school debt with no election, and
+    TEA does not record how debt was authorised. Districts paying debt service
+    with no voter-approved bond in the ballot record are listed.
+
+    None of this is evidence of wrongdoing, and every payload says so. What
+    these have in common is that the public record does not answer an obvious
+    question. Serves with no database.
+    """
+    data = _forensic_quality()
+    if data is None:
+        raise HTTPException(
+            status_code=503,
+            detail="Forensic quality data not built. Run scripts/build_forensic_quality.py")
+    return data
+
+
 @app.get("/provenance", tags=["General"])
 async def get_provenance():
     """Where every number came from, and how to check it yourself.

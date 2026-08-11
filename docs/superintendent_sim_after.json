@@ -2,367 +2,385 @@
  "base": "https://txisd.dev",
  "superintendents": 1000,
  "requests": 5138,
- "wall_s": 735.4,
- "clean_journeys": 788,
- "clean_journey_pct": 78.8,
- "broken_by_motive": {
+ "wall_s": 1190.0,
+ "clean_journeys": 751,
+ "clean_journey_pct": 75.1,
+ "clean_of_dead_ends": 1000,
+ "clean_of_dead_ends_pct": 100.0,
+ "dead_end_journeys_by_motive": {
   "budget_season": {
-   "broken": 78,
+   "with_dead_end": 0,
    "of": 288
   },
   "board_prep": {
-   "broken": 33,
+   "with_dead_end": 0,
    "of": 235
   },
   "bond_planning": {
-   "broken": 32,
+   "with_dead_end": 0,
    "of": 150
   },
   "press_inquiry": {
-   "broken": 22,
+   "with_dead_end": 0,
    "of": 127
   },
   "benchmarking": {
-   "broken": 28,
+   "with_dead_end": 0,
    "of": 105
   },
   "recruitment": {
-   "broken": 19,
+   "with_dead_end": 0,
+   "of": 95
+  }
+ },
+ "broken_by_motive": {
+  "budget_season": {
+   "broken": 80,
+   "of": 288
+  },
+  "board_prep": {
+   "broken": 46,
+   "of": 235
+  },
+  "bond_planning": {
+   "broken": 39,
+   "of": 150
+  },
+  "press_inquiry": {
+   "broken": 29,
+   "of": 127
+  },
+  "benchmarking": {
+   "broken": 30,
+   "of": 105
+  },
+  "recruitment": {
+   "broken": 25,
    "of": 95
   }
  },
  "latency_ms": {
-  "p50": 304,
-  "p95": 639,
-  "p99": 30164,
-  "max": 30496
+  "p50": 295,
+  "p95": 1003,
+  "p99": 30182,
+  "max": 45370
  },
  "fault_lines": [
-  {
-   "step": "economics",
-   "path": "/district/{d}/economics",
-   "requests": 438,
-   "http_errors": 20,
-   "dead_ends": 37,
-   "dead_end_rate": 8.4,
-   "districts_affected": 42,
-   "students_affected": 979119,
-   "reasons": [
-    [
-     "no tax figure (charter, or tax base estimates disagreed)",
-     37
-    ]
-   ],
-   "p50_ms": 273,
-   "p95_ms": 583
-  },
   {
    "step": "portal",
    "path": "/",
    "requests": 618,
-   "http_errors": 24,
+   "http_errors": 33,
    "dead_ends": 0,
    "dead_end_rate": 0.0,
-   "districts_affected": 20,
-   "students_affected": 765127,
+   "districts_affected": 31,
+   "students_affected": 1055256,
    "reasons": [],
    "p50_ms": 427,
-   "p95_ms": 774
-  },
-  {
-   "step": "insights",
-   "path": "/district/{d}/insights",
-   "requests": 105,
-   "http_errors": 3,
-   "dead_ends": 14,
-   "dead_end_rate": 13.3,
-   "districts_affected": 12,
-   "students_affected": 603268,
-   "reasons": [
-    [
-     "no insights generated",
-     14
-    ]
-   ],
-   "p50_ms": 292,
-   "p95_ms": 570
-  },
-  {
-   "step": "my finances",
-   "path": "/district/{d}/summary",
-   "requests": 628,
-   "http_errors": 16,
-   "dead_ends": 0,
-   "dead_end_rate": 0.0,
-   "districts_affected": 16,
-   "students_affected": 585685,
-   "reasons": [],
-   "p50_ms": 286,
-   "p95_ms": 567
-  },
-  {
-   "step": "bond history",
-   "path": "/district/{d}/bonds",
-   "requests": 150,
-   "http_errors": 19,
-   "dead_ends": 0,
-   "dead_end_rate": 0.0,
-   "districts_affected": 19,
-   "students_affected": 448802,
-   "reasons": [],
-   "p50_ms": 279,
-   "p95_ms": 604
-  },
-  {
-   "step": "what it buys",
-   "path": "/district/{d}/outcomes",
-   "requests": 288,
-   "http_errors": 15,
-   "dead_ends": 0,
-   "dead_end_rate": 0.0,
-   "districts_affected": 15,
-   "students_affected": 394924,
-   "reasons": [],
-   "p50_ms": 280,
-   "p95_ms": 724
-  },
-  {
-   "step": "the feed",
-   "path": "/briefing",
-   "requests": 127,
-   "http_errors": 10,
-   "dead_ends": 0,
-   "dead_end_rate": 0.0,
-   "districts_affected": 10,
-   "students_affected": 359302,
-   "reasons": [],
-   "p50_ms": 487,
-   "p95_ms": 30150
-  },
-  {
-   "step": "forensic file",
-   "path": "/district/{d}/forensics",
-   "requests": 235,
-   "http_errors": 6,
-   "dead_ends": 0,
-   "dead_end_rate": 0.0,
-   "districts_affected": 6,
-   "students_affected": 321117,
-   "reasons": [],
-   "p50_ms": 273,
-   "p95_ms": 619
-  },
-  {
-   "step": "equity",
-   "path": "/district/{d}/equity",
-   "requests": 200,
-   "http_errors": 8,
-   "dead_ends": 0,
-   "dead_end_rate": 0.0,
-   "districts_affected": 8,
-   "students_affected": 295947,
-   "reasons": [],
-   "p50_ms": 279,
-   "p95_ms": 588
-  },
-  {
-   "step": "statewide context",
-   "path": "/trends/texas",
-   "requests": 235,
-   "http_errors": 8,
-   "dead_ends": 0,
-   "dead_end_rate": 0.0,
-   "districts_affected": 8,
-   "students_affected": 295182,
-   "reasons": [],
-   "p50_ms": 416,
-   "p95_ms": 728
-  },
-  {
-   "step": "trajectory",
-   "path": "/district/{d}/trends",
-   "requests": 235,
-   "http_errors": 10,
-   "dead_ends": 0,
-   "dead_end_rate": 0.0,
-   "districts_affected": 9,
-   "students_affected": 274527,
-   "reasons": [],
-   "p50_ms": 279,
-   "p95_ms": 607
-  },
-  {
-   "step": "breakdown",
-   "path": "/district/{d}/breakdown",
-   "requests": 288,
-   "http_errors": 12,
-   "dead_ends": 0,
-   "dead_end_rate": 0.0,
-   "districts_affected": 12,
-   "students_affected": 244201,
-   "reasons": [],
-   "p50_ms": 284,
-   "p95_ms": 606
+   "p95_ms": 982
   },
   {
    "step": "peers",
    "path": "/district/{d}/peers",
    "requests": 393,
-   "http_errors": 10,
+   "http_errors": 25,
    "dead_ends": 0,
    "dead_end_rate": 0.0,
-   "districts_affected": 10,
-   "students_affected": 209282,
+   "districts_affected": 24,
+   "students_affected": 983273,
    "reasons": [],
-   "p50_ms": 304,
-   "p95_ms": 608
+   "p50_ms": 301,
+   "p95_ms": 1185
   },
   {
-   "step": "my outcomes",
+   "step": "economics",
+   "path": "/district/{d}/economics",
+   "requests": 438,
+   "http_errors": 29,
+   "dead_ends": 0,
+   "dead_end_rate": 0.0,
+   "districts_affected": 28,
+   "students_affected": 861073,
+   "reasons": [],
+   "p50_ms": 272,
+   "p95_ms": 1268
+  },
+  {
+   "step": "my finances",
+   "path": "/district/{d}/summary",
+   "requests": 628,
+   "http_errors": 24,
+   "dead_ends": 0,
+   "dead_end_rate": 0.0,
+   "districts_affected": 23,
+   "students_affected": 836662,
+   "reasons": [],
+   "p50_ms": 280,
+   "p95_ms": 642
+  },
+  {
+   "step": "what it buys",
    "path": "/district/{d}/outcomes",
-   "requests": 95,
-   "http_errors": 4,
+   "requests": 288,
+   "http_errors": 19,
    "dead_ends": 0,
    "dead_end_rate": 0.0,
-   "districts_affected": 4,
-   "students_affected": 99572,
+   "districts_affected": 18,
+   "students_affected": 672461,
    "reasons": [],
-   "p50_ms": 279,
-   "p95_ms": 596
+   "p50_ms": 272,
+   "p95_ms": 1221
   },
   {
-   "step": "map",
-   "path": "/geomap",
-   "requests": 95,
-   "http_errors": 4,
-   "dead_ends": 0,
-   "dead_end_rate": 0.0,
-   "districts_affected": 4,
-   "students_affected": 93674,
-   "reasons": [],
-   "p50_ms": 316,
-   "p95_ms": 671
-  },
-  {
-   "step": "my trajectory",
+   "step": "trajectory",
    "path": "/district/{d}/trends",
-   "requests": 127,
-   "http_errors": 5,
+   "requests": 235,
+   "http_errors": 13,
    "dead_ends": 0,
    "dead_end_rate": 0.0,
-   "districts_affected": 5,
-   "students_affected": 92264,
+   "districts_affected": 13,
+   "students_affected": 604784,
    "reasons": [],
-   "p50_ms": 274,
-   "p95_ms": 549
+   "p50_ms": 268,
+   "p95_ms": 1317
   },
   {
-   "step": "forensic page",
-   "path": "/forensics",
-   "requests": 127,
-   "http_errors": 4,
-   "dead_ends": 0,
-   "dead_end_rate": 0.0,
-   "districts_affected": 4,
-   "students_affected": 92080,
-   "reasons": [],
-   "p50_ms": 333,
-   "p95_ms": 604
-  },
-  {
-   "step": "boundaries",
-   "path": "/district-geo",
-   "requests": 95,
-   "http_errors": 6,
-   "dead_ends": 0,
-   "dead_end_rate": 0.0,
-   "districts_affected": 6,
-   "students_affected": 84901,
-   "reasons": [],
-   "p50_ms": 471,
-   "p95_ms": 1112
-  },
-  {
-   "step": "turnarounds",
-   "path": "/district/{d}/turnarounds",
-   "requests": 105,
-   "http_errors": 2,
-   "dead_ends": 0,
-   "dead_end_rate": 0.0,
-   "districts_affected": 2,
-   "students_affected": 64342,
-   "reasons": [],
-   "p50_ms": 286,
-   "p95_ms": 485
-  },
-  {
-   "step": "statewide bonds",
-   "path": "/bonds/texas",
+   "step": "bond history",
+   "path": "/district/{d}/bonds",
    "requests": 150,
-   "http_errors": 6,
+   "http_errors": 17,
    "dead_ends": 0,
    "dead_end_rate": 0.0,
-   "districts_affected": 6,
-   "students_affected": 58403,
+   "districts_affected": 17,
+   "students_affected": 358847,
    "reasons": [],
-   "p50_ms": 274,
-   "p95_ms": 571
-  },
-  {
-   "step": "my file",
-   "path": "/district/{d}/forensics",
-   "requests": 127,
-   "http_errors": 2,
-   "dead_ends": 0,
-   "dead_end_rate": 0.0,
-   "districts_affected": 2,
-   "students_affected": 47449,
-   "reasons": [],
-   "p50_ms": 271,
-   "p95_ms": 556
-  },
-  {
-   "step": "debt load",
-   "path": "/district/{d}/forensics",
-   "requests": 150,
-   "http_errors": 1,
-   "dead_ends": 0,
-   "dead_end_rate": 0.0,
-   "districts_affected": 1,
-   "students_affected": 14917,
-   "reasons": [],
-   "p50_ms": 275,
-   "p95_ms": 614
+   "p50_ms": 269,
+   "p95_ms": 584
   },
   {
    "step": "statewide forensics",
    "path": "/forensics/texas",
    "requests": 127,
-   "http_errors": 3,
+   "http_errors": 5,
    "dead_ends": 0,
    "dead_end_rate": 0.0,
-   "districts_affected": 3,
-   "students_affected": 3590,
+   "districts_affected": 5,
+   "students_affected": 358733,
    "reasons": [],
-   "p50_ms": 446,
-   "p95_ms": 730
+   "p50_ms": 451,
+   "p95_ms": 1202
+  },
+  {
+   "step": "boundaries",
+   "path": "/district-geo",
+   "requests": 95,
+   "http_errors": 9,
+   "dead_ends": 0,
+   "dead_end_rate": 0.0,
+   "districts_affected": 8,
+   "students_affected": 335579,
+   "reasons": [],
+   "p50_ms": 461,
+   "p95_ms": 1375
+  },
+  {
+   "step": "my trajectory",
+   "path": "/district/{d}/trends",
+   "requests": 127,
+   "http_errors": 7,
+   "dead_ends": 0,
+   "dead_end_rate": 0.0,
+   "districts_affected": 7,
+   "students_affected": 317230,
+   "reasons": [],
+   "p50_ms": 270,
+   "p95_ms": 877
+  },
+  {
+   "step": "insights",
+   "path": "/district/{d}/insights",
+   "requests": 105,
+   "http_errors": 9,
+   "dead_ends": 0,
+   "dead_end_rate": 0.0,
+   "districts_affected": 9,
+   "students_affected": 307343,
+   "reasons": [],
+   "p50_ms": 284,
+   "p95_ms": 30151
+  },
+  {
+   "step": "map",
+   "path": "/geomap",
+   "requests": 95,
+   "http_errors": 7,
+   "dead_ends": 0,
+   "dead_end_rate": 0.0,
+   "districts_affected": 7,
+   "students_affected": 306037,
+   "reasons": [],
+   "p50_ms": 314,
+   "p95_ms": 30150
+  },
+  {
+   "step": "statewide bonds",
+   "path": "/bonds/texas",
+   "requests": 150,
+   "http_errors": 7,
+   "dead_ends": 0,
+   "dead_end_rate": 0.0,
+   "districts_affected": 7,
+   "students_affected": 304110,
+   "reasons": [],
+   "p50_ms": 276,
+   "p95_ms": 1003
+  },
+  {
+   "step": "equity",
+   "path": "/district/{d}/equity",
+   "requests": 200,
+   "http_errors": 14,
+   "dead_ends": 0,
+   "dead_end_rate": 0.0,
+   "districts_affected": 14,
+   "students_affected": 291428,
+   "reasons": [],
+   "p50_ms": 270,
+   "p95_ms": 702
+  },
+  {
+   "step": "breakdown",
+   "path": "/district/{d}/breakdown",
+   "requests": 288,
+   "http_errors": 10,
+   "dead_ends": 0,
+   "dead_end_rate": 0.0,
+   "districts_affected": 10,
+   "students_affected": 233056,
+   "reasons": [],
+   "p50_ms": 282,
+   "p95_ms": 664
+  },
+  {
+   "step": "forensic page",
+   "path": "/forensics",
+   "requests": 127,
+   "http_errors": 7,
+   "dead_ends": 0,
+   "dead_end_rate": 0.0,
+   "districts_affected": 7,
+   "students_affected": 222266,
+   "reasons": [],
+   "p50_ms": 328,
+   "p95_ms": 1260
+  },
+  {
+   "step": "my file",
+   "path": "/district/{d}/forensics",
+   "requests": 127,
+   "http_errors": 6,
+   "dead_ends": 0,
+   "dead_end_rate": 0.0,
+   "districts_affected": 6,
+   "students_affected": 195838,
+   "reasons": [],
+   "p50_ms": 272,
+   "p95_ms": 1168
+  },
+  {
+   "step": "forensic file",
+   "path": "/district/{d}/forensics",
+   "requests": 235,
+   "http_errors": 9,
+   "dead_ends": 0,
+   "dead_end_rate": 0.0,
+   "districts_affected": 9,
+   "students_affected": 195108,
+   "reasons": [],
+   "p50_ms": 269,
+   "p95_ms": 591
+  },
+  {
+   "step": "debt load",
+   "path": "/district/{d}/forensics",
+   "requests": 150,
+   "http_errors": 8,
+   "dead_ends": 0,
+   "dead_end_rate": 0.0,
+   "districts_affected": 8,
+   "students_affected": 178469,
+   "reasons": [],
+   "p50_ms": 270,
+   "p95_ms": 867
+  },
+  {
+   "step": "my outcomes",
+   "path": "/district/{d}/outcomes",
+   "requests": 95,
+   "http_errors": 6,
+   "dead_ends": 0,
+   "dead_end_rate": 0.0,
+   "districts_affected": 6,
+   "students_affected": 177321,
+   "reasons": [],
+   "p50_ms": 276,
+   "p95_ms": 1173
+  },
+  {
+   "step": "the feed",
+   "path": "/briefing",
+   "requests": 127,
+   "http_errors": 6,
+   "dead_ends": 0,
+   "dead_end_rate": 0.0,
+   "districts_affected": 6,
+   "students_affected": 156070,
+   "reasons": [],
+   "p50_ms": 490,
+   "p95_ms": 1931
+  },
+  {
+   "step": "turnarounds",
+   "path": "/district/{d}/turnarounds",
+   "requests": 105,
+   "http_errors": 7,
+   "dead_ends": 0,
+   "dead_end_rate": 0.0,
+   "districts_affected": 7,
+   "students_affected": 119294,
+   "reasons": [],
+   "p50_ms": 287,
+   "p95_ms": 711
+  },
+  {
+   "step": "statewide context",
+   "path": "/trends/texas",
+   "requests": 235,
+   "http_errors": 9,
+   "dead_ends": 0,
+   "dead_end_rate": 0.0,
+   "districts_affected": 9,
+   "students_affected": 118023,
+   "reasons": [],
+   "p50_ms": 415,
+   "p95_ms": 739
   }
  ],
  "slowest": [
   {
    "step": "the feed",
    "path": "/briefing",
-   "p50_ms": 487
+   "p50_ms": 490
   },
   {
    "step": "boundaries",
    "path": "/district-geo",
-   "p50_ms": 471
+   "p50_ms": 461
   },
   {
    "step": "statewide forensics",
    "path": "/forensics/texas",
-   "p50_ms": 446
+   "p50_ms": 451
   },
   {
    "step": "portal",
@@ -372,12 +390,12 @@
   {
    "step": "statewide context",
    "path": "/trends/texas",
-   "p50_ms": 416
+   "p50_ms": 415
   },
   {
    "step": "forensic page",
    "path": "/forensics",
-   "p50_ms": 333
+   "p50_ms": 328
   }
  ],
  "heaviest": [
@@ -413,8 +431,8 @@
   }
  ],
  "http_status_counts": {
-  "200": 4940,
-  "0": 183,
-  "404": 15
+  "200": 4852,
+  "0": 274,
+  "404": 12
  }
 }
