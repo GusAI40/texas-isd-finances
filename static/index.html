@@ -270,6 +270,17 @@
   .exec strong { color: var(--ink); }
   /* KPI band */
   .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 2rem 2.5rem; margin-top: 1.4rem; }
+  /* The story reads on the left while its four numbers sit beside it — the
+     half-screen of air the owner circled now carries the evidence. */
+  @media (min-width: 1080px) {
+    .kpi-grid { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+                gap: 3rem; align-items: start; }
+    .kpi-right { position: sticky; top: 56px; }
+    .kpi-right .kpis { grid-template-columns: 1fr 1fr; gap: 1.6rem 2rem;
+                       margin-top: .4rem; padding: 1.2rem 1.4rem;
+                       border: 1px solid var(--rule); border-radius: var(--r-lg);
+                       background: var(--surface); }
+  }
   .kpi .label { font-size: var(--fs-micro); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
   .kpi .value { font-size: var(--fs-2xl); font-weight: 700; letter-spacing: -.02em; line-height: 1.15; font-variant-numeric: tabular-nums; }
   .kpi .delta { font-size: var(--fs-xs); font-variant-numeric: tabular-nums; }
@@ -929,11 +940,17 @@
         <button data-lens="press" aria-pressed="false">Reporter</button>
         <button data-lens="admin" aria-pressed="false">Administrator</button>
       </div>
+      <div class="kpi-grid">
+      <div class="kpi-left">
       <div class="wow hidden" id="wow"></div>
       <div class="exec" id="exec"></div>
       <div class="dyk hidden" id="dyk" aria-live="polite"></div>
       <div class="comparebar" id="comparebar"></div>
+      </div>
+      <div class="kpi-right">
       <div class="kpis" id="kpis"></div>
+      </div>
+      </div>
       <div class="exports">
         <button class="quiet" id="btn-compare">+ Compare with another district</button>
         <button class="quiet hidden" id="btn-uncompare"><svg class="ico" aria-hidden="true"><use href="#i-close"/></svg> Remove comparison</button>
