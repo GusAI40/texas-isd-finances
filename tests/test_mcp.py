@@ -367,3 +367,44 @@ def test_tools_work_with_no_database(client):
             assert r["isError"] is False, tool
     finally:
         api.app.state.db_pool = saved
+
+
+def test_the_debt_tool_carries_the_peak_year_with_every_ratio(client):
+    """A repayment ratio that travels into somebody else's chat without the year
+    it was taken at becomes a current-year claim, and the current-year figure is
+    an artifact (Leander ISD: 4.5x in 2014, 396x in 2030, same deal)."""
+    import json as _json
+    payload = _json.loads(
+        (ROOT / "static" / "debt_data.json").read_text()) if (
+        ROOT / "static" / "debt_data.json").exists() else None
+    if not payload:
+        pytest.skip("debt layer not built")
+    num = next((k for k, v in payload["districts"].items()
+                if (v.get("cab") or {}).get("peak")), None)
+    if not num:
+        pytest.skip("no district has a published peak")
+    res = rpc(client, "tools/call", {"name": "district_debt",
+                                     "arguments": {"district_number": num}}).json()["result"]
+    text = res["content"][0]["text"]
+    assert "per dollar borrowed" in text
+    assert "peak" in text.lower(), "a ratio was sent without its peak year"
+    assert res["structuredContent"]["limits"], "limits must travel with the result"
+
+
+def test_the_debt_tool_says_when_a_ratio_is_unknowable(client):
+    """Districts whose reported years have a gap get their deferred interest and
+    an explicit statement that the ratio is not in the record — silence there
+    would read as 'no capital appreciation bonds'."""
+    import json as _json
+    path = ROOT / "static" / "debt_data.json"
+    if not path.exists():
+        pytest.skip("debt layer not built")
+    payload = _json.loads(path.read_text())
+    num = next((k for k, v in payload["districts"].items()
+                if v.get("cab") and not v["cab"].get("peak")), None)
+    if not num:
+        pytest.skip("every CAB district has a peak")
+    text = rpc(client, "tools/call", {"name": "district_debt",
+               "arguments": {"district_number": num}}).json()["result"]["content"][0]["text"]
+    assert "not published" in text or "is not" in text
+    assert "deferred" in text, "the debt itself is known and must still be stated"

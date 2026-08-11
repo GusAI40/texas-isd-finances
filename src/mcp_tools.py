@@ -282,6 +282,49 @@ def district_bonds(args: dict) -> tuple[str, dict]:
     return text, {**rec, "limits": data["meta"].get("limits", [])}
 
 
+def district_debt(args: dict) -> tuple[str, dict]:
+    num = _resolve(args.get("district_number"))
+    data = _need(_api()._debt, "debt")
+    rec = data["districts"].get(num)
+    if rec is None:
+        raise ToolError(
+            f"The Texas Bond Review Board tracks no outstanding bonded debt for "
+            f"district {num}. It owes no principal and no interest on bonds — that "
+            f"is a finding about the district, not missing data.")
+    name = _title(rec.get("district_name", num))
+    fy = data["meta"]["fiscal_year"]
+    lines = [
+        f"{name} ({num}) still owes {_big(rec['total'])} as of fiscal {fy}: "
+        f"{_big(rec['principal'])} of principal and {_big(rec['interest'])} of "
+        f"interest not yet paid ({rec['interest_share_pct']}% of the total).",
+        f"That is {_usd(rec['per_student'])} per student, owed over decades rather "
+        f"than in a year. On debt already sold it clears in {rec['clears_in']}.",
+    ]
+    cab = rec.get("cab")
+    if cab:
+        peak = cab.get("peak")
+        lines.append(
+            f"It carries capital appreciation bonds, which pay nothing until "
+            f"maturity: {_big(cab['deferred_interest'])} of interest is deferred "
+            f"against {_big(cab['principal_outstanding'])} of principal outstanding.")
+        # The ratio only ever travels attached to the year it was taken at, so a
+        # model quoting it cannot present a peak-year figure as a current one.
+        lines.append(
+            f"At its peak in {peak['year']} that was "
+            f"{peak['repaid_per_dollar_borrowed']}x repaid per dollar borrowed on "
+            f"{_big(peak['principal'])}. The ratio is quoted at the peak year and "
+            f"nowhere else — on a balance being paid off it rises by itself."
+            if peak else
+            "No dollars-repaid-per-dollar-borrowed figure is published for it: its "
+            "reported years are incomplete, so the terms it signed are not in the "
+            "record. The deferred interest above is known; the ratio is not.")
+    lines.append(
+        "Borrowing to build schools is lawful and ordinary, and this is a balance "
+        "sheet rather than a budget — it sits outside TEA's operating total "
+        "entirely and is not comparable to it.")
+    return "\n".join(lines), {**rec, "limits": data["meta"].get("limits", [])}
+
+
 def texas_overview(args: dict) -> tuple[str, dict]:
     f = _need(_api()._forensics, "forensic")
     t = _need(_api()._trends, "trend")
@@ -462,6 +505,20 @@ TOOLS: list[dict] = [
                         "required": ["district_number"], "additionalProperties": False},
         "annotations": {"readOnlyHint": True, "openWorldHint": False},
         "handler": district_bonds,
+    },
+    {
+        "name": "district_debt",
+        "title": "What a district still owes, and the year it clears",
+        "description": ("Principal and interest still outstanding as the Texas Bond "
+                        "Review Board reports it — the balance, not the yearly "
+                        "payment every other figure here describes. Includes the "
+                        "interest share, the per-student balance, the year the debt "
+                        "clears, and any capital appreciation bonds, which pay "
+                        "nothing until maturity."),
+        "inputSchema": {"type": "object", "properties": {"district_number": _DISTRICT_ARG},
+                        "required": ["district_number"], "additionalProperties": False},
+        "annotations": {"readOnlyHint": True, "openWorldHint": False},
+        "handler": district_debt,
     },
     {
         "name": "texas_overview",

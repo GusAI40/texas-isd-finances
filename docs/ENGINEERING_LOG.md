@@ -17,6 +17,103 @@ Entry template:
 
 ---
 
+## 2026-08-11 — The bond data was the wrong publisher's copy, and the balance sheet was missing
+
+**What changed:**
+- `scripts/ingest_bond_elections.py` (NEW) pulls school bond elections from the
+  **Texas Bond Review Board** on `data.texas.gov/resource/kbmc-qmvg.json`,
+  replacing a municipal-advisory vendor's Excel export. Refreshed layer:
+  **4,992 decided propositions 1958–2026, 952 districts, 100% matched**,
+  $327.6B asked (was 4,588 / 943 / $291.5B).
+- `src/sources.py` bond entry repointed. It had credited the file to
+  "compiled county election returns (Texas Secretary of State)" and asserted
+  that no single agency publishes school bond elections statewide.
+- `scripts/verify_sources.py` now checks **attribution**, not just liveness.
+  Every source declares `proves_it`; two declare an `attribution_url`.
+- `scripts/ingest_brb_debt.py` + `scripts/build_debt_data.py` (NEW) →
+  `static/debt_data.json`. `/debt/texas`, `/district/{n}/debt`, a "What is
+  still owed" section on `/forensics`, and a `district_debt` MCP tool (eight
+  now). `tests/test_debt.py` (21 tests). 489 tests pass.
+- `scripts/district_match.py`: `&` is expanded to `AND` before punctuation is
+  stripped. `scripts/build_bond_data.py`: `matched_pct` no longer rounds up
+  to 100.
+- `src/absences.py`: `no_debt_outstanding` — owing nothing is a finding.
+
+**Why:**
+Two questions from the user, one day apart, produced this. The first pointed at
+a `data.texas.gov` endpoint; checking it revealed our bond file was the same
+data, two years stale, from the wrong publisher. The second was an aggregator
+(tryopendata.ai) carrying BRB debt-outstanding data — which we did **not**
+ingest from there. The whole provenance chain is "publisher file → hashed copy
+→ committed fixture → diffed artefact → tested page", and a re-publisher breaks
+it at link one. The aggregator was used to *discover* the source; both
+endpoints we actually read belong to the Board.
+
+**Gotchas:**
+- **A live link is not a right link.** `verify_sources.py` passed the wrong
+  bond publisher every single run: the SoS page returns 200 and its host
+  matched the publisher we had wrongly named. Liveness and host-match are both
+  satisfiable by a completely wrong citation. This is the failure mode that
+  hides longest, because it looks checked.
+- **The vendor file was two years stale and nothing could tell.** It matched
+  the state's own file exactly through 2023, so it looked complete. 404 decided
+  propositions were missing, every one of them recent.
+- **Two published claims were wrong.** Wills Point ISD was on `/forensics` as
+  having no voter-approved bond; it carried $69.9M on 2025-11-04 after five
+  straight defeats over 21 years. Louise ISD carried $9M on 2026-05-02. Checked
+  the 25 named districts on that list first, before anything else — 13 appeared
+  in the live file but 11 of those were *defeated* bonds, so the claim held for
+  them and the absence layer was never implicated.
+- **The CAB repayment ratio is an artifact on a current balance.** As principal
+  retires the denominator shrinks while accreted interest does not. Leander ISD
+  reads 4.5x in 2014, 20.1x in 2025, 396x in 2030, 698x in 2040 — describing no
+  change in any deal. Publishing the current-year figure would have put a
+  fabricated 20x on a named district. Ratios are taken at peak only, and two
+  further guards were needed after that: a **gap** in the reported years
+  disqualifies a district (Ysleta reports 2005–2012 then 2020+, and its largest
+  reported total postdates the 2015 4:1 cap, so no such deal could have been
+  signed), and a series that opens already declining does too (La Joya, 90.5x
+  in 2005). 63 ratios published, 1.22x–10.84x; 106 districts keep their
+  deferred interest with no ratio.
+- **`data.brb.texas.gov` returns 403, not 404, for a key that does not exist.**
+  Verified by hand (Allison ISD's own page carries no CSV reference; twenty
+  rapid requests for a key that exists all returned 200). Conflating forbidden
+  with absent is normally dangerous, so `MAX_ABSENT_PCT` refuses the run if it
+  starts happening at scale — a host-wide 403 would otherwise publish as Texas
+  having paid off its schools.
+- **The Board's index lists three issuers under two names each**, including one
+  id serving byte-identical data as both "Highland Park ISD (Dallas)" and
+  "Highland Park ISD [Amarillo]" — contradictory county labels, one of them
+  simply wrong upstream. Deduplicating by name would have added $406.5M to the
+  statewide total twice. Dedupe by id.
+- **Sands CISD really does owe $601,490 per student.** 229 students in the
+  Permian Basin with enough oil-and-gas value to service $138M. Not a bad
+  join — and worth guarding, since "Sands CISD" and "S and S CISD" were the
+  original name-collision bug.
+- Rows after fiscal 2025 are the **amortisation schedule**, not history. Summed
+  together they would show Texas owing roughly twice what it owes.
+- `static/sources.html` is hand-maintained against the register and
+  `tests/test_sources.py` enforces that they agree — changing `src/sources.py`
+  alone fails the suite.
+
+**Open items:**
+- 🔴 **Rotate five credentials pasted into chat**: Vercel PAT, Supabase PAT,
+  GitHub PAT, DeepSeek key, and now `od_live_…` (tryopendata.ai, 2026-08-11).
+  All live in Vercel env vars; rotating means updating them there too.
+- 🔴 **This branch is not deployed.** Production still serves the vendor bond
+  file, still shows Wills Point and Louise ISD as having no voter-approved
+  bond, and has no `/debt/*` endpoints.
+- Apply `sql/create_nlp_usage.sql` to production.
+- Provenance tests still do not cover equity, outcomes, bonds or debt.
+- Still no cron run log — the one silent-failure path left in production.
+- Worth taking later from the same aggregator's catalogue, first-party:
+  **TEA campus accountability** (81,117 rows, 9,989 campuses, 2017-18→2024-25 —
+  the campus file already on the NEXT list) and **Census district population**
+  (tax burden per resident, not per student). Their `entity-tax-rates` is
+  broken upstream; `audit-fund-financials` covers 15 districts.
+
+---
+
 ## 2026-08-10 — txisd speaks MCP 2026-07-28, and the caveats travel with the numbers
 
 **What changed:** commit `5708370`, live on https://txisd.dev/mcp. 388 tests
