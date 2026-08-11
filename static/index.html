@@ -286,6 +286,28 @@
                  font-size:var(--fs-sm); line-height:1.55; color:var(--ink);
                  text-transform:none; letter-spacing:normal; font-weight:400; }
   .explain-pop b { display:block; margin-bottom:.15rem; }
+  .dyk { border:1px solid var(--rule); border-left:3px solid var(--accent);
+         border-radius:0 var(--r-md) var(--r-md) 0; background:var(--surface);
+         padding:.7rem 1rem; margin:.9rem 0 0; max-width:46rem; }
+  .dyk .dyk-tag { font-size:var(--fs-micro); letter-spacing:.12em; text-transform:uppercase;
+                  color:var(--accent); font-weight:700; margin-right:.6rem; }
+  .dyk .dyk-txt { font-size:var(--fs-sm); color:var(--ink); }
+  .dyk .dyk-dots { margin-top:.35rem; }
+  .dyk .dyk-dots i { display:inline-block; width:6px; height:6px; border-radius:50%;
+                     background:var(--rule); margin-right:5px; cursor:pointer; }
+  .dyk .dyk-dots i.on { background:var(--accent); }
+  @media (prefers-reduced-motion: no-preference) {
+    .dyk .dyk-txt { transition:opacity .45s ease; }
+    .dyk .dyk-txt.fade { opacity:0; }
+    #dash section.reveal { opacity:0; transform:translateY(6px);
+                           transition:opacity .45s ease, transform .45s ease; }
+    #dash section.reveal.in { opacity:1; transform:none; }
+  }
+  .followups { margin-top:.7rem; display:flex; flex-wrap:wrap; gap:.4rem; }
+  .followups button { border:1px solid var(--rule); background:var(--surface);
+                      color:var(--ink-2); border-radius:999px; font:inherit;
+                      font-size:var(--fs-xs); padding:.3rem .8rem; cursor:pointer; }
+  .followups button:hover { border-color:var(--accent); color:var(--accent); }
   .explain-pop .close-x { float:right; border:0; background:none; color:var(--ink-3);
                           font-size:var(--fs-base); cursor:pointer; padding:0 0 .2rem .5rem; }
   .up { color: var(--good); } .down { color: var(--bad); } .flat { color: var(--muted); }
@@ -874,6 +896,7 @@
         <button data-lens="admin" aria-pressed="false">Administrator</button>
       </div>
       <div class="exec" id="exec"></div>
+      <div class="dyk hidden" id="dyk" aria-live="polite"></div>
       <div class="comparebar" id="comparebar"></div>
       <div class="kpis" id="kpis"></div>
       <div class="exports">
@@ -2141,6 +2164,7 @@ async function loadDashboard(opts) {
     state.turnarounds = turnarounds; state.detail = detail; state.insights = insights;
     state.dollar = dollar; state.outcomes = outcomes; state.econ = econ; state.bonds = bonds; state.equity = equity; state.takeover = takeover;
     renderAll();
+    wireReveals(); armCounters($('dash'));
     // Built here rather than inside renderAll: that function's exceptions are
     // swallowed by the catch below, so anything throwing late in it silently
     // took the section nav with it.
@@ -2158,7 +2182,7 @@ function renderAll() {
      A section that cannot draw itself now hides itself and says why in the
      console; its neighbours are unaffected. */
   const SECTIONS = [
-    ['exec', renderExec], ['dollar', renderDollar], ['outcomes', renderOutcomes],
+    ['exec', renderExec], ['dyk', renderDyk], ['dollar', renderDollar], ['outcomes', renderOutcomes],
     ['economics', renderEconomics], ['equity', renderEquity], ['takeover', renderTakeover],
     ['bonds', renderBonds], ['insights', renderInsights], ['kpis', renderKPIs],
     ['trend', renderTrend], ['peers', renderPeers], ['money', renderMoney],
@@ -2238,6 +2262,111 @@ function renderKPIs() {
 /* "What does this mean?" — plain-English answers, one click, no jargon,
    no AI call. Every entry says what the number IS, and what it is NOT —
    the second half is what keeps a scary-looking number honest. */
+/* ---------- Did you know? — the page gets a heartbeat ------------------ */
+/* One rotating sentence about THIS district, built from data already loaded
+   for the sections below — never a second fetch, never a claim the page
+   itself doesn't make. Crossfades every 9s, pauses on hover, dots to jump. */
+function dykSentences() {
+  const out = [], nm = state.district ? state.district.name : '';
+  try {
+    const t = state.bonds && state.bonds.totals;
+    if (t && t.props) out.push('Voters here have decided ' + t.props +
+      ' school bond questions since ' + t.first_year + ' and approved ' + t.passed + ' of them.');
+  } catch (e) {}
+  try {
+    const d = state.dollar, top = d && d.parts && d.parts[0];
+    if (top) out.push('Of every dollar ' + nm + ' spent this year, ' + top.cents +
+      '¢ went to ' + top.label.toLowerCase() + '.');
+  } catch (e) {}
+  try {
+    const x = state.outcomes && state.outcomes.expectation;
+    if (x && x.gap != null) out.push('Students here score ' + Math.abs(x.gap).toFixed(1) +
+      ' points ' + (x.gap >= 0 ? 'ABOVE' : 'below') + ' what their student population would predict.');
+  } catch (e) {}
+  try {
+    const [cur, prev] = latestOf(state.summary, 'enrollment');
+    if (cur && prev && +prev.enrollment > 0) {
+      const g = 100 * (+cur.enrollment - +prev.enrollment) / +prev.enrollment;
+      if (Math.abs(g) >= 1) out.push('Enrollment ' + (g > 0 ? 'grew' : 'fell') + ' ' +
+        Math.abs(g).toFixed(1) + '% in a single year — in Texas, money follows students.');
+    }
+  } catch (e) {}
+  try {
+    const e2 = state.econ && state.econ.taxes && state.econ.taxes.bill_300k;
+    if (e2) out.push('A $300,000 home here pays about ' + fmtMoney(e2) + ' a year in school taxes.');
+  } catch (e) {}
+  return out;
+}
+function renderDyk() {
+  const el = $('dyk');
+  if (!el) return;
+  if (state._dykTimer) { clearInterval(state._dykTimer); state._dykTimer = null; }
+  const facts = dykSentences();
+  if (facts.length < 2) { el.classList.add('hidden'); return; }
+  el.classList.remove('hidden');
+  let i = 0;
+  el.innerHTML = '<span class="dyk-tag">Did you know?</span>' +
+    '<span class="dyk-txt"></span><div class="dyk-dots">' +
+    facts.map((_, k) => '<i data-k="' + k + '"' + (k === 0 ? ' class="on"' : '') + '></i>').join('') + '</div>';
+  const txt = el.querySelector('.dyk-txt'), dots = el.querySelectorAll('.dyk-dots i');
+  const show = k => {
+    i = k;
+    txt.classList.add('fade');
+    setTimeout(() => { txt.textContent = facts[i]; txt.classList.remove('fade'); }, 220);
+    dots.forEach((d, j) => d.classList.toggle('on', j === i));
+  };
+  txt.textContent = facts[0];
+  dots.forEach(d => d.onclick = () => show(+d.dataset.k));
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (!reduced) {
+    state._dykTimer = setInterval(() => {
+      if (el.matches(':hover')) return;          // reading — don't move it
+      show((i + 1) % facts.length);
+    }, 9000);
+  }
+}
+
+/* ---------- the question that leads to the next question ---------------- */
+/* After an answer lands, offer where to go next. Chips that jump to a
+   section are instant and free; only "ask" chips spend another model call. */
+function askFollowups(box, q) {
+  const l = q.toLowerCase(), chips = [];
+  const jump = (label, id) => chips.push({ label, id });
+  if (/bond|debt|borrow|loan/.test(l)) jump('See every bond vote', 'bond-section');
+  if (/spend|cost|budget|money|dollar/.test(l)) jump('See where the dollar goes', 'dollar-section');
+  if (/score|test|staar|result|achiev/.test(l)) jump('What the money buys', 'outcomes-section');
+  if (/tax|recapture|home/.test(l)) jump('What you pay', 'econ-section');
+  if (!chips.length) { jump('See where the dollar goes', 'dollar-section');
+                       jump('What the money buys', 'outcomes-section'); }
+  jump('How it compares statewide', 'statewide-section');
+  const wrap = document.createElement('div');
+  wrap.className = 'followups';
+  chips.slice(0, 3).forEach(c => {
+    const b = document.createElement('button');
+    b.textContent = c.label;
+    b.onclick = () => { const t = $(c.id); if (t) t.scrollIntoView({ behavior: 'smooth', block: 'start' }); };
+    wrap.appendChild(b);
+  });
+  box.appendChild(wrap);
+}
+
+/* ---------- sections arrive like slides --------------------------------- */
+let _revealObs = null;
+function wireReveals() {
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const secs = document.querySelectorAll('#dash section');
+  if (reduced || !('IntersectionObserver' in window)) return;
+  if (!_revealObs) _revealObs = new IntersectionObserver(es => es.forEach(x => {
+    if (x.isIntersecting) { x.target.classList.add('in'); _revealObs.unobserve(x.target); }
+  }), { rootMargin: '0px 0px -8% 0px' });
+  secs.forEach(sec => {
+    if (sec.classList.contains('in')) return;
+    const r = sec.getBoundingClientRect();
+    if (r.top < innerHeight) { sec.classList.add('reveal', 'in'); return; }  // already on screen
+    sec.classList.add('reveal'); _revealObs.observe(sec);
+  });
+}
+
 const EXPLAIN = {
   'spend': 'This is everything the district spent this year, divided by its students. It includes building new schools with money voters approved. The cost of just running school day-to-day is the smaller number underneath.',
   'rank': 'Out of 100 — higher means this district spent more per student than most of Texas this year. Building years push districts up this list without classrooms costing a dollar more.',
@@ -2706,7 +2835,7 @@ function parseFigure(text) {
 function armCounters(root) {
   if (!root) return;
   const reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const targets = root.querySelectorAll('.econ-big, .stat > b, .bond-bundle .pct, .proof b');
+  const targets = root.querySelectorAll('.econ-big, .stat > b, .bond-bundle .pct, .proof b, .kpi .value');
 
   const run = el => {
     const f = el._fig;
@@ -3661,14 +3790,14 @@ async function ask() {
    reader prefers reduced motion. */
 function streamAnswer(box, text, mine) {
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if (reduce) { box.textContent = text; return; }
+  if (reduce) { box.textContent = text; askFollowups(box, $('question').value.trim()); return; }
   const words = text.split(/(\s+)/);   // keep the whitespace tokens
   box.innerHTML = '<span class="caret">▌</span>';
   const caret = box.querySelector('.caret');
   let i = 0, delay = 0;
   const step = () => {
     if (mine !== _askToken) return;
-    if (i >= words.length) { caret.remove(); return; }
+    if (i >= words.length) { caret.remove(); askFollowups(box, $('question').value.trim()); return; }
     const tok = words[i++];
     if (tok.trim() === '') { caret.insertAdjacentText('beforebegin', tok); }
     else {
