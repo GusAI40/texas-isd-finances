@@ -105,7 +105,7 @@
     backdrop-filter: blur(8px); border-bottom: 1px solid var(--hairline); margin-bottom: .2rem; }
   #sectionnav.hidden { display: none; }
   .navchips { display: flex; gap: .1rem; overflow-x: auto; scrollbar-width: none;
-    max-width: 1240px; margin: 0 auto; padding: .45rem 1.5rem; }
+    max-width: 1240px; margin: 0 auto; padding: .45rem calc(1.5rem - .6rem); }
   .navchips::-webkit-scrollbar { display: none; }
   .navchips button { flex: 0 0 auto; background: none; border: none; font: inherit;
     font-size: var(--fs-xs); color: var(--muted); padding: .3rem .6rem; border-radius: var(--r-md);
@@ -443,7 +443,9 @@
     background:var(--ink); color:var(--ink-invert); font-size:var(--fs-micro); font-weight:700;
     letter-spacing:.1em; text-transform:uppercase; white-space:nowrap;
   }
-  .ticker-view { flex:1; overflow:hidden; position:relative; }
+  .ticker-view { flex:1; overflow:hidden; position:relative;
+    -webkit-mask-image:linear-gradient(to right, transparent 0, #000 1.2rem, #000 calc(100% - 2.2rem), transparent 100%);
+            mask-image:linear-gradient(to right, transparent 0, #000 1.2rem, #000 calc(100% - 2.2rem), transparent 100%); }
   .ticker-track {
     display:inline-flex; align-items:center; gap:2.4rem; white-space:nowrap;
     padding:.45rem 1.2rem; will-change:transform;
@@ -1420,9 +1422,17 @@ const DOLLAR_QUESTIONS = {
 function dollarParts() {
   const d = state.dollar;
   if (!d || !d.parts || !d.parts.length) return null;
+  // ONE per-student figure per district. The dollar payload rounds
+  // total/enrollment itself (Argyle: $31,705) while the finance view the
+  // hero and cards display rounds to $31,704 — and both were on screen at
+  // once, one dollar apart, on a site whose whole pitch is receipts. The
+  // view's figure wins everywhere; the payload's own is only a fallback.
+  const sameYear = (state.summary || []).find(r => +r.year === +d.year);
+  const perStudent = sameYear && sameYear.spend_per_student != null
+    ? +sameYear.spend_per_student : d.per_student;
   return {
     parts: d.parts.map(p => ({ ...p, name: p.label, v: p.amount, color: DOLLAR_COLORS[p.key] || '#c9c7be' })),
-    total: d.total_spend, year: d.year, enrollment: d.enrollment, perStudent: d.per_student,
+    total: d.total_spend, year: d.year, enrollment: d.enrollment, perStudent,
   };
 }
 function partOf(k) { const d = dollarParts(); return d ? d.parts.find(p => p.key === k) : null; }
