@@ -52,6 +52,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
+from src import format as fmt  # noqa: E402
 
 SITE = "https://txisd.dev"
 MERGE = ROOT / "data/outreach_merge.csv"
@@ -95,10 +96,19 @@ def render_email(row: dict, postal: str, unsubscribe: str) -> tuple[str, str]:
     <p style="font-size:15px;line-height:1.6;color:{INK};margin:0 0 16px;">
       Dear {e(row['greeting'])},</p>
     <p style="font-size:15px;line-height:1.6;color:{INK};margin:0 0 16px;">
-      Texas publishes every number about {e(name)} &mdash; finances, results,
-      bonds, debt, boundaries &mdash; but across ten different state files
-      that never talk to each other. We connected them. This isn&rsquo;t a
-      pitch; it&rsquo;s a gift: your district&rsquo;s complete public record,
+      Congratulations on the start of the new school year. This week,
+      campuses across Texas open their doors &mdash; we know it&rsquo;s the
+      busiest week on your calendar, and we wish {e(name)}&rsquo;s students,
+      teachers and staff a great 2026&ndash;27.</p>
+    <p style="font-size:15px;line-height:1.6;color:{INK};margin:0 0 16px;">
+      We&rsquo;re writing because we built something for you, and this felt
+      like the right week to hand it over. Texas publishes every number about
+      {e(name)} &mdash; finances, results, bonds, debt, boundaries &mdash; but
+      across ten different state files that never talk to each other, which
+      means the people your numbers describe can rarely see the whole
+      picture. We believe transparency shouldn&rsquo;t take a records
+      request. So we connected the files. This isn&rsquo;t a pitch;
+      it&rsquo;s a gift: your district&rsquo;s complete public record,
       synthesized, on one page. A few things it already shows:</p>
     <table role="presentation" cellpadding="0" cellspacing="0" style="margin:6px 0 8px;">{bullets}</table>
     <p style="font-size:13px;line-height:1.5;color:{MUT};margin:0 0 22px;">
@@ -145,9 +155,15 @@ def render_email(row: dict, postal: str, unsubscribe: str) -> tuple[str, str]:
 </td></tr></table></body></html>"""
 
     text = (f"Dear {row['greeting']},\n\n"
-            f"Texas publishes every number about {name} — but across ten state "
-            f"files that never talk to each other. We connected them. Your "
-            f"district's complete public record, on one page:\n\n"
+            f"Congratulations on the start of the new school year — we wish "
+            f"{name}'s students, teachers and staff a great 2026–27.\n\n"
+            f"We're writing because we built something for you, and this felt "
+            f"like the right week to hand it over. Texas publishes every "
+            f"number about {name} — but across ten state files that never "
+            f"talk to each other, so the people the numbers describe can "
+            f"rarely see the whole picture. We believe transparency "
+            f"shouldn't take a records request. So we connected the files. "
+            f"Your district's complete public record, on one page:\n\n"
             + "".join(f"  • {s}\n" for s in insights) +
             f"\n{row['hook']}\n\n"
             f"See {name}'s full report: {row['deep_link']}\n\n"
@@ -177,6 +193,46 @@ def _req(path: str, key: str, payload: dict | None = None) -> dict:
     with urllib.request.urlopen(r, timeout=30,
                                 context=ssl.create_default_context()) as resp:
         return json.load(resp)
+
+
+def verify_targets(rows: list[dict]) -> list[str]:
+    """THE critical property: every superintendent gets THEIR report, not
+    someone else's. Returns a list of violations; the caller refuses to send
+    if there are any. Runs before every real send, not once at build time —
+    a stale or hand-edited merge file must fail here, not in an inbox.
+
+    Three independent checks per row:
+      1. The deep link's ?d= number IS the row's own district number.
+      2. The site will greet that number with the SAME district name the
+         email uses — checked against the committed fallback index, which is
+         what the page's headline falls back to and derives from the same
+         registry as the live database.
+      3. Every insight sentence names the row's own district — a crossed
+         wire between rows cannot survive this, because the insights were
+         built keyed by number and each carries its name in the text.
+    """
+    problems = []
+    fb = json.loads((ROOT / "static/fallback_index.json").read_text())
+    site_name = {d["district_number"]: fmt.district_name(d["district_name"])
+                 for d in fb["districts"]}
+    for row in rows:
+        num, name = row["district_number"], row["district_name"]
+        if not row["deep_link"].endswith(f"?d={num}"):
+            problems.append(f"{num} {name}: deep link points elsewhere "
+                            f"({row['deep_link']})")
+        page = site_name.get(num)
+        if page is not None and page.casefold() != name.casefold():
+            # casefold: 'McDade' vs 'Mcdade' is typography; a crossed wire is
+            # a DIFFERENT name, which no capitalisation can hide.
+            problems.append(f"{num}: email says {name!r} but the site page "
+                            f"for that number says {page!r}")
+        for k in ("insight_bonds", "insight_debt", "insight_trend", "hook"):
+            if row.get(k) and name not in row[k]:
+                problems.append(f"{num} {name}: {k} names a different "
+                                f"district: {row[k][:80]!r}")
+        if name not in row["subject"]:
+            problems.append(f"{num} {name}: subject lacks the district name")
+    return problems
 
 
 def domain_verified(key: str, from_addr: str) -> bool:
@@ -293,6 +349,15 @@ def main() -> int:
               f"in Resend. Verify its DNS records first, or every message "
               f"bounces or lands in spam.")
         return 1
+    problems = verify_targets(rows)
+    if problems:
+        print(f"refusing: {len(problems)} rows would send someone else's "
+              f"report. Nothing was sent. First few:")
+        for p in problems[:10]:
+            print(f"  {p}")
+        return 1
+    print(f"target identity verified: all {len(rows):,} rows deep-link to "
+          f"their own district and every sentence names it")
 
     sent, optout = load_sent(), load_optout()
     todo = [r for r in rows if r["email"] not in sent
