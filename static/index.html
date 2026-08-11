@@ -501,6 +501,29 @@
   .welcome-sub { color: var(--ink-2); font-size: var(--fs-md); line-height: 1.5; max-width: 40rem; margin: 0 0 .7rem; }
   .welcome-who { color: var(--ink-2); font-size: var(--fs-base); margin: 0 0 1.15rem; max-width: 40rem; }
   .welcome-who b { color: var(--ink); }
+  /* The pipeline: sources -> layer -> answers. Monochrome plus the one blue,
+     like everything else here; the middle column carries the accent because it
+     is the thing we made. Stacks with rotated arrows under 860px. */
+  .pipeline { display: flex; align-items: stretch; gap: .5rem; margin: var(--s-5) 0 var(--s-4); }
+  .pipe-col { flex: 1; border: 1px solid var(--line); border-radius: 10px;
+    padding: var(--s-3) var(--s-4); background: var(--surface); min-width: 0; }
+  .pipe-mid { border-color: var(--blue); box-shadow: inset 3px 0 0 var(--blue); }
+  .pipe-head { font-weight: var(--fw-bold); font-size: var(--fs-base); margin-bottom: var(--s-2); }
+  .pipe-mid .pipe-head { color: var(--blue); }
+  .pipe-list { margin: 0; padding: 0; list-style: none; }
+  .pipe-list li { font-size: var(--fs-sm); color: var(--ink-2); padding: .14rem 0 .14rem 1rem;
+    position: relative; }
+  .pipe-list li::before { content: ""; position: absolute; left: 0; top: .55em; width: 5px;
+    height: 5px; border-radius: 50%; background: var(--ink-3); }
+  .pipe-mid .pipe-list li::before { background: var(--blue); }
+  .pipe-foot { margin-top: var(--s-2); font-size: var(--fs-xs); color: var(--ink-3);
+    border-top: 1px solid var(--line); padding-top: var(--s-2); }
+  .pipe-arrow { display: flex; align-items: center; color: var(--ink-3); flex: 0 0 auto; }
+  .pipe-arrow .ico { width: 18px; height: 18px; }
+  @media (max-width: 860px) {
+    .pipeline { flex-direction: column; }
+    .pipe-arrow { justify-content: center; transform: rotate(90deg); padding: .1rem 0; }
+  }
   .welcome-cta { display: flex; flex-wrap: wrap; gap: .6rem; }
   .welcome-cta a { display: inline-flex; align-items: center; gap: .4rem; font: inherit; font-size: var(--fs-base);
     font-weight: 600; text-decoration: none; padding: .62rem 1.15rem; border-radius: var(--r-lg);
@@ -720,6 +743,46 @@
       <a href="/forensics"><svg class="ico" aria-hidden="true"><use href="#i-scale"/></svg> Follow the money</a>
       <a href="/about"><svg class="ico" aria-hidden="true"><use href="#i-book"/></svg> Why we built this</a>
       <a href="#" id="wc-tour"><svg class="ico" aria-hidden="true"><use href="#i-play"/></svg> 60-second tour</a>
+    </div>
+    <!-- The five-second answer to "what is this?": the state's scattered
+         files go in one side, plain-English answers come out the other. The
+         figures are real and live elsewhere on this page; nothing here is
+         decoration. Reads as three stacked cards on phones (see CSS). -->
+    <div class="pipeline" aria-label="How this site works">
+      <div class="pipe-col">
+        <div class="pipe-head">10 official sources</div>
+        <ul class="pipe-list">
+          <li>TEA budgets, 17 years</li>
+          <li>STAAR results</li>
+          <li>A&ndash;F campus ratings</li>
+          <li>Property values &amp; tax rates</li>
+          <li>Every bond ballot since 1958</li>
+          <li>Debt still owed, to 2061</li>
+        </ul>
+        <div class="pipe-foot">Published separately, in formats that don't connect</div>
+      </div>
+      <div class="pipe-arrow" aria-hidden="true"><svg viewBox="0 0 16 16" class="ico"><use href="#i-arrow-right"/></svg></div>
+      <div class="pipe-col pipe-mid">
+        <div class="pipe-head">One intelligence layer</div>
+        <ul class="pipe-list">
+          <li>6.6M data points joined</li>
+          <li>Every district matched by its state ID</li>
+          <li>Every figure re-checked against the state's file</li>
+          <li>Refuses to guess &mdash; says "unknown"</li>
+        </ul>
+        <div class="pipe-foot">Built by TAG ai &middot; open source</div>
+      </div>
+      <div class="pipe-arrow" aria-hidden="true"><svg viewBox="0 0 16 16" class="ico"><use href="#i-arrow-right"/></svg></div>
+      <div class="pipe-col">
+        <div class="pipe-head">Answers in plain English</div>
+        <ul class="pipe-list">
+          <li>What your district spends, per student</li>
+          <li>What the $236.7B still owed will cost</li>
+          <li>What each bond vote bought</li>
+          <li>What the district rating hides</li>
+        </ul>
+        <div class="pipe-foot">One search away, sourced to the state</div>
+      </div>
     </div>
     <div class="welcome-strip">
       <b>Official TEA &amp; Comptroller data</b><span>·</span><span>Independent — not a TEA product</span>
