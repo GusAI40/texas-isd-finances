@@ -1839,11 +1839,14 @@ function lensStory() {
         (ins ? `Biggest gap versus similar districts: <strong>${ins.metric.toLowerCase()}, ${ins.annual_dollars_vs_peers}</strong>.` :
           `It runs in line with districts of similar size and funding.`);
     case 'press':
-      return `<strong>${name}</strong> (FY${cur.year}): ${M(cur.total_spend)} total spending, ${N(cur.enrollment)} students, ` +
-        `${M(cur.spend_per_student)}/student — ${pctile != null ? `${pctile}th percentile statewide` : 'n/a'}, ` +
+      return `<strong>${name}</strong> (FY${cur.year}): ${M(cur.total_spend)} total spending (all funds, ` +
+        `including construction and debt${cur.operating_spend != null ? `; operating ${M(cur.operating_spend)}` : ''}), ` +
+        `${N(cur.enrollment)} students, ` +
+        `${M(cur.spend_per_student)}/student all-funds — ${pctile != null ? `${pctile}th percentile statewide` : 'n/a'}, ` +
         `<strong>#${rank} of ${peerRows.length}</strong> among structurally similar districts. ` +
         (ins ? `Largest peer variance: <strong>${ins.metric} ${Math.abs(ins.pct_vs_peers)}% ${ins.direction} peers (${ins.annual_dollars_vs_peers})</strong>. ` : '') +
-        `${flagYears} of 17 years carry automatic anomaly flags. All figures from TEA PEIMS; verify before publication.`;
+        `${flagYears} of 17 years carry automatic change flags — sharp year-over-year moves in the filings, ` +
+        `most often a bond construction cycle, not an accusation. All figures from TEA PEIMS; verify before publication.`;
     default: // admin
       return execAdmin();
   }
@@ -2169,7 +2172,7 @@ function renderKPIs() {
       <div class="plain">State median ${fmtMoney(st.statewide_median_spend)}${cmp ? ' · ' + state.compare.name.split(' ')[0] + ' ' + fmtMoney(cmp.spend_per_student) : ''}${opsPerStudentNote(cur)}</div></div>
     <div class="kpi"><div class="label">Statewide rank</div>
       <div class="value">${pctile == null ? '—' : pctile + '<span style="font-size:1.1rem">th</span>'}</div>
-      <div class="plain">${pctile == null ? '' : 'Spends more per student than ' + pctile + '% of Texas districts.'}</div></div>
+      <div class="plain">${pctile == null ? '' : 'Spends more per student than ' + pctile + '% of Texas districts, counting construction & debt.'}</div></div>
     <div class="kpi"><div class="label">Enrollment</div>
       <div class="value">${fmtNum(cur.enrollment)}</div>
       ${delta(cur.enrollment, prev?.enrollment)}
@@ -2449,7 +2452,7 @@ function renderMoney() {
 const FLAG_META = {
   revenue_drop_flag: ['Revenue dropped more than 15%', f => `Revenue went from ${fmtMoney(f.prev_revenue)} to ${fmtMoney(f.total_revenue)}`,
     'Often innocent: a one-time grant ended, pandemic funds expired, or property values were re-assessed.'],
-  spend_spike_flag: ['Spending jumped more than 20% with flat enrollment', f => `Spending went from ${fmtMoney(f.prev_spend)} to ${fmtMoney(f.total_spend)} while enrollment stayed near ${fmtNum(f.enrollment)}`,
+  spend_spike_flag: ['All-funds spending jumped more than 20% with flat enrollment', f => `Total outlay went from ${fmtMoney(f.prev_spend)} to ${fmtMoney(f.total_spend)} while enrollment stayed near ${fmtNum(f.enrollment)} — in most districts this is a bond construction year, not an operating change`,
     'Often innocent: a construction year, a settlement, or a large one-time purchase.'],
   per_student_spike_flag: ['Per-student spending rose more than 15%', f => `From ${fmtMoney(f.prev_spend_per_student)} to ${fmtMoney(f.spend_per_student)} per student`,
     'In small districts a few students leaving causes this by division alone — check enrollment.'],
