@@ -138,3 +138,14 @@ def test_the_deep_link_hero_does_not_lead_with_an_unqualified_all_funds_figure()
         "the hero no longer checks the construction share before leading with "
         "the all-funds figure")
     assert "building them" in body
+
+
+def test_the_hero_penny_caption_keeps_both_frames():
+    """The personalised dollar caption led with the all-funds figure alone and
+    the OWNER misread it as classroom spending — the exact Argyle failure, on
+    a surface built weeks after the rule. The caption must carry the
+    operating figure wherever construction is material."""
+    body = INDEX.split("function updateHeroDollar", 1)[1].split("\nfunction ", 1)[0]
+    assert "operating_spend" in body, "caption no longer computes the operating frame"
+    assert "runs schools" in body
+    assert "everything spent" in body, "the all-funds figure must say it is everything"

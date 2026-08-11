@@ -4010,11 +4010,20 @@ function updateHeroDollar() {
   g.innerHTML = d.parts.map(p =>
     Array.from({ length: p.cents }, () =>
       `<i style="background:${p.color};animation-delay:${(n++) * 14}ms"></i>`).join('')).join('');
-  const top = d.parts[0], cls = d.parts.find(p => p.key === 'classroom');
+  const cls = d.parts.find(p => p.key === 'classroom');
+  // Frame rule, same as the headline beside it: where construction is a
+  // material share, the all-funds figure never travels without the
+  // operating figure. The owner misread the first draft of this caption —
+  // which means a parent would have too.
+  const cur = (state.summary || []).filter(r => r.operating_spend != null && r.enrollment > 0).pop();
+  const ops = cur ? +cur.operating_spend / +cur.enrollment : null;
+  const share = cur && cur.total_spend ? 1 - (+cur.operating_spend / +cur.total_spend) : 0;
   c.innerHTML = `<b>${state.district.name}&rsquo;s dollar, fiscal ${d.year}.</b> ` +
-    `Every square is one penny of the ${fmtMoney(d.perStudent)} spent per student` +
-    (cls ? ` — ${cls.cents}¢ reaches classroom teaching` : '') +
-    (top && top.key !== 'classroom' ? `, ${top.cents}¢ goes to ${top.label.toLowerCase()}` : '') +
+    `Every square is one penny of everything spent — ${fmtMoney(d.perStudent)} per student` +
+    (ops && share >= 0.2
+      ? `, of which <b>${fmtMoney(ops)} runs schools</b> and the rest builds them`
+      : '') +
+    (cls ? `. ${cls.cents}¢ of the dollar reaches classroom teaching` : '') +
     `. The full breakdown is one scroll away.`;
 }
 
