@@ -611,6 +611,12 @@
                gap: 3.5rem; align-items: center; }
   @media (max-width: 1023px) { .hero-grid { grid-template-columns: 1fr; gap: 1.6rem; } }
   .hero-fig .pennies { max-width: 560px; grid-template-columns: repeat(10, 1fr); gap: 4px; }
+  #sig { width: 100%; max-width: 340px; height: auto; margin-bottom: .3rem; }
+  #sig path { stroke: var(--accent); stroke-width: 1.8; stroke-linejoin: round; }
+  @media (min-width: 1080px) {
+    .kpi-right .kpis { background-image: var(--sig-mark, none); background-repeat: no-repeat;
+                       background-position: right -26px bottom -30px; background-size: 240px; }
+  }
   @media (prefers-reduced-motion: no-preference) {
     .hero-fig .pennies i { opacity: 0; animation: penny-in .5s ease forwards; }
     @keyframes penny-in { from { opacity: 0; transform: scale(.4); }
@@ -942,6 +948,7 @@
     </div>
     </div>
     <figure class="hero-fig" id="hero-fig">
+      <svg id="sig" viewBox="0 0 340 190" aria-hidden="true" class="hidden"><path id="sig-path" fill="none"/></svg>
       <div class="pennies" id="tx-pennies" role="img"
            aria-label="One hundred pennies showing where each cent of the dollar goes"></div>
       <figcaption id="tx-cap">Loading the statewide dollar…</figcaption>
@@ -2248,6 +2255,7 @@ async function loadDashboard(opts) {
     state.dollar = dollar; state.outcomes = outcomes; state.econ = econ; state.bonds = bonds; state.equity = equity; state.takeover = takeover;
     renderAll();
     updateHeroDollar();
+    updateSignature();
     wireReveals(); armCounters($('dash'));
     // Built here rather than inside renderAll: that function's exceptions are
     // swallowed by the catch below, so anything throwing late in it silently
@@ -2348,6 +2356,69 @@ function renderKPIs() {
 /* "What does this mean?" — plain-English answers, one click, no jargon,
    no AI call. Every entry says what the number IS, and what it is NOT —
    the second half is what keeps a scary-looking number honest. */
+/* ---------- Plate X: the district signs its name ----------------------- */
+/* 1,005 real boundaries already ship with the site (US Census TIGER via
+   /district-geo, delta-encoded). When a district loads, its boundary draws
+   itself stroke-by-stroke above the penny dollar — then lingers as a faint
+   watermark on the money panel. Charters have no boundary and simply skip. */
+function sigPathFor(num, w, h, pad) {
+  const geo = state._geo && state._geo.d && state._geo.d[num];
+  if (!geo || !geo.r || !geo.b) return null;
+  const minX = geo.b[0], minY = geo.b[1], maxX = geo.b[2], maxY = geo.b[3];
+  const kx = Math.cos((minY + maxY) / 2 * Math.PI / 180);
+  const spanX = Math.max(1e-6, (maxX - minX) * kx), spanY = Math.max(1e-6, maxY - minY);
+  const sc = Math.min((w - 2 * pad) / spanX, (h - 2 * pad) / spanY);
+  const ox = (w - spanX * sc) / 2, oy = (h - spanY * sc) / 2;
+  let d = '';
+  for (const ring of geo.r) {
+    let qx = ring[0], qy = ring[1];
+    const seg = [];
+    for (let i = 0; ; i += 2) {
+      const lon = qx / 10000, lat = qy / 10000;
+      const px = ox + (lon - minX) * kx * sc;
+      const py = oy + (maxY - lat) * sc;
+      seg.push((seg.length ? 'L' : 'M') + px.toFixed(1) + ' ' + py.toFixed(1));
+      if (i + 3 >= ring.length) break;
+      qx += ring[i + 2]; qy += ring[i + 3];
+    }
+    d += seg.join('') + 'Z';
+  }
+  return d;
+}
+async function updateSignature() {
+  const svg = $('sig'), path = $('sig-path');
+  if (!svg || !path || !state.district) return;
+  try {
+    if (!state._geo) state._geo = await api('/district-geo');
+  } catch (e) { svg.classList.add('hidden'); return; }
+  const d = sigPathFor(state.district.num, 340, 190, 10);
+  if (!d) {
+    svg.classList.add('hidden');
+    document.documentElement.style.removeProperty('--sig-mark');
+    return;
+  }
+  svg.classList.remove('hidden');
+  path.setAttribute('d', d);
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (!reduced && path.getTotalLength) {
+    const L = path.getTotalLength();
+    path.style.transition = 'none';
+    path.style.strokeDasharray = L + ' ' + L;
+    path.style.strokeDashoffset = L;
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      path.style.transition = 'stroke-dashoffset 1.5s ease';
+      path.style.strokeDashoffset = '0';
+    }));
+  } else {
+    path.style.strokeDasharray = ''; path.style.strokeDashoffset = '';
+  }
+  // the watermark: same path, whisper-quiet, behind the money cards
+  const mark = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 340 190">' +
+    '<path d="' + d + '" fill="none" stroke="rgb(42 120 214 / 0.09)" stroke-width="2"/></svg>';
+  document.documentElement.style.setProperty('--sig-mark',
+    'url("data:image/svg+xml,' + encodeURIComponent(mark) + '")');
+}
+
 /* ---------- The wow engine: one number per persona --------------------- */
 /* Disneyland rule: each ride delivers ONE feeling. Each persona gets ONE
    number — concrete, personal, surprising — then a tease to the next ride.
