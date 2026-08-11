@@ -25,7 +25,7 @@ needs_node = pytest.mark.skipif(
 def test_expected_pages_exist():
     assert {p.name for p in PAGES} == {
         "index.html", "map.html", "geomap.html", "intel.html", "heatmap.html", "feed.html",
-        "about.html", "forensics.html", "sources.html",
+        "about.html", "forensics.html", "sources.html", "transparency.html",
     }
 
 
@@ -94,6 +94,32 @@ def test_prototype_url_never_appears():
     """txisd.dev is the citable address; the vercel.app host must not leak."""
     for page in PAGES:
         assert "texas-isd-finances.vercel.app" not in page.read_text(encoding="utf-8")
+
+
+def test_every_page_carries_the_ai_disclosure_line():
+    """The owner's rule: hit the truth head-on. Every page ends with the same
+    disclosure — AI used across the entire system, margin of error, as-is, use
+    at your own risk — linking /transparency, which carries the full legal
+    text and the making-of. A page without the line is a page that hides it."""
+    for page in PAGES:
+        html = page.read_text(encoding="utf-8")
+        assert 'id="ai-note"' in html, f"{page.name} lost the AI disclosure line"
+        assert '/transparency"' in html, f"{page.name} does not link the terms"
+        assert "margin of" in html and "own risk" in html, page.name
+
+
+def test_the_transparency_page_states_the_essentials():
+    """The four commitments the page exists to make, each load-bearing:
+    the disclosure, the limits, the liability line, and the invitation to
+    verify with an independent AI."""
+    html = (STATIC / "transparency.html").read_text(encoding="utf-8")
+    assert "Artificial intelligence has been used" in html
+    assert "margin of error" in html
+    assert "without warranty" in html
+    assert "at your own risk" in html
+    assert "errors can" in html.lower()          # verification has limits
+    assert "/mcp" in html                        # validate with your own LLM
+    assert "corrections with credit" in html.lower() or "corrections" in html
 
 
 def test_index_has_flash_free_theme_toggle():

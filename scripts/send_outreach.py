@@ -147,6 +147,12 @@ def render_email(row: dict, postal: str, unsubscribe: str) -> tuple[str, str]:
     Texas (TEA, Bond Review Board, Comptroller); sources and methods:
     <a href="{SITE}/sources" style="color:{MUT};">{SITE.replace('https://','')}/sources</a>.
     Your address comes from TEA&rsquo;s public district directory (AskTED).<br>
+    Artificial intelligence was used in the preparation of this report and this
+    email, orchestrated across our entire system. Figures carry a margin of
+    error and are provided &ldquo;as&nbsp;is&rdquo; without warranty; verify
+    independently before acting &mdash; use is at your own risk.
+    <a href="{SITE}/transparency" style="color:{MUT};">How this was made, and
+    the full terms</a>.<br>
     TAG ai &middot; {e(postal)}<br>
     Don&rsquo;t want to hear from us? <a href="{e(unsubscribe)}"
     style="color:{MUT};">Unsubscribe</a> and we won&rsquo;t write again.
@@ -174,6 +180,12 @@ def render_email(row: dict, postal: str, unsubscribe: str) -> tuple[str, str]:
             f"us — we publish corrections with credit.\n\n"
             f"— The TAG ai team\n\n"
             f"Sources and methods: {SITE}/sources\n"
+            f"AI disclosure: artificial intelligence was used in the "
+            f"preparation of this report and this email, orchestrated across "
+            f"our entire system. Figures carry a margin of error and are "
+            f"provided as-is without warranty; verify independently before "
+            f"acting — use is at your own risk. How this was made and full "
+            f"terms: {SITE}/transparency\n"
             f"TAG ai · {postal}\n"
             f"Unsubscribe: {unsubscribe}\n")
     return body, text

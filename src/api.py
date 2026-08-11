@@ -1960,6 +1960,18 @@ async def sources_page():
     raise HTTPException(status_code=404, detail="Sources page not available")
 
 
+@app.get("/transparency", include_in_schema=False)
+async def transparency_page():
+    """AI disclosure, terms of use, and the making-of — linked from the
+    disclosure line every page and every outreach email carries. Truth
+    head-on: what AI did, what is verified, what can still be wrong, and how
+    a reader can check the whole thing independently."""
+    page = STATIC_DIR / "transparency.html"
+    if page.exists():
+        return FileResponse(page)
+    raise HTTPException(status_code=404, detail="Transparency page not available")
+
+
 @app.get("/forensics", include_in_schema=False)
 async def forensics_page():
     """The Forensic File: what sits outside the operating total, who pays, what

@@ -107,6 +107,18 @@ def test_corrections_are_invited():
     assert "corrections with credit" in body
 
 
+def test_email_discloses_ai_and_links_the_transparency_page():
+    """The owner's rule: never shy away from it — every communication states
+    that AI was used across the whole system, that figures carry a margin of
+    error, and links the page that tells the full story."""
+    body, text = _rendered()
+    for part in (body, text):
+        assert "https://txisd.dev/transparency" in part
+        assert "margin of" in part
+        assert "own risk" in part
+    assert "Artificial intelligence" in body
+
+
 # --- insight sentences state their frame --------------------------------------
 
 def test_debt_insight_names_the_stock_frame():
