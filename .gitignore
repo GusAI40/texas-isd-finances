@@ -66,3 +66,8 @@ build/
 .vercel/
 .vercel
 .env*
+
+# Outreach: previews and the opt-out list stay local — one is bulk, the
+# other is a promise to specific people; neither belongs in a public repo.
+data/outreach_preview/
+data/outreach_optout.txt

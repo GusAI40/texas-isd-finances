@@ -137,6 +137,60 @@ def finance_frames() -> dict[str, dict]:
     return out
 
 
+def load_insights() -> tuple[dict, dict, dict, dict]:
+    """The committed artefacts the site itself serves — bonds, debt, trends —
+    plus the statewide trend line to compare against. Same files, same
+    numbers: an email insight can never disagree with the page it links to."""
+    bonds = json.loads((ROOT / "static/bond_data.json").read_text())
+    debt = json.loads((ROOT / "static/debt_data.json").read_text())
+    trends = json.loads((ROOT / "static/trend_data.json").read_text())
+    return (bonds["districts"], debt["districts"], trends["districts"],
+            trends["statewide"]["change"])
+
+
+def insight_bonds(num: str, name: str, bonds: dict) -> str:
+    """The ballot record, from the Bond Review Board's own file."""
+    d = bonds.get(num)
+    if not d or not d.get("elections"):
+        return (f"The Bond Review Board's statewide record (1958–2026) shows "
+                f"no school bond election for {name} — itself worth knowing.")
+    t = d["totals"]
+    last = d["elections"][-1]
+    verdict = "passed" if last["passed"] else "was defeated"
+    return (f"Voters in {name} have decided {t['props']} bond propositions "
+            f"since {t['first_year']} and approved {t['passed']} of them. The "
+            f"most recent — {fmt.big(last['amount'])} on {last['date']} — "
+            f"{verdict}.")
+
+
+def insight_debt(num: str, name: str, debt: dict) -> str:
+    """The stock, not the flow — and it says so."""
+    d = debt.get(num)
+    if not d:
+        return (f"The Bond Review Board's issuer record shows no outstanding "
+                f"bond debt for {name}.")
+    return (f"As of fiscal 2025, {name} owes {fmt.big(d['total'])} on bonds "
+            f"already sold — {fmt.usd(d['per_student'])} per student enrolled "
+            f"today, {d['interest_share_pct']}% of it interest not yet paid. "
+            f"On current schedules it clears in {d['clears_in']}.")
+
+
+def insight_trend(num: str, name: str, trends: dict, sw_change: dict) -> str:
+    """Instruction's share of the operating dollar, district vs the state's
+    own line — the site's headline trend, personalised."""
+    d = trends.get(num)
+    ch = (d or {}).get("change", {}).get("instruction_share")
+    sw = sw_change["instruction_share"]
+    if not ch or ch.get("first") is None or ch.get("last") is None:
+        return ""
+    direction = "rose" if ch["change"] > 0 else ("fell" if ch["change"] < 0
+                                                 else "held")
+    return (f"Instruction's share of {name}'s operating dollar {direction} "
+            f"from {ch['first']}% ({ch['first_year']}) to {ch['last']}% "
+            f"({ch['last_year']}). Statewide it fell {sw['first']}% → "
+            f"{sw['last']}% over the same years.")
+
+
 def hook(name: str, fr: dict | None) -> str:
     """One frame-honest sentence for the email body. Never an all-funds figure
     without the operating figure where the gap is material."""
@@ -170,6 +224,7 @@ def main() -> int:
     crosswalk = {r["district_number"]: r for r in csv.DictReader(
         (ROOT / "data/district_crosswalk.csv").open(encoding="utf-8", newline=""))}
     frames = finance_frames()
+    bonds, debt, trends, sw_change = load_insights()
 
     rows, skipped_charter, missing_contact = [], 0, []
     for num, x in sorted(crosswalk.items()):
@@ -199,6 +254,9 @@ def main() -> int:
             "construction_debt_share_pct":
                 fr["construction_debt_share_pct"] if fr else "",
             "hook": hook(name, fr),
+            "insight_bonds": insight_bonds(num, name, bonds),
+            "insight_debt": insight_debt(num, name, debt),
+            "insight_trend": insight_trend(num, name, trends, sw_change),
             "subject": (f"Every number Texas publishes about {name} — "
                         f"in one place, with receipts"),
         })

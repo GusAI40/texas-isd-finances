@@ -1609,6 +1609,19 @@ async def design_stylesheet():
                         headers={"Cache-Control": "public, max-age=3600, must-revalidate"})
 
 
+@app.get("/static/tag-pipeline.png", include_in_schema=False)
+async def tag_pipeline_graphic():
+    """The TAG ai intelligence-layer graphic, hot-linked by the superintendent
+    outreach emails (scripts/send_outreach.py) — an email can't bundle its own
+    images, so the asset has to live at a stable public URL. Same one-asset,
+    one-route policy as the stylesheet above."""
+    png = STATIC_DIR / "tag_pipeline.png"
+    if not png.exists():
+        raise HTTPException(status_code=404, detail="Graphic not found")
+    return FileResponse(png, media_type="image/png",
+                        headers={"Cache-Control": "public, max-age=86400, must-revalidate"})
+
+
 @app.get("/robots.txt", include_in_schema=False)
 async def robots():
     """Let search engines in, and point them at the district index."""

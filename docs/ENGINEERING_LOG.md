@@ -2027,3 +2027,43 @@ precede credential wiring.
 
 **Gotchas:** CI previously used `ruff --exit-zero` (never fails) and a
 "type check" that only printed a version — green CI proved nothing.
+
+## 2026-08-11 (late) — The outreach machine: gift-first email per district
+
+**Goal (user's words, condensed):** introduce TAG ai to every superintendent by
+*giving* them their district's report — insights first, pitch second — with a
+system that mass-sends personalised emails via the Resend API the moment the
+user says go.
+
+- `scripts/build_outreach_merge.py` now adds three insight columns per district
+  (`insight_bonds`, `insight_debt`, `insight_trend`), drawn from the SAME
+  committed artefacts the site serves (bond_data, debt_data, trend_data) — an
+  email can never disagree with the page it links to. Coverage: 1,019/1,019
+  bonds+debt, 1,018 trends. Greetings fixed: published honorific or
+  "Superintendent {surname}", never a guessed Mr./Ms.
+- `scripts/send_outreach.py` — renderer + Resend sender. Safe by default:
+  bare run = dry run writing previews to `data/outreach_preview/`; `--test
+  EMAIL` sends 2 samples to yourself; `--send` requires `--confirm GO` AND
+  RESEND_API_KEY AND a Resend-verified sending domain (checked via /domains
+  before message one) AND TAG_POSTAL_ADDRESS (CAN-SPAM). Sent log
+  `data/outreach_sent.csv` makes re-runs idempotent; `data/outreach_optout.txt`
+  honoured; List-Unsubscribe header + visible unsubscribe; ~1 msg/s throttle.
+  All outreach files gitignored.
+- Email content: "We built {district}'s report. It's yours." → greeting → 3
+  insights → frame-honest hook → deep-link button → who TAG ai is → hosted
+  pipeline graphic → reply-to-book-a-call → corrections invited → footer
+  (source disclosure incl. where we got their address, postal, unsubscribe).
+- Site: `static/tag_pipeline.png` (TAG intelligence-layer graphic, Texas ISD
+  edition) served at `/static/tag-pipeline.png` — one-asset-one-route like
+  design.css, hot-linked by the emails.
+- `tests/test_outreach.py` (12): frame rules travel into the inbox (all-funds
+  never without operating at ≥20% share, debt named as stock, absences as
+  absences, state line beside district trend), CAN-SPAM bits present,
+  "deficit" never appears, graphic route exists.
+- Theme policy test updated: light default for everyone (owner request);
+  `prefers-color-scheme` must NOT appear in index.html.
+
+**To actually send:** user needs a Resend account + API key, DNS-verify the
+sending domain (txisd.dev or a tagai domain) in Resend, set RESEND_FROM +
+TAG_POSTAL_ADDRESS, then `--test` → pilot `--limit 50` → full send. Vercel
+Hobby→Pro upgrade still recommended first (commercial traffic).

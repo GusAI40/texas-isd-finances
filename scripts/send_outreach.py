@@ -1,0 +1,325 @@
+"""Send each Texas superintendent THEIR district's report — the gift, then the
+introduction. Powered by the Resend API (https://resend.com).
+
+The email is reverse-engineered from what TAG ai actually did: it opens with
+the recipient's own numbers (three insights drawn from the same committed
+artefacts the site serves, so an email can never disagree with the page it
+links to), a button to their district's page, then — only then — who built it
+and an invitation to talk. Value first, pitch second.
+
+Modes (safe by default)
+-----------------------
+    python scripts/send_outreach.py                       # dry run: writes
+        previews to data/outreach_preview/ and sends NOTHING
+    python scripts/send_outreach.py --test you@you.com    # sends 2 real
+        emails to YOUR address so you can see them in a real inbox
+    python scripts/send_outreach.py --send --confirm GO   # the real thing
+    python scripts/send_outreach.py --send --confirm GO --limit 50
+
+Rails that hold even when excited
+---------------------------------
+- `--send` refuses to run without `--confirm GO`, a RESEND_API_KEY, a
+  verified sending domain (checked against Resend's /domains API before the
+  first message), and TAG_POSTAL_ADDRESS set — CAN-SPAM requires a physical
+  postal address in every commercial email, no address, no send.
+- Every delivery is recorded in data/outreach_sent.csv (gitignored) and
+  re-runs skip anyone already sent — a crash halfway cannot double-email.
+- data/outreach_optout.txt (one email per line) is honoured before anything
+  leaves, and every email carries a List-Unsubscribe header plus a visible
+  unsubscribe line. An opt-out is a promise; the file is the memory of it.
+- Throttled to ~1 message/second (Resend's public rate limit is 2/s).
+
+Environment
+-----------
+    RESEND_API_KEY       required for --test/--send
+    RESEND_FROM          e.g. 'Gus at TAG ai <gus@txisd.dev>' — the domain
+                         must be verified in Resend first (DNS records)
+    RESEND_REPLY_TO      optional, defaults to the from address
+    TAG_POSTAL_ADDRESS   required for --send (CAN-SPAM physical address)
+"""
+from __future__ import annotations
+
+import argparse
+import csv
+import html
+import json
+import os
+import ssl
+import sys
+import time
+import urllib.request
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT))
+
+SITE = "https://txisd.dev"
+MERGE = ROOT / "data/outreach_merge.csv"
+SENT_LOG = ROOT / "data/outreach_sent.csv"
+OPTOUT = ROOT / "data/outreach_optout.txt"
+PREVIEW_DIR = ROOT / "data/outreach_preview"
+API = "https://api.resend.com"
+
+BLUE = "#2f4bd7"
+INK = "#111318"
+MUT = "#5a5f6b"
+
+
+def render_email(row: dict, postal: str, unsubscribe: str) -> tuple[str, str]:
+    """(html, text) for one district. Inline styles only — email clients strip
+    <style> blocks. The three insights come from the merge file, which built
+    them from the same artefacts the site serves: frame honesty travels."""
+    e = html.escape
+    name = row["district_name"]
+    insights = [row[k] for k in ("insight_bonds", "insight_debt",
+                                 "insight_trend") if row.get(k)]
+    bullets = "".join(
+        f'<tr><td style="padding:0 0 14px 0;vertical-align:top;width:18px;'
+        f'color:{BLUE};font-weight:700;">&#8250;</td>'
+        f'<td style="padding:0 0 14px 8px;color:{INK};font-size:15px;'
+        f'line-height:1.55;">{e(s)}</td></tr>' for s in insights)
+
+    body = f"""<!DOCTYPE html>
+<html><body style="margin:0;padding:0;background:#f4f4f2;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f2;">
+<tr><td align="center" style="padding:32px 16px;">
+<table role="presentation" width="600" cellpadding="0" cellspacing="0"
+       style="max-width:600px;background:#ffffff;border:1px solid #e4e4e0;">
+  <tr><td style="padding:36px 40px 0;font-family:Georgia,'Times New Roman',serif;">
+    <div style="font-size:12px;letter-spacing:2px;color:{MUT};font-family:Arial,sans-serif;">
+      TAG AI &middot; TEXAS ISD FINANCIAL RESOURCE GUIDE</div>
+    <h1 style="font-size:26px;line-height:1.3;color:{INK};margin:14px 0 0;">
+      We built {e(name)}&rsquo;s report. It&rsquo;s yours.</h1>
+  </td></tr>
+  <tr><td style="padding:20px 40px 0;font-family:Arial,Helvetica,sans-serif;">
+    <p style="font-size:15px;line-height:1.6;color:{INK};margin:0 0 16px;">
+      Dear {e(row['greeting'])},</p>
+    <p style="font-size:15px;line-height:1.6;color:{INK};margin:0 0 16px;">
+      Texas publishes every number about {e(name)} &mdash; finances, results,
+      bonds, debt, boundaries &mdash; but across ten different state files
+      that never talk to each other. We connected them. This isn&rsquo;t a
+      pitch; it&rsquo;s a gift: your district&rsquo;s complete public record,
+      synthesized, on one page. A few things it already shows:</p>
+    <table role="presentation" cellpadding="0" cellspacing="0" style="margin:6px 0 8px;">{bullets}</table>
+    <p style="font-size:13px;line-height:1.5;color:{MUT};margin:0 0 22px;">
+      {e(row['hook'])}</p>
+    <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 26px;"><tr>
+      <td style="background:{BLUE};border-radius:4px;">
+        <a href="{e(row['deep_link'])}"
+           style="display:inline-block;padding:13px 26px;color:#ffffff;
+                  font-family:Arial,sans-serif;font-size:15px;font-weight:bold;
+                  text-decoration:none;">See {e(name)}&rsquo;s full report &rarr;</a>
+      </td></tr></table>
+  </td></tr>
+  <tr><td style="padding:0 40px;"><hr style="border:none;border-top:1px solid #e4e4e0;margin:0;"></td></tr>
+  <tr><td style="padding:22px 40px 0;font-family:Arial,Helvetica,sans-serif;">
+    <p style="font-size:14px;line-height:1.6;color:{INK};margin:0 0 12px;">
+      <b>Who we are.</b> TAG ai works at the intelligence layer of data: we
+      don&rsquo;t replace the systems you already have, we connect them and
+      make them answer questions. This portal is our proof &mdash; 6.6 million
+      public data points on all 1,310 districts, every figure linked to the
+      state file it came from, and it refuses to guess.</p>
+    <img src="{SITE}/static/tag-pipeline.png" width="520"
+         alt="TAG ai: ten official state sources in, one intelligence layer,
+              plain-English answers out"
+         style="width:100%;max-width:520px;height:auto;margin:6px 0 16px;border:1px solid #e4e4e0;">
+    <p style="font-size:14px;line-height:1.6;color:{INK};margin:0 0 22px;">
+      If you&rsquo;d like a 20-minute walkthrough of {e(name)}&rsquo;s page
+      &mdash; or to talk about what the same intelligence layer could do on
+      your district&rsquo;s own data &mdash; just reply to this email. And if
+      any figure looks wrong, tell us: we publish corrections with credit.</p>
+    <p style="font-size:14px;line-height:1.6;color:{INK};margin:0 0 28px;">
+      &mdash; The TAG ai team</p>
+  </td></tr>
+  <tr><td style="padding:18px 40px 26px;background:#fafaf8;border-top:1px solid #e4e4e0;
+               font-family:Arial,sans-serif;font-size:11.5px;line-height:1.6;color:{MUT};">
+    All figures are derived from public records published by the State of
+    Texas (TEA, Bond Review Board, Comptroller); sources and methods:
+    <a href="{SITE}/sources" style="color:{MUT};">{SITE.replace('https://','')}/sources</a>.
+    Your address comes from TEA&rsquo;s public district directory (AskTED).<br>
+    TAG ai &middot; {e(postal)}<br>
+    Don&rsquo;t want to hear from us? <a href="{e(unsubscribe)}"
+    style="color:{MUT};">Unsubscribe</a> and we won&rsquo;t write again.
+  </td></tr>
+</table>
+</td></tr></table></body></html>"""
+
+    text = (f"Dear {row['greeting']},\n\n"
+            f"Texas publishes every number about {name} — but across ten state "
+            f"files that never talk to each other. We connected them. Your "
+            f"district's complete public record, on one page:\n\n"
+            + "".join(f"  • {s}\n" for s in insights) +
+            f"\n{row['hook']}\n\n"
+            f"See {name}'s full report: {row['deep_link']}\n\n"
+            f"Who we are: TAG ai works at the intelligence layer of data — we "
+            f"connect the systems you already have and make them answer "
+            f"questions. Reply to this email for a 20-minute walkthrough, or "
+            f"to talk about your own data. If any figure looks wrong, tell "
+            f"us — we publish corrections with credit.\n\n"
+            f"— The TAG ai team\n\n"
+            f"Sources and methods: {SITE}/sources\n"
+            f"TAG ai · {postal}\n"
+            f"Unsubscribe: {unsubscribe}\n")
+    return body, text
+
+
+def _req(path: str, key: str, payload: dict | None = None) -> dict:
+    data = json.dumps(payload).encode() if payload is not None else None
+    r = urllib.request.Request(
+        f"{API}{path}", data=data, method="POST" if data else "GET",
+        headers={"Authorization": f"Bearer {key}",
+                 "Content-Type": "application/json"})
+    with urllib.request.urlopen(r, timeout=30,
+                                context=ssl.create_default_context()) as resp:
+        return json.load(resp)
+
+
+def domain_verified(key: str, from_addr: str) -> bool:
+    """Refuse a mass send from an unverified domain — Resend would accept the
+    call and every message would land in spam or bounce."""
+    domain = from_addr.split("@")[-1].rstrip(">").strip()
+    got = _req("/domains", key)
+    for d in got.get("data", []):
+        if d.get("name") == domain and d.get("status") == "verified":
+            return True
+    return False
+
+
+def load_sent() -> set[str]:
+    if not SENT_LOG.exists():
+        return set()
+    return {r["email"] for r in csv.DictReader(SENT_LOG.open())}
+
+
+def load_optout() -> set[str]:
+    if not OPTOUT.exists():
+        return set()
+    return {ln.strip().lower() for ln in OPTOUT.read_text().splitlines()
+            if ln.strip() and not ln.startswith("#")}
+
+
+def log_sent(row: dict, message_id: str) -> None:
+    new = not SENT_LOG.exists()
+    with SENT_LOG.open("a", newline="") as fh:
+        w = csv.DictWriter(fh, fieldnames=["email", "district_number",
+                                           "message_id", "sent_at"])
+        if new:
+            w.writeheader()
+        w.writerow({"email": row["email"],
+                    "district_number": row["district_number"],
+                    "message_id": message_id,
+                    "sent_at": time.strftime("%Y-%m-%dT%H:%M:%SZ",
+                                             time.gmtime())})
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--test", metavar="EMAIL",
+                    help="send 2 sample districts to THIS address instead")
+    ap.add_argument("--send", action="store_true",
+                    help="send for real, to the superintendents in the merge file")
+    ap.add_argument("--confirm", default="",
+                    help="must be the literal word GO for --send")
+    ap.add_argument("--limit", type=int, default=0,
+                    help="stop after N sends (0 = all); use for a pilot wave")
+    ap.add_argument("--previews", type=int, default=5,
+                    help="dry run: how many HTML previews to write")
+    args = ap.parse_args()
+
+    rows = list(csv.DictReader(MERGE.open()))
+    if not rows:
+        print("merge file is empty — run scripts/build_outreach_merge.py first")
+        return 1
+
+    postal = os.environ.get("TAG_POSTAL_ADDRESS", "").strip()
+    from_addr = os.environ.get("RESEND_FROM", "").strip()
+    key = os.environ.get("RESEND_API_KEY", "").strip()
+    unsub_addr = (os.environ.get("RESEND_REPLY_TO") or from_addr
+                  or "hello@txisd.dev").split("<")[-1].rstrip(">")
+    unsubscribe = f"mailto:{unsub_addr}?subject=unsubscribe"
+
+    # ---- dry run (default): render previews, send nothing -------------------
+    if not args.test and not args.send:
+        PREVIEW_DIR.mkdir(parents=True, exist_ok=True)
+        for row in rows[:args.previews]:
+            body, text = render_email(row, postal or "[postal address — set "
+                                      "TAG_POSTAL_ADDRESS]", unsubscribe)
+            stem = PREVIEW_DIR / row["district_number"]
+            stem.with_suffix(".html").write_text(body)
+            stem.with_suffix(".txt").write_text(text)
+        print(f"dry run: wrote {min(args.previews, len(rows))} previews to "
+              f"{PREVIEW_DIR.relative_to(ROOT)}/ — nothing sent.")
+        print("next: --test you@you.com for a real-inbox look, then "
+              "--send --confirm GO")
+        return 0
+
+    # ---- anything real needs the key and the from address -------------------
+    if not key:
+        print("RESEND_API_KEY is not set — get one at resend.com, then retry.")
+        return 1
+    if not from_addr:
+        print("RESEND_FROM is not set (e.g. 'Gus at TAG ai <gus@txisd.dev>').")
+        return 1
+
+    if args.test:
+        for row in rows[:2]:
+            body, text = render_email(row, postal or "[postal address — set "
+                                      "TAG_POSTAL_ADDRESS]", unsubscribe)
+            got = _req("/emails", key, {
+                "from": from_addr, "to": [args.test],
+                "subject": f"[TEST] {row['subject']}",
+                "html": body, "text": text})
+            print(f"test sent to {args.test}: {row['district_name']} "
+                  f"(id {got.get('id')})")
+            time.sleep(1)
+        return 0
+
+    # ---- the real send ------------------------------------------------------
+    if args.confirm != "GO":
+        print("refusing: --send requires --confirm GO (the literal word).")
+        return 1
+    if not postal:
+        print("refusing: TAG_POSTAL_ADDRESS is not set. CAN-SPAM requires a "
+              "physical postal address in every commercial email.")
+        return 1
+    if not domain_verified(key, from_addr):
+        print(f"refusing: the sending domain of {from_addr!r} is not verified "
+              f"in Resend. Verify its DNS records first, or every message "
+              f"bounces or lands in spam.")
+        return 1
+
+    sent, optout = load_sent(), load_optout()
+    todo = [r for r in rows if r["email"] not in sent
+            and r["email"].lower() not in optout]
+    skipped = len(rows) - len(todo)
+    if args.limit:
+        todo = todo[:args.limit]
+    print(f"{len(rows)} districts in merge · {skipped} already sent/opted out "
+          f"· sending {len(todo)} now")
+
+    ok = fail = 0
+    for i, row in enumerate(todo, 1):
+        body, text = render_email(row, postal, unsubscribe)
+        try:
+            got = _req("/emails", key, {
+                "from": from_addr, "to": [row["email"]],
+                "reply_to": os.environ.get("RESEND_REPLY_TO", from_addr),
+                "subject": row["subject"], "html": body, "text": text,
+                "headers": {"List-Unsubscribe": f"<{unsubscribe}>"}})
+            log_sent(row, got.get("id", ""))
+            ok += 1
+            print(f"  [{i}/{len(todo)}] {row['district_name']:<32} "
+                  f"{row['email']}")
+        except Exception as ex:  # noqa: BLE001 — a bounce must not kill the run
+            fail += 1
+            print(f"  [{i}/{len(todo)}] FAILED {row['email']}: {ex}")
+        time.sleep(1.1)
+
+    print(f"\ndone: {ok} sent, {fail} failed. Log: "
+          f"{SENT_LOG.relative_to(ROOT)} (re-runs skip everyone already sent)")
+    return 0 if fail == 0 else 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())
