@@ -8,8 +8,12 @@
 <script>
   /* Theme decided before first paint (shared tisd_theme key with the portal). */
   try {
+    /* Light by default for everyone. The site used to follow the device's
+       dark-mode setting, so half of first-time visitors — and every screenshot
+       taken on a dark-mode laptop — opened a black page that read as a
+       different product. A reader who explicitly picks dark with the toggle
+       keeps it; the OS no longer decides. */
     var _t = localStorage.getItem('tisd_theme');
-    if (!_t && window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches) _t = 'dark';
     if (_t === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
   } catch (e) {}
 </script>
