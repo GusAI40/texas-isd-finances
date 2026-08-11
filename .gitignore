@@ -32,6 +32,9 @@ Thumbs.db
 data/*.xlsx
 data/*.xls
 data/*.csv
+# ...except the crosswalk. It is ~85 KB of reviewed mapping, not a bulk
+# download, and the whole point is that a change to it shows up in a diff.
+!data/district_crosswalk.csv
 
 # Logs
 *.log

@@ -17,6 +17,45 @@ Entry template:
 
 ---
 
+## 2026-08-11 (end) — Asked whether districts should get a UUID; built a crosswalk instead
+
+**What changed:** `scripts/build_district_crosswalk.py` -> `data/district_crosswalk.csv`
+(1,310 rows, committed, `.gitignore` whitelisted). `tests/test_crosswalk.py` (11).
+533 tests pass.
+
+**Why a UUID is the wrong answer**, checked against our own 20,587 district-years:
+- 103 districts changed NAME and kept their number (004901 Aransas County ->
+  Rockport-Fulton). That is the one job an identifier has, already done.
+- Zero numbers ever reused for a different entity.
+- It would not touch the hard step: the Bond Review Board sends a NAME, so
+  name+county resolution is needed either way.
+- It would break "check it yourself" — 057905 is verifiable at TEA; a minted id
+  is verifiable against nobody but us, making us the authority instead of Texas.
+- 057905 carries its county in the first three digits, which is exactly what
+  fixed the bond join and caught the Highland Park double-count.
+- tryopendata's `texas-isd/registry` is this idea already, and its `tea_number`
+  column is filled for **3 of 1,029 rows**. The schema is easy; the mapping is
+  the work.
+
+**What was actually missing:** somewhere to WRITE DOWN the reconciliation, which
+was recomputed on every run and discarded. 37 aliases now captured (including
+the `ISDa`/`ISDb` disambiguator suffixes whose loss silently dropped 147
+propositions the first time), 103 former names, 967 brb_ids, 1,005 boundaries.
+
+**Gotchas:**
+- 4 districts have no county — all charters first appearing in 2025, not yet in
+  TEA's Snapshot. A test asserts that a county-less district is ALWAYS new, so a
+  future county-join failure cannot hide among them.
+- 279 charters, 0 with a Census boundary. Asserted: a boundary on a charter
+  would mean TIGER attached somebody else's polygon.
+- `test_the_bond_review_id_maps_one_to_one` is the double-count guard: the
+  Board serves one id under two contradictory county labels.
+
+**Open items:** unchanged. Deploy still blocked on the user; five credentials to
+rotate; three SQL migrations to apply.
+
+---
+
 ## 2026-08-11 (later still) — MCP 2026-07-28 shipped final; we conform, and MRTR found a use
 
 **What changed:**

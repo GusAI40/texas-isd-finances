@@ -38,6 +38,7 @@ read-only Postgres views on Supabase. MIT-licensed, built for public use.
   `langchain.agents.create_agent`. Legacy `create_sql_agent` does not exist
   anymore. `langchain-community` (SQL toolkit source) is sunset but
   functional — watch its issue #674 for the migration path.
+- **`data/district_crosswalk.csv` is the district registry** (1,310 rows, committed, whitelisted in `.gitignore`). One row per district: TEA number, county + code, `brb_id`, charter flag, boundary flag, first/last year, **former names** (103) and **aliases** (37 — `Edgewood ISDa`, `Calhoun Co ISD`, `Aransas County ISD`). Built by `scripts/build_district_crosswalk.py`. **A UUID was considered and rejected**: the TEA number already survives renames (103 did, none was ever reused), it is the only id a reader can check against the state, and its first three digits ARE the county code — which is what fixed the bond join. A minted id would add a third thing to sync, would not touch the hard step (sources send NAMES), and is verifiable against nobody but us. `tests/test_crosswalk.py` fails the build if any column looks minted.
 - **`district_number` is a 6-digit string** (e.g. `057905` = Dallas ISD).
   Any pandas read of the CSV needs `dtype={"district_number": str}` or
   leading zeros die.
