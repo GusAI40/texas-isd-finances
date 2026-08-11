@@ -10,7 +10,9 @@ are different claims, and only the second one is worth making.
 
     python scratchpad/liveproxy.py &        # serves 127.0.0.1:8799
 """
-import http.server, urllib.request, urllib.error
+import http.server
+import urllib.error
+import urllib.request
 
 BASE = "https://txisd.dev"
 UA = "txisd-liveproxy/1.0"

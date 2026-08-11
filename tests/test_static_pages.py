@@ -104,13 +104,20 @@ def test_index_has_flash_free_theme_toggle():
     introduced — one definition instead of seven drifting copies — so the
     token half of this invariant is asserted there. The pre-paint script and
     the button still have to live in the page itself.
+
+    Policy changed 2026-08-11 at the owner's request: the site is LIGHT by
+    default for everyone. Only an explicit toggle choice ('dark' in
+    localStorage) turns dark — the OS preference is no longer consulted, so
+    `prefers-color-scheme` must NOT appear in the pre-paint script.
     """
     html = (STATIC / "index.html").read_text(encoding="utf-8")
     css = (STATIC / "design.css").read_text(encoding="utf-8")
     assert ':root[data-theme="dark"]' in css, "no dark palette in the design system"
     assert "--on-ink" in css, "text on --ink surfaces needs an inverted colour, or it vanishes in dark"
     assert "tisd_theme" in html                     # persisted choice
-    assert "prefers-color-scheme: dark" in html     # follows the device by default
+    assert "prefers-color-scheme" not in html, (
+        "the OS must not decide the theme: light is the default, dark is an "
+        "explicit choice")
     assert 'id="btn-theme"' in html
     # The pre-paint theme script must run in <head>, before the body renders.
     head = html.split("</head>")[0]
