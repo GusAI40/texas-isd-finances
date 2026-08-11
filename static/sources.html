@@ -193,6 +193,14 @@
      <svg class="ico" aria-hidden="true"><use href="#i-external"/></svg></a></p>
   <p class="warn">Corrected 2026-08-11. This entry previously credited the file to compiled county returns from the Secretary of State and stated that no single agency publishes school bond elections statewide. Both were wrong: the Bond Review Board publishes all of them, back to 1958, on the state&#x27;s own open-data portal, and always had. The site had been shipping a municipal-advisory vendor&#x27;s Excel export of that same file — two years stale, 404 propositions short, and carrying spreadsheet subtotal rows. verify_sources.py did not catch it because the Secretary of State URL returns 200; it proved the link was alive, not that it was the right link. It now checks attribution as well. Every row carries the Board&#x27;s own provenance mark in a Source column (TBR, Issuer, OAG, TSB, BB, Other). This is still the only layer joined on district NAME rather than TEA number; scripts/audit_bond_match.py prints the whole join and fails the build if a shared name is resolved without the county agreeing. Two companion files from the former vendor carry a private CRM and are deliberately never ingested — going first-party removes the temptation permanently.</p>
 </article>
+<article class="src" id="src-tea_accountability">
+  <h3>Enhanced Statewide Summary — A–F accountability ratings</h3>
+  <p class="pub">Texas Education Agency &middot; 2025 ratings for 9,084 campuses and 1,208 districts, with enrolment and student need; the workbook also carries a longitudinal sheet back to 2011</p>
+  <p>the A–F rating the state gives each campus and each district, and the component scores behind it.</p>
+  <p><a class="dl" href="https://tea.texas.gov/texas-schools/accountability/academic-accountability/performance-reporting/2025-enhanced-statewide-summary.xlsx" rel="noopener">Download the original
+     <svg class="ico" aria-hidden="true"><use href="#i-external"/></svg></a></p>
+  <p class="warn">The only campus-level source on this site. Two distinctions survive into every downstream count: &#x27;Not Rated&#x27; is missing data rather than failure (525 campuses, all excluded), and Alternative Education Accountability campuses are rated on a different scale and are excluded from the headline with the including-them figure published beside it. No campus is ranked against a campus in another district — the published claim is about the gap INSIDE a district, which is what a district rating conceals.</p>
+</article>
 <article class="src" id="src-brb_debt_outstanding">
   <h3>Local government debt outstanding — school districts</h3>
   <p class="pub">Texas Bond Review Board &middot; fiscal 2005–2025 actual, plus the amortisation schedule for debt already sold out to 2061; 967 districts</p>
@@ -280,6 +288,13 @@
   <td class="mono cols">recapture paid by district</td>
   <td>As published by TEA, divided by enrolment.</td>
   <td class="mono">test_local_revenue_is_gross_not_net_of_recapture</td>
+</tr>
+<tr>
+  <td><b>Campuses rated D or F inside a district rated A or B</b><br><span class="mono">/campuses/texas</span></td>
+  <td><a href="#src-tea_accountability">Enhanced Statewide Summary — A&ndash;F accountability ratings</a></td>
+  <td class="mono cols">Overall Rating (campus)<br>Overall Rating (district)<br>Number of Students<br>Alternative Education Accountability</td>
+  <td>Campus rating compared with the rating of its own district. Unrated campuses excluded; alternative-education campuses excluded from the headline and reported separately.</td>
+  <td class="mono">test_the_headline_is_the_sum_of_its_own_campuses</td>
 </tr>
 <tr>
   <td><b>Debt still owed — principal plus interest not yet paid</b><br><span class="mono">/district/{n}/debt</span></td>

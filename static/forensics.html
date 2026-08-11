@@ -308,6 +308,16 @@
   <div class="tablewrap"><table id="dt-cab"><thead></thead><tbody></tbody></table></div>
   <p class="sub-note" id="dt-limits"></p>
 
+  <h2 id="campuses">What the district rating hides</h2>
+  <p class="lede" id="cp-lede">Every other figure on this page is measured at the
+     district, because that is where money is reported. It is the wrong unit for the
+     question a family asks: a district rating is an average over campuses, and an average
+     hides its own tails. A child goes to a campus, not to an average.</p>
+  <div class="findings" id="cp-findings"></div>
+  <p class="sub-note" id="cp-spread"></p>
+  <div class="tablewrap"><table id="cp-table"><thead></thead><tbody></tbody></table></div>
+  <p class="sub-note" id="cp-limits"></p>
+
   <h2>Where every district ranks</h2>
   <p class="sub-note">There is deliberately no combined score. Debt, recapture, borrowing and results
      measure four unrelated things, and adding them would invent a league table the data cannot
@@ -942,6 +952,52 @@
     $('dt-limits').textContent =
       'Source: ' + D.meta.publisher + '. ' + (D.meta.limits || []).join(' ');
   }
+
+  /* ---------- what the district rating hides ---------- */
+  function renderCampuses(C) {
+    var h = C.hidden_by_the_district_average, s = C.spread;
+    var find = [
+      ['Students in a D or F campus inside an A or B district', n(h.students),
+       h.campuses + ' campuses across ' + h.districts + ' districts, in ' +
+       C.meta.year + '.'],
+      ['Of those, at a campus rated F', n(h.rated_f.students),
+       h.rated_f.campuses + ' campuses. A rating measures tested performance ' +
+       'against state targets — it is not a measure of a school.'],
+      ['Districts whose campuses differ', n(s.campuses_differ),
+       s.campuses_differ_pct + '% of the ' + n(s.districts_with_two_or_more_rated_campuses) +
+       ' districts with more than one rated campus.'],
+      ['Districts spanning three or more grades', n(s.span_three_or_more_grades),
+       'An A campus and a D campus under one rating.']
+    ];
+    $('cp-findings').innerHTML = find.map(function (f) {
+      return '<div class="finding"><h4>' + esc(f[0]) + '</h4><div class="num">' +
+             esc(f[1]) + '</div><p>' + esc(f[2]) + '</p></div>';
+    }).join('');
+    $('cp-spread').textContent = s.reading;
+
+    $('cp-table').querySelector('thead').innerHTML =
+      '<tr><th>District</th><th>State rates it</th>' +
+      '<th class="r">D or F campuses</th><th class="r">Students in them</th></tr>';
+    $('cp-table').querySelector('tbody').innerHTML =
+      (h.largest || []).slice(0, 12).map(function (r) {
+        return '<tr><td><a href="/?d=' + encodeURIComponent(r.district_number) + '">' +
+               esc(title(r.district_name)) + '</a></td>' +
+               '<td>' + esc(r.district_rating) + '</td>' +
+               '<td class="r">' + esc(n(r.campuses)) + '</td>' +
+               '<td class="r">' + esc(n(r.students)) + '</td></tr>';
+      }).join('');
+    $('cp-limits').textContent =
+      'Source: ' + C.meta.publisher + '. ' + (C.meta.limits || []).join(' ');
+  }
+
+  fetch('/campuses/texas')
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .catch(function () { return null; })
+    .then(function (C) {
+      if (C) renderCampuses(C);
+      else $('cp-findings').innerHTML =
+        '<p class="err">The campus ratings are not available right now.</p>';
+    });
 
   /* ---------- boot ---------- */
   /* Each layer is its own fetch and its own failure. A dead debt endpoint must

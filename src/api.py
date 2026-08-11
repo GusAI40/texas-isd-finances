@@ -1822,6 +1822,79 @@ async def get_district_debt(district_number: str):
     return {"district_number": district_number, "meta": data["meta"], **rec}
 
 
+_campus_cache: Optional[Dict[str, Any]] = None
+
+
+def _campuses() -> Optional[Dict[str, Any]]:
+    global _campus_cache
+    if _campus_cache is None:
+        path = STATIC_DIR / "campus_data.json"
+        if not path.exists():
+            return None
+        with path.open() as fh:
+            _campus_cache = json.load(fh)
+    return _campus_cache
+
+
+@app.get("/campuses/texas", tags=["Statewide"])
+async def get_texas_campuses():
+    """What the district rating hides.
+
+    Every other figure on this site is measured at the district, because that is
+    where money is reported. It is the wrong unit for the question a family
+    asks: a district rating is an average over campuses, and an average hides
+    its own tails.
+
+    **138,664 Texas students attend a campus the state rates D or F inside a
+    district the state rates A or B** — 221 campuses across 73 districts, with
+    21,415 of those students at a campus rated F.
+
+    And the spread is the rule: **779 of the 890 districts** with more than one
+    rated campus contain campuses at different letter grades, and 196 span three
+    or more. "The district is a B" is true and describes almost nobody's school.
+
+    Three refusals are carried in the payload. "Not Rated" is not a bad rating
+    and its 525 campuses are excluded rather than counted as failure.
+    Alternative-education campuses are rated on a different scale and are
+    excluded from the headline, with the including-them figure published beside
+    it. And no campus is ranked against a campus in another district — the claim
+    is about the gap INSIDE a district, which is what a district rating conceals.
+
+    None of this is an accusation: a large district containing a struggling
+    campus is arithmetic, not misconduct. Serves with no database.
+    """
+    data = _campuses()
+    if data is None:
+        raise HTTPException(
+            status_code=503,
+            detail="Campus data not built. Run scripts/ingest_tea_accountability.py "
+                   "then scripts/build_campus_data.py")
+    return {"meta": data["meta"], **data["texas"]}
+
+
+@app.get("/district/{district_number}/campuses", tags=["Districts"])
+async def get_district_campuses(district_number: str):
+    """Every rated campus in one district, worst first, against the district's
+    own rating.
+
+    A district with no rated campus returns an `absence` saying which of the two
+    reasons applies rather than an empty list.
+    """
+    data = _campuses()
+    if data is None:
+        raise HTTPException(
+            status_code=503,
+            detail="Campus data not built. Run scripts/ingest_tea_accountability.py "
+                   "then scripts/build_campus_data.py")
+    rec = data["districts"].get(district_number)
+    if rec is None:
+        name = _district_name(district_number) or district_number
+        return {"district_number": district_number, "district_name": name,
+                "meta": data["meta"],
+                "absence": absences.no_campus_ratings(name)}
+    return {"district_number": district_number, "meta": data["meta"], **rec}
+
+
 @app.get("/provenance", tags=["General"])
 async def get_provenance():
     """Where every number came from, and how to check it yourself.

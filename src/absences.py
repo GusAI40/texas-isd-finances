@@ -193,6 +193,18 @@ def no_debt_outstanding(name: str, as_of: int = 2025) -> dict:
         as_of=as_of)
 
 
+def no_campus_ratings(name: str, year: int = 2025) -> dict:
+    """115 of the 1,310 districts. Almost all are very small or brand new, and
+    "we do not know" must not render the same as "its campuses are fine"."""
+    return absence(
+        "campuses", NOT_MEASURED,
+        f"TEA published no campus rating for {name} in {year}. A campus goes "
+        f"unrated when it has too few tested students, is in its first year, or "
+        f"has a data issue — so this is missing information, not a verdict on "
+        f"its schools.",
+        year=year)
+
+
 def no_equity_record(name: str) -> dict:
     """115 districts, 33,362 students."""
     return absence(

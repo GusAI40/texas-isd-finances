@@ -17,6 +17,51 @@ Entry template:
 
 ---
 
+## 2026-08-11 (campus) — The district rating hides 138,664 students
+
+**What changed:** `scripts/ingest_tea_accountability.py` +
+`scripts/build_campus_data.py` -> `static/campus_data.json`.
+`/campuses/texas`, `/district/{n}/campuses`, a `district_campuses` MCP tool
+(nine now), a "What the district rating hides" section on `/forensics`,
+`tests/test_campuses.py` (14). 549 tests pass.
+
+**The finding:** 138,664 students attend a campus Texas rates D or F inside a
+district Texas rates A or B — 221 campuses, 73 districts, 21,415 of them at a
+campus rated F. And the spread is the rule: 779 of the 890 districts with more
+than one rated campus contain campuses at different letter grades; 196 span
+three or more.
+
+**Why:** every other layer stops at the district, because that is where money is
+reported. It is the wrong unit for the question a family asks. A child goes to a
+campus, not to an average.
+
+**Gotchas:**
+- **TEA's accountability download is a multi-step SAS form** (`_service=marykay`,
+  `prgopt=.../dd_pick_columns.sas`). Not worth automating: the Enhanced
+  Statewide Summary workbook is one 16 MB xlsx with every district AND campus
+  for the year plus demographics, and a longitudinal sheet back to 2011.
+- **"Not Rated" is not a bad rating.** 525 campuses. Counting them would have
+  manufactured 525 failing schools out of missing data.
+- **Alternative-education campuses are rated on a different scale.** Checked
+  before publishing: only 2 of the 223 raw matches carry the flag, so the
+  finding does not depend on excluding them — but both figures ship so the
+  choice is visible rather than trusted.
+- **The best/worst labels shipped inverted.** The campus list is sorted
+  worst-first and `GRADE.get(rating, 9)` sorts unrated campuses PAST an A, so
+  `rows[0]`/`rows[-1]` both read backwards and could report "Not Rated" as a
+  district's best campus. Houston ISD printed `worst=A`. Derive from the grades.
+- **The refusal that matters most:** no campus is ranked against a campus in
+  another district. A statewide campus league table would rank a school serving
+  newly arrived students against a wealthy suburb and call the gap quality.
+  `test_no_campus_is_ranked_against_another_district` fails the build if a
+  campus number ever appears in a statewide list.
+
+**Open items:** unchanged — deploy blocked on the user, five credentials, three
+SQL migrations. Provenance tests still do not cover equity, outcomes, bonds,
+debt or campuses.
+
+---
+
 ## 2026-08-11 (end) — Asked whether districts should get a UUID; built a crosswalk instead
 
 **What changed:** `scripts/build_district_crosswalk.py` -> `data/district_crosswalk.csv`

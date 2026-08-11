@@ -128,6 +128,30 @@ SOURCES: dict[str, dict] = {
                 "private CRM and are deliberately never ingested — going "
                 "first-party removes the temptation permanently.",
     },
+    "tea_accountability": {
+        "title": "Enhanced Statewide Summary — A–F accountability ratings",
+        "publisher": "Texas Education Agency",
+        "url": "https://tea.texas.gov/texas-schools/accountability/"
+               "academic-accountability/performance-reporting/"
+               "2025-enhanced-statewide-summary.xlsx",
+        "covers": "2025 ratings for 9,084 campuses and 1,208 districts, with "
+                  "enrolment and student need; the workbook also carries a "
+                  "longitudinal sheet back to 2011",
+        "authoritative_for": "the A–F rating the state gives each campus and "
+                             "each district, and the component scores behind it",
+        "local_file": "data/tea_accountability.csv",
+        "ingested_by": "scripts/ingest_tea_accountability.py",
+        "proves_it": ["PK\u0003\u0004", "xl/workbook.xml"],
+        "note": "The only campus-level source on this site. Two distinctions "
+                "survive into every downstream count: 'Not Rated' is missing "
+                "data rather than failure (525 campuses, all excluded), and "
+                "Alternative Education Accountability campuses are rated on a "
+                "different scale and are excluded from the headline with the "
+                "including-them figure published beside it. No campus is ranked "
+                "against a campus in another district — the published claim is "
+                "about the gap INSIDE a district, which is what a district "
+                "rating conceals.",
+    },
     "brb_debt_outstanding": {
         "title": "Local government debt outstanding — school districts",
         "publisher": "Texas Bond Review Board",
@@ -278,6 +302,19 @@ MEASURES: list[dict] = [
         "shown_on": ["/", "/forensics"],
         "api": "/district/{n}/economics",
         "test": "tests/test_forensics.py::test_local_revenue_is_gross_not_net_of_recapture",
+    },
+    {
+        "id": "campus_ratings_inside_a_district",
+        "label": "Campuses rated D or F inside a district rated A or B",
+        "source": "tea_accountability",
+        "columns": ["Overall Rating (campus)", "Overall Rating (district)",
+                    "Number of Students", "Alternative Education Accountability"],
+        "method": "Campus rating compared with the rating of its own district. "
+                  "Unrated campuses excluded; alternative-education campuses "
+                  "excluded from the headline and reported separately.",
+        "shown_on": ["/forensics"],
+        "api": "/campuses/texas",
+        "test": "tests/test_campuses.py::test_the_headline_is_the_sum_of_its_own_campuses",
     },
     {
         "id": "debt_outstanding",

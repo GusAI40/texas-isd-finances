@@ -110,6 +110,15 @@ CHECKS: list[tuple[str, str, str, str, str]] = [
      "forensic_data.json", "statewide.recapture_payers"),
     ("propositions in the ballot record", "/forensics/texas", "statewide.ballot.propositions",
      "forensic_data.json", "statewide.ballot.propositions"),
+    # --- campuses: the only layer that names individual schools -------------
+    ("students in a D/F campus inside an A/B district", "/campuses/texas",
+     "hidden_by_the_district_average.students", "campus_data.json",
+     "texas.hidden_by_the_district_average.students"),
+    ("campuses hidden by the district average", "/campuses/texas",
+     "hidden_by_the_district_average.campuses", "campus_data.json",
+     "texas.hidden_by_the_district_average.campuses"),
+    ("districts whose campuses differ", "/campuses/texas", "spread.campuses_differ",
+     "campus_data.json", "texas.spread.campuses_differ"),
     # --- the forensic quality layer, incl. the list that named districts -----
     ("districts with debt and no approved bond", "/forensics/quality",
      "debt_without_a_ballot.no_voter_approved_bond_on_record.districts",

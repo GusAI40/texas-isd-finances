@@ -393,6 +393,42 @@ def district_debt(args: dict) -> tuple[str, dict]:
     return "\n".join(lines), {**rec, "limits": data["meta"].get("limits", [])}
 
 
+def district_campuses(args: dict) -> tuple[str, dict]:
+    num = _resolve(args.get("district_number"))
+    data = _need(_api()._campuses, "campus")
+    rec = data["districts"].get(num)
+    if rec is None:
+        raise ToolError(
+            f"TEA published no campus rating for district {num} in "
+            f"{data['meta']['year']}. That is missing data, not a verdict on its "
+            f"schools — a campus goes unrated when it has too few tested "
+            f"students or is in its first year.")
+    name = _title(rec.get("district_name", num))
+    worst = [c for c in rec["campuses"] if c["rating"] in ("D", "F")
+             and not c["is_alternative_education"]]
+    lines = [
+        f"{name} ({num}) is rated {rec['district_rating']} by Texas. Its "
+        f"{len(rec['campuses'])} rated campuses run from {rec['worst']} to "
+        f"{rec['best']}" + (f", spanning {rec['spans_grades']} letter grades."
+                            if rec["spans_grades"] else ".")]
+    if worst:
+        lines.append(
+            f"{rec['students_below_a_d']:,} of its students attend one of the "
+            f"{len(worst)} campuses rated D or F:")
+        lines += [f"  {c['rating']}  {_title(c['campus_name'])} "
+                  f"({c['students']:,} students, {c['pct_poor']}% low-income)"
+                  for c in worst[:8]]
+    else:
+        lines.append("No campus of its is rated D or F.")
+    lines.append(
+        "A district rating is an average over campuses and hides its own tails; "
+        "this is the spread inside one district and is not a comparison with "
+        "campuses elsewhere. Unrated campuses are excluded — that is missing "
+        "data, not failure. A rating measures tested performance against state "
+        "targets, not a school.")
+    return "\n".join(lines), {**rec, "limits": data["meta"].get("limits", [])}
+
+
 def texas_overview(args: dict) -> tuple[str, dict]:
     f = _need(_api()._forensics, "forensic")
     t = _need(_api()._trends, "trend")
@@ -587,6 +623,20 @@ TOOLS: list[dict] = [
                         "required": ["district_number"], "additionalProperties": False},
         "annotations": {"readOnlyHint": True, "openWorldHint": False},
         "handler": district_debt,
+    },
+    {
+        "name": "district_campuses",
+        "title": "The campuses inside a district, and what the district rating hides",
+        "description": ("Every campus TEA rated in this district, worst first, "
+                        "against the district's own A-F rating. A district "
+                        "rating is an average and hides its tails: 138,664 Texas "
+                        "students attend a campus rated D or F inside a district "
+                        "rated A or B. Unrated campuses are excluded as missing "
+                        "data, not failure."),
+        "inputSchema": {"type": "object", "properties": {"district_number": _DISTRICT_ARG},
+                        "required": ["district_number"], "additionalProperties": False},
+        "annotations": {"readOnlyHint": True, "openWorldHint": False},
+        "handler": district_campuses,
     },
     {
         "name": "texas_overview",
