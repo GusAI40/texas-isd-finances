@@ -13,6 +13,17 @@
     "content_type": "text/html",
     "final_url": "https://tea.texas.gov/about-tea/state-funding/state-funding-reports-and-data/peims-financial-data-downloads"
    },
+   "content_proof": {
+    "checked": true,
+    "ok": true,
+    "url": "https://tea.texas.gov/finance-and-grants/state-funding/state-funding-reports-and-data/peims-financial-data-downloads",
+    "looked_for": [
+     "PEIMS",
+     "Texas Education Agency"
+    ],
+    "missing": [],
+    "bytes_read": 144882
+   },
    "local": {
     "present": true,
     "path": "data/texas_finance_clean.csv",
@@ -32,6 +43,17 @@
     "method": "HEAD",
     "content_type": "text/html",
     "final_url": "https://rptsvr1.tea.texas.gov/perfreport/snapshot/download.html"
+   },
+   "content_proof": {
+    "checked": true,
+    "ok": true,
+    "url": "https://rptsvr1.tea.texas.gov/perfreport/snapshot/download.html",
+    "looked_for": [
+     "Snapshot",
+     "Texas Education Agency"
+    ],
+    "missing": [],
+    "bytes_read": 25060
    },
    "local": {
     "present": true,
@@ -53,6 +75,17 @@
     "content_type": "text/html",
     "final_url": "https://tea.texas.gov/data-reports/student-assessment-results/statewide-summary-reports"
    },
+   "content_proof": {
+    "checked": true,
+    "ok": true,
+    "url": "https://tea.texas.gov/student-assessment/student-assessment-results/statewide-summary-reports",
+    "looked_for": [
+     "STAAR",
+     "Texas Education Agency"
+    ],
+    "missing": [],
+    "bytes_read": 253733
+   },
    "local": {
     "present": true,
     "path": "data/staar_district_long.csv",
@@ -72,6 +105,18 @@
     "method": "HEAD",
     "content_type": "text/html",
     "final_url": "https://tea.texas.gov/about-tea/state-funding/additional-finance-resources/school-district-property-values-and-tax-rates"
+   },
+   "content_proof": {
+    "checked": true,
+    "ok": true,
+    "url": "https://tea.texas.gov/finance-and-grants/state-funding/additional-finance-resources/school-district-property-values-and-tax-rates",
+    "looked_for": [
+     "Property Value",
+     "Tax Rate",
+     "Texas Education Agency"
+    ],
+    "missing": [],
+    "bytes_read": 153985
    },
    "local": {
     "present": true,
@@ -93,6 +138,17 @@
     "content_type": "text/html",
     "final_url": "https://tea.texas.gov/about-tea/state-funding/excess-local-revenue"
    },
+   "content_proof": {
+    "checked": true,
+    "ok": true,
+    "url": "https://tea.texas.gov/finance-and-grants/state-funding/excess-local-revenue",
+    "looked_for": [
+     "Excess Local Revenue",
+     "Texas Education Agency"
+    ],
+    "missing": [],
+    "bytes_read": 176010
+   },
    "local": {
     "present": true,
     "path": "data/tea_property.csv",
@@ -103,21 +159,65 @@
   {
    "id": "bond_elections",
    "title": "Texas school district bond election results",
-   "publisher": "Compiled county election returns (Texas Secretary of State, elections division)",
-   "url": "https://www.sos.state.tx.us/elections/index.shtml",
+   "publisher": "Texas Bond Review Board",
+   "url": "https://data.texas.gov/d/kbmc-qmvg",
    "host_matches_publisher": true,
    "reach": {
     "ok": true,
     "status": 200,
     "method": "HEAD",
     "content_type": "text/html",
-    "final_url": "https://www.sos.state.tx.us/elections/index.shtml"
+    "final_url": "https://data.texas.gov/Government-and-Taxes/Local-Debt-Bond-Election-Results/kbmc-qmvg"
+   },
+   "content_proof": {
+    "checked": true,
+    "ok": true,
+    "url": "https://data.texas.gov/api/views/kbmc-qmvg.json",
+    "looked_for": [
+     "Texas Bond Review Board",
+     "Local Debt Bond Election Results",
+     "kbmc-qmvg"
+    ],
+    "missing": [],
+    "bytes_read": 22035
    },
    "local": {
     "present": true,
     "path": "data/texas_bond_elections.csv",
-    "bytes": 397999,
-    "sha256": "4af3e5edae73c583fcdc6006df32dd9615352059fabf2c3434d2baa3b12e4665"
+    "bytes": 456005,
+    "sha256": "674302d4195961c5d48a96c818be20243ed6f9a757ef5a1790bbf75014687282"
+   }
+  },
+  {
+   "id": "brb_debt_outstanding",
+   "title": "Local government debt outstanding \u2014 school districts",
+   "publisher": "Texas Bond Review Board",
+   "url": "https://data.brb.texas.gov/",
+   "host_matches_publisher": true,
+   "reach": {
+    "ok": true,
+    "status": 200,
+    "method": "HEAD",
+    "content_type": "text/html",
+    "final_url": "https://data.brb.texas.gov/"
+   },
+   "content_proof": {
+    "checked": true,
+    "ok": true,
+    "url": "https://data.brb.texas.gov/main_search.json",
+    "looked_for": [
+     "ISD",
+     "issuer_name",
+     "government_type"
+    ],
+    "missing": [],
+    "bytes_read": 400000
+   },
+   "local": {
+    "present": true,
+    "path": "data/brb_debt_outstanding.csv",
+    "bytes": 2655159,
+    "sha256": "e91939c49f782ea07ca03fe7eac043828c287d82c98753dd8a703c2b5f8ef88d"
    }
   },
   {
@@ -132,6 +232,17 @@
     "method": "HEAD",
     "content_type": "application/zip",
     "final_url": "https://www2.census.gov/geo/tiger/TIGER2024/UNSD/tl_2024_48_unsd.zip"
+   },
+   "content_proof": {
+    "checked": true,
+    "ok": true,
+    "url": "https://www2.census.gov/geo/tiger/TIGER2024/UNSD/tl_2024_48_unsd.zip",
+    "looked_for": [
+     "PK\u0003\u0004",
+     "tl_2024_48_unsd.dbf"
+    ],
+    "missing": [],
+    "bytes_read": 377634
    },
    "local": {
     "present": null
@@ -150,6 +261,17 @@
     "content_type": "text/html",
     "final_url": "https://www.bls.gov/cpi/"
    },
+   "content_proof": {
+    "checked": true,
+    "ok": true,
+    "url": "https://www.bls.gov/cpi/",
+    "looked_for": [
+     "Consumer Price Index",
+     "Bureau of Labor Statistics"
+    ],
+    "missing": [],
+    "bytes_read": 100444
+   },
    "local": {
     "present": null
    }
@@ -157,5 +279,6 @@
  ],
  "wrong_host": [],
  "dead": [],
- "unreachable": []
+ "unreachable": [],
+ "unproven": []
 }

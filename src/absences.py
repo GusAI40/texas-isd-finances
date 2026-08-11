@@ -175,6 +175,24 @@ def no_insights(name: str, peer_count: int, minimum: int = 4) -> dict:
         peer_count=peer_count)
 
 
+def no_debt_outstanding(name: str, as_of: int = 2025) -> dict:
+    """68 of the Bond Review Board's 1,035 listed districts, plus every district
+    it does not list at all.
+
+    Owing nothing is the strongest possible version of this section, and it was
+    the one most likely to render as a blank box. A district with no bonded debt
+    has no debt service to pay, which is the largest single claim on the
+    operating dollar for districts that do have it.
+    """
+    return absence(
+        "debt_outstanding", DID_NOT_HAPPEN,
+        f"The Texas Bond Review Board tracks no outstanding bonded debt for "
+        f"{name} as of fiscal {as_of}. It owes no principal and no interest on "
+        f"bonds — where other districts are still paying for buildings approved "
+        f"decades ago, this one is not.",
+        as_of=as_of)
+
+
 def no_equity_record(name: str) -> dict:
     """115 districts, 33,362 students."""
     return absence(

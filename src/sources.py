@@ -40,6 +40,7 @@ SOURCES: dict[str, dict] = {
         "authoritative_for": "revenue, spending by object and by function, debt "
                              "service, capital outlay, payroll, enrolment",
         "local_file": "data/texas_finance_clean.csv",
+        "proves_it": ["PEIMS", "Texas Education Agency"],
         "note": "Districts file this with TEA and it is corrected over time. The "
                 "newest year has had the least time to be corrected.",
     },
@@ -52,6 +53,7 @@ SOURCES: dict[str, dict] = {
                              "experience and salary, class size, attendance, "
                              "graduation, STAAR at three bars, county and region",
         "local_file": "data/snapshot_all.csv",
+        "proves_it": ["Snapshot", "Texas Education Agency"],
     },
     "tea_staar_district": {
         "title": "STAAR Aggregate District-Level Results",
@@ -62,6 +64,7 @@ SOURCES: dict[str, dict] = {
         "authoritative_for": "results by student group, including economically "
                              "disadvantaged students specifically",
         "local_file": "data/staar_district_long.csv",
+        "proves_it": ["STAAR", "Texas Education Agency"],
         "note": "District-level aggregates are also downloadable from the "
                 "Texas Assessment Research Portal at https://txresearchportal.com/ .",
     },
@@ -75,6 +78,7 @@ SOURCES: dict[str, dict] = {
                   "rates 2005-06 to 2023-24",
         "authoritative_for": "taxable value, M&O and I&S tax rates",
         "local_file": "data/tea_property.csv",
+        "proves_it": ["Property Value", "Tax Rate", "Texas Education Agency"],
         "note": "Tax year N is TEA fiscal year N+1. Figures are withheld where "
                 "two independent estimates of the tax base disagree by >25%.",
     },
@@ -87,29 +91,77 @@ SOURCES: dict[str, dict] = {
         "authoritative_for": "how much local tax revenue each district sends "
                              "back to the state",
         "local_file": "data/tea_property.csv",
+        "proves_it": ["Excess Local Revenue", "Texas Education Agency"],
     },
     "bond_elections": {
         "title": "Texas school district bond election results",
-        "publisher": "Compiled county election returns "
-                     "(Texas Secretary of State, elections division)",
-        "url": "https://www.sos.state.tx.us/elections/index.shtml",
-        "covers": "4,588 decided propositions, 1958–2024",
+        "publisher": "Texas Bond Review Board",
+        "url": "https://data.texas.gov/d/kbmc-qmvg",
+        "covers": "4,992 decided propositions, 1958–2026",
         "authoritative_for": "what school debt was asked FOR, the amount, and "
                              "whether voters carried or defeated it",
         "local_file": "data/texas_bond_elections.csv",
-        "note": "The compiled file is redistributed as this site's own artefact at "
-                "https://txisd.dev/bonds/texas because no single agency publishes "
-                "school bond elections statewide — they are county returns. "
-                "The only layer joined on district NAME rather than TEA number. "
-                "scripts/audit_bond_match.py prints the whole join and fails the "
-                "build if a shared name is resolved without the county agreeing. "
-                "Two companion files from the same vendor carry a private CRM and "
-                "are deliberately never ingested.",
+        "ingested_by": "scripts/ingest_bond_elections.py",
+        # data.texas.gov renders its dataset page in the browser, so the page a
+        # reader sees carries no server-side text to assert on. The portal's own
+        # metadata API does, and it is the stronger proof anyway: it is Texas
+        # stating who published this dataset, rather than us claiming it.
+        "attribution_url": "https://data.texas.gov/api/views/kbmc-qmvg.json",
+        "proves_it": ["Texas Bond Review Board", "Local Debt Bond Election Results",
+                      "kbmc-qmvg"],
+        "note": "Corrected 2026-08-11. This entry previously credited the file to "
+                "compiled county returns from the Secretary of State and stated that "
+                "no single agency publishes school bond elections statewide. Both "
+                "were wrong: the Bond Review Board publishes all of them, back to "
+                "1958, on the state's own open-data portal, and always had. The "
+                "site had been shipping a municipal-advisory vendor's Excel export "
+                "of that same file — two years stale, 404 propositions short, and "
+                "carrying spreadsheet subtotal rows. verify_sources.py did not "
+                "catch it because the Secretary of State URL returns 200; it proved "
+                "the link was alive, not that it was the right link. It now checks "
+                "attribution as well. Every row carries the Board's own provenance "
+                "mark in a Source column (TBR, Issuer, OAG, TSB, BB, Other). This "
+                "is still the only layer joined on district NAME rather than TEA "
+                "number; scripts/audit_bond_match.py prints the whole join and "
+                "fails the build if a shared name is resolved without the county "
+                "agreeing. Two companion files from the former vendor carry a "
+                "private CRM and are deliberately never ingested — going "
+                "first-party removes the temptation permanently.",
+    },
+    "brb_debt_outstanding": {
+        "title": "Local government debt outstanding — school districts",
+        "publisher": "Texas Bond Review Board",
+        "url": "https://data.brb.texas.gov/",
+        "covers": "fiscal 2005–2025 actual, plus the amortisation schedule for "
+                  "debt already sold out to 2061; 967 districts",
+        "authoritative_for": "principal and interest still owed, split into "
+                             "current interest bonds and capital appreciation "
+                             "bonds, and the year the borrowing clears",
+        "local_file": "data/brb_debt_outstanding.csv",
+        "ingested_by": "scripts/ingest_brb_debt.py",
+        "attribution_url": "https://data.brb.texas.gov/main_search.json",
+        "proves_it": ["ISD", "issuer_name", "government_type"],
+        "note": "The Board's own issuer index and per-issuer series, taken "
+                "first-party. A commercial aggregator republishes the same data "
+                "and is how it was found; it is deliberately not the source, "
+                "because a re-publisher breaks the provenance chain at its first "
+                "link. Joined to TEA numbers by name plus county via "
+                "scripts/district_match.py — the index lists three issuers under "
+                "two names each, so it is deduplicated by the Board's id rather "
+                "than by name, which is what stops one district's debt being "
+                "counted twice. Excludes obligations under one year, commercial "
+                "paper, and special obligations not needing Attorney General "
+                "approval, per the Board's scope note.",
     },
     "census_tiger": {
         "title": "TIGER/Line Unified School Districts, Texas",
         "publisher": "US Census Bureau (public domain)",
         "url": "https://www2.census.gov/geo/tiger/TIGER2024/UNSD/tl_2024_48_unsd.zip",
+        # A zip has no prose to check, but it names its own members in the local
+        # file headers at the very front of the archive — so a ranged read of the
+        # first bytes proves this is the Texas (FIPS 48) school-district file and
+        # not some other TIGER product served from the same directory.
+        "proves_it": ["PK\u0003\u0004", "tl_2024_48_unsd.dbf"],
         "covers": "2024 boundaries, 1,005 districts",
         "authoritative_for": "district geographic boundaries",
         "note": "Charter districts have no attendance boundary, so ~8% of "
@@ -119,6 +171,7 @@ SOURCES: dict[str, dict] = {
         "title": "CPI-U, annual average",
         "publisher": "US Bureau of Labor Statistics",
         "url": "https://www.bls.gov/cpi/",
+        "proves_it": ["Consumer Price Index", "Bureau of Labor Statistics"],
         "covers": "2009–2025",
         "authoritative_for": "converting past dollars to constant 2024 dollars",
     },
@@ -225,6 +278,32 @@ MEASURES: list[dict] = [
         "shown_on": ["/", "/forensics"],
         "api": "/district/{n}/economics",
         "test": "tests/test_forensics.py::test_local_revenue_is_gross_not_net_of_recapture",
+    },
+    {
+        "id": "debt_outstanding",
+        "label": "Debt still owed — principal plus interest not yet paid",
+        "source": "brb_debt_outstanding",
+        "columns": ["CIBPrincipalOutstanding", "CIBInterestOutstanding",
+                    "CABPrincipalOutstanding", "CABInterestOutstanding"],
+        "method": "Summed per district for fiscal 2025, the Board's most recent "
+                  "completed year. Years after 2025 are the amortisation "
+                  "schedule for debt already sold and are never added to it.",
+        "shown_on": ["/forensics"],
+        "api": "/district/{n}/debt",
+        "test": "tests/test_debt.py::test_the_statewide_total_is_the_sum_of_its_districts",
+    },
+    {
+        "id": "cab_deferred_interest",
+        "label": "Interest deferred to maturity on capital appreciation bonds",
+        "source": "brb_debt_outstanding",
+        "columns": ["CABPrincipalOutstanding", "CABInterestOutstanding"],
+        "method": "Reported as an absolute stock for the current year. Dollars "
+                  "repaid per dollar borrowed is reported at each district's "
+                  "PEAK year only — on a shrinking balance the ratio rises on "
+                  "its own and measures nothing.",
+        "shown_on": ["/forensics"],
+        "api": "/debt/texas",
+        "test": "tests/test_debt.py::test_the_repayment_ratio_is_never_taken_on_a_residual_balance",
     },
     {
         "id": "bond_history",

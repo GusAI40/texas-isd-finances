@@ -295,6 +295,19 @@
   <div class="trends" id="tj-charts"></div>
   <p class="sub-note" id="tj-limits"></p>
 
+  <h2 id="owed">What is still owed, and until when</h2>
+  <p class="lede" id="dt-lede">Every other figure on this site is what a district
+     <em>paid</em> in one year. This is the balance. Texas school districts have borrowed to
+     build, and the bill runs for decades — so the question a taxpayer actually asks about a
+     mortgage is how much is left, how much of it is interest, and when it ends.</p>
+  <div class="findings" id="dt-findings"></div>
+  <p class="sub-note" id="dt-schedule"></p>
+
+  <h3 style="margin-top:var(--s-6)">The bonds where nothing is paid until the end</h3>
+  <p class="sub-note" id="dt-cab-note"></p>
+  <div class="tablewrap"><table id="dt-cab"><thead></thead><tbody></tbody></table></div>
+  <p class="sub-note" id="dt-limits"></p>
+
   <h2>Where every district ranks</h2>
   <p class="sub-note">There is deliberately no combined score. Debt, recapture, borrowing and results
      measure four unrelated things, and adding them would invent a league table the data cannot
@@ -867,7 +880,84 @@
       'only shown as meaningful from ' + t.min_propositions_for_a_pass_rate + ' propositions up.';
   }
 
+  /* ---------- what is still owed ---------- */
+  function renderDebt(D) {
+    var find = [
+      ['Still owed', big(D.total),
+       'Principal not yet repaid plus interest not yet paid, across ' +
+       n(D.districts_reporting) + ' districts, as of fiscal ' + D.meta.fiscal_year + '.'],
+      ['Of that, interest nobody has paid yet', big(D.interest),
+       D.interest_share_pct + '% of everything still owed is interest rather than the ' +
+       'money borrowed.'],
+      ['Per student', usd(D.per_student),
+       'Owed over decades, not in a year. This sits outside the operating budget ' +
+       'entirely and is not comparable to it.'],
+      ['The last payment falls due in', String(D.clears_in),
+       'On debt already sold. Districts will borrow again, so that year is a floor, ' +
+       'not a forecast.']
+    ];
+    $('dt-findings').innerHTML = find.map(function (f) {
+      return '<div class="finding"><h4>' + esc(f[0]) + '</h4>' +
+             '<div class="num">' + esc(f[1]) + '</div><p>' + esc(f[2]) + '</p></div>';
+    }).join('');
+
+    /* A few waypoints rather than the whole schedule — the shape is the point. */
+    var s = D.schedule || [], marks = [];
+    [2030, 2035, 2040, 2045, 2050, 2055].forEach(function (y) {
+      for (var i = 0; i < s.length; i++) if (s[i][0] === y) marks.push(y + ': ' + big(s[i][1]));
+    });
+    $('dt-schedule').textContent = marks.length
+      ? 'Still owed in future years on debt already sold — ' + marks.join(' · ') +
+        '. Rows after fiscal ' + D.meta.fiscal_year +
+        ' are an amortisation schedule, not history and not a projection of new borrowing.'
+      : '';
+
+    var c = D.cab || {};
+    $('dt-cab-note').textContent =
+      'A capital appreciation bond pays nothing until it matures: interest compounds for the ' +
+      'life of the bond and the whole amount falls due at the end, usually long after the ' +
+      'people who approved it have gone. ' + n(c.districts) + ' Texas districts still carry ' +
+      'them, with ' + big(c.deferred_interest) + ' of interest deferred against ' +
+      big(c.principal_outstanding) + ' of principal outstanding. Texas capped the practice in ' +
+      '2015; bonds sold before then are still owed. Dollars repaid per dollar borrowed is shown ' +
+      'at each district’s peak year — on a balance being paid off that ratio rises by ' +
+      'itself and would measure nothing.';
+
+    var rows = (c.largest || []).slice(0, 12);
+    $('dt-cab').querySelector('thead').innerHTML =
+      '<tr><th>District</th><th class="r">Interest deferred</th>' +
+      '<th class="r">Principal outstanding</th><th class="r">At its peak</th></tr>';
+    $('dt-cab').querySelector('tbody').innerHTML = rows.map(function (r) {
+      var pk = r.peak
+        ? esc(r.peak.repaid_per_dollar_borrowed + '× on ' + big(r.peak.principal) +
+              ' in ' + r.peak.year)
+        : '<span class="muted">terms predate the record</span>';
+      return '<tr><td><a href="/?d=' + encodeURIComponent(r.district_number) + '">' +
+             esc(title(r.district_name)) + '</a></td>' +
+             '<td class="r">' + esc(big(r.deferred_interest)) + '</td>' +
+             '<td class="r">' + esc(big(r.principal_outstanding)) + '</td>' +
+             '<td class="r">' + pk + '</td></tr>';
+    }).join('');
+
+    $('dt-limits').textContent =
+      'Source: ' + D.meta.publisher + '. ' + (D.meta.limits || []).join(' ');
+  }
+
   /* ---------- boot ---------- */
+  /* Each layer is its own fetch and its own failure. A dead debt endpoint must
+     not blank the trajectory, and neither may blank the file above them. */
+  fetch('/debt/texas')
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .catch(function () { return null; })
+    .then(function (D) {
+      if (D) renderDebt(D);
+      else {
+        $('dt-findings').innerHTML =
+          '<p class="err">The debt-outstanding series is not available right now.</p>';
+        $('dt-cab-note').textContent = '';
+      }
+    });
+
   /* The trajectory is a second, independent fetch: if it fails the rest of the
      page must still work, which is the same rule the portal already follows. */
   fetch('/trends/texas')

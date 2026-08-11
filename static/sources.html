@@ -187,11 +187,19 @@
 </article>
 <article class="src" id="src-bond_elections">
   <h3>Texas school district bond election results</h3>
-  <p class="pub">Compiled county election returns (Texas Secretary of State, elections division) &middot; 4,588 decided propositions, 1958–2024</p>
+  <p class="pub">Texas Bond Review Board &middot; 4,992 decided propositions, 1958–2026</p>
   <p>what school debt was asked FOR, the amount, and whether voters carried or defeated it.</p>
-  <p><a class="dl" href="https://www.sos.state.tx.us/elections/index.shtml" rel="noopener">Download the original
+  <p><a class="dl" href="https://data.texas.gov/d/kbmc-qmvg" rel="noopener">Download the original
      <svg class="ico" aria-hidden="true"><use href="#i-external"/></svg></a></p>
-  <p class="warn">The compiled file is redistributed as this site&#x27;s own artefact at https://txisd.dev/bonds/texas because no single agency publishes school bond elections statewide — they are county returns. The only layer joined on district NAME rather than TEA number. scripts/audit_bond_match.py prints the whole join and fails the build if a shared name is resolved without the county agreeing. Two companion files from the same vendor carry a private CRM and are deliberately never ingested.</p>
+  <p class="warn">Corrected 2026-08-11. This entry previously credited the file to compiled county returns from the Secretary of State and stated that no single agency publishes school bond elections statewide. Both were wrong: the Bond Review Board publishes all of them, back to 1958, on the state&#x27;s own open-data portal, and always had. The site had been shipping a municipal-advisory vendor&#x27;s Excel export of that same file — two years stale, 404 propositions short, and carrying spreadsheet subtotal rows. verify_sources.py did not catch it because the Secretary of State URL returns 200; it proved the link was alive, not that it was the right link. It now checks attribution as well. Every row carries the Board&#x27;s own provenance mark in a Source column (TBR, Issuer, OAG, TSB, BB, Other). This is still the only layer joined on district NAME rather than TEA number; scripts/audit_bond_match.py prints the whole join and fails the build if a shared name is resolved without the county agreeing. Two companion files from the former vendor carry a private CRM and are deliberately never ingested — going first-party removes the temptation permanently.</p>
+</article>
+<article class="src" id="src-brb_debt_outstanding">
+  <h3>Local government debt outstanding — school districts</h3>
+  <p class="pub">Texas Bond Review Board &middot; fiscal 2005–2025 actual, plus the amortisation schedule for debt already sold out to 2061; 967 districts</p>
+  <p>principal and interest still owed, split into current interest bonds and capital appreciation bonds, and the year the borrowing clears.</p>
+  <p><a class="dl" href="https://data.brb.texas.gov/" rel="noopener">Download the original
+     <svg class="ico" aria-hidden="true"><use href="#i-external"/></svg></a></p>
+  <p class="warn">The Board&#x27;s own issuer index and per-issuer series, taken first-party. A commercial aggregator republishes the same data and is how it was found; it is deliberately not the source, because a re-publisher breaks the provenance chain at its first link. Joined to TEA numbers by name plus county via scripts/district_match.py — the index lists three issuers under two names each, so it is deduplicated by the Board&#x27;s id rather than by name, which is what stops one district&#x27;s debt being counted twice. Excludes obligations under one year, commercial paper, and special obligations not needing Attorney General approval, per the Board&#x27;s scope note.</p>
 </article>
 <article class="src" id="src-census_tiger">
   <h3>TIGER/Line Unified School Districts, Texas</h3>
@@ -272,6 +280,20 @@
   <td class="mono cols">recapture paid by district</td>
   <td>As published by TEA, divided by enrolment.</td>
   <td class="mono">test_local_revenue_is_gross_not_net_of_recapture</td>
+</tr>
+<tr>
+  <td><b>Debt still owed — principal plus interest not yet paid</b><br><span class="mono">/district/{n}/debt</span></td>
+  <td><a href="#src-brb_debt_outstanding">Local government debt outstanding — school districts</a></td>
+  <td class="mono cols">CIBPrincipalOutstanding<br>CIBInterestOutstanding<br>CABPrincipalOutstanding<br>CABInterestOutstanding</td>
+  <td>Summed per district for fiscal 2025, the Board&#x27;s most recent completed year. Years after 2025 are the amortisation schedule for debt already sold and are never added to it.</td>
+  <td class="mono">test_the_statewide_total_is_the_sum_of_its_districts</td>
+</tr>
+<tr>
+  <td><b>Interest deferred to maturity on capital appreciation bonds</b><br><span class="mono">/debt/texas</span></td>
+  <td><a href="#src-brb_debt_outstanding">Local government debt outstanding — school districts</a></td>
+  <td class="mono cols">CABPrincipalOutstanding<br>CABInterestOutstanding</td>
+  <td>Reported as an absolute stock for the current year. Dollars repaid per dollar borrowed is reported at each district&#x27;s PEAK year only — on a shrinking balance the ratio rises on its own and measures nothing.</td>
+  <td class="mono">test_the_repayment_ratio_is_never_taken_on_a_residual_balance</td>
 </tr>
 <tr>
   <td><b>Every bond proposition and how the vote went</b><br><span class="mono">/district/{n}/bonds</span></td>

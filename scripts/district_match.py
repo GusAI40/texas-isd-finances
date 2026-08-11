@@ -48,6 +48,12 @@ from dataclasses import dataclass, field
 _TYPE_WORDS = {"ISD", "CISD", "CSD", "CCSD", "MSD", "SD", "CONS", "CONSOLIDATED"}
 # Abbreviations that are always the same word.
 _EXPAND = {"CO": "COUNTY"}
+# "&" is a word, not punctuation, and stripping it silently changes the name.
+# TEA writes "S AND S CISD"; the Bond Review Board writes "S&S CISD". Dropping
+# the ampersand gives "SS" and drops the district's whole ballot history —
+# which is exactly what happened when the bond file moved to the state's own
+# feed. Expanded before punctuation is stripped, so both spellings stem alike.
+_AMPERSAND = re.compile(r"\s*&\s*")
 # Trailing words a district added when it rebranded. Dropping them lets a
 # renamed district still match its own history; the county check keeps it safe.
 _RENAME_SUFFIX = {"COLLEGIATE"}
@@ -63,6 +69,7 @@ def stem(name: str) -> str:
     ``Pewitt ISD``, ``PEWITT CISD`` and ``Pewitt`` all reduce to ``PEWITT``.
     """
     s = _AB_SUFFIX.sub(r"\1", str(name or "").strip())
+    s = _AMPERSAND.sub(" AND ", s)
     words = [_EXPAND.get(w, w) for w in re.sub(r"[^A-Za-z ]", " ", s).upper().split()]
     while words and (words[-1] in _TYPE_WORDS or words[-1] in _RENAME_SUFFIX):
         words.pop()

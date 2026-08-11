@@ -307,7 +307,13 @@ def main() -> int:
         "meta": {
             "propositions": int(len(d)),
             "districts_with_history": len(districts),
-            "matched_pct": round(float(matched.mean()) * 100, 1),
+            # Never round UP to 100. One unresolved issuer out of 4,992 is
+            # 99.98%, and printing that as "100.0% matched" claims a complete
+            # join that does not exist. Floor it below the last tenth instead,
+            # so the only way to display 100 is to actually match everything.
+            "matched_pct": (100.0 if bool(matched.all())
+                            else min(round(float(matched.mean()) * 100, 1), 99.9)),
+            "unmatched": int((~matched).sum()),
             "match_methods": {k: int(v) for k, v in
                               d.match_method.value_counts().items()},
             "unmatched_issuers": sorted(

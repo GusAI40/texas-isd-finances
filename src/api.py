@@ -1745,6 +1745,85 @@ async def get_forensic_quality():
     return data
 
 
+_debt_cache: Optional[Dict[str, Any]] = None
+
+
+def _debt() -> Optional[Dict[str, Any]]:
+    global _debt_cache
+    if _debt_cache is None:
+        path = STATIC_DIR / "debt_data.json"
+        if not path.exists():
+            return None
+        with path.open() as fh:
+            _debt_cache = json.load(fh)
+    return _debt_cache
+
+
+@app.get("/debt/texas", tags=["Statewide"])
+async def get_texas_debt():
+    """What Texas school districts still OWE — the stock, not the yearly payment.
+
+    Every other debt figure on this site comes from PEIMS and is a flow: what a
+    district paid out in one year. This is the balance. As of fiscal 2025 Texas
+    school districts owed **$236.7 billion** — $148.4B of principal not yet
+    repaid and **$88.3B of interest nobody has paid yet**, 37.3% of the whole.
+    On debt already sold, it clears in **2061**.
+
+    Split by instrument, because the two are not the same promise:
+
+    **CIB** — current interest bonds. Interest paid twice a year, as expected.
+
+    **CAB** — capital appreciation bonds. Nothing is paid until maturity;
+    interest compounds for the life of the bond and lands in a lump at the end.
+    169 districts still carry them, with **$2.36B of interest deferred** against
+    $440m of principal outstanding. Texas capped the practice in 2015, but bonds
+    sold before then are still owed.
+
+    Dollars repaid per dollar borrowed is reported at each district's **peak**
+    year, never the current one: on a shrinking balance that ratio rises by
+    itself (Leander ISD reads 4.5x in 2014 and would read 396x in 2030 with
+    nothing having changed), so the current-year figure would be fiction.
+
+    Borrowing to build schools is lawful and ordinary. None of this is evidence
+    of wrongdoing. Serves with no database.
+    """
+    data = _debt()
+    if data is None:
+        raise HTTPException(
+            status_code=503,
+            detail="Debt data not built. Run scripts/ingest_brb_debt.py then "
+                   "scripts/build_debt_data.py")
+    return {"meta": data["meta"], **data["texas"]}
+
+
+@app.get("/district/{district_number}/debt", tags=["Districts"])
+async def get_district_debt(district_number: str):
+    """What one district still owes, and the year it clears.
+
+    Principal and interest outstanding, the interest share, the per-student
+    balance, the history of the balance since 2005, and — where the district
+    sold capital appreciation bonds — the interest deferred to maturity and the
+    terms at its peak year.
+
+    Districts the Bond Review Board tracks no debt for return an `absence`
+    saying so rather than an empty object: carrying no bonded debt is a finding
+    about a district, not missing data.
+    """
+    data = _debt()
+    if data is None:
+        raise HTTPException(
+            status_code=503,
+            detail="Debt data not built. Run scripts/ingest_brb_debt.py then "
+                   "scripts/build_debt_data.py")
+    rec = data["districts"].get(district_number)
+    if rec is None:
+        name = _district_name(district_number) or district_number
+        return {"district_number": district_number, "district_name": name,
+                "meta": data["meta"],
+                "absence": absences.no_debt_outstanding(name)}
+    return {"district_number": district_number, "meta": data["meta"], **rec}
+
+
 @app.get("/provenance", tags=["General"])
 async def get_provenance():
     """Where every number came from, and how to check it yourself.
