@@ -286,6 +286,16 @@
                  font-size:var(--fs-sm); line-height:1.55; color:var(--ink);
                  text-transform:none; letter-spacing:normal; font-weight:400; }
   .explain-pop b { display:block; margin-bottom:.15rem; }
+  .wow { margin:1.1rem 0 .4rem; }
+  .wow .wow-kick { font-size:var(--fs-micro); letter-spacing:.14em; text-transform:uppercase;
+                   color:var(--accent); font-weight:700; }
+  .wow .wow-num { font-family:var(--font-serif); font-weight:600; color:var(--ink);
+                  font-size:clamp(2.6rem, 6vw, 4.4rem); line-height:1.05;
+                  letter-spacing:-.02em; font-variant-numeric:tabular-nums; display:block; }
+  .wow .wow-line { font-size:var(--fs-md); color:var(--ink-2); max-width:38rem; margin:.35rem 0 .3rem; }
+  .wow .wow-line b { color:var(--ink); }
+  .wow .wow-next { font-size:var(--fs-sm); }
+  .wow .wow-next a { color:var(--accent); cursor:pointer; text-decoration:underline; }
   .dyk { border:1px solid var(--rule); border-left:3px solid var(--accent);
          border-radius:0 var(--r-md) var(--r-md) 0; background:var(--surface);
          padding:.7rem 1rem; margin:.9rem 0 0; max-width:46rem; }
@@ -919,6 +929,7 @@
         <button data-lens="press" aria-pressed="false">Reporter</button>
         <button data-lens="admin" aria-pressed="false">Administrator</button>
       </div>
+      <div class="wow hidden" id="wow"></div>
       <div class="exec" id="exec"></div>
       <div class="dyk hidden" id="dyk" aria-live="polite"></div>
       <div class="comparebar" id="comparebar"></div>
@@ -2249,10 +2260,12 @@ function renderExec() {
     $('exec').innerHTML = 'The year-by-year budget summary for this district could not be ' +
       'loaded right now. What follows — results, what the money bought, bonds and equity — ' +
       'is published separately and is complete.';
+    renderWow();   // its facts survive on the committed artefacts alone
     return;
   }
   $('kpi-eyebrow').textContent = 'Fiscal ' + cur.year + ' · the story in one paragraph';
   $('exec').innerHTML = lensStory();
+  renderWow();
 }
 
 /* ---------- KPIs ---------- */
@@ -2295,6 +2308,114 @@ function renderKPIs() {
 /* "What does this mean?" — plain-English answers, one click, no jargon,
    no AI call. Every entry says what the number IS, and what it is NOT —
    the second half is what keeps a scary-looking number honest. */
+/* ---------- The wow engine: one number per persona --------------------- */
+/* Disneyland rule: each ride delivers ONE feeling. Each persona gets ONE
+   number — concrete, personal, surprising — then a tease to the next ride.
+   Facts are computed from data already on the page; frame rules apply (a
+   parent's number is an OPERATING number, never the construction total). */
+function wowFacts() {
+  const m = state.outcomes && state.outcomes.measures;
+  const pair = k => (m && Array.isArray(m[k]) && m[k][0] != null) ? m[k] : null;
+  const cur = (state.summary || []).filter(r => r.operating_spend != null && r.enrollment > 0).pop();
+  const ops = cur ? +cur.operating_spend / +cur.enrollment : null;
+  const econ = state.econ, bonds = state.bonds && state.bonds.totals;
+  const F = {};
+
+  const turn = pair('teacher_turnover_pct');
+  if (turn) {
+    const stay6 = Math.max(0, Math.round(10 * Math.pow(1 - turn[0] / 100, 6)));
+    F.parent = { num: stay6 + ' of 10',
+      line: `teachers your kindergartner meets will still be here at the end of 5th grade, at today's ${turn[0]}% turnover` +
+            (turn[1] != null ? ` — similar districts keep about ${Math.max(0, Math.round(10 * Math.pow(1 - turn[1] / 100, 6)))}` : '') + '.',
+      next: 'What that does to results', id: 'outcomes-section' };
+  } else if (ops) {
+    F.parent = { num: fmtMoney(ops / 180), line: 'is what one school day of running schools costs for your child.', next: 'Where that day goes', id: 'dollar-section' };
+  }
+
+  const tax = econ && econ.tax;
+  if (tax && tax.bill_on_home) {
+    F.taxpayer = { num: fmtMoney(tax.bill_on_home),
+      line: `a year is what this district collects on a $${(tax.home_value / 1000)}k home` +
+            (tax.leaves_district > 1 ? ` — and ${tax.leaves_district}¢ of every local dollar leaves under the state's sharing rule.` : '.'),
+      next: 'What it buys instead', id: 'econ-section' };
+  } else if (ops) {
+    F.taxpayer = { num: fmtMoney(ops), line: 'per student is what running schools actually costs here this year.', next: 'Who pays it', id: 'econ-section' };
+  }
+
+  if (bonds && bonds.athletics_asked > 0) {
+    F.booster = { num: fmtBig(bonds.athletics_asked),
+      line: `of the ${fmtBig(bonds.asked)} ever put on this district's ballots was for athletics.`,
+      next: 'Every vote, listed', id: 'bond-section' };
+  } else if (bonds) {
+    F.booster = { num: bonds.passed + ' of ' + bonds.props,
+      line: 'bond questions here have passed since ' + bonds.first_year + '.',
+      next: 'What each one bought', id: 'bond-section' };
+  }
+
+  if (cur && cur.total_spend) {
+    F.business = { num: fmtBig(+cur.total_spend),
+      line: 'flowed through this district this year — usually the largest public budget in town.',
+      next: 'Payroll vs contracts', id: 'object-section' };
+  }
+
+  // Press: the streak or the spread — whichever the record offers.
+  const els = state.bonds && state.bonds.elections;
+  if (els && els.length >= 3) {
+    let noRun = 0, best = 0;
+    els.forEach(e => { if (e.passed === false) { noRun++; best = Math.max(best, noRun); } else if (e.passed) noRun = 0; });
+    if (best >= 2) {
+      F.press = { num: best + " straight no’s",
+        line: 'is this district\'s longest run of defeated bonds — and what happened next is the story.',
+        next: 'The full ballot record', id: 'bond-section' };
+    }
+  }
+  if (!F.press && state.flags && state.flags.length) {
+    F.press = { num: String(state.flags.length),
+      line: 'change flags on this district\'s filings — questions worth asking, not findings.',
+      next: 'Read each one', id: 'flags-section' };
+  }
+  if (!F.press && cur) {
+    const first = (state.summary || []).find(r => r.instruction_spend != null && r.operating_spend > 0);
+    if (first && cur.instruction_spend != null && cur.operating_spend > 0) {
+      const a = 100 * first.instruction_spend / first.operating_spend;
+      const b = 100 * cur.instruction_spend / cur.operating_spend;
+      F.press = { num: a.toFixed(0) + '% to ' + b.toFixed(0) + '%',
+        line: `is where instruction's share of the operating dollar moved since ${first.year}.`,
+        next: 'The 17-year line', id: 'trend-section' };
+    }
+  }
+
+  const exp = state.outcomes && state.outcomes.expectation;
+  if (exp && exp.gap != null) {
+    F.admin = { num: (exp.gap >= 0 ? '+' : '−') + Math.abs(exp.gap).toFixed(1) + ' pts',
+      line: `vs what this student population predicts — the number your board should ask about first.`,
+      next: 'The levers that move it', id: 'outcomes-section' };
+  } else if (turn && turn[1] != null && Math.abs(turn[0] - turn[1]) >= 2) {
+    F.admin = { num: Math.abs(turn[0] - turn[1]).toFixed(1) + ' pts',
+      line: `of teacher turnover separates you from your structural peers (${turn[0]}% vs ${turn[1]}%).`,
+      next: 'The peer table', id: 'peers-section' };
+  }
+  return F;
+}
+function renderWow() {
+  const el = $('wow');
+  if (!el) return;
+  const f = wowFacts()[state.lens] || wowFacts().parent;
+  if (!f) { el.classList.add('hidden'); return; }
+  el.classList.remove('hidden');
+  el.innerHTML =
+    `<div class="wow-kick">The one number &middot; for a ${LENS_LABEL[state.lens] || 'parent'}</div>` +
+    `<span class="wow-num">${f.num}</span>` +
+    `<p class="wow-line">${f.line}</p>` +
+    `<p class="wow-next">And that's not even the interesting part &mdash; ` +
+    `<a data-goto="${f.id}">${f.next}</a></p>`;
+  const a = el.querySelector('[data-goto]');
+  if (a) a.onclick = () => { const t = $(a.dataset.goto); if (t) t.scrollIntoView({ behavior: 'smooth', block: 'start' }); };
+  armCounters(el);
+}
+const LENS_LABEL = { parent: 'parent', taxpayer: 'taxpayer', booster: 'coach & booster',
+                     business: 'business owner', press: 'reporter', admin: 'administrator' };
+
 /* ---------- Did you know? — the page gets a heartbeat ------------------ */
 /* One rotating sentence about THIS district, built from data already loaded
    for the sections below — never a second fetch, never a claim the page
@@ -2868,7 +2989,7 @@ function parseFigure(text) {
 function armCounters(root) {
   if (!root) return;
   const reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const targets = root.querySelectorAll('.econ-big, .stat > b, .bond-bundle .pct, .proof b, .kpi .value');
+  const targets = root.querySelectorAll('.econ-big, .stat > b, .bond-bundle .pct, .proof b, .kpi .value, .wow-num');
 
   const run = el => {
     const f = el._fig;
