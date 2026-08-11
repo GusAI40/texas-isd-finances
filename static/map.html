@@ -19,7 +19,7 @@
 </script>
 <title>Texas ISD Similarity Map</title>
 <!-- design-system:start -->
-<link rel="stylesheet" href="/static/design.css">
+<link rel="stylesheet" href="/static/design.css?v=3">
 <!-- design-system:end -->
 <style>
 /* Dark theme for the page chrome. The seating-chart plate stays light on
@@ -311,11 +311,11 @@ function draw() {
 
   // PLAIN-ENGLISH axis labels drawn right on the map (landmarks, not jargon)
   ctx.fillStyle = '#a8a69d'; ctx.font = `600 ${12*dpr}px system-ui,sans-serif`;
-  ctx.textAlign = 'left';   ctx.fillText('<svg class="ico" aria-hidden="true"><use href="#i-arrow-left"/></svg> smaller districts', 12*dpr, H - 12*dpr);
-  ctx.textAlign = 'right';  ctx.fillText('bigger districts <svg class="ico" aria-hidden="true"><use href="#i-arrow-right"/></svg>', W - 12*dpr, H - 12*dpr);
+  ctx.textAlign = 'left';   ctx.fillText('smaller districts', 12*dpr, H - 12*dpr);
+  ctx.textAlign = 'right';  ctx.fillText('bigger districts', W - 12*dpr, H - 12*dpr);
   ctx.save();
   ctx.translate(14*dpr, H/2); ctx.rotate(-Math.PI/2); ctx.textAlign = 'center';
-  ctx.fillText('shrinking  <svg class="ico" aria-hidden="true"><use href="#i-arrow-left"/></svg><svg class="ico" aria-hidden="true"><use href="#i-arrow-right"/></svg> growing', 0, 0);
+  ctx.fillText('shrinking \u2014 growing', 0, 0);
   ctx.restore();
   ctx.textAlign = 'left';
 

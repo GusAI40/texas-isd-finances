@@ -489,6 +489,8 @@ hr, .rule {
 #masthead .mast-theme { background: none; border: 1px solid var(--rule);
   color: var(--ink-2); border-radius: var(--r-md); font: inherit;
   font-size: var(--fs-xs); padding: .2rem .6rem; cursor: pointer; }
-/* the masthead's toggle replaces every page-local one */
+/* the masthead's toggle replaces every page-local one — and so do the
+   page-local brand rows: one identity, not two stacked ones */
+body:has(#masthead) .brand:not(.m-brand) { display: none; }
 body:has(#masthead) .btn-theme, body:has(#masthead) #btn-theme { display: none; }
 @media (max-width: 640px) { #masthead .m-sub { display: none; } }
