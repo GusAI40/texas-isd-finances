@@ -3993,7 +3993,8 @@ function renderTexasDollar(tx) {
   // useful to disappear with it.
   ['', '-2'].forEach(sfx => {
     const g = $('tx-pennies' + sfx), c = $('tx-cap' + sfx);
-    if (g) g.innerHTML = grid;
+    if (!g || g.dataset.district) return;   // the reader's own dollar wins
+    g.innerHTML = grid;
     if (c) c.innerHTML = caption;
   });
 }
@@ -4004,6 +4005,7 @@ function renderTexasDollar(tx) {
 function updateHeroDollar() {
   const d = dollarParts(), g = $('tx-pennies'), c = $('tx-cap');
   if (!d || !g || !c) return;
+  g.dataset.district = '1';   // statewide render must never clobber this
   let n = 0;
   g.innerHTML = d.parts.map(p =>
     Array.from({ length: p.cents }, () =>
