@@ -582,7 +582,16 @@
   .welcome-strip b { color: var(--ink-2); font-weight: 600; }
   .hero-num { color: var(--blue); white-space: nowrap; }
   .nowrap { white-space: nowrap; }
-  .hero-row { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 2.8rem; align-items: start; }
+  .hero-row { display: block; }
+  .hero-grid { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+               gap: 3.5rem; align-items: center; }
+  @media (max-width: 1023px) { .hero-grid { grid-template-columns: 1fr; gap: 1.6rem; } }
+  .hero-fig .pennies { max-width: 560px; grid-template-columns: repeat(10, 1fr); gap: 4px; }
+  @media (prefers-reduced-motion: no-preference) {
+    .hero-fig .pennies i { opacity: 0; animation: penny-in .5s ease forwards; }
+    @keyframes penny-in { from { opacity: 0; transform: scale(.4); }
+                          to { opacity: 1; transform: scale(1); } }
+  }
   .hero-sub { color: var(--ink-2); font-size: var(--fs-base); max-width: 42rem; margin: 0 0 1rem; }
   .hero-truth { max-width: 42rem; margin: 0 0 1.1rem; padding: .55rem .9rem;
                 border-left: 3px solid var(--accent); background: var(--surface);
@@ -781,6 +790,8 @@
     the project may be paused — an administrator can wake it in the Supabase dashboard.</div>
 
   <section class="welcome" id="welcome" aria-labelledby="welcome-h">
+    <div class="hero-grid">
+    <div class="hero-left">
     <h1 class="welcome-h" id="welcome-h">Where your Texas school district's money comes from,
       where it goes, and what it buys.</h1>
     <p class="welcome-sub">A free, plain-English guide to all 1,310 Texas school districts — built
@@ -788,6 +799,13 @@
       spin, nothing to sell.</p>
     <p class="welcome-who">Made for the people the money belongs to — <b>parents, taxpayers, teachers,
       reporters, and school board members</b> — not the agencies that spend it.</p>
+    </div>
+    <figure class="hero-fig" id="welcome-fig">
+      <div class="pennies" id="tx-pennies-2" role="img"
+           aria-label="One hundred pennies showing where each cent of the statewide dollar goes"></div>
+      <figcaption id="tx-cap-2">Loading the statewide dollar…</figcaption>
+    </figure>
+    </div>
     <div class="welcome-cta">
       <a class="cta-primary" href="#search" id="wc-find"><svg class="ico" aria-hidden="true"><use href="#i-search"/></svg> Find your district</a>
       <a href="/feed"><svg class="ico" aria-hidden="true"><use href="#i-activity"/></svg> What's happening now</a>
@@ -844,6 +862,8 @@
 
   <section id="picker-section" class="hero" tabindex="-1">
     <div class="eyebrow">Storytelling with data · a story of Texas ISD</div>
+    <div class="hero-grid">
+    <div class="hero-left">
     <h2 class="hero-h" id="picker-title">Texas school districts spend
       <span class="hero-num" id="hero-num" style="opacity:.25">$—</span> a year. Here is where every penny goes.</h2>
     <p class="hero-sub" id="hero-sub"><b>What this is:</b> a public record of what every Texas school
@@ -865,7 +885,7 @@
       tell apart from zero.</b> What does move them is in here too.</p>
     <div class="credential" id="credential"></div>
     <div class="hero-row">
-      <div class="finder">
+      <div class="finder finder-solo">
         <label class="finder-lab" for="search" id="finder-lab"><span class="lbl-new">Find your district</span><span class="lbl-return">Look up a different district</span></label>
         <div class="row">
           <input type="search" id="search" placeholder="Start typing — Dallas, Katy, Alamo Heights…"
@@ -875,11 +895,13 @@
         <ul class="results" id="results"></ul>
         <div class="chips" id="quickpick"></div>
       </div>
-      <figure class="hero-fig">
-        <div class="pennies" id="tx-pennies" role="img"
-             aria-label="The statewide dollar shown as 100 pennies by category"></div>
-        <figcaption id="tx-cap">Loading the statewide dollar…</figcaption>
-      </figure>
+    </div>
+    </div>
+    <figure class="hero-fig" id="hero-fig">
+      <div class="pennies" id="tx-pennies" role="img"
+           aria-label="One hundred pennies showing where each cent of the dollar goes"></div>
+      <figcaption id="tx-cap">Loading the statewide dollar…</figcaption>
+    </figure>
     </div>
   </section>
 
@@ -2174,6 +2196,7 @@ async function loadDashboard(opts) {
     state.turnarounds = turnarounds; state.detail = detail; state.insights = insights;
     state.dollar = dollar; state.outcomes = outcomes; state.econ = econ; state.bonds = bonds; state.equity = equity; state.takeover = takeover;
     renderAll();
+    updateHeroDollar();
     wireReveals(); armCounters($('dash'));
     // Built here rather than inside renderAll: that function's exceptions are
     // swallowed by the catch below, so anything throwing late in it silently
@@ -3945,10 +3968,16 @@ const fmtBig = v => v >= 1e9 ? '$' + (v / 1e9).toFixed(1) + ' billion'
                 : v >= 1e6 ? '$' + Math.round(v / 1e6) + ' million' : fmtMoney(v);
 function renderTexasDollar(tx) {
   if (!tx || !tx.parts) return;
-  $('hero-num').textContent = fmtBig(tx.total_spend);
-  $('hero-num').style.opacity = '';
+  // On district views renderWelcomeFor has already rewritten the headline and
+  // #hero-num no longer exists. Unguarded, this line threw and took the whole
+  // penny figure with it — the hero's right column sat on "Loading…" forever.
+  const heroNum = $('hero-num');
+  if (heroNum) { heroNum.textContent = fmtBig(tx.total_spend); heroNum.style.opacity = ''; }
+  let _n = 0;
   const grid = tx.parts.map(p =>
-    Array(p.cents).fill(`<i style="background:${DOLLAR_COLORS[p.key] || '#c9c7be'}"></i>`).join('')).join('');
+    Array.from({ length: p.cents }, () =>
+      `<i style="background:${DOLLAR_COLORS[p.key] || '#c9c7be'};animation-delay:${(_n++) * 14}ms"></i>`
+    ).join('')).join('');
   const top = tx.parts[0], debt = tx.parts.find(p => p.key === 'debt');
   const caption =
     `<b>The Texas dollar, fiscal ${tx.year}.</b> Every one of the ${fmtNum(tx.districts)} districts pooled ` +
@@ -3968,6 +3997,25 @@ function renderTexasDollar(tx) {
     if (c) c.innerHTML = caption;
   });
 }
+/* Once a district is chosen, the hero's dollar becomes THEIRS: same 100
+   pennies, their categories, their caption — the page's data-art is about
+   the reader, not about Texas in the abstract. Falls back to the statewide
+   dollar untouched when the district payload is missing. */
+function updateHeroDollar() {
+  const d = dollarParts(), g = $('tx-pennies'), c = $('tx-cap');
+  if (!d || !g || !c) return;
+  let n = 0;
+  g.innerHTML = d.parts.map(p =>
+    Array.from({ length: p.cents }, () =>
+      `<i style="background:${p.color};animation-delay:${(n++) * 14}ms"></i>`).join('')).join('');
+  const top = d.parts[0], cls = d.parts.find(p => p.key === 'classroom');
+  c.innerHTML = `<b>${state.district.name}&rsquo;s dollar, fiscal ${d.year}.</b> ` +
+    `Every square is one penny of the ${fmtMoney(d.perStudent)} spent per student` +
+    (cls ? ` — ${cls.cents}¢ reaches classroom teaching` : '') +
+    (top && top.key !== 'classroom' ? `, ${top.cents}¢ goes to ${top.label.toLowerCase()}` : '') +
+    `. The full breakdown is one scroll away.`;
+}
+
 /* The credential line: what this report is actually made of. Every figure is
    read from the data at load, never typed in — if a source grows, this grows. */
 function renderCredential(s, tx) {
