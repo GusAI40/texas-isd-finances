@@ -127,3 +127,53 @@ ruff check . && python -m pytest tests/test_mcp.py -q
 If a tool's data source changes shape, the tool's test fails on the missing `limits`
 before it fails on anything else — which is the intended order, because a number without
 its caveat is worse than no number.
+
+
+## Multi round-trip requests (SEP-2322)
+
+Texas has thirteen district names that belong to two districts each — two Wylie
+ISDs, two Highland Park ISDs, two Northside ISDs. Guessing between them is not a
+theoretical risk here: it is how bond history was once attributed to the wrong
+district, and how one district's debt was nearly added to the statewide total
+twice.
+
+Any tool taking a `district_number` also accepts a name. When the name is unique
+statewide it is resolved silently. When it is not, the call does **not**
+complete — it returns an MRTR `input_required` result listing the real
+candidates with their enrolment, so whoever is choosing can tell them apart:
+
+```jsonc
+// -> tools/call  { "name": "district_debt",
+//                  "arguments": { "district_number": "Wylie ISD" } }
+{
+  "resultType": "input_required",
+  "inputRequests": {
+    "district_number": {
+      "method": "elicitation/create",
+      "params": {
+        "mode": "form",
+        "message": "'Wylie ISD' matches 2 Texas districts...",
+        "requestedSchema": {
+          "type": "object",
+          "properties": { "district_number": { "type": "string",
+                          "enum": ["043914", "221912"] } },
+          "required": ["district_number"]
+        }
+      }
+    }
+  }
+}
+
+// -> tools/call, NEW json-rpc id, same arguments plus the answer
+//    { ..., "inputResponses": { "district_number":
+//        { "action": "accept", "content": { "district_number": "043914" } } } }
+```
+
+There is deliberately **no `requestState`**. The spec has the client echo it
+only if the server provides one, and since the original arguments are re-sent
+there is nothing to remember — which keeps this genuinely stateless and leaves
+no opaque token anyone has to validate.
+
+Declining returns `isError` and looks nothing up. A name matching no district
+stays an ordinary `isError` too: a typo is something a model can fix by itself,
+and only a genuine ambiguity — where both answers are real — becomes a question.

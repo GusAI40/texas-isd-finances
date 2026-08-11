@@ -122,7 +122,12 @@ def error(rid: Any, code: int, message: str, data: Any = None) -> dict:
 def result(rid: Any, payload: dict) -> dict:
     """Every result carries `resultType` — required in this revision — and
     identifies the server, which is how a stateless client knows who answered
-    without a handshake to remember."""
+    without a handshake to remember.
+
+    `complete` unless the payload already declares otherwise: a tool that needs
+    the caller to choose between real alternatives returns `input_required`
+    (MRTR, SEP-2322) and must not be relabelled as finished.
+    """
     body = {"resultType": "complete", **payload}
     body.setdefault("_meta", {})[META_SERVER_INFO] = SERVER_INFO
     return {"jsonrpc": "2.0", "id": rid, "result": body}
@@ -139,7 +144,7 @@ def _origin_ok(origin: str | None, allowed: tuple[str, ...]) -> bool:
 def handle(
     raw: bytes,
     headers: dict[str, str],
-    call_tool: Callable[[str, dict], dict],
+    call_tool: Callable[..., dict],
     list_tools: Callable[[], list[dict]],
     instructions: str = "",
     allowed_origins: tuple[str, ...] = (),
@@ -251,8 +256,18 @@ def handle(
         args = params.get("arguments") or {}
         if not isinstance(args, dict):
             return 400, error(rid, INVALID_PARAMS, "params.arguments must be an object")
+        # MRTR (SEP-2322): a retry re-sends the original arguments plus the
+        # answers. There is deliberately no `requestState` — the spec has the
+        # client echo it only "if provided by the server", and since the
+        # arguments come back too there is nothing for this server to remember.
+        # Not minting one keeps it genuinely stateless and leaves no opaque
+        # token that would have to be validated.
+        replies = params.get("inputResponses")
+        if replies is not None and not isinstance(replies, dict):
+            return 400, error(rid, INVALID_PARAMS,
+                              "params.inputResponses must be an object")
         try:
-            payload = call_tool(tool, args)
+            payload = call_tool(tool, args, replies)
         except KeyError:
             # Unknown tool is a protocol error, not something a model can fix
             # by retrying with different arguments.

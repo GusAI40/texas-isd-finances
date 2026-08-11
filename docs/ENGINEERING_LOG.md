@@ -17,6 +17,60 @@ Entry template:
 
 ---
 
+## 2026-08-11 (later still) — MCP 2026-07-28 shipped final; we conform, and MRTR found a use
+
+**What changed:**
+- Audited `src/mcp_protocol.py` against the final release point by point:
+  version string, no handshake (SEP-2575), no `Mcp-Session-Id` (SEP-2567),
+  `Mcp-Method`/`Mcp-Name` routing with -32020 (SEP-2243), `ttlMs`+`cacheScope`
+  on list results (SEP-2549), `_meta` requirements, -32022, 404+-32601,
+  `resultType` on every result. **12/12 pass, no code change needed.**
+- **MRTR implemented (SEP-2322)** for ambiguous district names.
+  `NeedsInput` in `src/mcp_tools.py`; `resultType: "input_required"` with an
+  `inputRequests` / `elicitation/create` form; retry via `inputResponses`.
+  7 new tests. 522 pass.
+- **`instructions` now derives its figures from the artefact.**
+
+**Why:**
+The final release shipped what the RC described, so conformance was a
+verification job, not a migration. MRTR is the one genuinely new mechanism
+worth adopting here, and it maps exactly onto this project's oldest hazard:
+thirteen Texas district names belong to two districts each. Previously an
+ambiguous name returned prose telling the model to disambiguate — which works
+only if the model reads and obeys the prose. Now the call does not complete.
+That is the same instinct as everything else in this repo: make the system
+refuse rather than guess.
+
+**Gotchas:**
+- **The blog announcement is not the spec.** It confirmed conformance but says
+  nothing about `isError` vs protocol errors, the `tools` capability
+  declaration, `x-mcp-header` constraints, or the exact MRTR wire shape.
+  Reading `/specification/2026-07-28/server/tools` gave the real
+  `inputRequests` / `elicitation/create` / `inputResponses` structure. Building
+  MRTR from the summary would have shipped a non-conforming guess.
+- **My first probe of `find_district` "failed" because I passed `query`; the
+  schema says `name`.** The tool was fine. Worth remembering before reporting a
+  bug from a red result.
+- **`instructions` said "4,588 bond elections" and had for weeks** — hardcoded,
+  never updated by the refresh, and going into the context of every assistant
+  that connects. Stale numbers in server instructions are our stale numbers
+  repeated in somebody else's model. Now read from `bond_data.json`, with a
+  test.
+- **No `requestState` is minted.** The spec has clients echo it only if the
+  server provides one; the arguments are re-sent, so there is nothing to
+  remember. Minting one would have added an opaque token to validate for no
+  gain, in a server whose whole point is statelessness.
+- A name matching NOTHING stays `isError` rather than becoming a question. A
+  typo is self-correctable; only a real ambiguity — where both answers exist —
+  earns a round trip.
+- `compare_districts` catches `(ToolError, NeedsInput)`: one ambiguous name in
+  a list of six must skip that district, not abort the comparison.
+
+**Open items:** unchanged — deploy still blocked on the user, five credentials
+still to rotate, three SQL migrations still to apply.
+
+---
+
 ## 2026-08-11 (later) — Nothing was checking the live site
 
 **What changed:**

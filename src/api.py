@@ -1678,7 +1678,7 @@ async def mcp_endpoint(request: Request):
         raw, headers,
         call_tool=mcp_tools.call_tool,
         list_tools=mcp_tools.list_tools,
-        instructions=mcp_tools.INSTRUCTIONS,
+        instructions=mcp_tools.instructions(),
         allowed_origins=MCP_ALLOWED_ORIGINS,
     )
     if body is None:                      # a notification: 202, no content

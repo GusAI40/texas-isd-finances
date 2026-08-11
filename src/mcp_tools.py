@@ -33,17 +33,38 @@ from typing import Any, Callable
 from . import format as fmt
 
 # What an assistant is told this server is for, returned by server/discover.
-INSTRUCTIONS = (
+# The server's instructions go into the context of every assistant that
+# connects, so a stale figure here is a stale figure repeated by somebody
+# else's model with our name on it. This said "4,588 bond elections" for as
+# long as the bond layer was stale, and kept saying it after the refresh,
+# because it was a hand-typed constant that nothing checked.
+#
+# Counts are therefore read from the artefact rather than written down. The
+# prose is fixed; the numbers in it cannot drift from what the tools serve.
+_INSTRUCTIONS = (
     "Authoritative Texas school district finance data, built from the Texas "
     "Education Agency's own records (PEIMS fiscal 2009-2025, TEA Snapshot, "
-    "district STAAR, Comptroller property values, and 4,588 bond elections "
-    "since 1958). Use find_district first to turn a district name into its "
-    "six-digit TEA district number — Texas has thirteen pairs of districts "
-    "that share a name, so a name alone is not an identifier. Every result "
-    "carries a `limits` list describing what that data cannot show; quote "
-    "those limits when you use the numbers. Nothing here supports a claim "
-    "about any named individual."
+    "district STAAR, Comptroller property values) and the Texas Bond Review "
+    "Board's ballot record ({bonds} decided bond elections, {first}-{last}) "
+    "and debt register. Use find_district first to turn a district name into "
+    "its six-digit TEA district number — Texas has thirteen pairs of "
+    "districts that share a name, so a name alone is not an identifier. Every "
+    "result carries a `limits` list describing what that data cannot show; "
+    "quote those limits when you use the numbers. Nothing here supports a "
+    "claim about any named individual."
 )
+
+
+def instructions() -> str:
+    """The connect-time description, with its figures read from the data."""
+    meta = {}
+    try:
+        meta = (_api()._bonds() or {}).get("meta") or {}
+    except Exception:                     # noqa: BLE001 — never block a connect
+        pass
+    return _INSTRUCTIONS.format(
+        bonds=f"{meta.get('propositions'):,}" if meta.get("propositions") else "all",
+        first=meta.get("first_year", 1958), last=meta.get("last_year", "today"))
 
 
 def _api():
@@ -82,18 +103,84 @@ _big = fmt.big
 _title = fmt.district_name
 
 
+class NeedsInput(Exception):
+    """The call cannot proceed until a human picks between real alternatives.
+
+    Raised only for the one ambiguity this project has actually been burned by:
+    a district NAME that belongs to two districts. Texas has thirteen such
+    pairs, and guessing between them is how bond history was once attributed to
+    the wrong district and how one district's debt was nearly counted twice.
+
+    This is not an error the model can fix by trying harder — both answers are
+    real — so it becomes an MRTR `input_required` result rather than `isError`.
+    """
+
+    def __init__(self, key: str, message: str, schema: dict):
+        super().__init__(message)
+        self.key, self.message, self.schema = key, message, schema
+
+    def as_input_request(self) -> dict:
+        return {self.key: {"method": "elicitation/create",
+                           "params": {"mode": "form", "message": self.message,
+                                      "requestedSchema": self.schema}}}
+
+
+def _candidates(name: str) -> list[dict]:
+    """Districts whose name matches, with enrolment so a chooser can tell two
+    identically-named districts apart."""
+    q = str(name or "").strip().lower()
+    data = _need(_api()._fallback_index, "district index")
+    rows = [r for r in data.get("districts", [])
+            if str(r["district_name"]).lower() == q
+            or str(r["district_name"]).lower().startswith(q)]
+    sizes = {}
+    forensic = _api()._forensics()
+    if forensic:
+        sizes = {r["n"]: r.get("students") for r in forensic.get("table", [])}
+    return [{"district_number": r["district_number"],
+             "district_name": _title(r["district_name"]),
+             "students": sizes.get(r["district_number"])} for r in rows]
+
+
 def _resolve(number: str) -> str:
     """District numbers are six-digit STRINGS. `57905` is not Dallas ISD;
     `057905` is. Models drop leading zeros constantly, so accept the mistake
-    and repair it rather than 404ing on it."""
+    and repair it rather than 404ing on it.
+
+    A NAME is accepted only when it is unique statewide. Where it is not, the
+    call stops and asks — see NeedsInput.
+    """
     n = str(number or "").strip()
     if n.isdigit() and len(n) < 6:
         n = n.zfill(6)
-    if not (len(n) == 6 and n.isdigit()):
-        raise ToolError(
-            f"{number!r} is not a TEA district number. They are six digits, "
-            "e.g. 057905 for Dallas ISD. Use find_district to look one up.")
-    return n
+    if len(n) == 6 and n.isdigit():
+        return n
+
+    hits = _candidates(n)
+    if len(hits) == 1:
+        return hits[0]["district_number"]
+    if len(hits) > 1:
+        labels = {h["district_number"]:
+                  f"{h['district_name']} ({h['students']:,} students)"
+                  if h["students"] else h["district_name"]
+                  for h in hits}
+        raise NeedsInput(
+            "district_number",
+            f"{n!r} matches {len(hits)} Texas districts. They are different "
+            f"districts with the same name, and their figures are not "
+            f"interchangeable — choose which one is meant:\n"
+            + "\n".join(f"  {k}  {v}" for k, v in labels.items()),
+            {"type": "object",
+             "properties": {"district_number": {
+                 "type": "string",
+                 "enum": sorted(labels),
+                 "description": "; ".join(f"{k} = {v}" for k, v in labels.items())}},
+             "required": ["district_number"],
+             "additionalProperties": False})
+    raise ToolError(
+        f"{number!r} is not a TEA district number and matches no Texas "
+        "district. Numbers are six digits, e.g. 057905 for Dallas ISD. Use "
+        "find_district to look one up.")
 
 
 # --------------------------------------------------------------------------
@@ -347,7 +434,7 @@ def compare_districts(args: dict) -> tuple[str, dict]:
     for raw in nums:
         try:
             n = _resolve(raw)
-        except ToolError:
+        except (ToolError, NeedsInput):
             missing.append(str(raw))
             continue
         rec = data["districts"].get(n)
@@ -542,12 +629,35 @@ def list_tools() -> list[dict]:
     return [{k: v for k, v in t.items() if k != "handler"} for t in TOOLS]
 
 
-def call_tool(name: str, args: dict) -> dict:
+def call_tool(name: str, args: dict, input_responses: dict = None) -> dict:
     """Raises KeyError for an unknown tool — a protocol error. Anything the
-    model could fix by calling differently comes back as isError instead."""
+    model could fix by calling differently comes back as isError instead.
+
+    `input_responses` carries an MRTR reply (SEP-2322). When the previous call
+    returned `input_required`, the client re-sends the same arguments plus the
+    answer; it is merged in here so the handler never learns that a round trip
+    happened.
+    """
     tool = _BY_NAME[name]
+    for key, reply in (input_responses or {}).items():
+        if not isinstance(reply, dict):
+            continue
+        if reply.get("action") != "accept":
+            # Declined or cancelled. Nothing was done, and saying so plainly is
+            # better than proceeding with a guess — guessing between two
+            # same-named districts is the failure this whole path exists for.
+            return {"content": [{"type": "text", "text": (
+                f"No district was chosen, so nothing was looked up. "
+                f"Call {name} again with a six-digit district_number.")}],
+                "isError": True}
+        args = {**args, **(reply.get("content") or {})}
+        del key
     try:
         text, structured = tool["handler"](args)
+    except NeedsInput as e:
+        # Not an error: the server is asking, and the client must come back
+        # with a different JSON-RPC id per the spec.
+        return {"resultType": "input_required", "inputRequests": e.as_input_request()}
     except ToolError as e:
         return {"content": [{"type": "text", "text": str(e)}], "isError": True}
     except Exception as e:  # a bug here must not look like a data finding

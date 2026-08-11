@@ -408,3 +408,108 @@ def test_the_debt_tool_says_when_a_ratio_is_unknowable(client):
                "arguments": {"district_number": num}}).json()["result"]["content"][0]["text"]
     assert "not published" in text or "is not" in text
     assert "deferred" in text, "the debt itself is known and must still be stated"
+
+
+# --- MRTR: the protocol refuses to guess between two same-named districts ---
+#
+# SEP-2322 replaced server-initiated elicitation with multi round-trip requests.
+# It is used here for exactly one thing, and it is the failure this whole
+# project has been burned by most: thirteen Texas district names belong to two
+# districts each. Guessing between them is how bond history was attributed to
+# the wrong district and how one district's debt was nearly counted twice.
+#
+# Before this, an ambiguous name came back as prose telling the model to go and
+# disambiguate. That relies on the model reading and obeying the prose. MRTR
+# makes it structural: the call does not complete until someone chooses.
+
+def test_an_ambiguous_district_name_asks_instead_of_guessing(client):
+    r = rpc(client, "tools/call", {"name": "district_debt",
+            "arguments": {"district_number": "Wylie ISD"}}).json()["result"]
+    assert r["resultType"] == "input_required"
+    req = r["inputRequests"]["district_number"]
+    assert req["method"] == "elicitation/create"
+    assert req["params"]["mode"] == "form"
+    enum = req["params"]["requestedSchema"]["properties"]["district_number"]["enum"]
+    assert len(enum) == 2 and all(len(e) == 6 and e.isdigit() for e in enum)
+    # Enrolment has to be in the prompt: without it the two options are the
+    # same string and nobody can choose between them.
+    assert "students" in req["params"]["message"]
+
+
+def test_an_input_required_result_is_not_labelled_complete(client):
+    """Relabelling it would tell the client the call finished when it did not."""
+    r = rpc(client, "tools/call", {"name": "district_debt",
+            "arguments": {"district_number": "Wylie ISD"}}).json()["result"]
+    assert r["resultType"] != "complete"
+    assert "content" not in r, "an unfinished call must not carry an answer"
+
+
+def test_the_retry_carries_the_answer_and_completes(client):
+    """The spec has the client re-send the arguments plus inputResponses under
+    a different JSON-RPC id."""
+    first = rpc(client, "tools/call", {"name": "district_debt",
+                "arguments": {"district_number": "Wylie ISD"}}, rid=101).json()["result"]
+    pick = first["inputRequests"]["district_number"]["params"][
+        "requestedSchema"]["properties"]["district_number"]["enum"][0]
+    second = rpc(client, "tools/call", {
+        "name": "district_debt",
+        "arguments": {"district_number": "Wylie ISD"},
+        "inputResponses": {"district_number": {"action": "accept",
+                                               "content": {"district_number": pick}}},
+    }, rid=102).json()["result"]
+    assert second["resultType"] == "complete"
+    assert second["isError"] is False
+    assert pick in second["content"][0]["text"]
+
+
+def test_declining_the_choice_does_not_pick_one_anyway(client):
+    r = rpc(client, "tools/call", {
+        "name": "district_debt",
+        "arguments": {"district_number": "Wylie ISD"},
+        "inputResponses": {"district_number": {"action": "decline"}},
+    }).json()["result"]
+    assert r["isError"] is True
+    assert "nothing was looked up" in r["content"][0]["text"].lower()
+
+
+def test_a_name_unique_statewide_needs_no_round_trip(client):
+    """Asking when there is only one possible answer is friction, not safety."""
+    r = rpc(client, "tools/call", {"name": "district_debt",
+            "arguments": {"district_number": "Leander ISD"}}).json()["result"]
+    assert r["resultType"] == "complete"
+    assert "246913" in r["content"][0]["text"]
+
+
+def test_a_name_matching_nothing_is_still_a_plain_error(client):
+    """Not every failure is an ambiguity. A typo is something the model can fix
+    itself, so it stays isError rather than becoming a question."""
+    r = rpc(client, "tools/call", {"name": "district_debt",
+            "arguments": {"district_number": "Nowhere ISD"}}).json()["result"]
+    assert r["resultType"] == "complete" and r["isError"] is True
+    assert "find_district" in r["content"][0]["text"]
+
+
+def test_malformed_input_responses_are_rejected(client):
+    r = rpc(client, "tools/call", {"name": "district_debt",
+            "arguments": {"district_number": "057905"},
+            "inputResponses": "not-an-object"})
+    assert r.status_code == 400
+    assert r.json()["error"]["code"] == P.INVALID_PARAMS
+
+
+# --- the connect-time instructions must not go stale --------------------------
+
+def test_the_instructions_quote_the_data_not_a_hardcoded_number(client):
+    """These go into the context of every assistant that connects, so a stale
+    figure here is our stale figure repeated in somebody else's model. This
+    said '4,588 bond elections' for as long as the bond layer was stale — and
+    kept saying it after the refresh, because nothing checked it."""
+    import json as _json
+    d = rpc(client, "server/discover").json()["result"]
+    text = d["instructions"]
+    path = ROOT / "static" / "bond_data.json"
+    if path.exists():
+        meta = _json.loads(path.read_text())["meta"]
+        assert f"{meta['propositions']:,}" in text
+        assert str(meta["last_year"]) in text
+    assert "Bond Review Board" in text, "the publisher must be named correctly"
