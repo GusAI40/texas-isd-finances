@@ -1113,7 +1113,9 @@ async def get_district_insights(request: Request, district_number: str):
         peers = [dict(r) for r in rows if r["peer"] == 1]
         if me is None or len(peers) < 4:
             return {"year": year, "peer_count": len(peers), "insights": [],
-                    "note": "Not enough comparable peers for benchmarking."}
+                    "note": "Not enough comparable peers for benchmarking.",
+                    "absence": absences.no_insights(
+                        _district_name(district_number), len(peers))}
 
         enroll = me["enrollment"]
 
@@ -1169,6 +1171,10 @@ async def get_district_insights(request: Request, district_number: str):
             "enrollment": enroll,
             "net_variance_vs_peers": round(total_swing),
             "insights": insights[:6],
+            # No insight is itself an answer: this district spends where its
+            # peers spend. That read as a blank box before.
+            "absence": None if insights else absences.no_insights(
+                me["district_name"], len(peers)),
         }
 
 
@@ -1262,7 +1268,13 @@ async def get_district_economics(district_number: str):
     rec = data["districts"].get(district_number)
     if rec is None:
         raise HTTPException(status_code=404, detail="District not in the economics dataset")
-    return {"meta": data["meta"], "micro": data["micro"], **rec}
+    # A null tax block was rendering as a blank with nothing to explain it. The
+    # forensic layer already worked out whether that is "charter, levies none"
+    # or "withheld, estimates disagreed" — two opposite meanings — so reuse it
+    # rather than deriving the same sentence twice.
+    fx = (_forensics() or {}).get("districts", {}).get(district_number) or {}
+    return {"meta": data["meta"], "micro": data["micro"],
+            "absences": fx.get("absences", []), **rec}
 
 
 @app.get("/economics/texas", tags=["Statewide"])

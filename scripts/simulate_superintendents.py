@@ -274,13 +274,23 @@ def report(res: dict) -> dict:
     for s in steps:
         per_super[s["super"]].append(s)
     broken_journeys = Counter()
+    dead_end_journeys = Counter()
     clean = 0
+    clean_of_dead_ends = 0
     for sid, rows in per_super.items():
-        bad = [r for r in rows if r["status"] >= 400 or r["status"] == 0 or r["dead_end"]]
-        if bad:
+        http_bad = [r for r in rows if r["status"] >= 400 or r["status"] == 0]
+        dead = [r for r in rows if r["dead_end"]]
+        if http_bad or dead:
             broken_journeys[rows[0]["motive"]] += 1
         else:
             clean += 1
+        # The product metric. An http fault here is usually the network path
+        # this simulation runs through, not the app — mixing the two makes a
+        # real product improvement invisible behind transport noise.
+        if dead:
+            dead_end_journeys[rows[0]["motive"]] += 1
+        else:
+            clean_of_dead_ends += 1
 
     lat_all = sorted(s["ms"] for s in steps)
     slow = sorted(by_step.items(),
@@ -293,6 +303,12 @@ def report(res: dict) -> dict:
         "wall_s": round(res["wall_s"], 1),
         "clean_journeys": clean,
         "clean_journey_pct": round(clean / n * 100, 1),
+        "clean_of_dead_ends": clean_of_dead_ends,
+        "clean_of_dead_ends_pct": round(clean_of_dead_ends / n * 100, 1),
+        "dead_end_journeys_by_motive": {
+            m: {"with_dead_end": dead_end_journeys[m],
+                "of": sum(1 for s2 in res["supers"] if s2["motive"] == m)}
+            for m in PERSONAS},
         "broken_by_motive": {m: {"broken": broken_journeys[m],
                                  "of": sum(1 for s in res["supers"] if s["motive"] == m)}
                              for m in PERSONAS},
@@ -333,7 +349,11 @@ def main() -> int:
     rep = report(res)
 
     print(f"\n{rep['requests']:,} requests in {rep['wall_s']}s")
-    print(f"journeys with no fault: {rep['clean_journeys']:,}/{rep['superintendents']:,} "
+    print(f"journeys with NO DEAD END (the product metric): "
+          f"{rep['clean_of_dead_ends']:,}/{rep['superintendents']:,} "
+          f"({rep['clean_of_dead_ends_pct']}%)")
+    print(f"journeys with no fault of any kind, transport included: "
+          f"{rep['clean_journeys']:,}/{rep['superintendents']:,} "
           f"({rep['clean_journey_pct']}%)")
     L = rep["latency_ms"]
     print(f"latency p50 {L['p50']}ms  p95 {L['p95']}ms  p99 {L['p99']}ms  max {L['max']}ms")

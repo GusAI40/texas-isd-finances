@@ -155,6 +155,26 @@ def no_trend(name: str, years_reported: int, needed: int = 8) -> dict:
         years_reported=years_reported, years_needed=needed)
 
 
+def no_insights(name: str, peer_count: int, minimum: int = 4) -> dict:
+    """14 dead ends in the re-run. Two different situations rendered the same:
+    too few peers to compare against, and enough peers with nothing that stood
+    out. The second is a finding."""
+    if peer_count < minimum:
+        return absence(
+            "insights", NOT_MEASURED,
+            f"Only {peer_count} districts are close enough to {name} in size and "
+            f"student need to benchmark against, and {minimum} are needed for a "
+            f"comparison to mean anything. This is too small a peer group, not "
+            f"an absence of differences.",
+            peer_count=peer_count, minimum=minimum)
+    return absence(
+        "insights", DID_NOT_HAPPEN,
+        f"{name} does not differ materially from the {peer_count} districts most "
+        f"like it on any measure large enough to report. Spending where its peers "
+        f"spend is a result, not a gap in the data.",
+        peer_count=peer_count)
+
+
 def no_equity_record(name: str) -> dict:
     """115 districts, 33,362 students."""
     return absence(
