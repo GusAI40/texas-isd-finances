@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iNiIgZmlsbD0iI2ZmZiIvPjxyZWN0IHg9IjUiIHk9IjUiIHdpZHRoPSI5IiBoZWlnaHQ9IjkiIHJ4PSIxLjUiIGZpbGw9IiMyYTc4ZDYiLz48cmVjdCB4PSIxOCIgeT0iNSIgd2lkdGg9IjkiIGhlaWdodD0iOSIgcng9IjEuNSIgZmlsbD0iIzJhNzhkNiIvPjxyZWN0IHg9IjUiIHk9IjE4IiB3aWR0aD0iOSIgaGVpZ2h0PSI5IiByeD0iMS41IiBmaWxsPSIjMmE3OGQ2Ii8+PHJlY3QgeD0iMTgiIHk9IjE4IiB3aWR0aD0iOSIgaGVpZ2h0PSI5IiByeD0iMS41IiBmaWxsPSIjYjhiNmFkIi8+PC9zdmc+">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<script>
+  try {
+    var _t = localStorage.getItem('tisd_theme');
+    if (!_t && window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches) _t = 'dark';
+    if (_t === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+  } catch (e) {}
+</script>
+<meta name="description" content="Every number on this site, traced to the government file it came from: publisher, download link, exact column, the arithmetic, and the test that re-derives it. Check it yourself.">
+<link rel="canonical" href="https://txisd.dev/sources">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://txisd.dev/sources">
+<meta property="og:title" content="Where every number comes from — Texas ISD Financial Resource Guide">
+<meta property="og:description" content="Seven public sources, thirteen published measures, each tied to its exact column and the test that re-derives it from the state's own file. No login, no records request.">
+<title>Where every number comes from — Texas ISD Financial Resource Guide</title>
+<!-- design-system:start -->
+<link rel="stylesheet" href="/static/design.css">
+<!-- design-system:end -->
+<style>
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); line-height:var(--lh-body);
+         font-family:var(--font-sans); font-size:var(--fs-base); }
+  .skiplink { position:absolute; left:-9999px; top:0; z-index:100; background:var(--surface);
+              color:var(--ink); padding:.6rem 1rem; border:1px solid var(--ink); border-radius:var(--r-sm); }
+  .skiplink:focus { left:.5rem; top:.5rem; }
+  @media (prefers-reduced-motion: reduce){ *{animation:none!important;transition:none!important} }
+  .shell { max-width:var(--page-max); margin:0 auto; padding:0 var(--s-5) var(--s-8); }
+  header { padding:var(--s-5) 0 var(--s-1); display:flex; align-items:baseline; flex-wrap:wrap; }
+  .brand { font-weight:var(--fw-bold); letter-spacing:var(--tracking-tight); }
+  .brand a { color:var(--accent); text-decoration:none; font-weight:var(--fw-regular);
+             font-size:var(--fs-sm); margin-left:.7rem; }
+  .btn-theme { background:none; border:1px solid var(--rule); color:var(--ink-2);
+               border-radius:var(--r-md); font:inherit; font-size:var(--fs-xs);
+               padding:.15rem .5rem; margin-left:.7rem; cursor:pointer; }
+  .eyebrow { font-size:var(--fs-micro); letter-spacing:var(--tracking-eyebrow);
+             text-transform:uppercase; color:var(--ink-3); font-weight:var(--fw-bold);
+             margin:var(--s-6) 0 var(--s-2); }
+  h1 { font-family:var(--font-serif); font-weight:600; font-size:var(--fs-display);
+       line-height:var(--lh-tight); letter-spacing:var(--tracking-tight);
+       margin:.2rem 0 var(--s-3); max-width:20ch; text-wrap:balance; }
+  h2 { font-family:var(--font-serif); font-weight:600; font-size:var(--fs-xl);
+       margin:var(--s-7) 0 var(--s-2); }
+  h3 { font-size:var(--fs-lg); font-weight:var(--fw-bold); margin:0 0 .2rem; }
+  p { max-width:var(--measure); }
+  .lede { font-size:var(--fs-md); color:var(--ink-2); max-width:44rem; }
+  .sub-note { font-size:var(--fs-sm); color:var(--ink-3); max-width:46rem; }
+  .srcs { display:grid; gap:var(--s-4); grid-template-columns:1fr; margin:var(--s-4) 0; }
+  @media (min-width:780px) { .srcs { grid-template-columns:1fr 1fr; } }
+  .src { border:1px solid var(--rule); border-radius:var(--r-lg); padding:var(--s-4);
+         background:var(--surface); }
+  .src p { margin:.35rem 0; font-size:var(--fs-sm); }
+  .src .pub { color:var(--ink-3); font-size:var(--fs-micro); text-transform:uppercase;
+              letter-spacing:.05em; }
+  .src .warn { color:var(--warn); }
+  .dl { color:var(--accent); text-decoration:none; font-weight:var(--fw-medium); }
+  .dl:hover { text-decoration:underline; }
+  .tablewrap { overflow-x:auto; }
+  table { border-collapse:collapse; width:100%; font-size:var(--fs-sm); min-width:52rem; }
+  th, td { text-align:left; padding:.55rem .7rem; border-bottom:1px solid var(--rule);
+           vertical-align:top; }
+  thead th { font-size:var(--fs-micro); text-transform:uppercase; letter-spacing:.06em;
+             color:var(--ink-3); border-bottom:1px solid var(--rule-2); }
+  .mono { font-family:var(--font-mono); font-size:var(--fs-xs); }
+  .cols { color:var(--ink-3); max-width:18rem; word-break:break-all; }
+  .steps li { margin:.5rem 0; max-width:46rem; }
+  pre { background:var(--surface-2); border:1px solid var(--rule); border-radius:var(--r-md);
+        padding:var(--s-3); overflow-x:auto; font-family:var(--font-mono);
+        font-size:var(--fs-xs); }
+  .fingerprint { border:1px solid var(--rule); border-radius:var(--r-lg);
+                 background:var(--surface-2); padding:var(--s-4); margin-top:var(--s-4); }
+  .fingerprint dl { margin:0; font-size:var(--fs-sm); }
+  .fingerprint div { display:flex; justify-content:space-between; gap:var(--s-3);
+                     padding:.3rem 0; border-top:1px solid var(--rule); }
+  .fingerprint dt { color:var(--ink-3); }
+  .fingerprint dd { margin:0; font-family:var(--font-mono); font-size:var(--fs-xs);
+                    word-break:break-all; text-align:right; }
+  .limits li { margin:.45rem 0; max-width:46rem; color:var(--ink-2); font-size:var(--fs-sm); }
+  .foot { color:var(--ink-3); font-size:var(--fs-xs); margin-top:var(--s-6);
+          padding-top:var(--s-4); border-top:1px solid var(--rule); max-width:52rem; }
+</style>
+</head>
+<body>
+<!-- icon-sprite:start -->
+<svg class="icon-sprite" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg"><defs>
+
+  <!-- navigation and controls -->
+  <symbol id="i-search" viewBox="0 0 16 16"><circle cx="7" cy="7" r="4.25"/><path d="M10.2 10.2 14 14"/></symbol>
+  <symbol id="i-pin" viewBox="0 0 16 16"><path d="M8 14.5s5-4.6 5-8a5 5 0 1 0-10 0c0 3.4 5 8 5 8Z"/><circle cx="8" cy="6.5" r="1.9"/></symbol>
+  <symbol id="i-map" viewBox="0 0 16 16"><path d="M1.75 4 6 2.25l4 1.75 4.25-1.75v9.5L10 13.75l-4-1.75-4.25 1.75V4Z"/><path d="M6 2.25v9.75M10 4v9.75"/></symbol>
+  <symbol id="i-grid" viewBox="0 0 16 16"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></symbol>
+  <symbol id="i-layers" viewBox="0 0 16 16"><path d="M8 1.75 14.25 5 8 8.25 1.75 5 8 1.75Z"/><path d="m1.75 8.5 6.25 3.25 6.25-3.25"/><path d="m1.75 11.5 6.25 3.25 6.25-3.25"/></symbol>
+  <symbol id="i-activity" viewBox="0 0 16 16"><path d="M1.5 8.5h3l2-5 3 10 2-5h3"/></symbol>
+  <symbol id="i-book" viewBox="0 0 16 16"><path d="M2.5 2.75h4A2 2 0 0 1 8 4.5v9a1.7 1.7 0 0 0-1.4-1H2.5Z"/><path d="M13.5 2.75h-4A2 2 0 0 0 8 4.5v9a1.7 1.7 0 0 1 1.4-1h4.1Z"/></symbol>
+  <symbol id="i-play" viewBox="0 0 16 16"><path d="M5.25 3.4v9.2l7-4.6-7-4.6Z"/></symbol>
+  <symbol id="i-print" viewBox="0 0 16 16"><path d="M4.5 6V2.5h7V6"/><path d="M4.5 11.5h-2v-4a1 1 0 0 1 1-1h9a1 1 0 0 1 1 1v4h-2"/><rect x="4.5" y="9.5" width="7" height="4"/></symbol>
+  <symbol id="i-contrast" viewBox="0 0 16 16"><circle cx="8" cy="8" r="5.75"/><path d="M8 2.25a5.75 5.75 0 0 1 0 11.5Z" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-close" viewBox="0 0 16 16"><path d="m4 4 8 8M12 4l-8 8"/></symbol>
+  <symbol id="i-download" viewBox="0 0 16 16"><path d="M8 2.5v7.5"/><path d="m4.75 7 3.25 3.25L11.25 7"/><path d="M2.75 13h10.5"/></symbol>
+  <symbol id="i-external" viewBox="0 0 16 16"><path d="M9 2.75h4.25V7"/><path d="M13.25 2.75 7.5 8.5"/><path d="M12 9.75v2.5a1 1 0 0 1-1 1H3.75a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h2.5"/></symbol>
+
+  <!-- direction -->
+  <symbol id="i-arrow-right" viewBox="0 0 16 16"><path d="M2.75 8h10.5"/><path d="M9.5 4.25 13.25 8 9.5 11.75"/></symbol>
+  <symbol id="i-arrow-left" viewBox="0 0 16 16"><path d="M13.25 8H2.75"/><path d="M6.5 4.25 2.75 8l3.75 3.75"/></symbol>
+  <symbol id="i-arrow-down" viewBox="0 0 16 16"><path d="M8 2.75v10.5"/><path d="M4.25 9.5 8 13.25 11.75 9.5"/></symbol>
+  <symbol id="i-chevron-down" viewBox="0 0 16 16"><path d="m4 6 4 4 4-4"/></symbol>
+  <symbol id="i-chevron-up" viewBox="0 0 16 16"><path d="m4 10 4-4 4 4"/></symbol>
+  <symbol id="i-chevron-right" viewBox="0 0 16 16"><path d="m6 4 4 4-4 4"/></symbol>
+  <symbol id="i-trend-up" viewBox="0 0 16 16"><path d="M1.75 11.5 6 7.25l2.5 2.5 5.75-5.75"/><path d="M10.25 4h4v4"/></symbol>
+  <symbol id="i-trend-down" viewBox="0 0 16 16"><path d="M1.75 4.5 6 8.75l2.5-2.5 5.75 5.75"/><path d="M10.25 12h4V8"/></symbol>
+
+  <!-- editorial beats: one mark per category on the feed -->
+  <symbol id="i-institution" viewBox="0 0 16 16"><path d="M2 6.25 8 2.5l6 3.75"/><path d="M3.5 6.75v5.5M6.5 6.75v5.5M9.5 6.75v5.5M12.5 6.75v5.5"/><path d="M2 13.25h12"/></symbol>
+  <symbol id="i-exit" viewBox="0 0 16 16"><path d="M9.5 2.75H4a1 1 0 0 0-1 1v8.5a1 1 0 0 0 1 1h5.5"/><path d="M7 8h6.25"/><path d="M11 5.5 13.5 8 11 10.5"/></symbol>
+  <symbol id="i-money" viewBox="0 0 16 16"><rect x="1.75" y="4" width="12.5" height="8" rx="1.25"/><circle cx="8" cy="8" r="1.9"/><path d="M4.25 8h.01M11.75 8h.01"/></symbol>
+  <symbol id="i-chart" viewBox="0 0 16 16"><path d="M2.25 13.25h11.5"/><path d="M4.5 13V8.5M8 13V3.5M11.5 13V6.5"/></symbol>
+  <symbol id="i-scale" viewBox="0 0 16 16"><path d="M8 2.75v10.5"/><path d="M4.5 13.25h7"/><path d="M3 5.5h10"/><path d="M3 5.5 1.25 9.5h3.5L3 5.5Z"/><path d="M13 5.5 11.25 9.5h3.5L13 5.5Z"/></symbol>
+  <symbol id="i-people" viewBox="0 0 16 16"><circle cx="6" cy="5.5" r="2.25"/><path d="M1.75 13.25c0-2.2 1.9-3.75 4.25-3.75s4.25 1.55 4.25 3.75"/><path d="M11 4.1a2.25 2.25 0 0 1 0 4.3"/><path d="M11.75 9.9c1.5.45 2.5 1.6 2.5 3.35"/></symbol>
+  <symbol id="i-build" viewBox="0 0 16 16"><path d="M2.5 13.25h11"/><path d="M4.25 13.25V6.5h4.5v6.75"/><path d="M8.75 13.25V3.5h3v9.75"/><path d="M5.75 8.75h1.5M5.75 11h1.5"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 16 16"><path d="M8 2.5 14.5 13.5h-13L8 2.5Z"/><path d="M8 6.75v3"/><path d="M8 11.75h.01"/></symbol>
+  <symbol id="i-ballot" viewBox="0 0 16 16"><rect x="2" y="7" width="12" height="6.5" rx="1"/><path d="M5 7V3.5h6V7"/><path d="m6.25 5 1.25 1.25L10 3.75"/></symbol>
+  <symbol id="i-marker" viewBox="0 0 16 16"><circle cx="8" cy="8" r="2.5" fill="currentColor" stroke="none"/><circle cx="8" cy="8" r="5.5"/></symbol>
+
+</defs></svg>
+<!-- icon-sprite:end -->
+<a class="skiplink" href="#sources">Skip to the sources</a>
+<div class="shell">
+  <header>
+    <div class="brand">Texas ISD <span>&middot;</span> Sources<a href="/"><svg class="ico" aria-hidden="true"><use href="#i-arrow-left"/></svg> portal</a><a href="/forensics">forensic file</a><a href="/about">why this exists</a><button class="btn-theme" id="btnTheme" type="button" aria-label="Toggle dark mode"><svg class="ico" aria-hidden="true"><use href="#i-contrast"/></svg> Theme</button></div>
+  </header>
+
+  <p class="eyebrow">Seven public sources &middot; 13 published measures &middot; nothing behind a login</p>
+  <h1>Where every number comes from</h1>
+  <p class="lede">&ldquo;Is this accurate?&rdquo; is not a question you should have to
+     take on trust. Below is every government file this site is built from, with a
+     download link, and every published figure tied to the exact column it came from,
+     the arithmetic done to it, and the test that recomputes it from the state&rsquo;s
+     own file. Nothing here requires a login, a licence or a records request &mdash;
+     you can repeat this work from scratch.</p>
+
+  <h2 id="sources">The sources</h2>
+  <div class="srcs">
+<article class="src" id="src-tea_peims">
+  <h3>Summarized PEIMS Actual Financial Data</h3>
+  <p class="pub">Texas Education Agency &middot; fiscal 2009–2025, every Texas school district</p>
+  <p>revenue, spending by object and by function, debt service, capital outlay, payroll, enrolment.</p>
+  <p><a class="dl" href="https://tea.texas.gov/finance-and-grants/state-funding/state-funding-reports-and-data/peims-financial-data-downloads" rel="noopener">Download the original
+     <svg class="ico" aria-hidden="true"><use href="#i-external"/></svg></a></p>
+  <p class="warn">Districts file this with TEA and it is corrected over time. The newest year has had the least time to be corrected.</p>
+</article>
+<article class="src" id="src-tea_snapshot">
+  <h3>Snapshot — District and Charter Detail</h3>
+  <p class="pub">Texas Education Agency &middot; 2009–2024</p>
+  <p>student demographics, teacher counts, turnover, experience and salary, class size, attendance, graduation, STAAR at three bars, county and region.</p>
+  <p><a class="dl" href="https://rptsvr1.tea.texas.gov/perfreport/snapshot/download.html" rel="noopener">Download the original
+     <svg class="ico" aria-hidden="true"><use href="#i-external"/></svg></a></p>
+  
+</article>
+<article class="src" id="src-tea_staar_district">
+  <h3>STAAR Aggregate District-Level Results</h3>
+  <p class="pub">Texas Education Agency &middot; school years 2024 and 2025</p>
+  <p>results by student group, including economically disadvantaged students specifically.</p>
+  <p><a class="dl" href="https://tea.texas.gov/student-assessment/student-assessment-results/statewide-summary-reports" rel="noopener">Download the original
+     <svg class="ico" aria-hidden="true"><use href="#i-external"/></svg></a></p>
+  <p class="warn">District-level aggregates are also downloadable from the Texas Assessment Research Portal at https://txresearchportal.com/ .</p>
+</article>
+<article class="src" id="src-tea_property">
+  <h3>School District Property Values and Tax Rates</h3>
+  <p class="pub">Texas Education Agency with the Texas Comptroller &middot; certified property values tax years 2015–2025; adopted tax rates 2005-06 to 2023-24</p>
+  <p>taxable value, M&amp;O and I&amp;S tax rates.</p>
+  <p><a class="dl" href="https://tea.texas.gov/finance-and-grants/state-funding/additional-finance-resources/school-district-property-values-and-tax-rates" rel="noopener">Download the original
+     <svg class="ico" aria-hidden="true"><use href="#i-external"/></svg></a></p>
+  <p class="warn">Tax year N is TEA fiscal year N+1. Figures are withheld where two independent estimates of the tax base disagree by &gt;25%.</p>
+</article>
+<article class="src" id="src-tea_recapture">
+  <h3>Excess Local Revenue (recapture) paid by district</h3>
+  <p class="pub">Texas Education Agency &middot; fiscal 1994–2026</p>
+  <p>how much local tax revenue each district sends back to the state.</p>
+  <p><a class="dl" href="https://tea.texas.gov/finance-and-grants/state-funding/excess-local-revenue" rel="noopener">Download the original
+     <svg class="ico" aria-hidden="true"><use href="#i-external"/></svg></a></p>
+  
+</article>
+<article class="src" id="src-bond_elections">
+  <h3>Texas school district bond election results</h3>
+  <p class="pub">Compiled county election returns (Texas Secretary of State, elections division) &middot; 4,588 decided propositions, 1958–2024</p>
+  <p>what school debt was asked FOR, the amount, and whether voters carried or defeated it.</p>
+  <p><a class="dl" href="https://www.sos.state.tx.us/elections/index.shtml" rel="noopener">Download the original
+     <svg class="ico" aria-hidden="true"><use href="#i-external"/></svg></a></p>
+  <p class="warn">The compiled file is redistributed as this site&#x27;s own artefact at https://txisd.dev/bonds/texas because no single agency publishes school bond elections statewide — they are county returns. The only layer joined on district NAME rather than TEA number. scripts/audit_bond_match.py prints the whole join and fails the build if a shared name is resolved without the county agreeing. Two companion files from the same vendor carry a private CRM and are deliberately never ingested.</p>
+</article>
+<article class="src" id="src-census_tiger">
+  <h3>TIGER/Line Unified School Districts, Texas</h3>
+  <p class="pub">US Census Bureau (public domain) &middot; 2024 boundaries, 1,005 districts</p>
+  <p>district geographic boundaries.</p>
+  <p><a class="dl" href="https://www2.census.gov/geo/tiger/TIGER2024/UNSD/tl_2024_48_unsd.zip" rel="noopener">Download the original
+     <svg class="ico" aria-hidden="true"><use href="#i-external"/></svg></a></p>
+  <p class="warn">Charter districts have no attendance boundary, so ~8% of students are not on the map by construction.</p>
+</article>
+<article class="src" id="src-bls_cpi">
+  <h3>CPI-U, annual average</h3>
+  <p class="pub">US Bureau of Labor Statistics &middot; 2009–2025</p>
+  <p>converting past dollars to constant 2024 dollars.</p>
+  <p><a class="dl" href="https://www.bls.gov/cpi/" rel="noopener">Download the original
+     <svg class="ico" aria-hidden="true"><use href="#i-external"/></svg></a></p>
+  
+</article>
+  </div>
+
+  <h2>Every published measure</h2>
+  <p class="sub-note">If a figure appears on this site and is not in this table, that
+     is a bug &mdash; please report it.</p>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Measure</th><th>Source</th><th>Columns used</th><th>How it is computed</th><th>Re-derived by</th></tr></thead>
+    <tbody>
+<tr>
+  <td><b>Spending per student</b><br><span class="mono">/district/{n}/summary</span></td>
+  <td><a href="#src-tea_peims">Summarized PEIMS Actual Financial Data</a></td>
+  <td class="mono cols">all_funds_total_operating_expenditures_by_obj<br>all_funds_total_debt_service_expend_by_obj<br>fall_survey_enrollment</td>
+  <td>Operating spend plus debt service, divided by fall enrolment. Composed, never subtracted — TEA&#x27;s operating total excludes debt service.</td>
+  <td class="mono">test_statewide_debt_total_recomputes_from_source</td>
+</tr>
+<tr>
+  <td><b>Share of the operating dollar reaching a classroom</b><br><span class="mono">/trends/texas</span></td>
+  <td><a href="#src-tea_peims">Summarized PEIMS Actual Financial Data</a></td>
+  <td class="mono cols">all_funds_instruction_transfer_expend_fct11_95<br>all_funds_total_operating_expenditures_by_obj</td>
+  <td>Function 11–95 (instruction) as a percentage of total operating expenditure, summed across districts.</td>
+  <td class="mono">test_instruction_share_recomputes_from_source</td>
+</tr>
+<tr>
+  <td><b>Debt service per student</b><br><span class="mono">/district/{n}/forensics</span></td>
+  <td><a href="#src-tea_peims">Summarized PEIMS Actual Financial Data</a></td>
+  <td class="mono cols">all_funds_total_debt_service_expend_by_obj<br>fall_survey_enrollment</td>
+  <td>Debt service divided by enrolment, deflated to constant 2024 dollars with CPI-U.</td>
+  <td class="mono">test_debt_per_student_recomputes_from_source</td>
+</tr>
+<tr>
+  <td><b>Security and monitoring per student</b><br><span class="mono">/trends/texas</span></td>
+  <td><a href="#src-tea_peims">Summarized PEIMS Actual Financial Data</a></td>
+  <td class="mono cols">all_funds_security_monitoring_service_expend_fct52<br>fall_survey_enrollment</td>
+  <td>Function 52 divided by enrolment, in constant 2024 dollars.</td>
+  <td class="mono">test_security_per_student_recomputes_from_source</td>
+</tr>
+<tr>
+  <td><b>Operating revenue minus operating spending</b><br><span class="mono">/trends/texas</span></td>
+  <td><a href="#src-tea_peims">Summarized PEIMS Actual Financial Data</a></td>
+  <td class="mono cols">all_funds_total_operating_revenue<br>all_funds_total_operating_expenditures_by_obj</td>
+  <td>Operating revenue against operating spending ONLY. Debt service is excluded from the cost side and the I&amp;S debt levy (all_funds_other_revenue) from the income side — it tracks debt service to within 15% every year, so counting it as operating income understates deficits badly.</td>
+  <td class="mono">test_the_operating_deficit_uses_operating_revenue_only</td>
+</tr>
+<tr>
+  <td><b>Who pays: local, state and federal shares</b><br><span class="mono">/district/{n}/economics</span></td>
+  <td><a href="#src-tea_peims">Summarized PEIMS Actual Financial Data</a></td>
+  <td class="mono cols">all_funds_local_tax_revenue_from_m_o<br>all_funds_state_revenue<br>all_funds_federal_revenue</td>
+  <td>Shares of GROSS local collections. TEA reports M&amp;O revenue net of recapture, which makes a paying district look less locally funded than it is.</td>
+  <td class="mono">test_local_revenue_is_gross_not_net_of_recapture</td>
+</tr>
+<tr>
+  <td><b>School tax on a $300,000 home</b><br><span class="mono">/district/{n}/economics</span></td>
+  <td><a href="#src-tea_property">School District Property Values and Tax Rates</a></td>
+  <td class="mono cols">adopted M&amp;O rate<br>adopted I&amp;S rate</td>
+  <td>Adopted total rate applied to a $300,000 taxable value. Null for charters (no property tax) and where two independent estimates of the tax base disagree by more than 25%.</td>
+  <td class="mono">test_the_revenue_shares_are_a_whole_dollar</td>
+</tr>
+<tr>
+  <td><b>Recapture paid to the state</b><br><span class="mono">/district/{n}/economics</span></td>
+  <td><a href="#src-tea_recapture">Excess Local Revenue (recapture) paid by district</a></td>
+  <td class="mono cols">recapture paid by district</td>
+  <td>As published by TEA, divided by enrolment.</td>
+  <td class="mono">test_local_revenue_is_gross_not_net_of_recapture</td>
+</tr>
+<tr>
+  <td><b>Every bond proposition and how the vote went</b><br><span class="mono">/district/{n}/bonds</span></td>
+  <td><a href="#src-bond_elections">Texas school district bond election results</a></td>
+  <td class="mono cols">Issuer<br>County<br>Elect. Date<br>$ Amount<br>Purpose Description<br>Result<br>Votes For<br>Votes Against</td>
+  <td>Matched to TEA district numbers by stemmed name plus county — Texas has thirteen pairs of districts sharing a name. 100% matched, 0 resolved without the county agreeing.</td>
+  <td class="mono">test_published_bond_data_matched_everything_and_says_how</td>
+</tr>
+<tr>
+  <td><b>Results against what student need predicts</b><br><span class="mono">/district/{n}/outcomes</span></td>
+  <td><a href="#src-tea_snapshot">Snapshot — District and Charter Detail</a></td>
+  <td class="mono cols">test_all_meets<br>pct_econ_disadv<br>pct_emergent_bilingual<br>pct_special_ed</td>
+  <td>Least squares of the Meets rate on three need measures; the published figure is the residual. The model explains about half the spread between districts — it is an estimate with real uncertainty, not a fact.</td>
+  <td class="mono">test_percentiles_are_in_range_and_mean_the_same_thing_everywhere</td>
+</tr>
+<tr>
+  <td><b>How a district&#x27;s low-income students do</b><br><span class="mono">/district/{n}/equity</span></td>
+  <td><a href="#src-tea_staar_district">STAAR Aggregate District-Level Results</a></td>
+  <td class="mono cols">economically disadvantaged group, Meets grade level</td>
+  <td>Reported at the Meets bar and benchmarked against poor students statewide — never as a gap, which correlates about zero with how poor students actually do.</td>
+  <td class="mono">tests/test_api.py</td>
+</tr>
+<tr>
+  <td><b>District boundaries on the map</b><br><span class="mono">/district-geo</span></td>
+  <td><a href="#src-census_tiger">TIGER/Line Unified School Districts, Texas</a></td>
+  <td class="mono cols">GEOID<br>geometry</td>
+  <td>Joined to TEA district numbers. Geolocation is resolved entirely in the browser; a visitor&#x27;s location is never sent anywhere.</td>
+  <td class="mono">tests/test_static_pages.py</td>
+</tr>
+<tr>
+  <td><b>Constant 2024 dollars</b><br><span class="mono">/economics/texas</span></td>
+  <td><a href="#src-bls_cpi">CPI-U, annual average</a></td>
+  <td class="mono cols">CPI-U annual average</td>
+  <td>One price base for the whole site. The trend layer reuses the economics layer&#x27;s factors rather than defining a second.</td>
+  <td class="mono">test_debt_per_student_recomputes_from_source</td>
+</tr>
+    </tbody>
+  </table></div>
+
+  <h2>How to check it yourself</h2>
+  <ol class="steps">
+<li><b>Download the original.</b> Every source above links to the agency&#x27;s own download page. None requires a login or a records request.</li>
+<li><b>Read the exact column.</b> Each measure names the columns it uses and the arithmetic in one sentence. No figure on this site is derived from a column that is not listed.</li>
+<li><b>Run the re-derivation tests.</b> `python -m pytest tests/test_provenance.py` recomputes every headline from the state&#x27;s own file, longhand, without importing any build script — so a wrong number cannot validate itself.</li>
+<li><b>Check the published files match the source.</b> `python scripts/verify_artifacts.py` rebuilds every artefact and diffs it byte for byte against what this site serves. It is the only check that catches a build script edited and never re-run, or an upstream restatement absorbed silently.</li>
+<li><b>Check the source has not changed under us.</b> tests/fixtures/provenance.json carries a SHA-256 of the financial file every figure is built from. If the state restates a year, that hash stops matching and the tests fail.</li>
+  </ol>
+  <pre>git clone https://github.com/GusAI40/texas-isd-finances
+cd texas-isd-finances
+python -m pytest tests/test_provenance.py    # re-derive every headline from source
+python scripts/verify_artifacts.py           # prove the served files match a fresh build</pre>
+
+  <div class="fingerprint">
+    <h3>Source fingerprint</h3>
+    <p class="sub-note">The financial file every headline is built from, as captured.
+       If the state restates a year this hash stops matching and the tests fail rather
+       than the change being absorbed silently.</p>
+    <dl id="fp"></dl>
+  </div>
+
+  <h2>What none of this establishes</h2>
+  <ul class="limits">
+<li>This is faithful to the source. It cannot make the source right: PEIMS is filed by districts and corrected over time, and the newest fiscal year has had the least time to be corrected.</li>
+<li>Figures derived from a model — anything comparing results against what student need predicts — are estimates with real uncertainty, and are published with it rather than as facts.</li>
+<li>The bond layer is joined on district name plus county because the source carries no TEA number. It is 100% matched with none resolved against a disagreeing county, but it is the only layer where that class of error is possible at all.</li>
+<li>Districts under 500 students have per-student figures that move on a single hire or retirement. They are flagged and kept out of rankings.</li>
+<li>Nothing here supports a claim about any named individual.</li>
+  </ul>
+
+  <p class="foot"><b>Machine-readable:</b> everything on this page is served as JSON at
+     <a class="dl" href="/provenance">/provenance</a>, generated from the same register,
+     so the page and the API cannot disagree. <b>Data disclaimer:</b> an independent
+     transparency tool presenting Texas Education Agency, Comptroller and US Census data
+     for informational purposes only. Not an official TEA product, not an audit, and not
+     financial, legal or investment advice.</p>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  var b = document.getElementById('btnTheme');
+  if (b) b.addEventListener('click', function () {
+    var dark = document.documentElement.getAttribute('data-theme') === 'dark';
+    if (dark) document.documentElement.removeAttribute('data-theme');
+    else document.documentElement.setAttribute('data-theme', 'dark');
+    try { localStorage.setItem('tisd_theme', dark ? 'light' : 'dark'); } catch (e) {}
+  });
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  var LABELS = {
+    source: 'File', source_sha256: 'SHA-256', source_bytes: 'Size',
+    rows: 'Rows', districts: 'Districts', first_year: 'First year', last_year: 'Last year'
+  };
+
+  fetch('/provenance')
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (d) {
+      var fp = (d && d.source_fingerprint) || {};
+      var keys = Object.keys(LABELS).filter(function (k) { return fp[k] != null; });
+      document.getElementById('fp').innerHTML = keys.length
+        ? keys.map(function (k) {
+            var v = fp[k];
+            if (k === 'source_bytes') v = (v / 1048576).toFixed(1) + ' MB';
+            if (k === 'rows' || k === 'districts') v = Number(v).toLocaleString('en-US');
+            return '<div><dt>' + esc(LABELS[k]) + '</dt><dd>' + esc(v) + '</dd></div>';
+          }).join('')
+        : '<div><dt>Fingerprint</dt><dd>not available on this deployment</dd></div>';
+    })
+    .catch(function () {
+      document.getElementById('fp').innerHTML =
+        '<div><dt>Fingerprint</dt><dd>could not be loaded</dd></div>';
+    });
+})();
+</script>
+</body>
+</html>

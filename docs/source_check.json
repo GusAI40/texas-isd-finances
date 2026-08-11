@@ -1,0 +1,161 @@
+{
+ "sources": [
+  {
+   "id": "tea_peims",
+   "title": "Summarized PEIMS Actual Financial Data",
+   "publisher": "Texas Education Agency",
+   "url": "https://tea.texas.gov/finance-and-grants/state-funding/state-funding-reports-and-data/peims-financial-data-downloads",
+   "host_matches_publisher": true,
+   "reach": {
+    "ok": true,
+    "status": 200,
+    "method": "HEAD",
+    "content_type": "text/html",
+    "final_url": "https://tea.texas.gov/about-tea/state-funding/state-funding-reports-and-data/peims-financial-data-downloads"
+   },
+   "local": {
+    "present": true,
+    "path": "data/texas_finance_clean.csv",
+    "bytes": 18859061,
+    "sha256": "60aa06351ee4d4e0df1f61190801439556c43e9a5dfab16c8b32b79dddb4447a"
+   }
+  },
+  {
+   "id": "tea_snapshot",
+   "title": "Snapshot \u2014 District and Charter Detail",
+   "publisher": "Texas Education Agency",
+   "url": "https://rptsvr1.tea.texas.gov/perfreport/snapshot/download.html",
+   "host_matches_publisher": true,
+   "reach": {
+    "ok": true,
+    "status": 200,
+    "method": "HEAD",
+    "content_type": "text/html",
+    "final_url": "https://rptsvr1.tea.texas.gov/perfreport/snapshot/download.html"
+   },
+   "local": {
+    "present": true,
+    "path": "data/snapshot_all.csv",
+    "bytes": 4387714,
+    "sha256": "3de817ae9d009c15fd8f77c88a87058278dcf59b722bc8a293da4d51f5911871"
+   }
+  },
+  {
+   "id": "tea_staar_district",
+   "title": "STAAR Aggregate District-Level Results",
+   "publisher": "Texas Education Agency",
+   "url": "https://tea.texas.gov/student-assessment/student-assessment-results/statewide-summary-reports",
+   "host_matches_publisher": true,
+   "reach": {
+    "ok": true,
+    "status": 200,
+    "method": "HEAD",
+    "content_type": "text/html",
+    "final_url": "https://tea.texas.gov/data-reports/student-assessment-results/statewide-summary-reports"
+   },
+   "local": {
+    "present": true,
+    "path": "data/staar_district_long.csv",
+    "bytes": 11015115,
+    "sha256": "485ca6de577a0f071dde722c74bab64c0f611c6ecddf4f54693a390244d67696"
+   }
+  },
+  {
+   "id": "tea_property",
+   "title": "School District Property Values and Tax Rates",
+   "publisher": "Texas Education Agency with the Texas Comptroller",
+   "url": "https://tea.texas.gov/finance-and-grants/state-funding/additional-finance-resources/school-district-property-values-and-tax-rates",
+   "host_matches_publisher": true,
+   "reach": {
+    "ok": true,
+    "status": 200,
+    "method": "HEAD",
+    "content_type": "text/html",
+    "final_url": "https://tea.texas.gov/about-tea/state-funding/additional-finance-resources/school-district-property-values-and-tax-rates"
+   },
+   "local": {
+    "present": true,
+    "path": "data/tea_property.csv",
+    "bytes": 3092475,
+    "sha256": "b5352cd931220d00d81d6be076bdaaa4a62d596f421925f9576c170976c0c24b"
+   }
+  },
+  {
+   "id": "tea_recapture",
+   "title": "Excess Local Revenue (recapture) paid by district",
+   "publisher": "Texas Education Agency",
+   "url": "https://tea.texas.gov/finance-and-grants/state-funding/excess-local-revenue",
+   "host_matches_publisher": true,
+   "reach": {
+    "ok": true,
+    "status": 200,
+    "method": "HEAD",
+    "content_type": "text/html",
+    "final_url": "https://tea.texas.gov/about-tea/state-funding/excess-local-revenue"
+   },
+   "local": {
+    "present": true,
+    "path": "data/tea_property.csv",
+    "bytes": 3092475,
+    "sha256": "b5352cd931220d00d81d6be076bdaaa4a62d596f421925f9576c170976c0c24b"
+   }
+  },
+  {
+   "id": "bond_elections",
+   "title": "Texas school district bond election results",
+   "publisher": "Compiled county election returns (Texas Secretary of State, elections division)",
+   "url": "https://www.sos.state.tx.us/elections/index.shtml",
+   "host_matches_publisher": true,
+   "reach": {
+    "ok": true,
+    "status": 200,
+    "method": "HEAD",
+    "content_type": "text/html",
+    "final_url": "https://www.sos.state.tx.us/elections/index.shtml"
+   },
+   "local": {
+    "present": true,
+    "path": "data/texas_bond_elections.csv",
+    "bytes": 397999,
+    "sha256": "4af3e5edae73c583fcdc6006df32dd9615352059fabf2c3434d2baa3b12e4665"
+   }
+  },
+  {
+   "id": "census_tiger",
+   "title": "TIGER/Line Unified School Districts, Texas",
+   "publisher": "US Census Bureau (public domain)",
+   "url": "https://www2.census.gov/geo/tiger/TIGER2024/UNSD/tl_2024_48_unsd.zip",
+   "host_matches_publisher": true,
+   "reach": {
+    "ok": true,
+    "status": 200,
+    "method": "HEAD",
+    "content_type": "application/zip",
+    "final_url": "https://www2.census.gov/geo/tiger/TIGER2024/UNSD/tl_2024_48_unsd.zip"
+   },
+   "local": {
+    "present": null
+   }
+  },
+  {
+   "id": "bls_cpi",
+   "title": "CPI-U, annual average",
+   "publisher": "US Bureau of Labor Statistics",
+   "url": "https://www.bls.gov/cpi/",
+   "host_matches_publisher": true,
+   "reach": {
+    "ok": true,
+    "status": 200,
+    "method": "HEAD",
+    "content_type": "text/html",
+    "final_url": "https://www.bls.gov/cpi/"
+   },
+   "local": {
+    "present": null
+   }
+  }
+ ],
+ "wrong_host": [],
+ "dead": [],
+ "unreachable": []
+}

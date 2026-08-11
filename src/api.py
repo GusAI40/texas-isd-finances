@@ -18,7 +18,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse, Response
 from pydantic import BaseModel, Field
 
-from . import analytics, llm_config, mcp_protocol, mcp_tools, scanner, site_gate
+from . import analytics, llm_config, mcp_protocol, mcp_tools, scanner, site_gate, sources
 from .sample_queries import SAMPLE_QUERIES
 
 load_dotenv()
@@ -28,7 +28,8 @@ load_dotenv()
 MIN_YEAR = int(os.getenv("DATA_MIN_YEAR", "2009"))
 MAX_YEAR = int(os.getenv("DATA_MAX_YEAR", "2025"))
 
-STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
+ROOT_DIR = Path(__file__).resolve().parent.parent
+STATIC_DIR = ROOT_DIR / "static"
 
 # Browser origins allowed to POST /mcp. The check only fires when an Origin
 # header is present, which means a direct API client or a desktop MCP host is
@@ -1591,7 +1592,8 @@ async def sitemap():
     "is <name> ISD good" can never reach us — the district views are rendered
     client-side from ?d=, so crawlers need to be told they exist."""
     urls = ["https://txisd.dev/", "https://txisd.dev/about", "https://txisd.dev/feed",
-            "https://txisd.dev/forensics", "https://txisd.dev/geomap",
+            "https://txisd.dev/forensics", "https://txisd.dev/sources",
+            "https://txisd.dev/geomap",
             "https://txisd.dev/map", "https://txisd.dev/docs"]
     data = _outcomes()
     if data:
@@ -1659,6 +1661,58 @@ async def mcp_endpoint_rejected():
     return JSONResponse(
         status_code=405, content=mcp_protocol.legacy_initialize_error(),
         headers={"Allow": "POST", "Cache-Control": "no-store"})
+
+
+@app.get("/provenance", tags=["General"])
+async def get_provenance():
+    """Where every number came from, and how to check it yourself.
+
+    "Is this accurate?" is not answerable by asserting yes. It is answerable by
+    naming the government file a figure came from, the exact column, the
+    arithmetic, and the download link for the original — so a sceptic can redo
+    it and disagree.
+
+    Returns the upstream sources (publisher, product, URL, coverage, what each
+    is authoritative for), every published measure tied to its source and to
+    the test that re-derives it from that source rather than from our own
+    output, the steps to verify the whole thing, and what none of it can
+    establish. Serves with no database.
+    """
+    return {
+        "site": sources.SITE,
+        "sources": sources.SOURCES,
+        "measures": sources.MEASURES,
+        "how_to_verify": sources.HOW_TO_VERIFY,
+        "limits": sources.LIMITS,
+        "source_fingerprint": _source_fingerprint(),
+    }
+
+
+def _source_fingerprint() -> Dict[str, Any]:
+    """The SHA-256 of the financial file every headline is built from, frozen
+    at build time. If the state restates a year, this stops matching and the
+    provenance tests fail rather than the change being absorbed silently."""
+    path = ROOT_DIR / "tests" / "fixtures" / "provenance.json"
+    if not path.exists():
+        return {}
+    try:
+        with path.open() as fh:
+            meta = json.load(fh).get("meta", {})
+    except Exception:
+        return {}
+    return {k: meta[k] for k in
+            ("source", "source_sha256", "source_bytes", "rows", "districts",
+             "first_year", "last_year") if k in meta}
+
+
+@app.get("/sources", include_in_schema=False)
+async def sources_page():
+    """The source-of-truth page: every dataset, every measure, and the four
+    commands that let anyone check the whole site against the state's files."""
+    page = STATIC_DIR / "sources.html"
+    if page.exists():
+        return FileResponse(page)
+    raise HTTPException(status_code=404, detail="Sources page not available")
 
 
 @app.get("/forensics", include_in_schema=False)

@@ -28,7 +28,8 @@ from urllib.parse import urlsplit
 # "visits", and an allowlist means a scanner inventing paths cannot inflate the
 # table (or fill it — the primary key is bounded by this set).
 PAGE_PATHS = frozenset({
-    "/", "/about", "/feed", "/forensics", "/intel", "/heatmap", "/geomap", "/map",
+    "/", "/about", "/feed", "/forensics", "/sources", "/intel", "/heatmap",
+    "/geomap", "/map",
 })
 
 # Substrings that mark an automated client. Deliberately broad: a missed bot
