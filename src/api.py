@@ -1692,12 +1692,12 @@ def _source_fingerprint() -> Dict[str, Any]:
     """The SHA-256 of the financial file every headline is built from, frozen
     at build time. If the state restates a year, this stops matching and the
     provenance tests fail rather than the change being absorbed silently."""
-    path = ROOT_DIR / "tests" / "fixtures" / "provenance.json"
+    path = STATIC_DIR / "source_fingerprint.json"
     if not path.exists():
         return {}
     try:
         with path.open() as fh:
-            meta = json.load(fh).get("meta", {})
+            meta = json.load(fh)
     except Exception:
         return {}
     return {k: meta[k] for k in

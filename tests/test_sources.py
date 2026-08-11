@@ -125,6 +125,10 @@ def test_provenance_carries_the_source_fingerprint(client):
     if not fixture.exists():
         pytest.skip("provenance fixture not built")
     meta = json.loads(fixture.read_text())["meta"]
+    shipped = json.loads((ROOT / "static" / "source_fingerprint.json").read_text())
+    assert shipped["source_sha256"] == meta["source_sha256"], (
+        "the shipped fingerprint disagrees with the fixture — "
+        "re-run scripts/build_provenance_fixture.py")
     assert fp["source_sha256"] == meta["source_sha256"]
     assert len(fp["source_sha256"]) == 64
 

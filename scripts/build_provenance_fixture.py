@@ -116,6 +116,13 @@ def main() -> int:
     }
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(payload, indent=1))
+
+    # The fixture is a test artefact and tests/ is excluded from the deploy
+    # bundle. The FINGERPRINT is what a reader compares their own download
+    # against, so it also ships under static/, which always deploys.
+    fp = ROOT / "static" / "source_fingerprint.json"
+    fp.write_text(json.dumps(payload["meta"], indent=1))
+    print(f"wrote {fp.relative_to(ROOT)}")
     print(f"wrote {args.out} — {len(years)} years, {len(fcols)} functions, "
           f"{args.out.stat().st_size / 1024:.0f} KB")
     print(f"  source sha256 {payload['meta']['source_sha256'][:16]}... "

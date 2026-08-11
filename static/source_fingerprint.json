@@ -1,0 +1,24 @@
+{
+ "source": "data/texas_finance_clean.csv",
+ "source_sha256": "60aa06351ee4d4e0df1f61190801439556c43e9a5dfab16c8b32b79dddb4447a",
+ "source_bytes": 18859061,
+ "rows": 20587,
+ "districts": 1310,
+ "first_year": 2009,
+ "last_year": 2025,
+ "columns": {
+  "instruction": "all_funds_instruction_transfer_expend_fct11_95",
+  "operating": "all_funds_total_operating_expenditures_by_obj",
+  "operating_revenue": "all_funds_total_operating_revenue",
+  "other_revenue": "all_funds_other_revenue",
+  "debt_service": "all_funds_total_debt_service_expend_by_obj",
+  "capital": "all_funds_total_capital_projects_expend_by_obj",
+  "security": "all_funds_security_monitoring_service_expend_fct52",
+  "federal_revenue": "all_funds_federal_revenue",
+  "state_revenue": "all_funds_state_revenue",
+  "local_mo_tax": "all_funds_local_tax_revenue_from_m_o",
+  "payroll": "all_funds_total_payroll_expenditures",
+  "enrollment": "fall_survey_enrollment"
+ },
+ "note": "Statewide sums per year, straight from the source CSV. The provenance tests re-derive every published headline from this, so the guarantee holds in CI where the 18 MB source is not available."
+}
