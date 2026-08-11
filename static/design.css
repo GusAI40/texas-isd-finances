@@ -486,6 +486,21 @@ hr, .rule {
 #masthead .m-tabs a:hover { color: var(--ink); background: var(--wash); }
 #masthead .m-tabs a[aria-current="page"] { color: var(--ink);
   font-weight: var(--fw-bold); border-bottom-color: var(--accent); }
+#masthead .m-more { position: relative; }
+#masthead .m-more summary { list-style: none; cursor: pointer; color: var(--ink-2);
+  font-size: var(--fs-sm); padding: .3rem .65rem; border-radius: var(--r-md);
+  white-space: nowrap; border-bottom: 2px solid transparent; }
+#masthead .m-more summary::-webkit-details-marker { display: none; }
+#masthead .m-more summary:hover { color: var(--ink); background: var(--wash); }
+#masthead .m-more[open] summary { color: var(--ink); background: var(--wash); }
+#masthead .m-menu { position: absolute; right: 0; top: calc(100% + 6px); z-index: 80;
+  background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r-md);
+  box-shadow: 0 8px 26px rgba(0,0,0,.12); padding: .35rem; min-width: 11rem;
+  display: flex; flex-direction: column; }
+#masthead .m-menu a { color: var(--ink-2); text-decoration: none; font-size: var(--fs-sm);
+  padding: .4rem .7rem; border-radius: var(--r-sm); white-space: nowrap; }
+#masthead .m-menu a:hover { color: var(--ink); background: var(--wash); }
+#masthead .m-menu a[aria-current="page"] { color: var(--ink); font-weight: var(--fw-bold); }
 #masthead .mast-theme { background: none; border: 1px solid var(--rule);
   color: var(--ink-2); border-radius: var(--r-md); font: inherit;
   font-size: var(--fs-xs); padding: .2rem .6rem; cursor: pointer; }

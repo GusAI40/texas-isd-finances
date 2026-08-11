@@ -104,7 +104,8 @@ def test_every_page_carries_the_same_masthead():
         html = page.read_text(encoding="utf-8")
         assert 'id="masthead"' in html, f"{page.name} lost the masthead"
         for dest in ('href="/feed"', 'href="/forensics"', 'href="/geomap"',
-                     'href="/heatmap"', 'href="/about"', 'href="/sources"'):
+                     'href="/heatmap"', 'href="/about"', 'href="/sources"',
+                     'href="/map"', 'href="/intel"', 'href="/transparency"'):
             assert dest in html, f"{page.name} masthead lost {dest}"
         assert 'id="mast-theme"' in html, f"{page.name} masthead lost its theme toggle"
 
