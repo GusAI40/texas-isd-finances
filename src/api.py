@@ -15,7 +15,13 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.concurrency import run_in_threadpool
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse, Response
+from fastapi.responses import (
+    FileResponse,
+    HTMLResponse,
+    JSONResponse,
+    PlainTextResponse,
+    Response,
+)
 from pydantic import BaseModel, Field
 
 from . import absences, analytics, llm_config, mcp_protocol, mcp_tools, scanner, site_gate, sources
@@ -307,12 +313,47 @@ class NLPQueryResponse(BaseModel):
 # API Endpoints
 
 @app.get("/", include_in_schema=False)
-async def portal():
-    """Serve the public portal page."""
+async def portal(request: Request):
+    """Serve the public portal page — with per-district search + social
+    metadata injected server-side when ?d=NNNNNN is present.
+
+    The blind spot this closes: crawlers and link-preview scrapers do not run
+    the client JS, so every district URL used to serve byte-identical HTML —
+    the same title, the homepage canonical, a generic OG card, and no district
+    name anywhere they could see it. Now the head carries the district's name,
+    an honest headline, its canonical, its share image, and JSON-LD, all read
+    from the committed artefacts (no database — survives a paused Supabase).
+    The client app below the head is untouched.
+    """
     index = STATIC_DIR / "index.html"
-    if index.exists():
+    if not index.exists():
+        return {"message": "Texas School Finance API", "documentation": "/docs"}
+    num = request.query_params.get("d")
+    try:
+        from src import og
+        html = og.render_head(index.read_text(encoding="utf-8"),
+                              num if num else None)
+        return HTMLResponse(html, headers={
+            "Cache-Control": "public, max-age=600, must-revalidate"})
+    except Exception:  # noqa: BLE001 — never let meta injection break the page
         return FileResponse(index)
-    return {"message": "Texas School Finance API", "documentation": "/docs"}
+
+
+@app.get("/share/{name}", include_in_schema=False)
+async def share_image(name: str):
+    """Per-district 1200x630 social card (and the default). Pre-rendered into
+    static/share/ at build time by scripts/build_share_cards.py; falls back to
+    the default card for any district without one so a link is never
+    imageless."""
+    if not name.endswith(".png") or "/" in name or ".." in name:
+        raise HTTPException(status_code=404, detail="Not found")
+    p = STATIC_DIR / "share" / name
+    if not p.exists():
+        p = STATIC_DIR / "share" / "default.png"
+    if not p.exists():
+        raise HTTPException(status_code=404, detail="Share image not built")
+    return FileResponse(p, media_type="image/png", headers={
+        "Cache-Control": "public, max-age=86400, must-revalidate"})
 
 
 @app.get("/api", tags=["General"])

@@ -71,3 +71,8 @@ build/
 # other is a promise to specific people; neither belongs in a public repo.
 data/outreach_preview/
 data/outreach_optout.txt
+
+# Social share cards: regenerable build output (scripts/build_share_cards.py).
+# Keep the 1,216 district PNGs (~41MB) out of git; track only the fallback.
+static/share/*.png
+!static/share/default.png

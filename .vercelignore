@@ -23,6 +23,8 @@ sql/
 # …except the one image the API serves: the TAG graphic the outreach emails
 # hot-link at /static/tag-pipeline.png. A blanket *.png silently 404s it.
 !static/tag_pipeline.png
+# Per-district social cards (built by scripts/build_share_cards.py).
+!static/share/
 *.ipynb
 Dockerfile
 render.yaml
