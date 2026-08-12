@@ -5,6 +5,7 @@ import asyncio
 import json
 import os
 import time
+import xml.sax.saxutils as saxutils
 from contextlib import asynccontextmanager
 from datetime import datetime
 from pathlib import Path
@@ -1710,6 +1711,138 @@ async def feed_page():
     if page.exists():
         return FileResponse(page)
     raise HTTPException(status_code=404, detail="Feed not available")
+
+
+def _atom_escape(text: Any) -> str:
+    """Escape a value for use in Atom XML text content or attribute values."""
+    return saxutils.escape(str(text or ""), {'"': "&quot;", "'": "&apos;"})
+
+
+def _atom_updated(value: Any, fallback: Any = "") -> str:
+    """Coerce a briefing date into RFC 3339, which Atom requires.
+
+    Briefing dates are bare days ("2026-01-10"); a feed reader needs a full
+    timestamp. Anything unparseable falls back to the run date rather than
+    emitting an invalid document."""
+    for candidate in (value, fallback, "1970-01-01"):
+        raw = str(candidate or "").strip()
+        if not raw:
+            continue
+        if len(raw) == 10:  # YYYY-MM-DD → midnight UTC
+            raw += "T00:00:00Z"
+        try:
+            datetime.fromisoformat(raw.replace("Z", "+00:00"))
+        except ValueError:
+            continue
+        # Timezone-naive timestamps get an explicit UTC marker.
+        if not (raw.endswith("Z") or "+" in raw[10:] or "-" in raw[10:]):
+            raw += "Z"
+        return raw
+    return "1970-01-01T00:00:00Z"
+
+
+def build_atom_feed(briefing: Dict[str, Any]) -> str:
+    """Render the daily briefing as an Atom feed document.
+
+    Same data the /feed page shows, in the format feed readers and aggregators
+    actually poll. Entries that resolved to a district deep-link its portal
+    view (/?d=NUM); the rest link the human feed page. Capped at the 50 newest
+    entries, newest first. Pure function of the briefing dict, so tests can
+    exercise it offline without a server or a database.
+    """
+    meta = briefing.get("meta") or {}
+    run_date = str(meta.get("run_date") or "")
+    findings = list(briefing.get("top_findings") or [])
+    # Reverse-chron by published date; ISO date strings sort lexicographically
+    # and the sort is stable, so same-day stories keep the briefing's ranking.
+    findings.sort(key=lambda f: str(f.get("published_at") or run_date), reverse=True)
+    findings = findings[:50]
+
+    feed_updated = _atom_updated(
+        max((str(f.get("published_at") or "") for f in findings), default=run_date)
+        or run_date, run_date)
+    parts = [
+        '<?xml version="1.0" encoding="utf-8"?>',
+        '<feed xmlns="http://www.w3.org/2005/Atom">',
+        "<title>Texas ISD — The Feed</title>",
+        "<subtitle>What's happening across Texas school districts, every headline "
+        "with the receipts from 17 years of official state data.</subtitle>",
+        "<id>https://txisd.dev/feed</id>",
+        '<link rel="alternate" type="text/html" href="https://txisd.dev/feed"/>',
+        '<link rel="self" type="application/atom+xml" href="https://txisd.dev/feed.xml"/>',
+        f"<updated>{feed_updated}</updated>",
+        "<author><name>Texas ISD Finances (txisd.dev)</name></author>",
+    ]
+    for i, f in enumerate(findings):
+        title = f.get("headline") or f.get("hook") or "Texas ISD update"
+        summary = f.get("summary") or f.get("what_our_data_says") or f.get("hook") or title
+        district = str(f.get("district_number") or "").strip()
+        link = f"https://txisd.dev/?d={district}" if district else "https://txisd.dev/feed"
+        # content_hash is the pipeline's stable identity for a story; entries
+        # without one get a positional id scoped to the run date.
+        entry_id = f"https://txisd.dev/feed#{f.get('content_hash') or f'{run_date}-{i}'}"
+        parts += [
+            "<entry>",
+            f"<title>{_atom_escape(title)}</title>",
+            f"<id>{_atom_escape(entry_id)}</id>",
+            f'<link rel="alternate" type="text/html" href="{_atom_escape(link)}"/>',
+            f"<updated>{_atom_updated(f.get('published_at'), run_date)}</updated>",
+            f"<summary>{_atom_escape(summary)}</summary>",
+            "</entry>",
+        ]
+    parts.append("</feed>")
+    return "".join(parts)
+
+
+@app.get("/feed.xml", include_in_schema=False)
+async def feed_xml(request: Request):
+    """The Feed as Atom, for feed readers. Same DB-then-snapshot lookup as
+    /briefing, so it works with no database at all."""
+    briefing: Optional[Dict[str, Any]] = None
+    pool = request.app.state.db_pool
+    if pool is not None:
+        try:
+            async with pool.acquire() as conn:
+                row = await conn.fetchrow(
+                    "SELECT payload FROM public.isd_briefings ORDER BY run_date DESC LIMIT 1")
+                if row:
+                    briefing = json.loads(row["payload"])
+        except Exception as exc:  # table missing or DB down → fall through to file
+            print(f"WARNING: briefing table unavailable for feed.xml, using snapshot: {exc}")
+    if briefing is None:
+        snap = STATIC_DIR / "isd_briefing.json"
+        if snap.exists():
+            briefing = json.loads(snap.read_text(encoding="utf-8"))
+    if briefing is None:
+        raise HTTPException(status_code=404,
+                            detail="No briefing yet. Run the daily research "
+                                   "(see docs/ISD_INTELLIGENCE.md).")
+    return Response(content=build_atom_feed(briefing),
+                    media_type="application/atom+xml; charset=utf-8",
+                    headers={"Cache-Control": "public, max-age=900"})
+
+
+@app.get("/.well-known/mcp.json", include_in_schema=False)
+async def well_known_mcp():
+    """MCP discovery: tells an assistant (or a registry crawler) where this
+    site's Model Context Protocol endpoint lives. The scanner middleware
+    whitelists exactly this path (src/scanner.py) — everything else under
+    /.well-known/ except security.txt is still fast-rejected."""
+    return JSONResponse({
+        "mcpServers": {
+            "texas-isd": {
+                "url": "https://txisd.dev/mcp",
+                "transport": "http",
+                "description": (
+                    "Read-only tools over Texas school district finances "
+                    "(TEA PEIMS, fiscal 2009–2025): find districts, money, "
+                    "forensics, trends, bonds, debt, campuses, comparisons."),
+            }
+        },
+        "description": "Texas ISD Finances MCP server — official state data, "
+                       "every result carries its caveats.",
+        "documentation": "https://txisd.dev/transparency",
+    }, headers={"Cache-Control": "public, max-age=3600"})
 
 
 @app.post("/mcp", include_in_schema=False)

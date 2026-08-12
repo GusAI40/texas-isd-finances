@@ -18,6 +18,10 @@ travels with the bond finding instead of being left behind on a page nobody scro
 No authentication, no account, no rate limit beyond the platform's. Every byte served
 here is already public on txisd.dev.
 
+The server is discoverable at `https://txisd.dev/.well-known/mcp.json`, which
+returns the endpoint URL and transport for hosts and registries that crawl the
+well-known path.
+
 ```jsonc
 // Claude Desktop / any MCP host that takes an HTTP server URL
 {

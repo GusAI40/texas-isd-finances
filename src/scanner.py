@@ -33,7 +33,9 @@ _SCANNER_RE = re.compile(
         | phpmyadmin|pma/|myadmin                # phpMyAdmin
         | cgi-bin/                               # CGI: nothing is served this way
         | vendor/|composer\.|autoload            # PHP dependency trees
-        | \.well-known/(?!security\.txt)         # keep security.txt reachable
+        | \.well-known/(?!security\.txt$|mcp\.json$)
+                                                 # keep security.txt and the MCP
+                                                 # discovery document reachable
         | (?:[^/]+/)*\.(?:env|git|aws|ssh|svn|hg|htpasswd|htaccess|DS_Store)
                                                  # dotfiles at ANY depth
         | (?:[^/]+/)*(?:\.env|config\.php|shell|backup\.sql|dump\.sql)\b
