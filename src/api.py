@@ -2380,7 +2380,9 @@ async def cron_isd_intelligence(request: Request):
     secret = os.getenv("CRON_SECRET")
     if not secret:
         raise HTTPException(status_code=503, detail="CRON_SECRET not configured.")
-    if request.headers.get("authorization") != f"Bearer {secret}":
+    import secrets as _secrets
+    provided = request.headers.get("authorization") or ""
+    if not _secrets.compare_digest(provided, f"Bearer {secret}"):
         raise HTTPException(status_code=401, detail="Unauthorized")
 
     from datetime import timezone

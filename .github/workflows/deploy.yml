@@ -63,13 +63,11 @@ jobs:
           echo "### Deployed to production :rocket:" >> "$GITHUB_STEP_SUMMARY"
           echo "$url" >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Verify the feed is live
+      - name: Verify production serves THIS tree (the gate that matters)
         if: ${{ env.VERCEL_TOKEN != '' }}
+        # A stale tree passes a 200 check happily — that is the rollback trap.
+        # verify_live.py compares live headline figures against this checkout
+        # and exits non-zero on drift, so deploying an old master fails loudly.
         run: |
-          for path in /health /feed /briefing; do
-            code=$(curl -s -o /dev/null -w '%{http_code}' "https://txisd.dev$path")
-            echo "GET $path -> $code"
-            case "$path" in
-              /health|/feed) test "$code" = "200" || { echo "::error::$path returned $code"; exit 1; } ;;
-            esac
-          done
+          python -m pip install requests
+          python scripts/verify_live.py
