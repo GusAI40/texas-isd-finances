@@ -150,8 +150,11 @@ def render_email(row: dict, postal: str, unsubscribe: str) -> tuple[str, str]:
       &mdash; or to talk about what the same intelligence layer could do on
       your district&rsquo;s own data &mdash; just reply to this email. And if
       any figure looks wrong, tell us: we publish corrections with credit.</p>
-    <p style="font-size:14px;line-height:1.6;color:{INK};margin:0 0 28px;">
-      &mdash; The TAG ai team</p>
+    <p style="font-size:14px;line-height:1.7;color:{INK};margin:0 0 28px;">
+      <b>Gus Sanchez</b><br>
+      TAG ai<br>
+      <a href="tel:+19092686875" style="color:{INK};text-decoration:none;">909-268-6875</a><br>
+      <a href="mailto:gus@ubntag.com" style="color:{INK};">gus@ubntag.com</a></p>
   </td></tr>
   <tr><td style="padding:18px 40px 26px;background:#fafaf8;border-top:1px solid #e4e4e0;
                font-family:Arial,sans-serif;font-size:11.5px;line-height:1.6;color:{MUT};">
@@ -190,7 +193,10 @@ def render_email(row: dict, postal: str, unsubscribe: str) -> tuple[str, str]:
             f"questions. Reply to this email for a 20-minute walkthrough, or "
             f"to talk about your own data. If any figure looks wrong, tell "
             f"us — we publish corrections with credit.\n\n"
-            f"— The TAG ai team\n\n"
+            f"Gus Sanchez\n"
+            f"TAG ai\n"
+            f"909-268-6875\n"
+            f"gus@ubntag.com\n\n"
             f"Sources and methods: {SITE}/sources\n"
             f"AI disclosure: artificial intelligence was used in the "
             f"preparation of this report and this email, orchestrated across "

@@ -97,6 +97,16 @@ def test_email_carries_unsubscribe_postal_address_and_source_disclosure():
         assert "commercial message" in part
 
 
+def test_email_is_signed_by_a_reachable_person():
+    """The signoff is a person a superintendent can call back — name, phone
+    and email — not an anonymous team."""
+    body, text = _rendered()
+    for part in (body, text):
+        assert "Gus Sanchez" in part
+        assert "909-268-6875" in part
+        assert "gus@ubntag.com" in part
+
+
 def test_email_never_uses_the_word_deficit():
     """The word the frame audit banned from mixed comparisons — the email
     doesn't compare frames at all, so it must not appear."""
