@@ -165,7 +165,7 @@ def render_email(row: dict, postal: str, unsubscribe: str) -> tuple[str, str]:
     independently before acting &mdash; use is at your own risk.
     <a href="{SITE}/transparency" style="color:{MUT};">How this was made, and
     the full terms</a>.<br>
-    TAG ai &middot; {e(postal)}<br>
+    This is a commercial message from TAG ai &middot; {e(postal)}<br>
     Don&rsquo;t want to hear from us? <a href="{e(unsubscribe)}"
     style="color:{MUT};">Unsubscribe</a> and we won&rsquo;t write again.
   </td></tr>
@@ -198,7 +198,7 @@ def render_email(row: dict, postal: str, unsubscribe: str) -> tuple[str, str]:
             f"provided as-is without warranty; verify independently before "
             f"acting — use is at your own risk. How this was made and full "
             f"terms: {SITE}/transparency\n"
-            f"TAG ai · {postal}\n"
+            f"This is a commercial message from TAG ai · {postal}\n"
             f"Unsubscribe: {unsubscribe}\n")
     return body, text
 
