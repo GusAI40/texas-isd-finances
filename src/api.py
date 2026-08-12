@@ -263,11 +263,17 @@ async def count_page_views(request: Request, call_next):
             if route:
                 ua = request.headers.get("user-agent")
                 if not analytics.is_bot(ua):
+                    ref = analytics.referrer_host(
+                        request.headers.get("referer"),
+                        request.headers.get("host"))
+                    # email clients strip referrers, so campaign links carry
+                    # ?src=…; a real referrer wins over the tag if both exist
+                    if not ref:
+                        ref = analytics.source_tag(
+                            request.query_params.get("src"))
                     await _record_visit(
                         request.app.state.db_pool, route,
-                        analytics.device_of(ua),
-                        analytics.referrer_host(request.headers.get("referer"),
-                                                request.headers.get("host")))
+                        analytics.device_of(ua), ref)
     except Exception as exc:
         print(f"WARNING: page-view counting failed: {exc}")
     return resp

@@ -16,6 +16,7 @@ from src.analytics import (  # noqa: E402
     device_of,
     is_bot,
     referrer_host,
+    source_tag,
 )
 
 # --- what counts as a page view -------------------------------------------
@@ -117,6 +118,23 @@ def test_question_is_normalised_and_bounded():
 def test_empty_question_is_not_stored():
     assert clean_question(None) == ""
     assert clean_question("   ") == ""
+
+
+# --- campaign source tags ---------------------------------------------------
+
+def test_known_source_is_tagged():
+    assert source_tag("email") == "src:email"
+    assert source_tag(" EMAIL ") == "src:email"    # case/space tolerant
+
+
+def test_unknown_source_is_dropped():
+    """The src token is attacker-controlled. Anything off the allowlist must
+    vanish, or a scanner hitting /?src=<junk> could mint unlimited rows."""
+    assert source_tag("newsletter") == ""           # not (yet) a known source
+    assert source_tag("a" * 500) == ""
+    assert source_tag("email'; DROP TABLE--") == ""
+    assert source_tag(None) == ""
+    assert source_tag("") == ""
 
 
 # --- the guarantee itself ---------------------------------------------------

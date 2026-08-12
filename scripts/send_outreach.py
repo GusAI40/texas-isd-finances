@@ -127,7 +127,7 @@ def render_email(row: dict, postal: str, unsubscribe: str) -> tuple[str, str]:
       {e(row['hook'])}</p>
     <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 26px;"><tr>
       <td style="background:{BLUE};border-radius:4px;">
-        <a href="{e(row['deep_link'])}"
+        <a href="{e(row['deep_link'])}&src=email"
            style="display:inline-block;padding:13px 26px;color:#ffffff;
                   font-family:Arial,sans-serif;font-size:15px;font-weight:bold;
                   text-decoration:none;">See {e(name)}&rsquo;s full report &rarr;</a>
@@ -184,7 +184,7 @@ def render_email(row: dict, postal: str, unsubscribe: str) -> tuple[str, str]:
             f"Your district's complete public record, on one page:\n\n"
             + "".join(f"  • {s}\n" for s in insights) +
             f"\n{row['hook']}\n\n"
-            f"See {name}'s full report: {row['deep_link']}\n\n"
+            f"See {name}'s full report: {row['deep_link']}&src=email\n\n"
             f"Who we are: TAG ai works at the intelligence layer of data — we "
             f"connect the systems you already have and make them answer "
             f"questions. Reply to this email for a 20-minute walkthrough, or "

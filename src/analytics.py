@@ -98,6 +98,22 @@ def referrer_host(referer: str | None, own_host: str | None = None) -> str:
     return host[:120]
 
 
+# Campaign sources we count. An allowlist, not a free field: the src token in
+# a URL is attacker-controlled, and without this bound a scanner hitting
+# /?src=<anything> could mint unlimited counter rows. Campaign-level tags
+# ('came from our email') are the same for every recipient, so they identify
+# a channel, never a person — the privacy rule above still holds.
+KNOWN_SOURCES = frozenset({"email"})
+
+
+def source_tag(src: str | None) -> str:
+    """'src:email' for a known campaign token, '' for anything else."""
+    if not src:
+        return ""
+    token = src.strip().lower()
+    return f"src:{token}" if token in KNOWN_SOURCES else ""
+
+
 def countable_path(path: str) -> str | None:
     """The page route to count, or None if this request is not a page view.
 
