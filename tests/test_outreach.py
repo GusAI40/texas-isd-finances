@@ -93,6 +93,8 @@ def test_email_carries_unsubscribe_postal_address_and_source_disclosure():
         assert UNSUB in part
     assert "AskTED" in body                   # how we got their address
     assert "/sources" in body                 # how we got the numbers
+    for part in (body, text):                 # CAN-SPAM: identified as an ad
+        assert "commercial message" in part
 
 
 def test_email_never_uses_the_word_deficit():
