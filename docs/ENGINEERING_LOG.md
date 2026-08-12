@@ -2067,3 +2067,35 @@ user says go.
 sending domain (txisd.dev or a tagai domain) in Resend, set RESEND_FROM +
 TAG_POSTAL_ADDRESS, then `--test` → pilot `--limit 50` → full send. Vercel
 Hobby→Pro upgrade still recommended first (commercial traffic).
+
+## 2026-08-12 — Parallel-agent wave: watchdogs, durability, distribution; plus the 10x metadata edge function
+
+Four single-responsibility agents (Sentinel/Archivist/Broadcaster/Custodian)
+built in parallel on disjoint files; integrated, 648 tests green, deployed.
+Full detail in CLAUDE.md's 2026-08-12 snapshot. Highlights and traps:
+
+- **Per-district head injection** (`src/og.py`) is the growth unlock: every
+  /?d= URL previously served byte-identical HTML (homepage canonical!), so
+  nothing could rank and every share previewed generic. Cards/meta lead with
+  the OPERATING figure — economics `total_per_student` EXCLUDES construction
+  and does NOT match the DB view's all-funds figure; reproducing all-funds
+  from artefacts prints a number that contradicts the page ($15,509 vs
+  $31,704 for Argyle). test_og.py bans it.
+- **.vercelignore negation trap**: `!static/share/` does not re-include files
+  excluded by `*.png` — you must negate the FILES (`!static/share/*.png`).
+  And the Vercel CLI does not reliably upload gitignored files at all; the
+  cards are committed.
+- **Sentinel's first run exited 1 on purpose**: STAAR SY2026, recapture
+  2026-27 and TIGER2025 are already published upstream. The daily nag is the
+  design; acknowledge by bumping scripts/freshness_vintages.json with a note.
+- **Sandbox egress policy blocks GitHub release creation** (reported, not
+  worked around): the raw-data tarball awaits one command from a normal
+  machine; the SHA manifest is committed so the vintage survives regardless.
+- **Masthead rollout lessons**: shared-CSS changes need cache-busting
+  (?v=N — design.css is cached 1h, the new header rendered unstyled);
+  retiring old brand rows orphaned /map and /intel (zero inbound links) —
+  found by a rendered link-graph audit, fixed with the More menu; canvas
+  fillText paints raw `<svg>` markup as text (old emoji-migration leftovers).
+- **Resend + Supabase Management APIs both 403 bare urllib via Cloudflare
+  (error 1010)** — it is a User-Agent block, never an auth failure; send a
+  UA or use curl.
