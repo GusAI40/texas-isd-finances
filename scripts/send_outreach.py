@@ -39,9 +39,11 @@ Rails that hold even when excited
 Environment
 -----------
     RESEND_API_KEY       required for --test/--send
-    RESEND_FROM          e.g. 'Gus at TAG ai <gus@txisd.dev>' — the domain
-                         must be verified in Resend first (DNS records)
+    RESEND_FROM          defaults to 'Gus Sanchez <gus@ubntag.com>' — the
+                         domain must be verified in Resend first (DNS records)
     RESEND_REPLY_TO      optional, defaults to the from address
+    TAG_BCC              defaults to gus@ubntag.com — every real send is
+                         BCC'd here so the owner holds a copy; "" disables
     TAG_POSTAL_ADDRESS   required for --send (CAN-SPAM physical address)
     SUPABASE_PAT         optional; when set, sent/opt-out state is merged
                          from and mirrored to Supabase (durable across
@@ -395,7 +397,11 @@ def main() -> int:
         return 1
 
     postal = os.environ.get("TAG_POSTAL_ADDRESS", "").strip()
-    from_addr = os.environ.get("RESEND_FROM", "").strip()
+    from_addr = (os.environ.get("RESEND_FROM", "").strip()
+                 or "Gus Sanchez <gus@ubntag.com>")
+    # every real client send is BCC'd here so the owner holds a copy of
+    # exactly what each superintendent received; TAG_BCC="" disables it
+    bcc_addr = os.environ.get("TAG_BCC", "gus@ubntag.com").strip()
     key = os.environ.get("RESEND_API_KEY", "").strip()
     unsub_addr = (os.environ.get("RESEND_REPLY_TO") or from_addr
                   or "hello@txisd.dev").split("<")[-1].rstrip(">")
@@ -419,9 +425,6 @@ def main() -> int:
     # ---- anything real needs the key and the from address -------------------
     if not key:
         print("RESEND_API_KEY is not set — get one at resend.com, then retry.")
-        return 1
-    if not from_addr:
-        print("RESEND_FROM is not set (e.g. 'Gus at TAG ai <gus@txisd.dev>').")
         return 1
 
     if args.test:
@@ -481,11 +484,14 @@ def main() -> int:
     for i, row in enumerate(todo, 1):
         body, text = render_email(row, postal, unsubscribe)
         try:
-            got = _req("/emails", key, {
+            payload = {
                 "from": from_addr, "to": [row["email"]],
                 "reply_to": os.environ.get("RESEND_REPLY_TO", from_addr),
                 "subject": row["subject"], "html": body, "text": text,
-                "headers": {"List-Unsubscribe": f"<{unsubscribe}>"}})
+                "headers": {"List-Unsubscribe": f"<{unsubscribe}>"}}
+            if bcc_addr:
+                payload["bcc"] = [bcc_addr]
+            got = _req("/emails", key, payload)
             log_sent(row, got.get("id", ""))
             ok += 1
             print(f"  [{i}/{len(todo)}] {row['district_name']:<32} "

@@ -88,8 +88,9 @@ machine can double-send. The rest go only when you say go:
 
 ```bash
 export RESEND_API_KEY=<from resend.com, rotated>
-export RESEND_FROM='Gus at TAG ai <gus@ubntag.com>'
+export RESEND_FROM='Gus Sanchez <gus@ubntag.com>'   # optional — this is the default
 export RESEND_REPLY_TO='wirelessgus@gmail.com'
+# every client email is BCC'd to gus@ubntag.com by default (TAG_BCC to change)
 export TAG_POSTAL_ADDRESS='100 Plaza Place, Suite 300, Northlake, TX 76226'
 export SUPABASE_PAT=<from supabase, rotated>   # remote sent-log — required, fails closed without it
 
