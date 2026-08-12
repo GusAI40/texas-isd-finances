@@ -27,6 +27,13 @@ Rails that hold even when excited
 - data/outreach_optout.txt (one email per line) is honoured before anything
   leaves, and every email carries a List-Unsubscribe header plus a visible
   unsubscribe line. An opt-out is a promise; the file is the memory of it.
+- The sent log and opt-out list are ALSO mirrored in Supabase
+  (sql/create_outreach_state.sql, scripts/sync_outreach_state.py): the local
+  files live in a disposable container, and container loss + a re-run would
+  re-email everyone including opt-outs. When SUPABASE_PAT is set, a real
+  send unions the remote tables into both skip-lists first and mirrors each
+  delivery up as it happens (best effort — a mirror failure never aborts the
+  send, it warns loudly instead).
 - Throttled to ~1 message/second (Resend's public rate limit is 2/s).
 
 Environment
@@ -36,6 +43,9 @@ Environment
                          must be verified in Resend first (DNS records)
     RESEND_REPLY_TO      optional, defaults to the from address
     TAG_POSTAL_ADDRESS   required for --send (CAN-SPAM physical address)
+    SUPABASE_PAT         optional; when set, sent/opt-out state is merged
+                         from and mirrored to Supabase (durable across
+                         container loss)
 """
 from __future__ import annotations
 
@@ -258,20 +268,77 @@ def domain_verified(key: str, from_addr: str) -> bool:
     return False
 
 
-def load_sent() -> set[str]:
-    if not SENT_LOG.exists():
+SB_REF = os.getenv("SUPABASE_PROJECT_REF", "zwhvabkvrexphlskubog")
+SB_QUERY_API = f"https://api.supabase.com/v1/projects/{SB_REF}/database/query"
+
+
+def _sb_sql(query: str, pat: str) -> list[dict]:
+    """SQL over the Supabase Management API — direct Postgres (5432/6543) is
+    blocked from dev containers. Same Cloudflare UA trap as _req above."""
+    r = urllib.request.Request(
+        SB_QUERY_API, data=json.dumps({"query": query}).encode(),
+        method="POST",
+        headers={"Authorization": f"Bearer {pat}",
+                 "Content-Type": "application/json",
+                 "User-Agent": "txisd-outreach/1.0 (+https://txisd.dev)"})
+    with urllib.request.urlopen(r, timeout=60,
+                                context=ssl.create_default_context()) as resp:
+        raw = resp.read()
+    return json.loads(raw) if raw else []
+
+
+def _sb_quote(s: str) -> str:
+    """SQL string literal — single quotes doubled."""
+    return "'" + s.replace("'", "''") + "'"
+
+
+def _remote_emails(table: str) -> set[str]:
+    """Emails in the durable Supabase mirror (sql/create_outreach_state.sql),
+    or an empty set when SUPABASE_PAT is unset (offline: local files only).
+
+    A remote FAILURE raises instead of returning empty on purpose: this feeds
+    the skip-lists, and an empty answer would silently shrink them. If the
+    local files are stale (fresh container), that means re-emailing people —
+    including opt-outs, a promise broken. Fail closed; nothing has been sent
+    yet when this runs. Unset SUPABASE_PAT to explicitly accept local-only
+    state."""
+    pat = os.environ.get("SUPABASE_PAT", "").strip()
+    if not pat:
         return set()
-    return {r["email"] for r in csv.DictReader(SENT_LOG.open())}
+    if table not in ("outreach_sent", "outreach_optout"):
+        raise ValueError(f"unknown outreach state table {table!r}")
+    try:
+        rows = _sb_sql(f"SELECT email FROM public.{table}", pat)
+    except Exception as ex:
+        raise RuntimeError(
+            f"could not read public.{table} from Supabase ({ex}). Refusing "
+            f"to trust the local files alone — if they are stale, a send "
+            f"would re-email people, including opt-outs. Fix the connection, "
+            f"or unset SUPABASE_PAT to accept local-only state.") from ex
+    return {r["email"] for r in rows}
+
+
+def load_sent() -> set[str]:
+    """Everyone already emailed: local CSV ∪ the Supabase mirror. Remote
+    wins by union — an address in either place is never emailed again."""
+    local = set()
+    if SENT_LOG.exists():
+        local = {r["email"] for r in csv.DictReader(SENT_LOG.open())}
+    return local | _remote_emails("outreach_sent")
 
 
 def load_optout() -> set[str]:
-    if not OPTOUT.exists():
-        return set()
-    return {ln.strip().lower() for ln in OPTOUT.read_text().splitlines()
-            if ln.strip() and not ln.startswith("#")}
+    """Everyone who asked us to stop: local file ∪ the Supabase mirror,
+    lower-cased (the caller compares lower-cased)."""
+    local = set()
+    if OPTOUT.exists():
+        local = {ln.strip().lower() for ln in OPTOUT.read_text().splitlines()
+                 if ln.strip() and not ln.startswith("#")}
+    return local | {e.lower() for e in _remote_emails("outreach_optout")}
 
 
 def log_sent(row: dict, message_id: str) -> None:
+    sent_at = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
     new = not SENT_LOG.exists()
     with SENT_LOG.open("a", newline="") as fh:
         w = csv.DictWriter(fh, fieldnames=["email", "district_number",
@@ -281,8 +348,26 @@ def log_sent(row: dict, message_id: str) -> None:
         w.writerow({"email": row["email"],
                     "district_number": row["district_number"],
                     "message_id": message_id,
-                    "sent_at": time.strftime("%Y-%m-%dT%H:%M:%SZ",
-                                             time.gmtime())})
+                    "sent_at": sent_at})
+    # Mirror the row to Supabase so the record survives this container.
+    # Best effort: the message is already SENT — failing the run here would
+    # only stop the local log from growing, not un-send anything — but the
+    # warning must be loud enough to act on before the container dies.
+    pat = os.environ.get("SUPABASE_PAT", "").strip()
+    if not pat:
+        return
+    try:
+        _sb_sql(
+            "INSERT INTO public.outreach_sent "
+            "(email, district_number, message_id, sent_at) VALUES "
+            f"({_sb_quote(row['email'])},{_sb_quote(row['district_number'])},"
+            f"{_sb_quote(message_id)},{_sb_quote(sent_at)}::timestamptz) "
+            "ON CONFLICT (email) DO NOTHING", pat)
+    except Exception as ex:  # noqa: BLE001 — a mirror failure must not abort the send
+        print(f"  WARNING: {row['email']} logged LOCALLY ONLY — the Supabase "
+              f"mirror insert failed ({ex}). The local CSV is now ahead of "
+              f"the durable table: run scripts/sync_outreach_state.py before "
+              f"this container is lost.", file=sys.stderr)
 
 
 def main() -> int:
