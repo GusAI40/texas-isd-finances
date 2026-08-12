@@ -1,0 +1,91 @@
+{
+  "_what_this_is": [
+    "The vintage we KNOW we have, per source in src/sources.py, plus how to ask",
+    "the publisher whether they now have something newer. scripts/check_freshness.py",
+    "reads this file, fetches each source's metadata over HTTPS, and exits non-zero",
+    "for every source whose upstream is newer than the vintage recorded here.",
+    "",
+    "When it fires, there are exactly two honest responses, and both are edits:",
+    "  1. ingest the new release and bump the vintage here in the same change; or",
+    "  2. decide not to ingest yet and bump the vintage anyway, with a note —",
+    "     the git diff of this file IS the record that the release was seen.",
+    "Silencing the check any other way recreates the failure it exists to catch:",
+    "the bond layer ran two years stale with a green test suite the whole time.",
+    "",
+    "Methods: 'socrata' compares the portal's rowsUpdatedAt/viewLastModified to",
+    "vintage_utc; 'page_year' extracts years from the publisher's own download",
+    "page with `pattern` and compares the max to vintage_year; 'next_url' probes",
+    "the URL the NEXT release would have (a 200 with non-HTML content means it",
+    "shipped); 'etag' watches a published file's ETag/Last-Modified for change;",
+    "'unverifiable' is an explicit admission that the source offers no signal,",
+    "and never fails."
+  ],
+  "recorded": "2026-08-12",
+  "sources": {
+    "tea_peims": {
+      "method": "page_year",
+      "check_url": "https://tea.texas.gov/finance-and-grants/state-funding/state-funding-reports-and-data/peims-financial-data-downloads",
+      "pattern": "(20\\d{2})-(20\\d{2})[^<>]{0,12}Summarized\\s+PEIMS",
+      "vintage_year": 2025,
+      "meaning": "Latest fiscal year ingested. The page describes its own coverage as '2009-2025 Summarized PEIMS Actual Financial Data'; when fiscal 2026 lands that end year moves."
+    },
+    "tea_snapshot": {
+      "method": "page_year",
+      "check_url": "https://rptsvr1.tea.texas.gov/perfreport/snapshot/download.html",
+      "pattern": "Snapshot\\s*(20\\d{2})",
+      "vintage_year": 2024,
+      "meaning": "Latest Snapshot year ingested. The download page lists one 'Snapshot YYYY' link per release."
+    },
+    "tea_staar_district": {
+      "method": "page_year",
+      "check_url": "https://tea.texas.gov/student-assessment/student-assessment-results/statewide-summary-reports",
+      "pattern": "(20\\d{2})[-–—](20\\d{2})\\s+STAAR",
+      "vintage_year": 2025,
+      "meaning": "Latest school year in data/staar_district_long.csv (SY 2024 and 2025). The page titles its releases 'YYYY-YYYY STAAR ...'."
+    },
+    "tea_property": {
+      "method": "page_year",
+      "check_url": "https://tea.texas.gov/finance-and-grants/state-funding/additional-finance-resources/school-district-property-values-and-tax-rates",
+      "pattern": "Tax\\s+Year\\s+(20\\d{2})",
+      "vintage_year": 2025,
+      "meaning": "Latest certified tax year ingested. 'Tax Year YYYY' is the page's own label for each release; bare years on this page are nav and copyright noise, so the pattern must keep the words."
+    },
+    "tea_recapture": {
+      "method": "page_year",
+      "check_url": "https://tea.texas.gov/finance-and-grants/state-funding/excess-local-revenue",
+      "pattern": "(20\\d{2})-(20\\d{2})-excess-local-revenue",
+      "vintage_year": 2026,
+      "meaning": "Latest fiscal year of the excess-local-revenue district list ingested (register covers 1994-2026). The page links each release as 'YYYY-YYYY-excess-local-revenue-districts'."
+    },
+    "tea_accountability": {
+      "method": "next_url",
+      "check_url": "https://tea.texas.gov/texas-schools/accountability/academic-accountability/performance-reporting/2026-enhanced-statewide-summary.xlsx",
+      "vintage_year": 2025,
+      "meaning": "We ingested the 2025 Enhanced Statewide Summary; the URL is year-pinned, so the 2026 release will appear at the sibling URL probed here. A 200 serving a spreadsheet means it shipped. After ingesting it, point this at 2027."
+    },
+    "census_tiger": {
+      "method": "next_url",
+      "check_url": "https://www2.census.gov/geo/tiger/TIGER2025/UNSD/tl_2025_48_unsd.zip",
+      "vintage_year": 2024,
+      "meaning": "Boundaries on the map are TIGER2024; Census publishes each vintage at a predictable path, so this probes the next one. After moving to TIGER2025, point this at TIGER2026."
+    },
+    "bond_elections": {
+      "method": "socrata",
+      "check_url": "https://data.texas.gov/api/views/kbmc-qmvg.json",
+      "vintage_utc": "2026-08-11T00:00:00Z",
+      "meaning": "Ingested first-party from data.texas.gov on 2026-08-11 (4,992 decided propositions). The portal's metadata API reports rowsUpdatedAt for the dataset itself; anything after this date is data we have not seen."
+    },
+    "brb_debt_outstanding": {
+      "method": "etag",
+      "check_url": "https://data.brb.texas.gov/main_search.json",
+      "etag": "4bd6e99944bde968dc2f1369269e4696",
+      "last_modified": "Tue, 11 Aug 2026 06:07:28 GMT",
+      "meaning": "The Board's issuer index carries no updatedAt field, so this watches the file's own ETag (an S3 content hash: it moves only when the bytes move). Ingested 2026-08-11, fiscal 2025 actuals. If this fires repeatedly with no new fiscal year visible, the index is churning and the method should be revisited before it teaches anyone to ignore it."
+    },
+    "bls_cpi": {
+      "method": "unverifiable",
+      "check_url": "https://www.bls.gov/cpi/",
+      "meaning": "Dynamic page: no Last-Modified, no ETag, no dataset metadata API. CPI-U annual averages change once a year in mid-January; the constant-dollar base year (2024) is pinned deliberately and does not track releases."
+    }
+  }
+}

@@ -1,0 +1,105 @@
+name: Monitor
+
+# The external watchdog. Everything it runs already existed — /health,
+# /api/cron/runs (gap_days / wrote_nothing), verify_live.py — but nothing ran
+# them automatically and nobody was alerted. A failing job here emails the
+# repository owner, which turns every silent failure mode this project has
+# actually had (dead site behind a green suite, a cron that stopped firing,
+# production drifting from the tree, upstream publishing data we never saw)
+# into a notification within a day.
+#
+# No secrets: every endpoint checked is public by design — /health and
+# /api/cron/* stay outside the site password.
+
+on:
+  schedule:
+    - cron: '0 12 * * *'
+  workflow_dispatch:
+
+jobs:
+  health:
+    name: Production health
+    runs-on: ubuntu-latest
+    steps:
+      # A 200 alone proves nothing — the body must say healthy AND connected,
+      # or a paused Supabase free tier reads as a pass.
+      - name: /health says healthy and database connected
+        run: |
+          curl -sS --fail --max-time 30 https://txisd.dev/health | tee health.json
+          python3 - <<'EOF'
+          import json, sys
+          h = json.load(open("health.json"))
+          problems = []
+          if h.get("status") != "healthy":
+              problems.append(f"status={h.get('status')!r} (want 'healthy')")
+          if h.get("database") != "connected":
+              problems.append(f"database={h.get('database')!r} (want 'connected')")
+          if problems:
+              sys.exit("UNHEALTHY: " + "; ".join(problems))
+          print("healthy, database connected, llm:", h.get("llm"))
+          EOF
+
+  cron-runs:
+    name: Scheduled jobs actually ran
+    runs-on: ubuntu-latest
+    steps:
+      # A job that never fires and a job that fires and writes nothing look
+      # identical from outside — this is the endpoint built to tell them
+      # apart, and this step is what finally reads it on a schedule.
+      - name: /api/cron/runs shows no gap and no empty runs
+        run: |
+          curl -sS --fail --max-time 30 https://txisd.dev/api/cron/runs | tee runs.json
+          python3 - <<'EOF'
+          import json, sys
+          r = json.load(open("runs.json"))
+          if not r.get("available"):
+              sys.exit("cron run history unavailable — the cron_runs table is "
+                       "missing or the database is down; the job cannot be "
+                       "proven to have run")
+          problems = []
+          gap = r.get("gap_days")
+          if gap is None:
+              problems.append("no successful run recorded at all (gap_days is null)")
+          elif gap > 1:
+              problems.append(f"gap_days={gap}: job '{r.get('job')}' has not "
+                              "completed since then")
+          if r.get("wrote_nothing", 0) > 0:
+              problems.append(f"wrote_nothing={r['wrote_nothing']}: runs reported "
+                              "success while writing zero rows — the exact shape "
+                              "of the original silent failure")
+          if r.get("errors", 0) > 0:
+              problems.append(f"errors={r['errors']} failed runs in the window")
+          if problems:
+              sys.exit("SILENT FAILURE: " + "; ".join(problems))
+          print(f"job '{r.get('job')}': gap_days={gap}, last_success={r.get('last_success')}")
+          EOF
+
+  verify:
+    name: Live drift and upstream freshness
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests
+
+      # Does production serve what this tree says it should? The bond layer
+      # ran two years stale with a green suite because nothing compared the
+      # site to the repo on a schedule. Exits non-zero on drift.
+      - name: verify_live — production matches the repo
+        run: python scripts/verify_live.py
+
+      # Has any publisher moved past the vintage we ingested? Exits non-zero
+      # when upstream has data we have not seen. On failure: ingest it, or
+      # bump scripts/freshness_vintages.json with a note.
+      - name: check_freshness — upstream has nothing we lack
+        if: always()
+        run: python scripts/check_freshness.py
