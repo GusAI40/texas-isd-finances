@@ -18,10 +18,10 @@ rejected. Nothing breaks; you just get no data.
    land somewhere else, pick that project first, then **SQL Editor** in the
    left sidebar, then **New query**.)
 
-2. Open the migration file and copy all of it:
-   **https://github.com/GusAI40/texas-isd-finances/blob/claude/audit-public-launch-ocd7ra/sql/create_visitor_tracking.sql**
-   Use the **copy icon** at the top-right of the file view (copies the raw
-   text, not the page).
+2. Open the **raw** migration text and select all / copy:
+   **https://raw.githubusercontent.com/GusAI40/texas-isd-finances/claude/audit-public-launch-ocd7ra/sql/create_visitor_tracking.sql**
+   (Use the raw view, not the pretty GitHub file view — it is plain text with
+   nothing else on the page to copy by accident.)
 
 3. Paste it into the SQL editor and press **Run** (or Ctrl/Cmd + Enter).
 
@@ -34,17 +34,20 @@ worked, just run it again.
 
 ### Check it worked
 
-New query, run this:
+⚠️ Do not use a check that can return zero rows. `Success. No rows returned`
+is *also* what the migration prints, and what a SELECT prints when it finds
+nothing — so that message cannot tell you which happened. Use this instead,
+which always returns exactly one row saying true or false:
 
 ```sql
-SELECT table_name
-FROM information_schema.tables
-WHERE table_schema = 'public'
-  AND table_name IN ('outreach_recipient', 'visitor_event');
+SELECT
+  to_regclass('public.outreach_recipient') IS NOT NULL AS recipient_table,
+  to_regclass('public.visitor_event')      IS NOT NULL AS event_table,
+  to_regclass('public.v_recipient_journey') IS NOT NULL AS journey_view;
 ```
 
-Two rows back (`outreach_recipient`, `visitor_event`) means you are done.
-Zero rows means the migration did not run — go back to step 3.
+Three `true` values means you are done. Any `false` means the migration has
+not run yet — go back to step 3.
 
 ---
 
