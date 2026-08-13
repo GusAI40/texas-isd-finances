@@ -25,7 +25,7 @@ from fastapi.responses import (
 )
 from pydantic import BaseModel, Field
 
-from . import absences, analytics, llm_config, mcp_protocol, mcp_tools, scanner, site_gate, sources
+from . import absences, analytics, llm_config, mcp_protocol, mcp_tools, scanner, site_gate, sources, tracking
 from . import format as fmt
 from .sample_queries import SAMPLE_QUERIES
 
@@ -247,6 +247,52 @@ async def _log_question(pool, question: str, ok: bool, ms: int) -> None:
         print(f"WARNING: question not logged: {exc}")
 
 
+# ---------------------------------------------------------------------------
+# Per-recipient journey tracking. The deliberate exception to everything above:
+# see src/tracking.py for the entry condition (a minted ?rid= we mailed) and
+# sql/create_visitor_tracking.sql for the fence around it.
+
+
+def _pool_or_none(request: Request):
+    """The pool, or None if the app never got one.
+
+    `app.state.db_pool` is set by the lifespan, which does not run under some
+    test clients and can fail outright when Supabase is paused. Reading the
+    attribute directly raises AttributeError — and the open pixel lives inside
+    an email, where a 500 renders as a visibly broken image in a
+    superintendent's inbox. Every tracking path goes through here.
+    """
+    return getattr(request.app.state, "db_pool", None)
+
+
+async def _record_event(pool, *, rid: str, visitor: str, session: str,
+                        event: str, path: str | None = None,
+                        district: str | None = None, dwell_ms: int | None = None,
+                        ref_host: str = "", device: str = "",
+                        user_agent: str | None = None,
+                        ip: str | None = None) -> None:
+    """Append one row to the recipient's stream. Fails open, loudly.
+
+    The rid carries a foreign key to a minted recipient, so a forged token
+    raises here rather than creating a stream for somebody who was never
+    mailed. That is the intended behaviour and the reason the insert is not
+    an upsert.
+    """
+    if pool is None or event not in tracking.EVENTS:
+        return
+    try:
+        async with pool.acquire() as conn:
+            await conn.execute(
+                "INSERT INTO public.visitor_event "
+                "(rid, visitor_id, session_id, event, path, district_number, "
+                " dwell_ms, referrer_host, device, user_agent, ip) "
+                "VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11::inet)",
+                rid, visitor, session, event, path, district, dwell_ms,
+                ref_host, device, (user_agent or "")[:400] or None, ip)
+    except Exception as exc:            # unminted rid, table missing, DB asleep
+        print(f"WARNING: journey event not recorded ({event}): {exc}")
+
+
 @app.middleware("http")
 async def count_page_views(request: Request, call_next):
     """Count page views server-side: no script, no cookie, no third party.
@@ -271,12 +317,73 @@ async def count_page_views(request: Request, call_next):
                     if not ref:
                         ref = analytics.source_tag(
                             request.query_params.get("src"))
+                    device = analytics.device_of(ua)
                     await _record_visit(
-                        request.app.state.db_pool, route,
-                        analytics.device_of(ua), ref)
+                        _pool_or_none(request), route, device, ref)
+                    await _track_journey(request, resp, route, device, ref, ua)
     except Exception as exc:
         print(f"WARNING: page-view counting failed: {exc}")
     return resp
+
+
+async def _track_journey(request: Request, resp, route: str, device: str,
+                         ref_host: str, ua: str | None) -> None:
+    """Record an identified page view — but ONLY for a mailed recipient.
+
+    `resume_or_start` returns None for everyone else, and that is the whole
+    fence: an anonymous visitor has already been counted in site_visits above
+    and leaves no other trace. A recipient arriving from the email carries
+    ?rid=; from then on the cookie carries it, which is what makes a return
+    visit next month attributable to the same person.
+    """
+    bound = tracking.resume_or_start(
+        request.cookies.get(tracking.COOKIE_NAME),
+        request.query_params.get("rid"))
+    if bound is None:
+        return
+    rid, visitor, session, is_new_session = bound
+    from_email = bool(tracking.valid_token(request.query_params.get("rid")))
+
+    # The click itself is a distinct event from the page view it caused: the
+    # first tells you the email worked, the second where they landed.
+    if from_email:
+        await _record_event(
+            _pool_or_none(request), rid=rid, visitor=visitor, session=session,
+            event="click", path=route,
+            district=request.query_params.get("d"), ref_host=ref_host,
+            device=device, user_agent=ua,
+            ip=tracking.client_ip(request.headers.get("x-forwarded-for"),
+                                  request.client.host if request.client else None))
+    elif is_new_session:
+        # No token in the URL and the last sitting has aged out: they came back
+        # on their own. That is the most interesting event in the whole stream.
+        await _record_event(
+            _pool_or_none(request), rid=rid, visitor=visitor, session=session,
+            event="return", path=route, ref_host=ref_host, device=device)
+
+    await _record_event(
+        _pool_or_none(request), rid=rid, visitor=visitor, session=session,
+        event="pageview", path=route,
+        district=request.query_params.get("d"), ref_host=ref_host, device=device,
+        user_agent=ua,
+        ip=tracking.client_ip(request.headers.get("x-forwarded-for"),
+                              request.client.host if request.client else None))
+
+    resp.set_cookie(
+        tracking.COOKIE_NAME,
+        tracking.build_cookie(rid, visitor, session),
+        max_age=tracking.COOKIE_MAX_AGE,
+        httponly=True,      # the beacon posts the path, not the identity
+        secure=True,
+        samesite="lax")     # must survive the cross-site hop from the mail client
+
+    # A contentless companion the page script CAN read, so the dwell beacon
+    # knows whether to run at all. It carries no identity — just "you are in
+    # the tracked population" — which keeps the rid out of JavaScript entirely
+    # while sparing every anonymous visitor a pointless POST to /e.
+    resp.set_cookie(
+        "txj_on", "1", max_age=tracking.COOKIE_MAX_AGE,
+        httponly=False, secure=True, samesite="lax")
 
 
 # The NLP engine needs an OpenAI key and a database connection, so it is
@@ -344,6 +451,69 @@ async def portal(request: Request):
             "Cache-Control": "public, max-age=600, must-revalidate"})
     except Exception:  # noqa: BLE001 — never let meta injection break the page
         return FileResponse(index)
+
+
+# A 1x1 transparent GIF, inline so the open pixel needs no file on disk.
+_PIXEL_GIF = bytes.fromhex(
+    "47494638396101000100800000000000ffffff21f90401000000002c00000000"
+    "010001000002024401003b")
+
+
+@app.get("/px/{rid}.gif", include_in_schema=False)
+async def open_pixel(rid: str, request: Request):
+    """Records that a mailed email was opened, then returns a 1x1 GIF.
+
+    Resend reports opens too, but only while the message is inside its
+    retention window and only if the domain's tracking toggle happens to be
+    on — a switch that silently zeroed 71 sends in wave 1. This is our own
+    copy, in our own database, keyed to the recipient.
+
+    Caveat worth remembering when reading the numbers: mail clients that
+    prefetch images (Apple Mail Privacy Protection, most corporate scanners)
+    trip this pixel without a human present. An open is evidence the message
+    was delivered somewhere real, not proof it was read.
+    """
+    token = tracking.valid_token(rid)
+    if token:
+        ua = request.headers.get("user-agent")
+        await _record_event(
+            _pool_or_none(request), rid=token,
+            visitor=tracking.new_visitor_id(), session=tracking.new_session_id(),
+            event="email_open", device=analytics.device_of(ua), user_agent=ua,
+            ip=tracking.client_ip(request.headers.get("x-forwarded-for"),
+                                  request.client.host if request.client else None))
+    return Response(_PIXEL_GIF, media_type="image/gif", headers={
+        "Cache-Control": "no-store, no-cache, must-revalidate, private",
+        "Pragma": "no-cache"})
+
+
+class DwellBeacon(BaseModel):
+    path: str = Field(..., max_length=120)
+    ms: int = Field(..., ge=0)
+    d: Optional[str] = Field(None, max_length=12)
+
+
+@app.post("/e", include_in_schema=False)
+async def dwell_beacon(beacon: DwellBeacon, request: Request):
+    """How long a tracked recipient stayed on a page.
+
+    The browser posts this on pagehide/visibilitychange via sendBeacon. The
+    identity is NOT in the body — it comes from the httpOnly cookie, so a page
+    script cannot read it and a third party cannot forge one for a recipient
+    whose token they do not have.
+
+    Always 204, whatever happens: a beacon is fire-and-forget and the client
+    is usually mid-unload with nobody left to read an error.
+    """
+    rid, visitor, session, _ = tracking.parse_cookie(
+        request.cookies.get(tracking.COOKIE_NAME))
+    dwell = tracking.clean_dwell(beacon.ms)
+    if rid and dwell and analytics.countable_path(beacon.path):
+        await _record_event(
+            _pool_or_none(request), rid=rid, visitor=visitor, session=session,
+            event="dwell", path=analytics.countable_path(beacon.path),
+            district=beacon.d, dwell_ms=dwell)
+    return Response(status_code=204)
 
 
 @app.get("/share/{name}", include_in_schema=False)
@@ -1654,6 +1824,18 @@ async def design_stylesheet():
     if not css.exists():
         raise HTTPException(status_code=404, detail="Stylesheet not found")
     return FileResponse(css, media_type="text/css",
+                        headers={"Cache-Control": "public, max-age=3600, must-revalidate"})
+
+
+@app.get("/static/track.js", include_in_schema=False)
+async def track_script():
+    """The dwell beacon. Inert for everyone except a mailed recipient — it
+    returns immediately unless the server has set the `txj_on` flag cookie.
+    Same one-asset, one-route policy as the stylesheet above."""
+    js = STATIC_DIR / "track.js"
+    if not js.exists():
+        raise HTTPException(status_code=404, detail="Script not found")
+    return FileResponse(js, media_type="application/javascript",
                         headers={"Cache-Control": "public, max-age=3600, must-revalidate"})
 
 
