@@ -33,6 +33,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 SENT_LOG = ROOT / "data/outreach_sent.csv"
+RECIPIENTS = ROOT / "data/outreach_recipients.csv"
 OPTOUT = ROOT / "data/outreach_optout.txt"
 
 PROJECT_REF = os.getenv("SUPABASE_PROJECT_REF", "zwhvabkvrexphlskubog")
@@ -77,6 +78,26 @@ def push(pat: str) -> int:
     else:
         rows = []
         print("no local sent log — nothing to push there")
+
+    # Journey tokens. These matter more than they look: visitor_event.rid is a
+    # foreign key to outreach_recipient, so a token that never reached the
+    # database silently drops every click that presents it. A wave sent with
+    # SUPABASE_PAT unset is recoverable ONLY by pushing this file — and only
+    # for recipients who have not clicked yet, so push it the same day.
+    if RECIPIENTS.exists():
+        recips = list(csv.DictReader(RECIPIENTS.open()))
+        if recips:
+            values = ",".join(
+                f"({q(r['rid'])},{q(r['email'])},{q(r['district_number'])},"
+                f"{q(r.get('campaign') or 'w2')},{q(r.get('message_id') or '')},"
+                f"{q(r['sent_at'])}::timestamptz)" for r in recips)
+            run_sql("INSERT INTO public.outreach_recipient "
+                    "(rid, email, district_number, campaign, message_id, sent_at) "
+                    f"VALUES {values} ON CONFLICT (rid) DO NOTHING", pat)
+        print(f"pushed {len(recips)} journey tokens from "
+              f"{RECIPIENTS.relative_to(ROOT)}")
+    else:
+        print("no local journey tokens — nothing to push there")
 
     optouts = _local_optouts()
     if optouts:
