@@ -78,17 +78,38 @@ def _upsert_supabase(rows: list[dict], pat: str) -> None:
     urllib.request.urlopen(req, timeout=120).read()
 
 
+def _remote_sent(pat: str) -> list[dict]:
+    """The sent log from Supabase — so this runs on a fresh clone with no
+    local files at all (containers die; the database is the memory)."""
+    req = urllib.request.Request(
+        f"https://api.supabase.com/v1/projects/{PROJECT_REF}/database/query",
+        data=json.dumps({"query":
+            "SELECT email, district_number, message_id, sent_at::text "
+            "FROM public.outreach_sent ORDER BY sent_at"}).encode(),
+        headers={"Authorization": f"Bearer {pat}",
+                 "User-Agent": "txisd-outreach/1.0",
+                 "Content-Type": "application/json"})
+    with urllib.request.urlopen(req, timeout=60) as resp:
+        return json.load(resp)
+
+
 def main() -> int:
     key = os.environ.get("RESEND_API_KEY", "").strip()
+    pat = os.environ.get("SUPABASE_PAT", "").strip()
     if not key:
         print("RESEND_API_KEY is not set — cannot read email statuses.")
         return 1
-    if not SENT_LOG.exists():
-        print(f"{SENT_LOG.relative_to(ROOT)} not found — nothing sent yet?")
-        return 1
 
     names = _district_names()
-    sent = list(csv.DictReader(SENT_LOG.open()))
+    if SENT_LOG.exists():
+        sent = list(csv.DictReader(SENT_LOG.open()))
+    elif pat:
+        sent = _remote_sent(pat)
+        print(f"local sent log absent — using {len(sent)} rows from Supabase")
+    else:
+        print(f"{SENT_LOG.relative_to(ROOT)} not found and SUPABASE_PAT "
+              "unset — no sent log to check.")
+        return 1
     print(f"checking {len(sent)} sent emails against Resend…")
 
     tally: Counter[str] = Counter()

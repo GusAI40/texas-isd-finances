@@ -1,0 +1,39 @@
+# Weekly outreach KPI snapshot — copies every sent email's fate home.
+#
+# Opens/bounces live on Resend's servers under their retention rules; this
+# job pulls each message's status and upserts it into public.outreach_status
+# in Supabase, so engagement history accumulates in a database we own even
+# if no human remembers to run the script.
+#
+# Needs two repository secrets (Settings → Secrets → Actions):
+#   RESEND_API_KEY   read the statuses
+#   SUPABASE_PAT     read the sent log / write the statuses
+# Until both exist the job skips harmlessly and says so.
+
+name: Outreach KPI
+
+on:
+  schedule:
+    - cron: "30 12 * * 1"     # Mondays 12:30 UTC (7:30 AM Central)
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Snapshot engagement statuses
+        env:
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          SUPABASE_PAT: ${{ secrets.SUPABASE_PAT }}
+        run: |
+          if [ -z "$RESEND_API_KEY" ] || [ -z "$SUPABASE_PAT" ]; then
+            echo "secrets not configured — skipping (add RESEND_API_KEY and"
+            echo "SUPABASE_PAT in repo Settings → Secrets → Actions to arm)"
+            exit 0
+          fi
+          python scripts/outreach_kpi.py
