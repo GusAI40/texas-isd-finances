@@ -1,0 +1,209 @@
+<title>Outreach map — where it landed</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root{
+    --bg:#ffffff; --ink:#111318; --mut:#5a5f6b; --line:#e4e4e0; --panel:#f7f7f5;
+    --notsent:#c9ccd2; --unknown:#ffffff; --bounced:#8a8f98;
+    --delivered:#d64545; --opened:#e8a317; --clicked:#2e9e5b;
+  }
+  :root:not([data-theme="light"]){}
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0f1115; --ink:#e9ecf1; --mut:#9aa1ad; --line:#252a33; --panel:#161a21;
+      --notsent:#3a4049; --unknown:#0f1115; --bounced:#6b7280;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0f1115; --ink:#e9ecf1; --mut:#9aa1ad; --line:#252a33; --panel:#161a21;
+    --notsent:#3a4049; --unknown:#0f1115; --bounced:#6b7280;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+       font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
+  header{padding:18px 20px 10px;border-bottom:1px solid var(--line)}
+  h1{margin:0 0 4px;font-size:19px;letter-spacing:-.01em}
+  .sub{color:var(--mut);font-size:13px}
+  #wrap{position:relative}
+  canvas{display:block;width:100%;height:70vh;touch-action:none;cursor:crosshair}
+  #legend{display:flex;flex-wrap:wrap;gap:14px;padding:12px 20px;
+          border-bottom:1px solid var(--line);font-size:13px}
+  .k{display:flex;align-items:center;gap:7px;white-space:nowrap}
+  .sw{width:11px;height:11px;border-radius:50%;border:1.5px solid var(--mut)}
+  #tip{position:absolute;pointer-events:none;opacity:0;transition:opacity .09s;
+       background:var(--panel);border:1px solid var(--line);border-radius:8px;
+       padding:10px 12px;font-size:13px;max-width:290px;
+       box-shadow:0 6px 24px rgba(0,0,0,.14);z-index:5}
+  #tip b{display:block;margin-bottom:5px;font-size:14px}
+  #tip .row{display:flex;justify-content:space-between;gap:14px;color:var(--mut)}
+  #tip .row span:last-child{color:var(--ink);font-variant-numeric:tabular-nums}
+  #tip .hint{margin-top:7px;padding-top:6px;border-top:1px solid var(--line);
+             color:var(--mut);font-size:12px}
+  footer{padding:14px 20px 26px;color:var(--mut);font-size:12.5px;max-width:900px}
+  footer li{margin:5px 0}
+  .warn{color:var(--delivered)}
+</style>
+
+<header>
+  <h1>Outreach map — where it landed</h1>
+  <div class="sub" id="head">loading…</div>
+</header>
+<div id="legend"></div>
+<div id="wrap"><canvas id="cv"></canvas><div id="tip"></div></div>
+<footer><ul id="limits"></ul></footer>
+
+<script>
+const TOKEN = new URLSearchParams(location.search).get('token') || '';
+const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+const tip = document.getElementById('tip');
+const dpr = Math.min(window.devicePixelRatio || 1, 2);
+let geo = null, ops = null, rings = {}, bounds = [-107,25,-93,37];
+const view = {k:1, x:0, y:0};
+let hoverId = null;
+
+const COLOR = {
+  not_sent:'--notsent', unknown:'--unknown', bounced:'--bounced',
+  delivered:'--delivered', opened:'--opened', clicked:'--clicked'
+};
+const LABEL = {
+  not_sent:'Not sent yet', unknown:'Sent · not yet checked',
+  bounced:'Bounced / suppressed', delivered:'Delivered · not opened',
+  opened:'Opened', clicked:'Clicked through'
+};
+function cssVar(n){ return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+
+function decodeRings(enc, q) {
+  const out = [];
+  for (const flat of enc) {
+    const pts = []; let x = 0, y = 0;
+    for (let i = 0; i < flat.length; i += 2) {
+      x += flat[i]; y += flat[i+1];
+      pts.push([x/q, y/q]);
+    }
+    out.push(pts);
+  }
+  return out;
+}
+function project(lon, lat) {
+  const [x0,y0,x1,y1] = bounds, pad = 12 * dpr;
+  const s = Math.min((cv.width-2*pad)/(x1-x0), (cv.height-2*pad)/(y1-y0)) * view.k;
+  return [pad + (lon-x0)*s + view.x*dpr + (cv.width-2*pad-(x1-x0)*s)/2,
+          cv.height - pad - (lat-y0)*s + view.y*dpr - (cv.height-2*pad-(y1-y0)*s)/2];
+}
+function resize() {
+  cv.width = cv.clientWidth * dpr; cv.height = cv.clientHeight * dpr; draw();
+}
+function draw() {
+  if (!ops) return;
+  ctx.clearRect(0,0,cv.width,cv.height);
+  // Boundaries first, faint — context, not content.
+  ctx.strokeStyle = cssVar('--line'); ctx.lineWidth = 1;
+  for (const id in rings) {
+    for (const ring of rings[id]) {
+      ctx.beginPath();
+      ring.forEach((p,i) => { const [x,y]=project(p[0],p[1]); i?ctx.lineTo(x,y):ctx.moveTo(x,y); });
+      ctx.closePath(); ctx.stroke();
+    }
+  }
+  // Dots, furthest-through-the-funnel drawn last so they win overlaps.
+  const order = ['not_sent','unknown','bounced','delivered','opened','clicked'];
+  for (const state of order) {
+    ctx.fillStyle = cssVar(COLOR[state]);
+    ctx.strokeStyle = state === 'unknown' ? cssVar('--mut') : 'rgba(0,0,0,.25)';
+    for (const id in ops.d) {
+      const r = ops.d[id];
+      if (r.s !== state || !r.c) continue;
+      const [x,y] = project(r.c[0], r.c[1]);
+      const rad = (id === hoverId ? 6 : 4) * dpr * Math.min(1.6, Math.sqrt(view.k));
+      ctx.beginPath(); ctx.arc(x, y, rad, 0, 6.2832);
+      ctx.fill(); ctx.lineWidth = (state==='unknown'?1.4:1) * dpr; ctx.stroke();
+    }
+  }
+}
+function nearest(mx, my) {
+  let best = null, bd = 18 * dpr;
+  for (const id in ops.d) {
+    const r = ops.d[id]; if (!r.c) continue;
+    const [x,y] = project(r.c[0], r.c[1]);
+    const d = Math.hypot(x-mx, y-my);
+    if (d < bd) { bd = d; best = id; }
+  }
+  return best;
+}
+function showTip(id, cx, cy) {
+  const r = ops.d[id];
+  const when = v => v ? v.replace('T',' ').replace('Z','') : '—';
+  let rows =
+    `<div class="row"><span>Status</span><span>${LABEL[r.s]}</span></div>` +
+    `<div class="row"><span>Sent</span><span>${when(r.sent)}</span></div>` +
+    `<div class="row"><span>Opened</span><span>${when(r.opened)}</span></div>` +
+    `<div class="row"><span>Clicked</span><span>${when(r.clicked)}</span></div>`;
+  if (r.pv)      rows += `<div class="row"><span>Pages viewed</span><span>${r.pv}</span></div>`;
+  if (r.pages)   rows += `<div class="row"><span>Distinct pages</span><span>${r.pages}</span></div>`;
+  if (r.dwell_s) rows += `<div class="row"><span>Time on site</span><span>${r.dwell_s}s</span></div>`;
+  if (r.s === 'unknown')
+    rows += `<div class="hint warn">Not yet checked against the email provider — this is missing data, not a non-open.</div>`;
+  tip.innerHTML = `<b>${r.n}</b>${rows}<div class="hint">Double-click to open their report</div>`;
+  tip.style.opacity = 1;
+  const w = tip.offsetWidth, h = tip.offsetHeight;
+  tip.style.left = Math.min(cx + 14, cv.clientWidth - w - 8) + 'px';
+  tip.style.top  = Math.max(8, cy - h - 12) + 'px';
+}
+
+cv.addEventListener('pointermove', e => {
+  const b = cv.getBoundingClientRect();
+  const id = nearest((e.clientX-b.left)*dpr, (e.clientY-b.top)*dpr);
+  if (id !== hoverId) { hoverId = id; draw(); }
+  if (id) showTip(id, e.clientX-b.left, e.clientY-b.top);
+  else tip.style.opacity = 0;
+});
+cv.addEventListener('pointerleave', () => { tip.style.opacity = 0; hoverId = null; draw(); });
+cv.addEventListener('dblclick', e => {
+  const b = cv.getBoundingClientRect();
+  const id = nearest((e.clientX-b.left)*dpr, (e.clientY-b.top)*dpr);
+  if (id) window.open('/?d=' + encodeURIComponent(id), '_blank', 'noopener');
+});
+cv.addEventListener('wheel', e => {
+  e.preventDefault();
+  view.k = Math.max(1, Math.min(14, view.k * (e.deltaY < 0 ? 1.12 : 0.89)));
+  draw();
+}, {passive:false});
+let drag = null;
+cv.addEventListener('pointerdown', e => { drag = {x:e.clientX, y:e.clientY, vx:view.x, vy:view.y}; });
+addEventListener('pointerup', () => { drag = null; });
+addEventListener('pointermove', e => {
+  if (!drag) return;
+  view.x = drag.vx + (e.clientX-drag.x); view.y = drag.vy - (e.clientY-drag.y); draw();
+});
+addEventListener('resize', resize);
+
+async function boot() {
+  const q = TOKEN ? ('?token=' + encodeURIComponent(TOKEN)) : '';
+  const [g, o] = await Promise.all([
+    fetch('/district-geo').then(r => r.json()).catch(() => null),
+    fetch('/ops/outreach-data' + q).then(r => r.ok ? r.json() : null).catch(() => null)
+  ]);
+  if (!o) {
+    document.getElementById('head').textContent =
+      'No data — check the ?token= in this page’s URL.';
+    return;
+  }
+  geo = g; ops = o;
+  if (geo) {
+    for (const id in geo.d) rings[id] = decodeRings(geo.d[id].r, geo.meta.quant);
+  }
+  const c = ops.meta.counts;
+  document.getElementById('head').textContent =
+    `${ops.meta.districts.toLocaleString()} districts · ${ops.meta.plotted.toLocaleString()} plotted · ` +
+    `${ops.meta.sent_total.toLocaleString()} emailed` +
+    (ops.meta.no_boundary ? ` · ${ops.meta.no_boundary} charters have no boundary and cannot be shown` : '');
+  document.getElementById('legend').innerHTML =
+    ['clicked','opened','delivered','bounced','unknown','not_sent'].map(s =>
+      `<div class="k"><span class="sw" style="background:${cssVar(COLOR[s])}"></span>` +
+      `${LABEL[s]} <b>${(c[s]||0).toLocaleString()}</b></div>`).join('');
+  document.getElementById('limits').innerHTML =
+    ops.meta.limits.map(t => `<li>${t}</li>`).join('');
+  resize();
+}
+boot();
+</script>
