@@ -1,11 +1,41 @@
-# Turning on journey tracking — the two manual steps
+# Turning on journey tracking
 
-Everything else is code and already shipped. These two things need a human
-with the account, once. Ten minutes, no command line required for step 1.
+**Step 1 is now automatic.** The application creates its own tracking tables on
+startup (`src/migrations.py`, called from the lifespan in `src/api.py`), so the
+next production deploy applies the schema with nobody pasting anything. It is
+one `to_regclass` lookup per cold start once the tables exist.
+
+That leaves **only Step 2** for a human — and even that is recoverable if
+missed. The manual instructions below are kept because they still work, and
+because a self-applying migration is only as good as your ability to check it
+by hand.
+
+### How to confirm it applied
+
+After the next deploy, either read the deployment logs for the line
+
+```
+schema: ok: journey-tracking schema ensured        (first boot)
+schema: ok: tracking schema already present        (every boot after)
+```
+
+or run the check in the SQL editor (see Step 1's check below). A line starting
+`schema: ERROR:` means it could not apply and the manual path is needed.
+
+Why it reports state rather than "created": on a cold-start burst several
+workers can each run the idempotent script, and a log saying "created" on all
+of them would be untrue in exactly the place someone looks to find out what
+happened.
+
+⚠️ The migration is deliberately **additive only** and never touches the
+finance tables. `tests/test_migrations.py` fails the build if a `DROP`,
+`TRUNCATE`, `DELETE` or `ALTER COLUMN` ever appears in it — that file runs
+unattended against production on every cold start, and it must never be able to
+destroy anything.
 
 ---
 
-## Step 1 — Create the tables (no CLI, no token)
+## Step 1 (now optional) — Create the tables by hand
 
 The database has no `outreach_recipient` / `visitor_event` tables yet. Until it
 does, **every click is thrown away silently** — `visitor_event.rid` is a

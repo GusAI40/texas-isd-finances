@@ -25,7 +25,18 @@ from fastapi.responses import (
 )
 from pydantic import BaseModel, Field
 
-from . import absences, analytics, llm_config, mcp_protocol, mcp_tools, scanner, site_gate, sources, tracking
+from . import (
+    absences,
+    analytics,
+    llm_config,
+    mcp_protocol,
+    mcp_tools,
+    migrations,
+    scanner,
+    site_gate,
+    sources,
+    tracking,
+)
 from . import format as fmt
 from .sample_queries import SAMPLE_QUERIES
 
@@ -70,6 +81,12 @@ async def lifespan(app: FastAPI):
             )
         except Exception as exc:  # pragma: no cover - depends on environment
             print(f"WARNING: could not connect to database: {exc}")
+        # Journey tracking creates its own tables. Until they exist every click
+        # is dropped silently (visitor_event.rid is a FK), and the manual
+        # alternative — pasting DDL into a dashboard — is a step that is easy to
+        # believe you completed when you did not. One to_regclass lookup per
+        # cold start; the DDL runs at most once per database. Never raises.
+        print(f"schema: {await migrations.ensure_schema(app.state.db_pool)}")
     else:
         print("WARNING: SUPABASE_DB_URL not set - data endpoints will return 503")
     yield
