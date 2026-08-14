@@ -23,6 +23,7 @@ sum; see decodeRings() in static/geomap.html.
 from __future__ import annotations
 
 import argparse
+import collections
 import csv
 import json
 import re
@@ -55,6 +56,45 @@ def norm(s: str) -> str:
                  ("school district", "sd")]:
         s = s.replace(a, b)
     return re.sub(r"\s+", " ", re.sub(r"[^a-z0-9 ]", " ", s)).strip()
+
+
+def load_counties(path):
+    """Texas county polygons, for deciding which of two same-named districts a
+    polygon actually is. Returns [(name, rings, bbox)]."""
+    rr = shapefile.Reader(path)
+    fl = [f[0] for f in rr.fields[1:]]
+    out = []
+    for rec, shp in zip(rr.records(), rr.shapes()):
+        a = dict(zip(fl, rec))
+        if a.get("STATEFP") != "48":
+            continue
+        parts = list(shp.parts) + [len(shp.points)]
+        out.append((a["NAME"], [shp.points[x:y] for x, y in zip(parts, parts[1:])],
+                    shp.bbox))
+    if not out:
+        raise SystemExit(f"no Texas counties found in {path!r}")
+    return out
+
+
+def _in_ring(pt, ring):
+    x, y = pt
+    inside = False
+    n = len(ring)
+    for i in range(n):
+        x1, y1 = ring[i]
+        x2, y2 = ring[(i + 1) % n]
+        if ((y1 > y) != (y2 > y)) and x < (x2 - x1) * (y - y1) / (y2 - y1 + 1e-18) + x1:
+            inside = not inside
+    return inside
+
+
+def county_of(lon, lat, counties):
+    for nm, rings, bb in counties:
+        if not (bb[0] <= lon <= bb[2] and bb[1] <= lat <= bb[3]):
+            continue
+        if any(_in_ring((lon, lat), rg) for rg in rings):
+            return nm
+    return None
 
 
 def rdp(pts, eps):
@@ -113,6 +153,12 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--shapefile", required=True, help="tl_YYYY_48_unsd, no extension")
     ap.add_argument("--finance", required=True)
+    ap.add_argument("--crosswalk", default="data/district_crosswalk.csv",
+                    help="the district registry: carries the county that "
+                         "separates two districts sharing one name")
+    ap.add_argument("--counties", default=None,
+                    help="TIGER county shapefile (no extension). Required "
+                         "whenever any district name is shared.")
     ap.add_argument("--out", default="static/district_geo.json")
     ap.add_argument("--outcomes", default="static/outcomes_data.json",
                     help="merge the measures in so the map is one fetch, not two")
@@ -120,11 +166,37 @@ def main() -> int:
     ap.add_argument("--min-area", type=float, default=2e-5, help="drop rings smaller than this")
     args = ap.parse_args()
 
-    tea = {}
-    for row in csv.DictReader(open(args.finance)):
-        if int(row["year"]) == 2024:
-            tea[norm(row["district_name"])] = (str(row["district_number"]).zfill(6),
-                                               row["district_name"])
+    # Eleven Texas district names belong to TWO districts each ("Edgewood ISD"
+    # is both Bexar and Van Zandt). Keying a plain dict by name therefore keeps
+    # only whichever row the file happened to mention last, and every polygon
+    # carrying that name lands on that one number — so one district is drawn
+    # with the OTHER's territory and the other gets nothing.
+    #
+    # That was not hypothetical: on TIGER2024 five districts already shipped
+    # this way, including Highland Park ISD (Potter) drawn as Dallas's Highland
+    # Park and Northside ISD (Wilbarger) drawn as San Antonio's. TIGER2025 adds
+    # a polygon for the second twin of all eleven pairs, so the naive match
+    # silently overwrites eleven times and still reports "unmatched: 0".
+    #
+    # So: candidates are keyed by name, and a shared name is resolved by the
+    # county the polygon physically sits in — the same name+county key the bond
+    # layer uses. A TEA district number's first three digits ARE its county
+    # code, which is what makes the answer checkable against the state.
+    tea = collections.defaultdict(list)
+    for row in csv.DictReader(open(args.crosswalk)):
+        tea[norm(row["district_name"])].append(
+            (str(row["district_number"]).zfill(6), row["district_name"],
+             row["county"].strip().lower()))
+
+    shared = {n for n, v in tea.items() if len(v) > 1}
+    counties = load_counties(args.counties) if args.counties else None
+    if shared and counties is None:
+        raise SystemExit(
+            f"{len(shared)} district names are shared by two districts "
+            f"({', '.join(sorted(shared)[:3])}...). Resolving them needs "
+            "--counties (a TIGER county shapefile) so the polygon's own "
+            "location decides. Refusing to guess: guessing is how five "
+            "districts were drawn with the wrong territory.")
 
     # Fold the measures into the geometry: one request instead of two, and the
     # map can colour itself the moment it has the file.
@@ -147,16 +219,35 @@ def main() -> int:
     flds = [f[0] for f in r.fields[1:]]
     out, unmatched = {}, []
     kept_pts = raw_pts = 0
+    total_polys = len(r.shapes())
+    dropped_no_ring = 0
 
+    ambiguous = []
     for rec, shp in zip(r.records(), r.shapes()):
         attrs = dict(zip(flds, rec))
         key = norm(attrs["NAME"])
         key = ALIASES.get(key, key)
-        hit = tea.get(key)
-        if not hit:
+        cands = tea.get(key)
+        if not cands:
             unmatched.append(attrs["NAME"])
             continue
-        num, name = hit
+        if len(cands) == 1:
+            num, name, _ = cands[0]
+        else:
+            # Shared name: let the polygon's own internal point pick the county.
+            here = county_of(float(attrs["INTPTLON"]), float(attrs["INTPTLAT"]),
+                             counties)
+            pick = [c for c in cands if here and c[2] == here.lower()]
+            if len(pick) != 1:
+                ambiguous.append((attrs["NAME"], here,
+                                  [c[0] for c in cands]))
+                continue
+            num, name, _ = pick[0]
+        if num in out:
+            # Two polygons resolved to one district. Never silently keep the
+            # last one — that is the bug this whole block exists to kill.
+            ambiguous.append((attrs["NAME"], "duplicate resolution", [num]))
+            continue
 
         parts = list(shp.parts) + [len(shp.points)]
         rings = []
@@ -170,6 +261,7 @@ def main() -> int:
                 kept_pts += len(simp)
                 rings.append(encode(simp))
         if not rings:
+            dropped_no_ring += 1
             continue
         xs = [p[0] for p in shp.points]
         ys = [p[1] for p in shp.points]
@@ -181,12 +273,27 @@ def main() -> int:
             "m": measures.get(num),
         }
 
+    # Read the vintage off the file we were actually handed. It used to be a
+    # hardcoded "2024", which meant a rebuild on a newer shapefile would ship
+    # fresh boundaries under a stale citation — the reader would be told the
+    # wrong year by an artefact that was otherwise correct. Refuse rather than
+    # guess: a wrong provenance label is worse than a failed build, because it
+    # looks checked.
+    vm = re.search(r"tl_(\d{4})_48_unsd", Path(args.shapefile).name)
+    if not vm:
+        raise SystemExit(
+            f"cannot read a TIGER vintage from --shapefile {args.shapefile!r}; "
+            "expected a name like tl_2025_48_unsd. Refusing to label the "
+            "output with a year that is not the file's own.")
+    vintage = vm.group(1)
+
     payload = {
         "meta": {
             "quant": QUANT,
             "districts": len(out),
             "epsilon_deg": args.epsilon,
-            "source": "US Census TIGER/Line 2024, Unified School Districts, Texas (public domain)",
+            "source": (f"US Census TIGER/Line {vintage}, Unified School "
+                       "Districts, Texas (public domain)"),
             "note": ("Charter districts have no geographic boundary and are absent by nature, "
                      "not by omission."),
             "unmatched_polygons": unmatched,
@@ -197,6 +304,19 @@ def main() -> int:
     p.write_text(json.dumps(payload, separators=(",", ":")))
     print(f"districts written : {len(out):,}")
     print(f"unmatched polygons: {len(unmatched)}  {unmatched}")
+    if ambiguous:
+        print(f"UNRESOLVED shared names: {len(ambiguous)}")
+        for nm, where, nums in ambiguous:
+            print(f"   {nm} (sits in {where}) could be {nums}")
+    # Every polygon must land somewhere nameable. Silence here is what let five
+    # districts ship with another district's territory.
+    seen = len(out) + len(unmatched) + len(ambiguous) + dropped_no_ring
+    if seen != total_polys:
+        raise SystemExit(
+            f"accounting failed: {total_polys} polygons in, but only {seen} "
+            f"accounted for ({len(out)} written, {len(unmatched)} unmatched, "
+            f"{len(ambiguous)} ambiguous, {dropped_no_ring} with no ring left). "
+            "A polygon vanished without being named.")
     print(f"vertices          : {raw_pts:,} -> {kept_pts:,} "
           f"({100*kept_pts/raw_pts:.1f}% kept, epsilon {args.epsilon}deg)")
     print(f"payload           : {p} [{p.stat().st_size/1024:.0f} KB]")

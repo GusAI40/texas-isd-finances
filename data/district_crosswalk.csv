@@ -95,7 +95,7 @@ district_number,district_name,county,county_code,is_charter,first_year,last_year
 015845,CELEBRATE DYSLEXIA SCHOOLS,,015,True,2025,2025,,False,,
 015901,ALAMO HEIGHTS ISD,Bexar,015,False,2009,2025,42,True,,
 015904,HARLANDALE ISD,Bexar,015,False,2009,2025,1475,True,,
-015905,EDGEWOOD ISD,Bexar,015,False,2009,2025,1006,False,,Edgewood ISDa
+015905,EDGEWOOD ISD,Bexar,015,False,2009,2025,1006,True,,Edgewood ISDa
 015906,RANDOLPH FIELD ISD,Bexar,015,False,2009,2025,4912,True,,
 015907,SAN ANTONIO ISD,Bexar,015,False,2009,2025,3227,True,,
 015908,SOUTH SAN ANTONIO ISD,Bexar,015,False,2009,2025,3387,True,,
@@ -105,7 +105,7 @@ district_number,district_name,county,county_code,is_charter,first_year,last_year
 015912,SOUTHWEST ISD,Bexar,015,False,2009,2025,3403,True,,
 015913,LACKLAND ISD,Bexar,015,False,2009,2025,,True,,
 015914,FT SAM HOUSTON ISD,Bexar,015,False,2009,2025,,True,,
-015915,NORTHSIDE ISD,Bexar,015,False,2009,2025,2687,False,,Northside ISDa
+015915,NORTHSIDE ISD,Bexar,015,False,2009,2025,2687,True,,Northside ISDa
 015916,JUDSON ISD,Bexar,015,False,2009,2025,1932,True,,
 015917,SOUTHSIDE ISD,Bexar,015,False,2009,2025,3401,True,,
 016901,JOHNSON CITY ISD,Blanco,016,False,2009,2025,1919,True,,
@@ -130,7 +130,7 @@ district_number,district_name,county,county_code,is_charter,first_year,last_year
 019910,MALTA ISD,Bowie,019,False,2009,2025,2318,True,,
 019911,RED LICK ISD,Bowie,019,False,2009,2025,3050,True,,
 019912,PLEASANT GROVE ISD,Bowie,019,False,2009,2025,2918,True,,
-019913,HUBBARD ISD,Bowie,019,False,2009,2025,,False,,
+019913,HUBBARD ISD,Bowie,019,False,2009,2025,,True,,
 019914,LEARY ISD,Bowie,019,False,2009,2025,,True,,
 020901,ALVIN ISD,Brazoria,020,False,2009,2025,66,True,,
 020902,ANGLETON ISD,Brazoria,020,False,2009,2025,90,True,,
@@ -210,7 +210,7 @@ district_number,district_name,county,county_code,is_charter,first_year,last_year
 039902,HENRIETTA ISD,Clay,039,False,2009,2025,1723,True,,
 039903,PETROLIA CISD,Clay,039,False,2009,2025,2889,True,PETROLIA ISD,Petrolia ISD
 039904,BELLEVUE ISD,Clay,039,False,2009,2025,259,True,,
-039905,MIDWAY ISD,Clay,039,False,2009,2025,2437,False,,Midway ISDa
+039905,MIDWAY ISD,Clay,039,False,2009,2025,2437,True,,Midway ISDa
 040901,MORTON ISD,Cochran,040,False,2009,2025,,True,,
 040902,WHITEFACE CISD,Cochran,040,False,2009,2025,3883,True,,
 041901,BRONTE ISD,Coke,041,False,2009,2025,390,True,,
@@ -231,7 +231,7 @@ district_number,district_name,county,county_code,is_charter,first_year,last_year
 043910,PLANO ISD,Collin,043,False,2009,2025,2915,True,,
 043911,PRINCETON ISD,Collin,043,False,2009,2025,2970,True,,
 043912,PROSPER ISD,Collin,043,False,2009,2025,2976,True,,
-043914,WYLIE ISD,Collin,043,False,2009,2025,3976,False,,Wylie ISDa
+043914,WYLIE ISD,Collin,043,False,2009,2025,3976,True,,Wylie ISDa
 043917,BLUE RIDGE ISD,Collin,043,False,2009,2025,316,True,,
 043918,COMMUNITY ISD,Collin,043,False,2009,2025,717,True,,
 043919,LOVEJOY ISD,Collin,043,False,2009,2025,2236,True,,
@@ -251,7 +251,7 @@ district_number,district_name,county,county_code,is_charter,first_year,last_year
 048903,PAINT ROCK ISD,Concho,048,False,2009,2025,2815,True,,
 049901,GAINESVILLE ISD,Cooke,049,False,2009,2025,1267,True,,
 049902,MUENSTER ISD,Cooke,049,False,2009,2025,2552,True,,
-049903,VALLEY VIEW ISD,Cooke,049,False,2009,2025,3721,False,,Valley View ISDa
+049903,VALLEY VIEW ISD,Cooke,049,False,2009,2025,3721,True,,Valley View ISDa
 049905,CALLISBURG ISD,Cooke,049,False,2009,2025,529,True,,
 049906,ERA ISD,Cooke,049,False,2009,2025,1049,True,,
 049907,LINDSAY ISD,Cooke,049,False,2009,2025,2180,True,,
@@ -321,14 +321,14 @@ district_number,district_name,county,county_code,is_charter,first_year,last_year
 057907,DUNCANVILLE ISD,Dallas,057,False,2009,2025,947,True,,
 057909,GARLAND ISD,Dallas,057,False,2009,2025,1284,True,,
 057910,GRAND PRAIRIE ISD,Dallas,057,False,2009,2025,1355,True,,
-057911,HIGHLAND PARK ISD,Dallas,057,False,2009,2025,1746,False,,Highland Park ISDa
+057911,HIGHLAND PARK ISD,Dallas,057,False,2009,2025,1746,True,,Highland Park ISDa
 057912,IRVING ISD,Dallas,057,False,2009,2025,1866,True,,
 057913,LANCASTER ISD,Dallas,057,False,2009,2025,2122,True,,
 057914,MESQUITE ISD,Dallas,057,False,2009,2025,2420,True,,
 057916,RICHARDSON ISD,Dallas,057,False,2009,2025,3078,True,,
 057919,SUNNYVALE ISD,Dallas,057,False,2009,2025,3476,True,,
 057922,COPPELL ISD,Dallas,057,False,2009,2025,735,True,,
-058902,DAWSON ISD,Dawson,058,False,2009,2025,850,False,,Dawson ISDa
+058902,DAWSON ISD,Dawson,058,False,2009,2025,850,True,,Dawson ISDa
 058905,KLONDIKE ISD,Dawson,058,False,2009,2025,2009,True,,
 058906,LAMESA ISD,Dawson,058,False,2009,2025,2117,True,,
 058909,SANDS CISD,Dawson,058,False,2009,2025,3261,True,,
@@ -815,7 +815,7 @@ district_number,district_name,county,county_code,is_charter,first_year,last_year
 144902,LEXINGTON ISD,Lee,144,False,2009,2025,2162,True,,
 144903,DIME BOX ISD,Lee,144,False,2009,2025,919,True,,
 145901,BUFFALO ISD,Leon,145,False,2009,2025,424,True,,
-145902,CENTERVILLE ISD,Leon,145,False,2009,2025,591,False,,Centerville ISDa
+145902,CENTERVILLE ISD,Leon,145,False,2009,2025,591,True,,Centerville ISDa
 145906,NORMANGEE ISD,Leon,145,False,2009,2025,2660,True,,
 145907,OAKWOOD ISD,Leon,145,False,2009,2025,2744,True,,
 145911,LEON ISD,Leon,145,False,2009,2025,2150,True,,
@@ -1009,7 +1009,7 @@ district_number,district_name,county,county_code,is_charter,first_year,last_year
 186901,BUENA VISTA ISD,Pecos,186,False,2009,2025,421,True,,
 186902,FORT STOCKTON ISD,Pecos,186,False,2009,2025,1229,True,,
 186903,IRAAN-SHEFFIELD COLLEGIATE ISD,Pecos,186,False,2009,2025,1857,True,IRAAN-SHEFFIELD ISD,Iraan-Sheffield ISD
-187901,BIG SANDY ISD,Polk,187,False,2009,2025,288,False,,Big Sandy ISDa
+187901,BIG SANDY ISD,Polk,187,False,2009,2025,288,True,,Big Sandy ISDa
 187903,GOODRICH ISD,Polk,187,False,2009,2025,1335,True,,
 187904,CORRIGAN-CAMDEN ISD,Polk,187,False,2009,2025,747,True,,
 187906,LEGGETT ISD,Polk,187,False,2009,2025,2148,True,,
@@ -1095,7 +1095,7 @@ district_number,district_name,county,county_code,is_charter,first_year,last_year
 212904,TROUP ISD,Smith,212,False,2009,2025,3659,True,,
 212905,TYLER ISD,Smith,212,False,2009,2025,3673,True,,
 212906,WHITEHOUSE ISD,Smith,212,False,2009,2025,3885,True,,
-212909,CHAPEL HILL ISD,Smith,212,False,2009,2025,607,False,,Chapel Hill ISDa
+212909,CHAPEL HILL ISD,Smith,212,False,2009,2025,607,True,,Chapel Hill ISDa
 212910,WINONA ISD,Smith,212,False,2009,2025,3947,True,,
 213801,BRAZOS RIVER CHARTER SCHOOL,Somervell,213,True,2009,2025,,False,,
 213901,GLEN ROSE ISD,Somervell,213,False,2009,2025,1314,True,,

@@ -65,9 +65,9 @@
     },
     "census_tiger": {
       "method": "next_url",
-      "check_url": "https://www2.census.gov/geo/tiger/TIGER2025/UNSD/tl_2025_48_unsd.zip",
-      "vintage_year": 2024,
-      "meaning": "Boundaries on the map are TIGER2024; Census publishes each vintage at a predictable path, so this probes the next one. After moving to TIGER2025, point this at TIGER2026."
+      "check_url": "https://www2.census.gov/geo/tiger/TIGER2026/UNSD/tl_2026_48_unsd.zip",
+      "vintage_year": 2025,
+      "meaning": "Boundaries on the map are TIGER2025 (ingested 2026-08-14; 1,016 districts). Census publishes each vintage at a predictable path, so this probes the next one. After moving to TIGER2026, point this at TIGER2027."
     },
     "bond_elections": {
       "method": "socrata",
