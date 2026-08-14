@@ -17,6 +17,58 @@ Entry template:
 
 ---
 
+## 2026-08-14 (evening) — The outreach map: seeing the campaign on the state
+
+**What changed.** A private map of where the outreach actually landed:
+`/ops/outreach` + `/ops/outreach-data`, `src/outreach_map.py`,
+`static/opsmap.html`, `tests/test_outreach_map.py` (13). One dot per district
+in the mailing list, coloured by how far it got through the funnel. Hover gives
+sent/opened/clicked dates plus pages and dwell; double-click opens that
+district's own report.
+
+**Why not Mapbox** (it was the original request). `/geomap` already renders
+1,016 real TIGER2025 boundaries in our own canvas code with no API key. A
+basemap vendor would have added a token, a third-party script to the CSP, and
+an external dependency the build leans on — to draw a worse version of a map we
+already own. Same engine, new colouring, far smaller build.
+
+**Why SIX states and not the four asked for.** Four would misreport twice:
+- **UNKNOWN** — 571 sent, only 271 ever checked against the provider. Painting
+  the other 300 "not opened" asserts a measurement nobody made. Same error as
+  counting an unrated campus as failing. They render hollow.
+- **BOUNCED** — an address that never arrived is not a person ignoring us.
+  Folding it into "unopened" overstates disinterest and hides a list problem.
+
+**CLICKED reads zero for wave 1 and always will.** Click tracking was a
+disabled toggle during those sends and the links are already delivered. The
+payload states this in `meta.limits` so the caveat travels with the numbers.
+
+**Why it is not on the public site.** Every dot is a named superintendent and
+whether they opened an email; the rest of txisd.dev is deliberately anonymous.
+So: own `OPS_TOKEN` (constant-time compare), **404 not 403** when absent or
+unset (403 confirms there is something to find), noindex + no-store, linked
+from nowhere, and deliberately NOT reusing `SITE_PASSWORD` — that would couple
+taking this private to taking the whole portal private. A test asserts no email
+address can reach the payload at all.
+
+**Gotchas.**
+- Districts with no contact address (291) are counted, never drawn. Showing
+  them as "not sent yet" reads as a choice rather than a coverage gap, and
+  would bury the 3 real gaps among 294 charters.
+- The public design-system tests glob `static/*.html`, so a private page
+  failed 7 of them (masthead, AI disclosure, tokens). Fixed by scoping those to
+  `PAGES` and excluding private pages BY NAME — but the JavaScript parse check
+  still runs over `ALL_PAGES`, because a syntax error breaks a private page
+  exactly as badly as a public one. A test enforces that split.
+- The payload is assembled per request from the database; nothing with personal
+  data is committed.
+
+**Open items.** `OPS_TOKEN` must be set for the route to exist at all.
+`RESEND_API_KEY` turns the ~300 hollow dots into real red/yellow.
+`SUPABASE_PAT` at send time is what lets wave 2 ever show green.
+
+---
+
 ## 2026-08-14 (later) — The A+ pass: one live data error, three checks watching the wrong thing
 
 The pattern, stated plainly, because it is now four for four: **every serious
