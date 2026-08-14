@@ -4,6 +4,7 @@ FastAPI service for Texas School Finance Data Portal
 import asyncio
 import json
 import os
+import secrets
 import time
 import xml.sax.saxutils as saxutils
 from contextlib import asynccontextmanager
@@ -32,6 +33,7 @@ from . import (
     mcp_protocol,
     mcp_tools,
     migrations,
+    outreach_map,
     scanner,
     site_gate,
     sources,
@@ -2437,6 +2439,53 @@ async def similarity_map():
     if page.exists():
         return FileResponse(page)
     raise HTTPException(status_code=404, detail="Map not available")
+
+
+# --- /ops/*: the outreach map -------------------------------------------------
+# Behind its own token, not the site gate. Every dot on this map is a named
+# superintendent and whether they opened an email — behavioural data about
+# identifiable people, where the rest of txisd.dev is deliberately anonymous.
+# So the public site stays completely open and untouched, and only this reads
+# private state.
+#
+# No token configured means the routes do not exist: they 404 rather than 403,
+# because a 403 confirms there is something here to find.
+
+def _ops_ok(request: Request) -> bool:
+    want = os.getenv("OPS_TOKEN", "").strip()
+    if not want:
+        return False
+    got = (request.query_params.get("token")
+           or request.headers.get("x-ops-token") or "")
+    return secrets.compare_digest(got, want)
+
+
+@app.get("/ops/outreach", include_in_schema=False)
+async def ops_outreach_page(request: Request):
+    """Where the outreach landed. Token-gated; see src/outreach_map.py."""
+    if not _ops_ok(request):
+        raise HTTPException(status_code=404, detail="Not found")
+    page = STATIC_DIR / "opsmap.html"
+    if page.exists():
+        return FileResponse(page, headers={"X-Robots-Tag": "noindex, nofollow"})
+    raise HTTPException(status_code=404, detail="Not found")
+
+
+@app.get("/ops/outreach-data", include_in_schema=False)
+async def ops_outreach_data(request: Request):
+    """One dot per district: how far it got through the funnel, and when."""
+    if not _ops_ok(request):
+        raise HTTPException(status_code=404, detail="Not found")
+    mailing: set[str] = set()
+    merge = ROOT_DIR / "data" / "outreach_merge.csv"
+    if merge.exists():
+        import csv as _csv
+        with merge.open() as fh:
+            mailing = {r["district_number"] for r in _csv.DictReader(fh)
+                       if r.get("district_number")}
+    payload = await outreach_map.build(request.app.state.db_pool, mailing)
+    return JSONResponse(payload, headers={"Cache-Control": "no-store",
+                                          "X-Robots-Tag": "noindex, nofollow"})
 
 
 @app.get("/geomap", include_in_schema=False)

@@ -15,7 +15,18 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 from scripts.check_static_js import STATIC, check_page, inline_scripts  # noqa: E402
 
-PAGES = sorted(STATIC.glob("*.html"))
+# Pages that are NOT part of the public portal. These tests enforce the public
+# design system — one masthead, the AI disclosure, shared tokens — and a private
+# operations page should carry none of that: it has no public masthead to share,
+# and stamping an AI disclosure on a page only the owner can reach would be
+# decoration, not disclosure. They are excluded here BY NAME rather than by a
+# pattern, so adding a private page is a deliberate edit to this list and can
+# never happen by accident. Their JavaScript is still parsed below, because a
+# syntax error breaks a private page exactly as badly as a public one.
+PRIVATE_PAGES = {"opsmap.html"}
+
+ALL_PAGES = sorted(STATIC.glob("*.html"))
+PAGES = [p for p in ALL_PAGES if p.name not in PRIVATE_PAGES]
 
 needs_node = pytest.mark.skipif(
     shutil.which("node") is None, reason="node is required to parse JavaScript"
@@ -30,7 +41,7 @@ def test_expected_pages_exist():
 
 
 @needs_node
-@pytest.mark.parametrize("page", PAGES, ids=lambda p: p.name)
+@pytest.mark.parametrize("page", ALL_PAGES, ids=lambda p: p.name)
 def test_inline_javascript_parses(page):
     err = check_page(page)
     assert err is None, f"{page.name} has a JavaScript syntax error:\n{err}"
