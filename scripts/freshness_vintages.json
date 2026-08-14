@@ -71,8 +71,8 @@
     "bond_elections": {
       "method": "socrata",
       "check_url": "https://data.texas.gov/api/views/kbmc-qmvg.json",
-      "vintage_utc": "2026-08-11T00:00:00Z",
-      "meaning": "Ingested first-party from data.texas.gov on 2026-08-11 (4,992 decided propositions). The portal's metadata API reports rowsUpdatedAt for the dataset itself; anything after this date is data we have not seen."
+      "vintage_utc": "2026-08-14T04:02:26Z",
+      "meaning": "Ingested first-party from data.texas.gov; re-ingested 2026-08-14 (4,992 decided propositions, unchanged in count). The portal's rowsUpdatedAt moved because the Board BACKFILLED vote tallies for two propositions that previously reported none — a real data correction, not a metadata touch, so the check was right to fire. votes_reported 80.0% -> 80.1%. Anything after this date is data we have not seen."
     },
     "brb_debt_outstanding": {
       "method": "etag",
