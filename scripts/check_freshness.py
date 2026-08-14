@@ -136,6 +136,26 @@ def check_page_year(spec: dict, fetch_fn=fetch) -> dict:
         return _result(UNVERIFIABLE,
                        "release-label pattern matched nothing — page redesigned? "
                        "The pattern in freshness_vintages.json needs re-anchoring.")
+    # Does the match actually belong to the product we ingest?
+    #
+    # A year on a page proves nothing on its own. tea_staar_district matched
+    # "2025-2026 STAAR" and was right that a release existed — but the thing it
+    # matched was the statewide "All Results Analysis" PDF, not the district
+    # file this site reads. It was right by coincidence, and a check that is
+    # right by coincidence is one page redesign away from being wrong in
+    # silence. So each page_year source names a string that must appear
+    # WITHIN the matched neighbourhood: the product's own name, as the
+    # publisher writes it. Same idea as verify_sources.py's `proves_it`.
+    proof = spec.get("product_proof")
+    if proof:
+        near = any(proof.lower() in html[max(0, m.start() - 260):m.end() + 260].lower()
+                   for m in re.finditer(spec["pattern"], html, re.IGNORECASE))
+        if not near:
+            return _result(UNVERIFIABLE,
+                           f"the year label was found but {proof!r} was not beside "
+                           "it — this check may be reading a different product on "
+                           "the same page. Re-anchor it before trusting it.")
+
     latest, ours = max(years), spec["vintage_year"]
     if latest > ours:
         return _result(NEWER, f"page now advertises {latest}; we have {ours}")

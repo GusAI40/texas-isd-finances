@@ -602,6 +602,10 @@ _rate_buckets: Dict[str, List[float]] = {}
 _GLOBAL_LIMIT = int(os.getenv("QUERY_GLOBAL_LIMIT", "60"))   # all callers, per minute
 _DAILY_LIMIT = int(os.getenv("QUERY_DAILY_LIMIT", "5000"))   # all callers, per day
 _global_hits: List[float] = []
+# Used only when the shared meter is unreachable. Deliberately far below
+# _GLOBAL_LIMIT: a degraded instance should trickle, not run at full tilt.
+_DEGRADED_LIMIT = int(os.getenv("QUERY_DEGRADED_LIMIT", "5"))
+_degraded_hits: List[float] = []
 
 # Atomic: increment only while still under the cap, and report whether we did.
 # Doing it in one statement is the whole point — a read-then-write race across
@@ -622,12 +626,21 @@ async def _shared_limit_reached(pool) -> bool:
 
     Returns True when a ceiling is reached and the call must be refused.
 
-    Falls back to the in-memory counters when the database is unreachable or
-    the table has not been created. That is a deliberate choice: /query's own
-    connection is separate from this one, so a metering outage would otherwise
-    take down a working feature. It fails OPEN on availability and the
-    per-instance ceiling still applies, so the exposure is the old behaviour,
-    not a new one — and `sql/create_nlp_usage.sql` is a one-time setup step.
+    Two failure modes, deliberately treated as opposites.
+
+    **Table missing** -> fail OPEN. `sql/create_nlp_usage.sql` is a one-time
+    setup step; the database is plainly up, the agent can run its SQL, and the
+    per-instance ceiling still applies. Refusing here would break a working
+    feature over a migration that has not run yet.
+
+    **Cannot reach the database** -> fail CLOSED. This used to fail open too,
+    which sounded cautious and was not: /query answers by running SQL against
+    that same Supabase project, so if the pool is unreachable the question
+    cannot be answered anyway — the agent would spend LLM tokens building a
+    query and then fail. Failing open therefore bought nothing except an
+    uncapped bill during exactly the outage nobody is watching. Refusing early
+    costs a caller nothing they could have had, and it is the only ceiling that
+    still holds when the free tier pauses.
     """
     if pool is None:
         return False
@@ -638,8 +651,28 @@ async def _shared_limit_reached(pool) -> bool:
                 got = await conn.fetchval(_CLAIM_SQL, kind, trunc, cap)
                 if got is None:
                     return True
+    except asyncpg.exceptions.UndefinedTableError as exc:
+        print(f"WARNING: nlp_usage table missing, per-instance ceiling only: {exc}")
+        return False
     except Exception as exc:  # pragma: no cover - depends on environment
-        print(f"WARNING: shared rate limit unavailable, using per-instance only: {exc}")
+        # Neither open nor closed: DEGRADED. Failing fully open here left the
+        # bill unbounded during exactly the outage nobody is watching, and the
+        # documented risk is a Supabase free-tier pause, which takes the agent's
+        # own role (nlp_reader, same project) down with it — so most of the time
+        # the refused call could not have been answered anyway. But metering can
+        # also fail while the database is up (pooler exhaustion), and refusing
+        # everything would then break a working feature over a connection slot.
+        # So the shared ceiling is replaced by a much tighter local one rather
+        # than removed. NOTE: this bounds CALLS, not DOLLARS. The only hard
+        # money ceiling is the provider-side spend cap.
+        print(f"WARNING: metering unreachable, degrading to "
+              f"{_DEGRADED_LIMIT}/min for this instance: {exc}")
+        now = time.monotonic()
+        global _degraded_hits
+        _degraded_hits = [t for t in _degraded_hits if now - t < _RATE_WINDOW]
+        if len(_degraded_hits) >= _DEGRADED_LIMIT:
+            return True
+        _degraded_hits.append(now)
         return False
     return False
 

@@ -72,3 +72,7 @@ build/
 data/outreach_preview/
 data/outreach_optout.txt
 
+
+# The watermark IS committed: it is the only send-state that survives a
+# fresh container, and it exists to stop a re-send. Contact data stays out.
+!data/outreach_watermark.json

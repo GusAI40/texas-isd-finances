@@ -149,3 +149,20 @@ def test_the_hero_penny_caption_keeps_both_frames():
     assert "operating_spend" in body, "caption no longer computes the operating frame"
     assert "runs schools" in body
     assert "everything spent" in body, "the all-funds figure must say it is everything"
+
+
+def test_the_equity_headline_states_its_school_year():
+    """A percentage with no year reads as "now". TEA releases STAAR annually,
+    so an undated figure quietly ages into a wrong impression without a single
+    number changing — and this layer is currently a release behind, because the
+    newer file sits behind a login. Being a release behind is defensible; being
+    a release behind and undated is not."""
+    from pathlib import Path
+    s = (Path(__file__).resolve().parents[1] / "static" / "index.html").read_text()
+    assert "function schoolYear(" in s, "the year renderer must exist"
+    i_sub = s.index("$('eq-sub')")
+    assert "schoolYear(e.year)" in s[i_sub:i_sub + 400], \
+        "the equity sub-line must name the school year where it is read"
+    # and the ambiguous form must not come back
+    assert "`SY ${e.year}" not in s, \
+        '"SY 2025" is ambiguous — it could be 2024-25 or 2025-26'

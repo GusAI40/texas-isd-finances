@@ -207,3 +207,64 @@ def test_monitor_workflow_needs_no_secrets():
 
 if __name__ == "__main__":
     raise SystemExit(pytest.main([__file__, "-q"]))
+
+
+# --- is the check watching the right product? ---------------------------------
+# A year on a page proves nothing. tea_staar_district matched "2025-2026 STAAR"
+# and was right that a release existed — but it matched a statewide PDF, not the
+# district file this site ingests. Right by coincidence is one page redesign
+# away from wrong in silence.
+
+def _spec(**kw):
+    base = {"method": "page_year", "check_url": "https://example.invalid/x",
+            "pattern": r"(20\d{2})-(20\d{2})\s+Widget", "vintage_year": 2024}
+    base.update(kw)
+    return base
+
+
+def _page(body: bytes):
+    def fetch(url, **kw):
+        return {"status": 200, "body": body, "headers": {}}
+    return fetch
+
+
+def test_product_proof_beside_the_match_passes():
+    from scripts.check_freshness import check_page_year
+    page = b"<p>2024-2025 Widget &mdash; Summarized Thing Data (Excel)</p>"
+    r = check_page_year(_spec(vintage_year=2025,
+                              product_proof="Summarized Thing Data"), _page(page))
+    assert r["state"] == "OK", r
+
+
+def test_year_found_but_product_absent_is_unverifiable_not_ok():
+    """The STAAR shape exactly: the label is on the page, but it belongs to a
+    different product. That must not read as a clean OK or a confident NEWER."""
+    from scripts.check_freshness import UNVERIFIABLE, check_page_year
+    page = b"<p>2026-2027 Widget &mdash; All Results Analysis (PDF)</p>"
+    r = check_page_year(_spec(product_proof="Summarized Thing Data"), _page(page))
+    assert r["state"] == UNVERIFIABLE, r
+    assert "different product" in r["detail"]
+
+
+def test_a_source_without_a_proof_still_works():
+    """Opting out is allowed — tea_staar_district does, deliberately — but it
+    must be a choice, not an accident, so behaviour is unchanged without one."""
+    from scripts.check_freshness import check_page_year
+    page = b"<p>2026-2027 Widget</p>"
+    r = check_page_year(_spec(), _page(page))
+    assert r["state"] == "NEWER", r
+
+
+def test_every_page_year_source_either_proves_itself_or_says_why():
+    """No silent gaps: a page_year check with no product_proof must explain in
+    its own meaning field why it cannot have one."""
+    import json
+    from pathlib import Path
+    d = json.loads((Path(__file__).resolve().parents[1] / "scripts"
+                    / "freshness_vintages.json").read_text())
+    for name, spec in d["sources"].items():
+        if spec.get("method") != "page_year":
+            continue
+        if not spec.get("product_proof"):
+            assert "coincidence" in spec.get("meaning", "").lower(), (
+                f"{name} has no product_proof and does not say why")

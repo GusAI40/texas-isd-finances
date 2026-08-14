@@ -27,35 +27,37 @@
       "check_url": "https://tea.texas.gov/finance-and-grants/state-funding/state-funding-reports-and-data/peims-financial-data-downloads",
       "pattern": "(20\\d{2})-(20\\d{2})[^<>]{0,12}Summarized\\s+PEIMS",
       "vintage_year": 2025,
-      "meaning": "Latest fiscal year ingested. The page describes its own coverage as '2009-2025 Summarized PEIMS Actual Financial Data'; when fiscal 2026 lands that end year moves."
+      "meaning": "Latest fiscal year ingested. The page describes its own coverage as '2009-2025 Summarized PEIMS Actual Financial Data'; when fiscal 2026 lands that end year moves.",
+      "product_proof": "Summarized PEIMS Actual Financial Data"
     },
     "tea_snapshot": {
       "method": "page_year",
       "check_url": "https://rptsvr1.tea.texas.gov/perfreport/snapshot/download.html",
       "pattern": "Snapshot\\s*(20\\d{2})",
       "vintage_year": 2024,
-      "meaning": "Latest Snapshot year ingested. The download page lists one 'Snapshot YYYY' link per release."
+      "meaning": "Latest Snapshot year ingested. The download page lists one 'Snapshot YYYY' link per release.",
+      "product_proof": "Data (Snapshot"
     },
     "tea_staar_district": {
       "method": "page_year",
       "check_url": "https://tea.texas.gov/student-assessment/student-assessment-results/statewide-summary-reports",
       "pattern": "(20\\d{2})[-–—](20\\d{2})\\s+STAAR",
       "vintage_year": 2025,
-      "meaning": "Latest school year in data/staar_district_long.csv (SY 2024 and 2025). The page titles its releases 'YYYY-YYYY STAAR ...'."
+      "meaning": "Latest school year in data/staar_district_long.csv (SY 2024 and 2025). GENUINELY STALE: TEA released SY 2025-26 district results on 2026-06-16. Ingesting them is a MANUAL step — TEA put its own STAAR Aggregate Data page behind a login (HTTP 403, 'Login required'), and the district file now lives only in the Texas Assessment Research Portal (txresearchportal.com, a Cambium SPA) whose bulk CSV export is gated behind email verification (/Query/Offline + /Query/Verify). Download 'District STAAR Performance, All Grades' for SY 2025-26 to data/staar_district_2026.csv, then run ingest_staar_district.py --files data/staar_district_2024.csv data/staar_district_2025.csv data/staar_district_2026.csv, then build_equity_data.py. NOTE the pattern below matches the page's statewide 'All Results Analysis' PDF, not the district product — it was right about 2026 by coincidence, not by evidence."
     },
     "tea_property": {
       "method": "page_year",
       "check_url": "https://tea.texas.gov/finance-and-grants/state-funding/additional-finance-resources/school-district-property-values-and-tax-rates",
       "pattern": "Tax\\s+Year\\s+(20\\d{2})",
       "vintage_year": 2025,
-      "meaning": "Latest certified tax year ingested. 'Tax Year YYYY' is the page's own label for each release; bare years on this page are nav and copyright noise, so the pattern must keep the words."
+      "meaning": "Latest certified tax year ingested. 'Tax Year YYYY' is the page's own label for each release; bare years on this page are nav and copyright noise, so the pattern must keep the words.",
+      "product_proof": "cptd-"
     },
     "tea_recapture": {
-      "method": "page_year",
-      "check_url": "https://tea.texas.gov/finance-and-grants/state-funding/excess-local-revenue",
-      "pattern": "(20\\d{2})-(20\\d{2})-excess-local-revenue",
-      "vintage_year": 2026,
-      "meaning": "Latest fiscal year of the excess-local-revenue district list ingested (register covers 1994-2026). The page links each release as 'YYYY-YYYY-excess-local-revenue-districts'."
+      "method": "etag",
+      "check_url": "https://tea.texas.gov/about-tea/state-funding/state-funding-reports-and-data/recapture-paid-by-district-1994-2026-nov-2025xlsx-0.xlsx",
+      "last_modified": "Sun, 24 May 2026 02:17:03 GMT",
+      "meaning": "Watches the recapture-paid-by-district workbook THIS SITE ACTUALLY INGESTS (fiscal 1994-2026), by its own Last-Modified. It previously watched the excess-local-revenue landing page and fired on '2026-2027' — a school-year label on the ELR district LIST, which is a different product that scripts/ingest_tea_property.py does not read. That is a false alarm, and a check that cries wolf trains people to ignore it. Verified 2026-08-14: no 1994-2027 workbook exists yet."
     },
     "tea_accountability": {
       "method": "next_url",
@@ -65,15 +67,15 @@
     },
     "census_tiger": {
       "method": "next_url",
-      "check_url": "https://www2.census.gov/geo/tiger/TIGER2025/UNSD/tl_2025_48_unsd.zip",
-      "vintage_year": 2024,
-      "meaning": "Boundaries on the map are TIGER2024; Census publishes each vintage at a predictable path, so this probes the next one. After moving to TIGER2025, point this at TIGER2026."
+      "check_url": "https://www2.census.gov/geo/tiger/TIGER2026/UNSD/tl_2026_48_unsd.zip",
+      "vintage_year": 2025,
+      "meaning": "Boundaries on the map are TIGER2025 (ingested 2026-08-14; 1,016 districts). Census publishes each vintage at a predictable path, so this probes the next one. After moving to TIGER2026, point this at TIGER2027."
     },
     "bond_elections": {
       "method": "socrata",
       "check_url": "https://data.texas.gov/api/views/kbmc-qmvg.json",
-      "vintage_utc": "2026-08-11T00:00:00Z",
-      "meaning": "Ingested first-party from data.texas.gov on 2026-08-11 (4,992 decided propositions). The portal's metadata API reports rowsUpdatedAt for the dataset itself; anything after this date is data we have not seen."
+      "vintage_utc": "2026-08-14T04:02:26Z",
+      "meaning": "Ingested first-party from data.texas.gov; re-ingested 2026-08-14 (4,992 decided propositions, unchanged in count). The portal's rowsUpdatedAt moved because the Board BACKFILLED vote tallies for two propositions that previously reported none — a real data correction, not a metadata touch, so the check was right to fire. votes_reported 80.0% -> 80.1%. Anything after this date is data we have not seen."
     },
     "brb_debt_outstanding": {
       "method": "etag",

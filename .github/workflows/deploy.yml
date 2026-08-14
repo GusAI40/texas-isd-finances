@@ -4,6 +4,17 @@ name: Deploy to Vercel (production)
 # deploy the runbook describes (`vercel deploy --prod`), run in CI instead of
 # on someone's laptop, so shipping no longer depends on a local Vercel login.
 #
+# ⚠️ READ THIS BEFORE ADDING THE SECRETS (established 2026-08-14).
+# Vercel's own Git integration is ALREADY connected to this repo and builds
+# production on every merge to master — that is how PRs #7-#14 all shipped, and
+# the tell that it is connected is the existence of the
+# texas-isd-finances-git-master-….vercel.app domain. Setting the three secrets
+# below therefore does not turn deploys ON; it makes TWO deploys race for the
+# same production alias on every merge, with the loser's build silently
+# discarded and no way to tell from the outside which tree won.
+# So configure this ONLY as a replacement: disconnect the Git integration in
+# the Vercel project first, then add the secrets. Never both.
+#
 # INERT until configured. It does nothing until three repo secrets exist, so
 # merging this file changes nothing on its own:
 #   VERCEL_TOKEN       a Vercel access token owned by a TAG-ai team seat holder
