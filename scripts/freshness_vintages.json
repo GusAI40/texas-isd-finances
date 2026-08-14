@@ -27,14 +27,16 @@
       "check_url": "https://tea.texas.gov/finance-and-grants/state-funding/state-funding-reports-and-data/peims-financial-data-downloads",
       "pattern": "(20\\d{2})-(20\\d{2})[^<>]{0,12}Summarized\\s+PEIMS",
       "vintage_year": 2025,
-      "meaning": "Latest fiscal year ingested. The page describes its own coverage as '2009-2025 Summarized PEIMS Actual Financial Data'; when fiscal 2026 lands that end year moves."
+      "meaning": "Latest fiscal year ingested. The page describes its own coverage as '2009-2025 Summarized PEIMS Actual Financial Data'; when fiscal 2026 lands that end year moves.",
+      "product_proof": "Summarized PEIMS Actual Financial Data"
     },
     "tea_snapshot": {
       "method": "page_year",
       "check_url": "https://rptsvr1.tea.texas.gov/perfreport/snapshot/download.html",
       "pattern": "Snapshot\\s*(20\\d{2})",
       "vintage_year": 2024,
-      "meaning": "Latest Snapshot year ingested. The download page lists one 'Snapshot YYYY' link per release."
+      "meaning": "Latest Snapshot year ingested. The download page lists one 'Snapshot YYYY' link per release.",
+      "product_proof": "Data (Snapshot"
     },
     "tea_staar_district": {
       "method": "page_year",
@@ -48,7 +50,8 @@
       "check_url": "https://tea.texas.gov/finance-and-grants/state-funding/additional-finance-resources/school-district-property-values-and-tax-rates",
       "pattern": "Tax\\s+Year\\s+(20\\d{2})",
       "vintage_year": 2025,
-      "meaning": "Latest certified tax year ingested. 'Tax Year YYYY' is the page's own label for each release; bare years on this page are nav and copyright noise, so the pattern must keep the words."
+      "meaning": "Latest certified tax year ingested. 'Tax Year YYYY' is the page's own label for each release; bare years on this page are nav and copyright noise, so the pattern must keep the words.",
+      "product_proof": "cptd-"
     },
     "tea_recapture": {
       "method": "etag",
