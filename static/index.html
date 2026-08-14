@@ -3278,12 +3278,27 @@ function renderEquity() {
   if (!e) { sec.classList.add('hidden'); return; }
   sec.classList.remove('hidden');
   const nm = state.district.name, st = e.state, p = e.poor;
+
+// TEA labels a STAAR release by its ENDING year: 2025 means the 2024-25 school
+// year. "SY 2025" is ambiguous to a reader — it could be either — so render the
+// span the way a parent would say it.
+function schoolYear(endYear) {
+  const y = Number(endYear);
+  if (!y) return String(endYear || '');
+  return (y - 1) + '\u2013' + String(y).slice(2);
+}
+
   const ord = n => n + (n % 10 === 1 && n % 100 !== 11 ? 'st' : n % 10 === 2 && n % 100 !== 12 ? 'nd'
     : n % 10 === 3 && n % 100 !== 13 ? 'rd' : 'th');
 
   $('eq-title').textContent =
     `${p.meets}% of ${nm}'s low-income students meet grade level. Statewide it is ${st.poor_meets}%.`;
+  // Date the headline where it is read, not only in the citation underneath.
+  // A percentage with no year reads as "now"; TEA releases these annually, so
+  // an undated figure quietly ages into a wrong impression without a single
+  // number changing.
   $('eq-sub').innerHTML =
+    `<b>${schoolYear(e.year)} school year</b> — the most recent TEA release in this site. ` +
     `That places them in the <b>${ord(p.percentile)} percentile</b> among Texas districts, ` +
     `on ${p.tests.toLocaleString()} tests.` +
     (e.poor_change != null
@@ -3323,8 +3338,9 @@ function renderEquity() {
   }
   eqBars($('eq-bars'), rows);
   $('eq-cap').textContent =
-    `SY ${e.year}, TEA Meets grade level, all subjects. Groups with fewer than ${e.meta.min_tests} ` +
-    `tests are not shown. "Economically disadvantaged" is TEA's category and is a blunt proxy.`;
+    `${schoolYear(e.year)} school year, TEA Meets grade level, all subjects. Groups with fewer ` +
+    `than ${e.meta.min_tests} tests are not shown. "Economically disadvantaged" is TEA's ` +
+    `category and is a blunt proxy.`;
 
   $('eq-leaders-sub').innerHTML =
     'Ranked on how their low-income students do &mdash; not on the size of their gap.';
