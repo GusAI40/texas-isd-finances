@@ -70,6 +70,7 @@ async def lifespan(app: FastAPI):
     database is configured.
     """
     app.state.db_pool = None
+    app.state.schema_status = "unknown"
     db_url = os.getenv("SUPABASE_DB_URL")
     if db_url:
         try:
@@ -86,7 +87,9 @@ async def lifespan(app: FastAPI):
         # alternative — pasting DDL into a dashboard — is a step that is easy to
         # believe you completed when you did not. One to_regclass lookup per
         # cold start; the DDL runs at most once per database. Never raises.
-        print(f"schema: {await migrations.ensure_schema(app.state.db_pool)}")
+        app.state.schema_status = await migrations.ensure_schema(
+            app.state.db_pool)
+        print(f"schema: {app.state.schema_status}")
     else:
         print("WARNING: SUPABASE_DB_URL not set - data endpoints will return 503")
     yield
@@ -2733,12 +2736,19 @@ async def health_check(request: Request):
     """
     llm = llm_config.describe()
     pool = request.app.state.db_pool
+    # Whether the journey-tracking tables exist. Without this, a deploy where
+    # the migration failed looks identical from outside to one where it worked
+    # — and the symptom (clicks silently dropped) is invisible by design,
+    # because a foreign-key rejection is caught and logged, not surfaced.
+    schema = getattr(request.app.state, "schema_status", "unknown")
     if pool is None:
-        return {"status": "degraded", "database": "not configured", "llm": llm}
+        return {"status": "degraded", "database": "not configured", "llm": llm,
+                "tracking_schema": schema}
     try:
         async with pool.acquire() as conn:
             await conn.fetchval("SELECT 1")
-        return {"status": "healthy", "database": "connected", "llm": llm}
+        return {"status": "healthy", "database": "connected", "llm": llm,
+                "tracking_schema": schema}
     except Exception as e:
         raise HTTPException(status_code=503, detail=f"Database connection failed: {str(e)}")
 
