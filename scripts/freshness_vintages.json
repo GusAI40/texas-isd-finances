@@ -41,7 +41,7 @@
       "check_url": "https://tea.texas.gov/student-assessment/student-assessment-results/statewide-summary-reports",
       "pattern": "(20\\d{2})[-–—](20\\d{2})\\s+STAAR",
       "vintage_year": 2025,
-      "meaning": "Latest school year in data/staar_district_long.csv (SY 2024 and 2025). The page titles its releases 'YYYY-YYYY STAAR ...'."
+      "meaning": "Latest school year in data/staar_district_long.csv (SY 2024 and 2025). GENUINELY STALE: TEA released SY 2025-26 district results on 2026-06-16. Ingesting them is a MANUAL step — TEA put its own STAAR Aggregate Data page behind a login (HTTP 403, 'Login required'), and the district file now lives only in the Texas Assessment Research Portal (txresearchportal.com, a Cambium SPA) whose bulk CSV export is gated behind email verification (/Query/Offline + /Query/Verify). Download 'District STAAR Performance, All Grades' for SY 2025-26 to data/staar_district_2026.csv, then run ingest_staar_district.py --files data/staar_district_2024.csv data/staar_district_2025.csv data/staar_district_2026.csv, then build_equity_data.py. NOTE the pattern below matches the page's statewide 'All Results Analysis' PDF, not the district product — it was right about 2026 by coincidence, not by evidence."
     },
     "tea_property": {
       "method": "page_year",
@@ -51,11 +51,10 @@
       "meaning": "Latest certified tax year ingested. 'Tax Year YYYY' is the page's own label for each release; bare years on this page are nav and copyright noise, so the pattern must keep the words."
     },
     "tea_recapture": {
-      "method": "page_year",
-      "check_url": "https://tea.texas.gov/finance-and-grants/state-funding/excess-local-revenue",
-      "pattern": "(20\\d{2})-(20\\d{2})-excess-local-revenue",
-      "vintage_year": 2026,
-      "meaning": "Latest fiscal year of the excess-local-revenue district list ingested (register covers 1994-2026). The page links each release as 'YYYY-YYYY-excess-local-revenue-districts'."
+      "method": "etag",
+      "check_url": "https://tea.texas.gov/about-tea/state-funding/state-funding-reports-and-data/recapture-paid-by-district-1994-2026-nov-2025xlsx-0.xlsx",
+      "last_modified": "Sun, 24 May 2026 02:17:03 GMT",
+      "meaning": "Watches the recapture-paid-by-district workbook THIS SITE ACTUALLY INGESTS (fiscal 1994-2026), by its own Last-Modified. It previously watched the excess-local-revenue landing page and fired on '2026-2027' — a school-year label on the ELR district LIST, which is a different product that scripts/ingest_tea_property.py does not read. That is a false alarm, and a check that cries wolf trains people to ignore it. Verified 2026-08-14: no 1994-2027 workbook exists yet."
     },
     "tea_accountability": {
       "method": "next_url",
