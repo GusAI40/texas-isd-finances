@@ -17,6 +17,56 @@ Entry template:
 
 ---
 
+## 2026-08-14 (later) — The A+ pass: one live data error, three checks watching the wrong thing
+
+The pattern, stated plainly, because it is now four for four: **every serious
+defect this project has had was a check looking slightly to the left of the
+thing that mattered.** Not a missing check. A mis-aimed one.
+
+  the bond layer ran two years stale       with a green suite
+  verify_sources passed the wrong publisher because the link was alive
+  the freshness monitor fired on a PDF     instead of the district file
+  the map printed "unmatched: 0"           while overwriting eleven districts
+
+**The live error.** Eleven Texas district names belong to two districts each.
+`build_district_geo.py` keyed a plain dict by name, so both twins resolved to
+one TEA number — one district drawn with the other's land, one absent. Five
+were already live: Highland Park ISD (Potter) as **Dallas's**, Northside ISD
+(Wilbarger) as **San Antonio's**, plus Chapel Hill, Valley View, Hubbard. A
+parent using "find my district" in Dallas's Highland Park saw Potter County's
+finances. TIGER2025 made it worse-looking-better: Census now ships the second
+twin of all eleven pairs, so the join overwrote eleven times and reported
+`unmatched polygons: 0`, an apparent improvement on 2024's 1.
+
+Fixed by county — the polygon's own location decides, the same name+county key
+the bond layer uses — plus a hard accounting assert, and the vintage read off
+the filename instead of a hardcoded "2024". 1,016 districts, 0 unmatched, all
+22 twins verified.
+
+**Three checks re-aimed.** `tea_recapture` was a false alarm (watched a landing
+page for a product we never ingest). `tea_staar_district` was right by
+coincidence (matched a statewide PDF). `verify_live` never touched `/query` at
+all. Each page_year source now carries a `product_proof` that must sit beside
+the matched year; STAAR deliberately has none, because none is honest.
+
+**Two footguns closed.** `/query` degraded (5/min) instead of failing open when
+metering dies — it bounds calls, not dollars. And a committed
+`outreach_watermark.json` refuses a send whenever the skip-list is smaller than
+571, which a fresh container with no PAT would otherwise resolve to zero.
+
+**One thing I got wrong mid-session** and want recorded: I suspected the bond
+dataset's moved timestamp was a metadata touch. It was a real correction — the
+Board backfilled vote tallies for Crowell ISD and Como-Pickton CISD. The check
+was right; my scepticism was not.
+
+**Still not A+, and not by me:** equity is a release behind because TEA put the
+file behind a login and the portal gates bulk export on email verification;
+seven credentials need rotating; and the only hard dollar ceiling is a
+provider-side cap. The equity headline is now at least dated rather than
+silently ageing.
+
+---
+
 ## 2026-08-14 — Deployed: the migration applied itself in production, and /health can now prove it
 
 **What changed:**
