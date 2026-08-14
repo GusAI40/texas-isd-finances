@@ -17,6 +17,79 @@ Entry template:
 
 ---
 
+## 2026-08-13 — 500 more sends, the KPI read that found two instrument failures, and per-recipient journey tracking
+
+**What changed:**
+- **Outreach wave continued: 150 sent 08-12, 350 sent 08-13** (71 on 08-11),
+  total **571 to 571 unique districts** — 43.6% of Texas, zero duplicates.
+  ~448 of the 1,019 merge rows remain unsent.
+- **`scripts/outreach_kpi.py` + `.github/workflows/outreach-kpi.yml`** (Mondays
+  12:30 UTC): pulls each message's last event from Resend, writes
+  `data/outreach_kpi_report.csv`, upserts `outreach_status` so engagement
+  outlives Resend's retention. Skips harmlessly until both secrets exist.
+- **Per-recipient journey tracking**: `sql/create_visitor_tracking.sql`,
+  `src/tracking.py`, `/px/{rid}.gif` open pixel, `/e` dwell beacon,
+  `static/track.js`, `scripts/journey_report.py`, `docs/TRACKING_SETUP.md`.
+  Sender mints a rid per recipient, logs it to `data/outreach_recipients.csv`
+  and Supabase. 666 tests green.
+- **Privacy disclosure rewritten** on `static/index.html` and
+  `static/about.html#privacy`, plus both halves of the tracked email.
+
+**Why:**
+- The KPI read exists because opens/clicks live on Resend's servers under
+  Resend's retention. A campaign whose only record is someone else's database
+  is a campaign you will eventually not be able to report on.
+- Tracking is per-recipient because "did the superintendent read it" is the
+  question the whole outreach exists to answer, and campaign-level counters
+  cannot answer it. The **entry condition is the design**: only a minted
+  `?rid=` opens the identified path, so anonymous visitors keep the old
+  guarantee exactly.
+- The disclosure shipped WITH the feature because the old sentence — "We
+  measure the site, never the visitor: no cookies, no IP addresses, no visitor
+  IDs" — became false the moment the first cookie was set. On a transparency
+  project that is the one bug that discredits every other number.
+
+**Gotchas:**
+- **Zero opens from the 08-11 batch is not behaviour, it is an off switch.**
+  68 delivered, 0 opened, against 40.3% the next day: p ≈ 6e-16. Resend
+  toggles open tracking PER DOMAIN, and that send predates the
+  `gus@ubntag.com` default (added 08-12 04:38); the tests bracketing it went
+  from `reports@txisd.dev`. Those 71 districts are UNMEASURED, not cold — do
+  not re-target them as non-responders.
+- **0 clicks across all 571 is also a switch**, not a verdict: 0 of 58 openers
+  clicked, p ≈ 1/450. Click tracking is off. Campaign-level click-through IS
+  already counted first-party as `src:email` in `site_visits` since 08-12
+  12:50 and **has never been read**.
+- `Success. No rows returned` in the Supabase SQL editor is printed BOTH by a
+  migration that worked and by a SELECT that found nothing — it cannot tell
+  you which. Verify DDL with `to_regclass(...) IS NOT NULL`, which always
+  returns one row of true/false.
+- The open pixel read `app.state.db_pool` directly and raised AttributeError
+  when the lifespan had not run; that renders as a broken image inside a
+  superintendent's inbox. All tracking paths now use `_pool_or_none()`.
+- `tests/test_static_pages.py` resolved a script `src` against `static/`
+  without stripping a `/static/` prefix, so the project's own asset
+  convention failed its own guard.
+
+**Open items:**
+- 🔴 **`sql/create_visitor_tracking.sql` is NOT yet applied to production**
+  (checked 08-13: all three objects absent). Until it is, every click is
+  dropped — `visitor_event.rid` is a FK to `outreach_recipient`.
+- 🔴 **`data/outreach_sent.csv` (571 rows) has never been committed and is
+  gitignored.** It survives only in this container and in Supabase
+  `outreach_sent` IF each send ran with SUPABASE_PAT. `_remote_emails()`
+  returns an EMPTY set when the PAT is unset, so a fresh container with no
+  local log and no PAT has an empty skip-list and **would re-email all 571**
+  (571 of the 1,019 merge rows overlap). Verify
+  `SELECT count(*) FROM public.outreach_sent` = 571 before any wave.
+- 🔴 Same exposure for `data/outreach_kpi_report.csv` (271 status rows) —
+  container-only unless that run had a PAT.
+- Wave 1's 571 sends can never be journey-tracked; links are already
+  delivered. Tracking starts with `--campaign w2`.
+- Master is 3 commits behind this branch (PRs #7–#10 merged the rest).
+
+---
+
 ## 2026-08-11 (deployed) — Production finally serves what the repo says
 
 **What changed:** deployed to Vercel production (`dpl_3LcfZUbZbHTMXeA5NYfDpsmtfN1G`,

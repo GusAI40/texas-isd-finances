@@ -69,7 +69,13 @@ def test_no_script_tag_points_at_a_dead_path(page):
             f"{page.name} loads {src}, which 404s unless Vercel Web Analytics is enabled"
         )
         if src.startswith("/"):
-            assert (STATIC / src.lstrip("/")).exists(), f"{page.name} loads missing {src}"
+            # Assets are served from the static/ directory under either shape:
+            # '/track.js' (a bare route) or '/static/track.js' (the convention
+            # design.css uses). Both resolve to the same file on disk.
+            rel = src.lstrip("/")
+            if rel.startswith("static/"):
+                rel = rel[len("static/"):]
+            assert (STATIC / rel).exists(), f"{page.name} loads missing {src}"
 
 
 @pytest.mark.parametrize("page", PAGES, ids=lambda p: p.name)

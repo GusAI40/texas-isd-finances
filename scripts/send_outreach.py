@@ -65,10 +65,15 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 from src import format as fmt  # noqa: E402
+from src import tracking  # noqa: E402
 
 SITE = "https://txisd.dev"
 MERGE = ROOT / "data/outreach_merge.csv"
 SENT_LOG = ROOT / "data/outreach_sent.csv"
+# Journey tokens live in their own file rather than as a column on the sent
+# log: that log already has 571 four-column rows from wave 1, and widening it
+# in place would misalign every one of them.
+RECIPIENTS = ROOT / "data/outreach_recipients.csv"
 OPTOUT = ROOT / "data/outreach_optout.txt"
 PREVIEW_DIR = ROOT / "data/outreach_preview"
 API = "https://api.resend.com"
@@ -78,14 +83,32 @@ INK = "#111318"
 MUT = "#5a5f6b"
 
 
-def render_email(row: dict, postal: str, unsubscribe: str) -> tuple[str, str]:
+def render_email(row: dict, postal: str, unsubscribe: str,
+                 rid: str = "", site: str = SITE) -> tuple[str, str]:
     """(html, text) for one district. Inline styles only — email clients strip
     <style> blocks. The three insights come from the merge file, which built
-    them from the same artefacts the site serves: frame honesty travels."""
+    them from the same artefacts the site serves: frame honesty travels.
+
+    When `rid` is supplied the message carries this recipient's journey token:
+    the link gets `&rid=…` so their click and everything after it is
+    attributable, and an open pixel is appended. Without a rid the email is
+    byte-identical to the untracked version, which is what --test sends.
+    """
     e = html.escape
     name = row["district_name"]
     insights = [row[k] for k in ("insight_bonds", "insight_debt",
                                  "insight_trend") if row.get(k)]
+    # The tracked link and the open pixel. Both are empty-safe: with no rid the
+    # link is exactly what wave 1 sent, and the pixel is an empty string.
+    link = f"{row['deep_link']}&src=email" + (f"&rid={rid}" if rid else "")
+    pixel = (f'<img src="{site}/px/{rid}.gif" width="1" height="1" alt="" '
+             f'style="display:block;border:0;" />') if rid else ""
+    disclose = (f'This email carries a code unique to you, so we can see '
+                f'whether it was opened and whether the report was useful. If '
+                f'you&rsquo;d rather we didn&rsquo;t, don&rsquo;t click the '
+                f'link &mdash; or reply and we&rsquo;ll delete the record. '
+                f'<a href="{site}/about#privacy" style="color:{MUT};">'
+                f'What we collect</a>.<br>') if rid else ""
     bullets = "".join(
         f'<tr><td style="padding:0 0 14px 0;vertical-align:top;width:18px;'
         f'color:{BLUE};font-weight:700;">&#8250;</td>'
@@ -127,7 +150,7 @@ def render_email(row: dict, postal: str, unsubscribe: str) -> tuple[str, str]:
       {e(row['hook'])}</p>
     <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 26px;"><tr>
       <td style="background:{BLUE};border-radius:4px;">
-        <a href="{e(row['deep_link'])}&src=email"
+        <a href="{e(link)}"
            style="display:inline-block;padding:13px 26px;color:#ffffff;
                   font-family:Arial,sans-serif;font-size:15px;font-weight:bold;
                   text-decoration:none;">See {e(name)}&rsquo;s full report &rarr;</a>
@@ -168,12 +191,12 @@ def render_email(row: dict, postal: str, unsubscribe: str) -> tuple[str, str]:
     independently before acting &mdash; use is at your own risk.
     <a href="{SITE}/transparency" style="color:{MUT};">How this was made, and
     the full terms</a>.<br>
-    This is a commercial message from TAG ai &middot; {e(postal)}<br>
+    {disclose}This is a commercial message from TAG ai &middot; {e(postal)}<br>
     Don&rsquo;t want to hear from us? <a href="{e(unsubscribe)}"
     style="color:{MUT};">Unsubscribe</a> and we won&rsquo;t write again.
   </td></tr>
 </table>
-</td></tr></table></body></html>"""
+</td></tr></table>{pixel}</body></html>"""
 
     text = (f"Dear {row['greeting']},\n\n"
             f"Congratulations on the start of the new school year — we wish "
@@ -187,7 +210,7 @@ def render_email(row: dict, postal: str, unsubscribe: str) -> tuple[str, str]:
             f"Your district's complete public record, on one page:\n\n"
             + "".join(f"  • {s}\n" for s in insights) +
             f"\n{row['hook']}\n\n"
-            f"See {name}'s full report: {row['deep_link']}&src=email\n\n"
+            f"See {name}'s full report: {link}\n\n"
             f"Who we are: TAG ai works at the intelligence layer of data — we "
             f"connect the systems you already have and make them answer "
             f"questions. Reply to this email for a 20-minute walkthrough, or "
@@ -204,6 +227,11 @@ def render_email(row: dict, postal: str, unsubscribe: str) -> tuple[str, str]:
             f"provided as-is without warranty; verify independently before "
             f"acting — use is at your own risk. How this was made and full "
             f"terms: {SITE}/transparency\n"
+            + (f"This email carries a code unique to you, so we can see "
+               f"whether it was opened and whether the report was useful. If "
+               f"you'd rather we didn't, don't click the link — or reply and "
+               f"we'll delete the record. {SITE}/about#privacy\n"
+               if rid else "") +
             f"This is a commercial message from TAG ai · {postal}\n"
             f"Unsubscribe: {unsubscribe}\n")
     return body, text
@@ -345,6 +373,45 @@ def load_optout() -> set[str]:
     return local | {e.lower() for e in _remote_emails("outreach_optout")}
 
 
+def log_recipient(row: dict, rid: str, message_id: str, campaign: str) -> None:
+    """Record the journey token so a later click can be traced to a person.
+
+    This row is what the ?rid= foreign key points at: if it is missing when the
+    recipient clicks, the event is dropped and the click is lost. Written
+    immediately after the send returns, which is comfortably before any human
+    can open a mail client — but it means a Supabase mirror failure is a real
+    loss of attribution, hence the loud warning rather than a silent pass.
+    """
+    sent_at = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+    new = not RECIPIENTS.exists()
+    with RECIPIENTS.open("a", newline="") as fh:
+        w = csv.DictWriter(fh, fieldnames=["rid", "email", "district_number",
+                                           "campaign", "message_id", "sent_at"])
+        if new:
+            w.writeheader()
+        w.writerow({"rid": rid, "email": row["email"],
+                    "district_number": row["district_number"],
+                    "campaign": campaign, "message_id": message_id,
+                    "sent_at": sent_at})
+    pat = os.environ.get("SUPABASE_PAT", "").strip()
+    if not pat:
+        print("  WARNING: SUPABASE_PAT unset — journey token is local only, "
+              "so this recipient's clicks will not be attributable.")
+        return
+    try:
+        _sb_sql(
+            "INSERT INTO public.outreach_recipient "
+            "(rid, email, district_number, campaign, message_id) VALUES ("
+            f"{_sb_quote(rid)}, {_sb_quote(row['email'])}, "
+            f"{_sb_quote(row['district_number'])}, "
+            f"{_sb_quote(campaign)}, {_sb_quote(message_id)}) "
+            "ON CONFLICT (rid) DO NOTHING",
+            pat)
+    except Exception as ex:                      # noqa: BLE001
+        print(f"  WARNING: journey token not mirrored to Supabase ({ex}). "
+              f"Clicks from {row['email']} will not resolve to a person.")
+
+
 def log_sent(row: dict, message_id: str) -> None:
     sent_at = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
     new = not SENT_LOG.exists()
@@ -395,7 +462,12 @@ def main() -> int:
                          "exactly these districts' emails as the samples")
     ap.add_argument("--previews", type=int, default=5,
                     help="dry run: how many HTML previews to write")
+    ap.add_argument("--campaign", default="w2",
+                    help="campaign label stored with each journey token, so a "
+                         "wave's behaviour can be reported — or deleted — on "
+                         "its own (default: w2; wave 1 was sent untracked)")
     args = ap.parse_args()
+    campaign = args.campaign.strip() or "w2"
 
     rows = list(csv.DictReader(MERGE.open()))
     if not rows:
@@ -488,7 +560,8 @@ def main() -> int:
 
     ok = fail = 0
     for i, row in enumerate(todo, 1):
-        body, text = render_email(row, postal, unsubscribe)
+        rid = tracking.new_rid()
+        body, text = render_email(row, postal, unsubscribe, rid=rid)
         try:
             payload = {
                 "from": from_addr, "to": [row["email"]],
@@ -499,6 +572,7 @@ def main() -> int:
                 payload["bcc"] = [bcc_addr]
             got = _req("/emails", key, payload)
             log_sent(row, got.get("id", ""))
+            log_recipient(row, rid, got.get("id", ""), campaign)
             ok += 1
             print(f"  [{i}/{len(todo)}] {row['district_name']:<32} "
                   f"{row['email']}")
