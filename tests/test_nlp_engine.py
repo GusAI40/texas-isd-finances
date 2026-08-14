@@ -99,3 +99,55 @@ def test_nlp_role_migration_grants_only_the_two_views():
 
 def test_sample_queries_exposed():
     assert len(SAMPLE_QUERIES) == 10
+
+
+# --- the /query spend ceiling -------------------------------------------------
+# These pin the two failure modes apart. They used to be one branch that failed
+# open, which left the bill uncapped during exactly the outage nobody watches.
+
+class _Conn:
+    def __init__(self, exc): self.exc = exc
+    async def fetchval(self, *a, **k): raise self.exc
+    async def __aenter__(self): return self
+    async def __aexit__(self, *a): return False
+
+
+class _Pool:
+    def __init__(self, exc): self.exc = exc
+    def acquire(self): return _Conn(self.exc)
+
+
+def test_missing_usage_table_fails_open():
+    """A migration that has not run yet must not take down a working feature:
+    the database is up, so the agent can still answer."""
+    import asyncio
+
+    import asyncpg
+
+    from src.api import _shared_limit_reached
+    exc = asyncpg.exceptions.UndefinedTableError("relation does not exist")
+    assert asyncio.run(_shared_limit_reached(_Pool(exc))) is False
+
+
+def test_unreachable_metering_degrades_to_a_trickle():
+    """Not open, not shut. Metering can fail while the database is up (pooler
+    exhaustion), so refusing everything would break a working feature. But
+    failing fully open left the bill unbounded during exactly the outage nobody
+    watches. So a degraded instance answers a few and then refuses."""
+    import asyncio
+
+    import src.api as api
+    api._degraded_hits.clear()
+    pool = _Pool(OSError("connection refused"))
+    for _ in range(api._DEGRADED_LIMIT):
+        assert asyncio.run(api._shared_limit_reached(pool)) is False
+    assert asyncio.run(api._shared_limit_reached(pool)) is True
+    api._degraded_hits.clear()
+
+
+def test_no_pool_is_not_a_refusal():
+    """No pool configured at all is a local/dev shape, not an outage."""
+    import asyncio
+
+    from src.api import _shared_limit_reached
+    assert asyncio.run(_shared_limit_reached(None)) is False

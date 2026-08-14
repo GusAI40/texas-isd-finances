@@ -95,7 +95,12 @@ jobs:
       # ran two years stale with a green suite because nothing compared the
       # site to the repo on a schedule. Exits non-zero on drift.
       - name: verify_live — production matches the repo
-        run: python scripts/verify_live.py
+        # --with-query also asks the live agent one question with a known
+        # answer. It costs a single LLM call a day, and it is the only check
+        # that touches /query at all: everything else here reads static JSON,
+        # so a dead provider, an expired key or a broken tool-calling loop
+        # would otherwise look exactly like a healthy site.
+        run: python scripts/verify_live.py --with-query
 
       # Has any publisher moved past the vintage we ingested? Exits non-zero
       # when upstream has data we have not seen. On failure: ingest it, or

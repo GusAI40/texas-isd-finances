@@ -710,12 +710,19 @@ async def test_daily_ceiling_is_independent_of_the_minute_ceiling():
 
 
 @pytest.mark.anyio
-async def test_metering_outage_does_not_take_down_the_feature():
-    """Fails open on availability: /query's own connection is separate, so a
-    metering outage must not break a working feature. The per-instance limit
-    still applies, so this is the old exposure, not a new one."""
+async def test_metering_outage_degrades_instead_of_failing_open_or_shut():
+    """A metering outage must not break a working feature — metering can fail
+    while the database is up (pooler exhaustion). But failing fully OPEN left
+    the bill unbounded during exactly the outage nobody watches, and the
+    documented risk is a free-tier pause that takes the agent's own role down
+    too. So the shared ceiling is replaced by a much tighter local one: the
+    first few calls still answer, then the instance refuses."""
     import src.api as api
-    assert await api._shared_limit_reached(_FakePool(fail=True)) is False
+    api._degraded_hits.clear()
+    for _ in range(api._DEGRADED_LIMIT):
+        assert await api._shared_limit_reached(_FakePool(fail=True)) is False
+    assert await api._shared_limit_reached(_FakePool(fail=True)) is True
+    api._degraded_hits.clear()
     assert await api._shared_limit_reached(None) is False
 
 

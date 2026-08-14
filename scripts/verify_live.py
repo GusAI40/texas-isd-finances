@@ -41,6 +41,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import ssl
 import sys
 import urllib.error
@@ -161,6 +162,54 @@ def get(url: str) -> tuple[Any, str | None]:
         return raw, None
 
 
+def post(url: str, payload: dict) -> tuple[Any, str | None]:
+    body = json.dumps(payload).encode()
+    req = urllib.request.Request(url, data=body, method="POST", headers={
+        "User-Agent": UA, "Accept": "application/json",
+        "Content-Type": "application/json"})
+    try:
+        with urllib.request.urlopen(req, timeout=90, context=_ctx) as r:
+            raw = r.read().decode("utf-8", "replace")
+    except urllib.error.HTTPError as e:
+        return None, f"HTTP {e.code}"
+    except Exception as e:  # noqa: BLE001
+        return None, f"TRANSPORT {type(e).__name__}: {e}"[:120]
+    try:
+        return json.loads(raw), None
+    except json.JSONDecodeError:
+        return raw, None
+
+
+def check_query(base: str) -> tuple[bool, str]:
+    """Ask the live agent the one question with a known, checkable answer.
+
+    /query was the only reader-facing feature nothing verified in production.
+    It is also the feature with a REGRESSION ON RECORD: the prompt once said
+    "default LIMIT 100", so the agent LIMITed a SELECT DISTINCT and answered
+    "100 districts" instead of 1,310 — intermittently, which is the worst kind.
+    So the check is that exact question, and it fails on the exact wrong answer
+    as well as on a missing right one.
+
+    Costs one LLM call, so it is opt-in (--with-query) rather than part of the
+    free deploy gate.
+    """
+    want = 1310
+    body, err = post(base + "/query", {"question":
+                                       "How many school districts are in the data?"})
+    if err:
+        return False, f"/query did not answer: {err}"
+    if not isinstance(body, dict):
+        return False, "/query returned a non-JSON body"
+    answer = " ".join(str(body.get(k, "")) for k in ("answer", "sql", "result"))
+    digits = re.sub(r"[,\s]", "", answer)
+    if str(want) in digits:
+        return True, f"agent still answers {want:,}"
+    if re.search(r"\b100\b", answer):
+        return False, ("agent answered 100 — the LIMIT-on-a-COUNT regression is "
+                       "back; see the 'counting is not limiting' rule")
+    return False, f"agent did not answer {want:,}: {answer[:160]!r}"
+
+
 def same(a: Any, b: Any) -> bool:
     """Equal enough. Floats are compared relatively because a payload that
     round-trips through JSON can differ in the last bit without anything having
@@ -188,6 +237,9 @@ def main() -> int:
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--base", default=BASE, help="site to check (default: production)")
     ap.add_argument("--json", type=Path, default=None)
+    ap.add_argument("--with-query", action="store_true",
+                    help="also ask the live NLP agent one question with a "
+                         "known answer. Costs one LLM call, so it is opt-in.")
     args = ap.parse_args()
     base = args.base.rstrip("/")
 
@@ -250,6 +302,16 @@ def main() -> int:
         rows.append({"check": label, "endpoint": ep, "state": state, "error": err})
         print(f"{'  ok  ' if state == 'ok' else ' DRIFT' if state == 'DRIFT' else ' ---- '}"
               f"  {label:44}")
+
+    if args.with_query:
+        good, why = check_query(base)
+        rows.append({"check": "live NLP agent answers correctly",
+                     "endpoint": "/query", "state": "ok" if good else "DRIFT",
+                     "error": None if good else why})
+        print(f"{'  ok  ' if good else ' DRIFT'}  "
+              f"{'live NLP agent answers correctly':44}{'' if good else '  ' + why}")
+        if not good:
+            drift.append(("live NLP agent", "a checkable answer", why))
 
     print()
     if missing:
