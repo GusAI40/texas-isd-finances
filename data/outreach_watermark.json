@@ -1,0 +1,28 @@
+{
+  "_what_this_is": [
+    "A committed floor for the outreach skip-list, and the only piece of send",
+    "state that survives a fresh container.",
+    "",
+    "data/outreach_sent.csv is gitignored and has never been committed, because",
+    "it holds contact data. The Supabase mirror (public.outreach_sent) is the",
+    "durable copy — but _remote_emails() returns an EMPTY set when SUPABASE_PAT",
+    "is unset, and that is not an error, it is the documented offline mode. So a",
+    "fresh clone with no local log and no PAT resolves a skip-list of zero and",
+    "would cheerfully re-email all 571 superintendents already contacted.",
+    "",
+    "This file makes that impossible without a deliberate override. It records",
+    "how many addresses we KNOW have been sent; send_outreach.py refuses to send",
+    "when the resolved skip-list is smaller than this, because a shrinking",
+    "skip-list means state was lost, never that people un-received an email.",
+    "",
+    "Bump sent_total in the same commit as any wave that grows it."
+  ],
+  "sent_total": 571,
+  "as_of": "2026-08-13",
+  "waves": [
+    {"date": "2026-08-11", "sent": 71, "tracked": false},
+    {"date": "2026-08-12", "sent": 150, "tracked": false},
+    {"date": "2026-08-13", "sent": 350, "tracked": false}
+  ],
+  "note": "571 unique districts, 43.6% of Texas, zero duplicates. Wave 1 predates journey tracking and cannot be retrofitted."
+}

@@ -70,6 +70,7 @@ from src import tracking  # noqa: E402
 SITE = "https://txisd.dev"
 MERGE = ROOT / "data/outreach_merge.csv"
 SENT_LOG = ROOT / "data/outreach_sent.csv"
+WATERMARK = ROOT / "data" / "outreach_watermark.json"
 # Journey tokens live in their own file rather than as a column on the sent
 # log: that log already has 571 four-column rows from wave 1, and widening it
 # in place would misalign every one of them.
@@ -354,6 +355,42 @@ def _remote_emails(table: str) -> set[str]:
     return {r["email"] for r in rows}
 
 
+def watermark_floor() -> int:
+    """How many addresses we KNOW have been emailed, from committed state."""
+    if not WATERMARK.exists():
+        return 0
+    return int(json.loads(WATERMARK.read_text()).get("sent_total", 0))
+
+
+def skiplist_shrank(resolved: int) -> str:
+    """Return a refusal message when the skip-list is smaller than the
+    committed watermark, else "".
+
+    A skip-list can only ever GROW: nobody un-receives an email. Smaller than
+    the watermark therefore does not mean fewer people were mailed, it means
+    send state was LOST — and the way that happens is mundane.
+    data/outreach_sent.csv is gitignored and has never been committed, and
+    _remote_emails() returns an empty set (not an error) when SUPABASE_PAT is
+    unset, because offline is a supported mode. A fresh clone with neither
+    resolves a skip-list of zero and would cheerfully re-email every
+    superintendent already contacted.
+    """
+    floor = watermark_floor()
+    if resolved >= floor:
+        return ""
+    return (
+        f"refusing: the skip-list resolved to {resolved} addresses but "
+        f"{WATERMARK.name} records {floor} already sent. A skip-list cannot "
+        f"shrink — nobody un-receives an email — so send state was lost, and "
+        f"sending now would re-email people who have already heard from us.\n"
+        f"  Recover state first, in this order:\n"
+        f"    1. export SUPABASE_PAT=...   (the durable mirror is the truth)\n"
+        f"    2. python scripts/sync_outreach_state.py --pull\n"
+        f"    3. re-run this command\n"
+        f"  If the watermark itself is wrong, fix it in a commit rather than "
+        f"passing --ignore-watermark.")
+
+
 def load_sent() -> set[str]:
     """Everyone already emailed: local CSV ∪ the Supabase mirror. Remote
     wins by union — an address in either place is never emailed again."""
@@ -454,6 +491,10 @@ def main() -> int:
                     help="send for real, to the superintendents in the merge file")
     ap.add_argument("--confirm", default="",
                     help="must be the literal word GO for --send")
+    ap.add_argument("--ignore-watermark", action="store_true",
+                    help="send even if the skip-list is smaller than the "
+                         "committed watermark. Almost always the wrong "
+                         "answer: recover state instead.")
     ap.add_argument("--limit", type=int, default=0,
                     help="stop after N sends (0 = all); use for a pilot wave. "
                          "With --test: how many samples to send (default 2)")
@@ -550,6 +591,20 @@ def main() -> int:
           f"their own district and every sentence names it")
 
     sent, optout = load_sent(), load_optout()
+
+    # The skip-list can only ever GROW: nobody un-receives an email. So a
+    # skip-list smaller than the committed watermark does not mean fewer people
+    # were mailed, it means state was LOST — and the way that happens is
+    # mundane: data/outreach_sent.csv is gitignored and has never been
+    # committed, and _remote_emails() returns an empty set (not an error) when
+    # SUPABASE_PAT is unset. A fresh clone with neither therefore resolves a
+    # skip-list of zero and would cheerfully re-email all 571 superintendents
+    # already contacted. Refuse instead, and say exactly how to recover.
+    refusal = skiplist_shrank(len(sent))
+    if refusal and not args.ignore_watermark:
+        print(refusal)
+        return 1
+
     todo = [r for r in rows if r["email"] not in sent
             and r["email"].lower() not in optout]
     skipped = len(rows) - len(todo)

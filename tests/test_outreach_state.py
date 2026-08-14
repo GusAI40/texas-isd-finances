@@ -154,3 +154,49 @@ def test_log_sent_survives_remote_failure_with_loud_warning(
 def test_log_sent_quotes_sql_literals():
     """An email with a quote must not break (or inject into) the mirror SQL."""
     assert so._sb_quote("o'brien@x.com") == "'o''brien@x.com'"
+
+
+# --- the re-send footgun ------------------------------------------------------
+
+def test_watermark_is_committed_and_matches_the_waves():
+    """data/outreach_sent.csv is gitignored and has never been committed, and
+    _remote_emails() returns an empty set (not an error) when SUPABASE_PAT is
+    unset. So a fresh clone with neither resolves an EMPTY skip-list. The
+    watermark is the only send-state that survives that, which is why it is
+    committed and why its total must equal the waves it lists."""
+    import json
+    from pathlib import Path
+    p = Path(__file__).resolve().parents[1] / "data" / "outreach_watermark.json"
+    assert p.exists(), "the watermark must be committed — it is the re-send guard"
+    d = json.loads(p.read_text())
+    assert d["sent_total"] == sum(w["sent"] for w in d["waves"]), \
+        "sent_total must equal the sum of the waves it lists"
+    assert d["sent_total"] >= 571
+
+
+def test_send_refuses_when_the_skiplist_shrank():
+    """A skip-list cannot shrink: nobody un-receives an email. Smaller than the
+    watermark means state was lost, and sending would re-mail people. This is
+    the exact fresh-container shape: no local log, no PAT, skip-list of 0."""
+    import importlib.util
+    from pathlib import Path as _P
+    sp = _P(__file__).resolve().parents[1] / "scripts" / "send_outreach.py"
+    spec = importlib.util.spec_from_file_location("_send", sp)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+
+    floor = mod.watermark_floor()
+    assert floor >= 571
+
+    msg = mod.skiplist_shrank(0)           # fresh container: nothing known
+    assert msg and "refusing" in msg
+    assert "sync_outreach_state.py --pull" in msg, "must say how to recover"
+
+    assert mod.skiplist_shrank(floor) == ""       # exactly the watermark: fine
+    assert mod.skiplist_shrank(floor + 9) == ""   # grown since: fine
+    assert mod.skiplist_shrank(floor - 1) != ""   # one short: refuse
+
+    # and the refusal must come before anything is sent
+    src = sp.read_text()
+    assert src.index("skiplist_shrank(len(sent))") < \
+        src.index("for i, row in enumerate(todo, 1)")
