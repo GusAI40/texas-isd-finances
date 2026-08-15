@@ -513,3 +513,74 @@ def test_the_instructions_quote_the_data_not_a_hardcoded_number(client):
         assert f"{meta['propositions']:,}" in text
         assert str(meta["last_year"]) in text
     assert "Bond Review Board" in text, "the publisher must be named correctly"
+
+
+# --- the HTTP header must agree with the payload's own freshness signal -------
+# SEP-2549 lets a result declare `ttlMs`/`cacheScope` so a client can cache
+# without a long-lived SSE stream. This endpoint answered every method with a
+# flat `no-store`, which told a client to discard exactly what the protocol had
+# just asked it to keep for a day. Two mechanisms pointing opposite ways.
+
+def test_cache_directive_is_derived_from_the_body():
+    from src.mcp_protocol import DAY_MS, cache_directive
+    assert cache_directive(
+        {"result": {"tools": [], "ttlMs": DAY_MS, "cacheScope": "public"}}
+    ) == f"public, max-age={DAY_MS // 1000}"
+
+
+def test_a_result_with_no_ttl_is_not_cacheable():
+    """tools/call takes arguments and MRTR round-trips requestState."""
+    from src.mcp_protocol import cache_directive
+    assert cache_directive({"result": {"content": []}}) == "no-store"
+
+
+def test_errors_are_never_cacheable():
+    from src.mcp_protocol import cache_directive
+    assert cache_directive({"error": {"code": -32602}}) == "no-store"
+    assert cache_directive(None) == "no-store"
+
+
+def test_private_scope_is_honoured():
+    from src.mcp_protocol import cache_directive
+    assert cache_directive(
+        {"result": {"ttlMs": 60000, "cacheScope": "private"}}) == "private, max-age=60"
+
+
+def test_the_header_and_the_payload_cannot_disagree_end_to_end(client):
+    """The regression itself: ask the live app for tools/list and assert the
+    Cache-Control it returns matches the ttlMs inside the very same body."""
+    body = {"jsonrpc": "2.0", "id": 1, "method": "tools/list",
+            "params": {"_meta": {
+                "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+                "io.modelcontextprotocol/clientCapabilities": {}}}}
+    r = client.post("/mcp", json=body, headers={
+        "MCP-Protocol-Version": "2026-07-28",
+        "Mcp-Method": "tools/list", "Mcp-Name": "tools/list"})
+    assert r.status_code == 200, r.text
+    ttl = r.json()["result"]["ttlMs"]
+    assert r.headers["cache-control"] == f"public, max-age={ttl // 1000}", (
+        "the HTTP header drifted from the ttlMs in the body it was sent with")
+    assert "no-store" not in r.headers["cache-control"]
+
+
+def test_tools_call_still_says_no_store(client):
+    body = {"jsonrpc": "2.0", "id": 2, "method": "tools/call",
+            "params": {"name": "texas_overview", "arguments": {},
+                       "_meta": {
+                           "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+                           "io.modelcontextprotocol/clientCapabilities": {}}}}
+    r = client.post("/mcp", json=body, headers={
+        "MCP-Protocol-Version": "2026-07-28",
+        "Mcp-Method": "tools/call", "Mcp-Name": "texas_overview"})
+    assert r.status_code == 200, r.text
+    assert r.headers["cache-control"] == "no-store"
+
+
+def test_mcp_does_not_claim_a_cdn_directive_it_cannot_use():
+    """/mcp is POST and Vercel's CDN caches only GET/HEAD, so an s-maxage here
+    would be inert. An optimisation that cannot fire is worse than none,
+    because it reads as done."""
+    from pathlib import Path
+    src = (Path(__file__).resolve().parents[1] / "src" / "mcp_protocol.py").read_text()
+    i = src.index("def cache_directive")
+    assert "s-maxage" not in src[i:i + 1600].split("return")[-1]

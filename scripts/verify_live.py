@@ -180,6 +180,37 @@ def post(url: str, payload: dict) -> tuple[Any, str | None]:
         return raw, None
 
 
+def check_caching(base: str) -> tuple[bool, str]:
+    """Is the CDN actually caching the committed artefacts?
+
+    Vercel caches a function response only when the request is GET/HEAD AND the
+    response carries s-maxage. Without it, every request for a 535 KB artefact
+    cold-invokes a Python function to read a file off disk — and the only
+    outward sign is `x-vercel-cache: MISS` on a repeat hit, which nobody looks
+    at. So the deploy gate looks at it.
+
+    A miss on the FIRST request is normal (cold key). This asks twice and
+    reports on the second, which is the one that proves the cache took.
+    """
+    probes = ["/bonds/texas", "/district-geo"]
+    bad = []
+    for path in probes:
+        url = base + path
+        get(url)                                   # prime
+        req = urllib.request.Request(url, headers={"User-Agent": UA})
+        try:
+            with urllib.request.urlopen(req, timeout=TIMEOUT, context=_ctx) as r:
+                state = (r.headers.get("x-vercel-cache") or "?").upper()
+                cc = r.headers.get("cache-control") or ""
+        except Exception as e:  # noqa: BLE001
+            return False, f"{path}: {type(e).__name__}"
+        if state not in ("HIT", "STALE", "REVALIDATED"):
+            bad.append(f"{path} -> x-vercel-cache: {state} (cache-control: {cc!r})")
+    if bad:
+        return False, "artefacts are not being served from the CDN: " + "; ".join(bad)
+    return True, "committed artefacts served from the edge cache"
+
+
 def check_query(base: str) -> tuple[bool, str]:
     """Ask the live agent the one question with a known, checkable answer.
 
@@ -302,6 +333,15 @@ def main() -> int:
         rows.append({"check": label, "endpoint": ep, "state": state, "error": err})
         print(f"{'  ok  ' if state == 'ok' else ' DRIFT' if state == 'DRIFT' else ' ---- '}"
               f"  {label:44}")
+
+    good, why = check_caching(base)
+    rows.append({"check": "artefacts served from the CDN cache",
+                 "endpoint": "/bonds/texas", "state": "ok" if good else "DRIFT",
+                 "error": None if good else why})
+    print(f"{'  ok  ' if good else ' DRIFT'}  "
+          f"{'artefacts served from the CDN cache':44}{'' if good else '  ' + why}")
+    if not good:
+        drift.append(("CDN caching", "artefacts cached at the edge", why))
 
     if args.with_query:
         good, why = check_query(base)

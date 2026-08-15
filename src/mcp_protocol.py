@@ -141,6 +141,38 @@ def _origin_ok(origin: str | None, allowed: tuple[str, ...]) -> bool:
     return any(origin == a or origin.endswith(a) for a in allowed)
 
 
+def cache_directive(body: dict | None) -> str:
+    """The HTTP Cache-Control for a response, DERIVED FROM THAT RESPONSE.
+
+    SEP-2549 lets a result carry its own freshness signal (`ttlMs`,
+    `cacheScope`) so a client can cache without a long-lived SSE stream. This
+    endpoint used to answer every method with a flat `no-store`, which told a
+    well-behaved HTTP client to discard exactly what the protocol had just
+    asked it to keep for a day. Two mechanisms pointing opposite ways, and
+    which one won depended on the client.
+
+    So the header is computed from the body rather than written beside it. A
+    result that declares no ttlMs gets `no-store`; one that declares a public
+    ttlMs gets the matching max-age. They cannot drift because there is only
+    one number.
+
+    Note this is a CLIENT directive, not a CDN one. /mcp is POST, and Vercel's
+    CDN only caches GET and HEAD, so `s-maxage` here would be inert — a real
+    optimisation that cannot fire is worse than none, because it reads as done.
+    """
+    if not isinstance(body, dict):
+        return "no-store"
+    res = body.get("result")
+    if not isinstance(res, dict):
+        return "no-store"                     # errors are never cacheable
+    ttl_ms = res.get("ttlMs")
+    if not isinstance(ttl_ms, int) or ttl_ms <= 0:
+        return "no-store"                     # tools/call: arguments + MRTR state
+    scope = res.get("cacheScope") or "private"
+    seconds = ttl_ms // 1000
+    return f"{'public' if scope == 'public' else 'private'}, max-age={seconds}"
+
+
 def handle(
     raw: bytes,
     headers: dict[str, str],
