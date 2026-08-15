@@ -2113,8 +2113,12 @@ async def mcp_endpoint(request: Request):
     )
     if body is None:                      # a notification: 202, no content
         return Response(status_code=status)
+    # Derived from the body, never written beside it: a tools/list result that
+    # declares ttlMs must not be served with a header telling the client to
+    # throw it away. See mcp_protocol.cache_directive.
     return JSONResponse(status_code=status, content=body,
-                        headers={"Cache-Control": "no-store"})
+                        headers={"Cache-Control":
+                                 mcp_protocol.cache_directive(body)})
 
 
 @app.api_route("/mcp", methods=["GET", "DELETE"], include_in_schema=False)

@@ -311,3 +311,44 @@ def test_ask_footer_names_only_the_llm_actually_used():
     assert "OpenAI" in html and "LangChain" in html
     for absent in ("Perplexity", "Pinecone", "MongoDB", "Multi-LLM", "GOAT-UIX"):
         assert absent not in html, f"{absent} is not in this stack and must not appear"
+
+
+# --- CDN caching: only what is safe, and it must not silently disappear -------
+
+def test_cdn_caching_is_configured_for_the_artefact_routes():
+    """Vercel's CDN caches a function response only when the request is GET/HEAD
+    AND the response carries s-maxage. Without it every request for a 535 KB
+    committed artefact cold-invokes a Python function to read a file off disk —
+    which is what x-vercel-cache: MISS on every repeat hit was telling us."""
+    import json
+    from pathlib import Path
+    d = json.loads((Path(__file__).resolve().parents[1] / "vercel.json").read_text())
+    hdrs = {h["source"]: {k["key"]: k["value"] for k in h["headers"]}
+            for h in d.get("headers", [])}
+    for route in ("/district-geo", "/bonds/texas", "/trends/texas", "/debt/texas"):
+        assert route in hdrs, f"{route} lost its CDN cache header"
+        assert "s-maxage" in hdrs[route]["Vercel-CDN-Cache-Control"], route
+
+
+def test_nothing_personal_or_live_is_cdn_cached():
+    """The cache is shared. A response that varies per visitor, per question or
+    per token must never enter it."""
+    import json
+    from pathlib import Path
+    d = json.loads((Path(__file__).resolve().parents[1] / "vercel.json").read_text())
+    sources = {h["source"] for h in d.get("headers", [])}
+    for forbidden in ("/", "/query", "/health", "/mcp",
+                      "/ops/outreach", "/ops/outreach-data"):
+        assert forbidden not in sources, (
+            f"{forbidden} must not be CDN-cached: it is per-visitor, per-question, "
+            "live, or private")
+    assert not any(s.startswith("/px/") or s.startswith("/ops/") for s in sources)
+
+
+def test_vercel_json_still_has_no_rewrites():
+    """A rewrites block passes the DESTINATION path to the app and 404s the
+    entire site while the build still reports READY. See CLAUDE.md."""
+    import json
+    from pathlib import Path
+    d = json.loads((Path(__file__).resolve().parents[1] / "vercel.json").read_text())
+    assert "rewrites" not in d
