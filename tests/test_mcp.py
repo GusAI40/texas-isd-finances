@@ -525,7 +525,7 @@ def test_cache_directive_is_derived_from_the_body():
     from src.mcp_protocol import DAY_MS, cache_directive
     assert cache_directive(
         {"result": {"tools": [], "ttlMs": DAY_MS, "cacheScope": "public"}}
-    ) == f"public, max-age={DAY_MS // 1000}"
+    ) == f"private, max-age={DAY_MS // 1000}"
 
 
 def test_a_result_with_no_ttl_is_not_cacheable():
@@ -558,7 +558,7 @@ def test_the_header_and_the_payload_cannot_disagree_end_to_end(client):
         "Mcp-Method": "tools/list", "Mcp-Name": "tools/list"})
     assert r.status_code == 200, r.text
     ttl = r.json()["result"]["ttlMs"]
-    assert r.headers["cache-control"] == f"public, max-age={ttl // 1000}", (
+    assert r.headers["cache-control"] == f"private, max-age={ttl // 1000}", (
         "the HTTP header drifted from the ttlMs in the body it was sent with")
     assert "no-store" not in r.headers["cache-control"]
 
@@ -580,7 +580,25 @@ def test_mcp_does_not_claim_a_cdn_directive_it_cannot_use():
     """/mcp is POST and Vercel's CDN caches only GET/HEAD, so an s-maxage here
     would be inert. An optimisation that cannot fire is worse than none,
     because it reads as done."""
-    from pathlib import Path
-    src = (Path(__file__).resolve().parents[1] / "src" / "mcp_protocol.py").read_text()
-    i = src.index("def cache_directive")
-    assert "s-maxage" not in src[i:i + 1600].split("return")[-1]
+    import ast
+    import inspect
+
+    from src import mcp_protocol
+
+    # Parse the function and look at the CODE only. Prose legitimately mentions
+    # s-maxage to explain why there isn't one; a string literal that gets
+    # returned is a different matter. Checking the text after the last `return`
+    # was the original bug — an s-maxage on any earlier branch sailed through.
+    tree = ast.parse(inspect.getsource(mcp_protocol.cache_directive).lstrip())
+    fn = tree.body[0]
+    # The docstring is the first statement; exclude that NODE, not a string
+    # equal to it — ast.get_docstring re-indents, so comparing text silently
+    # matches nothing and the whole guard passes for the wrong reason.
+    doc_node = (fn.body[0].value
+                if isinstance(fn.body[0], ast.Expr)
+                and isinstance(fn.body[0].value, ast.Constant) else None)
+    emitted = [n.value for n in ast.walk(fn)
+               if isinstance(n, ast.Constant) and isinstance(n.value, str)
+               and n is not doc_node]
+    assert not any("s-maxage" in t for t in emitted), \
+        "/mcp is POST; Vercel caches only GET/HEAD, so an s-maxage here is inert"

@@ -951,3 +951,54 @@ def test_heatmap_page_served(client):
     assert res.status_code == 200
     assert "mapbox-gl" in res.text          # loads Mapbox GL
     assert 'id="a11y-table"' in res.text    # and carries a table twin
+
+
+# --- caching the big unchanging files ----------------------------------------
+# These live in the app, not vercel.json, because SITE_PASSWORD is a runtime
+# switch and vercel.json is static. A cached response skips the password
+# middleware entirely, so the two decisions have to be made in one place.
+
+def test_the_big_files_are_cacheable(client, monkeypatch):
+    monkeypatch.delenv("SITE_PASSWORD", raising=False)
+    r = client.get("/bonds/texas")
+    assert r.status_code == 200
+    assert "s-maxage=86400" in r.headers.get("vercel-cdn-cache-control", "")
+    assert r.headers.get("cache-control") == "public, max-age=600"
+
+
+def test_a_locked_site_caches_nothing(client, monkeypatch):
+    """The real bug this guards: a shared cache is filled by whoever asks
+    first, and a cached hit never runs the password check. One authorised
+    request could otherwise hand the locked site to everyone."""
+    monkeypatch.setenv("SITE_PASSWORD", "letmein")
+    r = client.get("/bonds/texas", headers={
+        "Authorization": "Basic dHhpc2Q6bGV0bWVpbg=="})
+    assert "vercel-cdn-cache-control" not in {k.lower() for k in r.headers}, \
+        "a password-protected site must never populate a shared cache"
+
+
+def test_the_feed_is_not_cached_for_a_day(client):
+    """/feed.xml is built from the database and rewritten by the daily cron
+    with no deploy. A day-long cache would hide new items from readers."""
+    r = client.get("/feed.xml")
+    assert "s-maxage=86400" not in r.headers.get("vercel-cdn-cache-control", "")
+
+
+def test_nothing_personal_or_live_is_cacheable():
+    from src.api import _CACHEABLE_PATHS
+    for forbidden in ("/", "/query", "/health", "/mcp", "/feed.xml",
+                      "/ops/outreach", "/ops/outreach-data"):
+        assert forbidden not in _CACHEABLE_PATHS, (
+            f"{forbidden} is per-visitor, per-question, live or private")
+    assert not any(p.startswith("/px/") or p.startswith("/ops/")
+                   for p in _CACHEABLE_PATHS)
+
+
+def test_vercel_json_has_no_rewrites_and_no_stale_header_block():
+    """A rewrites block 404s the whole site. And the cache rules moved into the
+    app, so a leftover headers block here would silently override them."""
+    import json
+    from pathlib import Path
+    d = json.loads((Path(__file__).resolve().parents[1] / "vercel.json").read_text())
+    assert "rewrites" not in d
+    assert "headers" not in d, "cache rules belong in the app, next to the gate"

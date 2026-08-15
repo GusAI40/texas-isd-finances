@@ -172,6 +172,48 @@ async def site_password_gate(request: Request, call_next):
     return await call_next(request)
 
 
+# Routes whose body is a committed file that changes only when a deploy
+# replaces it. Everything else — anything per-visitor, per-question, live, or
+# private — is absent on purpose and must stay absent.
+_CACHEABLE_PATHS = frozenset({
+    "/district-geo",
+    "/bonds/texas", "/debt/texas", "/campuses/texas", "/trends/texas",
+    "/forensics/texas", "/economics/texas", "/equity/texas",
+    "/takeover/houston",
+})
+
+
+@app.middleware("http")
+async def cache_the_committed_files(request: Request, call_next):
+    """Let the CDN serve the big unchanging files instead of rebuilding them.
+
+    This lives in the app rather than vercel.json for one reason that matters:
+    SITE_PASSWORD is a runtime switch and vercel.json is static. A shared cache
+    is filled by whoever asks first, and a cached response is returned WITHOUT
+    running the middleware above — so if the site were ever locked, one
+    authorised request could prime the cache and everyone else would be served
+    that copy with no password. Here the two decisions are made in the same
+    place and cannot disagree.
+
+    /feed.xml is deliberately NOT in this list: it is built from the database
+    and rewritten by the daily cron with no deploy, so a day-long cache would
+    hide new items. Its handler sets its own shorter time.
+    """
+    response = await call_next(request)
+    if (request.method in ("GET", "HEAD")
+            and request.url.path in _CACHEABLE_PATHS
+            and response.status_code == 200
+            and not site_gate.gate_password()     # locked site: never cache
+            and "set-cookie" not in response.headers):
+        # Browser: short, so a reader picks up a deploy quickly.
+        response.headers["Cache-Control"] = "public, max-age=600"
+        # Vercel's own cache: a day, serving the old copy for a week while it
+        # refreshes. A deploy clears it, so this cannot outlive a release.
+        response.headers["Vercel-CDN-Cache-Control"] = (
+            "public, s-maxage=86400, stale-while-revalidate=604800")
+    return response
+
+
 @app.middleware("http")
 async def security_headers(request: Request, call_next):
     """Baseline hardening, set by the app so it survives the deploy target.
