@@ -99,6 +99,13 @@
     letter-spacing: .05em; margin-top: .15rem; }
   .hero-why { color: var(--ink-2); font-size: var(--fs-base); max-width: 46rem; margin: 0 0 .4rem; }
   .clock { font-size: var(--fs-base); color: var(--ink-2); margin: .9rem 0 0; max-width: 46rem; }
+  .trust { border: 1px solid var(--rule); border-left: 3px solid var(--blue);
+           border-radius: 0 var(--r-lg) var(--r-lg) 0; background: var(--surface);
+           padding: 1.1rem 1.4rem; margin: 1.4rem 0 0; max-width: 46rem; }
+  .trust h2 { font-size: var(--fs-md); margin: 0 0 .5rem; letter-spacing: -.01em; }
+  .trust ol { margin: 0; padding-left: 1.2rem; }
+  .trust li { margin: .45rem 0; color: var(--ink-2); font-size: var(--fs-base); }
+  .trust li b { color: var(--ink); }
   .clock b { font-variant-numeric: tabular-nums; color: var(--ink); }
   .clock .rate { color: var(--ink); font-weight: 700; }
   .econ-mine { margin-top: .9rem; padding-top: .8rem; border-top: 1px dashed var(--hairline); }
@@ -1042,10 +1049,11 @@
       district collects, spends, borrows and achieves — in plain English, from official state figures,
       with a source on every number.</p>
     <p class="hero-truth" id="hero-truth"><svg class="ico" aria-hidden="true" style="width:.95em;height:.95em;vertical-align:-.1em;"><use href="#i-layers"/></svg>
-      <b>Built with AI, in the open:</b> orchestrated by artificial intelligence, verified against the
-      state&rsquo;s own files at thousands of checkpoints &mdash; and still capable of error. We say so
-      up front, not in the fine print. <a href="/transparency">How this was made, and the full
-      terms&nbsp;&rarr;</a></p>
+      <b>Built with AI, in the open:</b> a computer program helped build this site. Every number is
+      checked against the State of Texas&rsquo;s own files, thousands of times. It can still make
+      mistakes, and we say that here, not in fine print.
+      <a href="#trust">Can I trust these numbers?</a> &middot;
+      <a href="/transparency">How this was made, and the full terms&nbsp;&rarr;</a></p>
     <p class="clock" id="moneyclock" hidden aria-live="off"></p>
     <div class="proof" id="proof">
       <span title="2,882,180 finance values · 2,248,478 STAAR · 894,286 Snapshot · 432,327 property and tax · 96,848 boundary coordinates · 51,744 bond records"><b id="proof-points">6.6 million</b><i>data points analysed</i></span>
@@ -1057,6 +1065,34 @@
       Texas property bills. This shows what yours buys, and the finding that surprised us: <b>spending $2,000 more per student changed results by 0.15 points — too small to
       tell apart from zero.</b> What does move them is in here too.</p>
     <div class="credential" id="credential"></div>
+
+    <!-- The trust machinery existed before this section did — /sources names
+         every file, /provenance shows the checking chain, /transparency
+         discloses the AI, and dollar figures open their own arithmetic. What
+         did not exist was the QUESTION, asked the way a reader asks it, with
+         the answers in one place at a fifth-grade read. Static HTML on
+         purpose: the answer to "can I trust this?" must not depend on the
+         database being awake. -->
+    <section class="trust" id="trust" aria-labelledby="trust-h">
+      <h2 id="trust-h">Can I trust these numbers?</h2>
+      <ol>
+        <li><b>Where they come from.</b> Every number starts in a file the State of Texas
+          publishes. We link the file on every card, so you can
+          <a href="/sources">download the same one we used</a>.</li>
+        <li><b>How we check them.</b> A second computer program redoes the math a different way,
+          every day. If the two answers do not match, the site will not publish.
+          <a href="/provenance">See the checking chain.</a></li>
+        <li><b>When we get one wrong.</b> We fix it in public and say so. Example: we once said
+          Wills Point ISD had never passed a school bond. That was wrong &mdash; voters passed
+          $69.9&nbsp;million in 2025 &mdash; and the correction is part of this site&rsquo;s record.</li>
+        <li><b>What the AI did.</b> A computer program helped build and check this site. It did not
+          invent any number &mdash; numbers come only from the state&rsquo;s files.
+          <a href="/transparency">The full story.</a></li>
+        <li><b>Check one yourself.</b> Click any revenue dollar figure in
+          <a href="#econ-section">What you pay</a> and it opens its own math: this number, divided
+          by that number, from this file. You do not have to take our word for anything.</li>
+      </ol>
+    </section>
     <div class="hero-row">
       <div class="finder finder-solo">
         <label class="finder-lab" for="search" id="finder-lab"><span class="lbl-new">Find your district</span><span class="lbl-return">Look up a different district</span></label>
@@ -2865,9 +2901,9 @@ const EXPLAIN = {
   'spend': 'This is everything the district spent this year, divided by its students. It includes building new schools with money voters approved. The cost of just running school day-to-day is the smaller number underneath.',
   'rank': 'Out of 100 — higher means this district spent more per student than most of Texas this year. Building years push districts up this list without classrooms costing a dollar more.',
   'enrollment': 'This is how many students showed up in the fall count. Money follows students, so fewer students year after year means a tighter budget.',
-  'balance': "This says whether day-to-day money coming in covered day-to-day bills. Construction is left out on purpose — voters pay for that separately with bonds, so it isn't overspending.",
+  'balance': "Did the money coming in cover the everyday bills? Building costs are left out on purpose. Voters agreed to pay for buildings with bonds, so that part is not overspending.",
   'dollar': 'Take one dollar this district spent. Each square is one penny of it — teaching, buses, buildings, loan payments. Now you can see where the money actually goes.',
-  'outcomes': "This compares the district's results only with districts teaching similar students. Raw score comparisons are unfair — poverty moves scores everywhere. Above the prediction is good news; below it is a question to ask.",
+  'outcomes': "We compare this district only with districts teaching similar students. That keeps it fair, because poverty moves test scores everywhere. Above the line is good news. Below it is a question to ask the district.",
   'pay': 'This is what the district collects on a typical $300,000 home, and where it goes. If some is sent back to the state, that\'s Texas\'s "Robin Hood" sharing rule, not waste.',
   'takeover': "In 2023 the state took over Houston ISD's board. This checks whether results improved compared with districts that looked just like Houston before. One district is a clue, not proof.",
   'works-for': "Every district serves someone's priorities. This shows whose priorities this district's spending most resembles.",
