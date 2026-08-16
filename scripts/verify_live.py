@@ -127,6 +127,21 @@ CHECKS: list[tuple[str, str, str, str, str]] = [
      "debt_without_a_ballot.no_voter_approved_bond_on_record.districts"),
     ("figures tested by Benford", "/forensics/quality", "benford.figures_tested",
      "forensic_quality.json", "benford.figures_tested"),
+    # --- clickable lineage: the working behind a published number ------------
+    # Nothing else here would catch this endpoint breaking, and its failure mode
+    # is quiet by design: with the vintage record missing from the deploy the
+    # panel still renders, still shows the arithmetic, and simply stops being
+    # able to answer whether the source is current. That is the honest
+    # degradation and it is invisible from outside unless something asks.
+    ("lineage numerator (Dallas ISD)", "/district/057905/lineage/total_per_student",
+     "numerator", "economics_data.json",
+     "districts.057905.revenue.lineage.figures.total_per_student.numerator"),
+    ("lineage denominator (Dallas ISD)", "/district/057905/lineage/total_per_student",
+     "denominator", "economics_data.json",
+     "districts.057905.revenue.lineage.denominator"),
+    ("lineage value (Dallas ISD)", "/district/057905/lineage/total_per_student",
+     "value", "economics_data.json",
+     "districts.057905.revenue.lineage.figures.total_per_student.value"),
 ]
 
 # Claims that are not numbers. A wrong publisher is exactly as damaging as a
@@ -139,6 +154,20 @@ TEXT_CHECKS: list[tuple[str, str, Callable[[Any], Any], str]] = [
     ("the retired Secretary of State citation is gone", "/sources",
      lambda body: "sos.state.tx.us" not in body,
      "the corrected citation must not still be live"),
+    # The verdict, not just the numbers. A deploy that drops
+    # scripts/freshness_vintages.json serves the same figures with the same
+    # arithmetic and quietly downgrades every verdict to UNVERIFIED — which is
+    # correct behaviour and a broken deploy at the same time. The published
+    # claim is that this figure is VERIFIED, so that is what gets checked.
+    ("the lineage gate still certifies a known-good figure",
+     "/district/057905/lineage/total_per_student",
+     lambda body: '"verdict": "VERIFIED"' in body or '"verdict":"VERIFIED"' in body,
+     "Dallas ISD's revenue per student should pass all four gate questions; "
+     "UNVERIFIED here usually means scripts/freshness_vintages.json did not ship"),
+    ("lineage never certifies a figure against itself",
+     "/district/057905/lineage/total_per_student",
+     lambda body: "economics_data.json" not in json.loads(body).get("recomputed_from", ""),
+     "the recomputation must not derive from the artefact it validates"),
 ]
 
 _ctx = ssl.create_default_context()

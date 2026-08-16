@@ -2574,21 +2574,25 @@ async def get_metric_lineage(district_number: str, metric: str):
     and computability (can this be computed at all). A figure that cannot be
     computed is REFUSED in public rather than guessed or left blank.
 
-    What this endpoint can and cannot check, stated plainly
-    ------------------------------------------------------
-    It runs on Vercel, where the 18 MB source CSV is not present — so it CANNOT
-    re-derive the figure from the publisher's file, and it does not pretend to.
-    It checks the arithmetic (does the published numerator over the published
-    denominator give the published value?) and reports that under its own name,
-    `arithmetic`, separate from `correctness`. Calling that an independent
-    recomputation would be the exact error this repo has shipped twice: a check
-    that compares an artefact with something drawn from the same artefact, and
-    stays green through a real bug.
+    What each check does and does not prove
+    --------------------------------------
+    `arithmetic` is narrow on purpose: the numerator and the denominator live in
+    the same file as the value, so it proves the division, never the inputs. It
+    is reported under its own name rather than folded into `correctness`,
+    because a figure would otherwise wear a badge reading checked-against-the-
+    state when nothing had left the artefact.
 
-    `correctness` therefore reads "unchecked" here and names the CI test that
-    does re-derive the figure from the state's own file, longhand. A number in
-    that state is UNVERIFIED, not VERIFIED — a badge nobody earned is worse than
-    no badge.
+    `correctness` carries a recomputation the BUILD stamped in, from
+    scripts/recompute_revenue.py — a longhand re-read of the source CSV with the
+    standard-library csv module, no pandas, nothing shared with the builder.
+    That is genuinely a second road through the pandas pipeline, but both roads
+    read prepare_data.py's cleaned CSV rather than TEA's workbook, so a wrong
+    column mapping upstream of both would be reproduced by both. That last link
+    is held by the SHA-256 in tests/fixtures/provenance.json and by
+    scripts/verify_sources.py, not by this check.
+
+    A figure with no recomputation at all is UNVERIFIED, not VERIFIED. A badge
+    nobody earned is worse than no badge.
     """
     econ = _economics()
     if econ is None:
@@ -2643,6 +2647,15 @@ async def get_metric_lineage(district_number: str, metric: str):
         ev.independent_test = measure.get("test", "")
     try:
         ev.fresh, ev.aim_ok = sources.freshness_and_aim(raw.get("source_id", ""))
+        # How old the freshness CLAIM is, which is not how old the data is. The
+        # daily watchdog asks the publishers and turns red, but nothing writes
+        # its answer back here, so "nothing newer recorded" is only as good as
+        # the date somebody last edited the record.
+        if ev.fresh is not None and sources.recorded_on():
+            ev.notes.append(
+                f"Freshness is as recorded on {sources.recorded_on()}: no newer "
+                "release from this publisher had been written down. A daily check "
+                "asks the publishers, but it does not update this record by itself.")
     except Exception:                     # noqa: BLE001 — unknown, never assumed ok
         ev.fresh, ev.aim_ok = None, None
 

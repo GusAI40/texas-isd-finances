@@ -1,24 +1,42 @@
 #!/usr/bin/env python3
-"""Re-derive the revenue figures longhand, from the state's files, by a second road.
+"""Re-derive the revenue figures longhand, by a second road.
 
 Why a second implementation of arithmetic we already do
 ------------------------------------------------------
 `scripts/build_economics_data.py` computes these numbers with pandas: index
-joins, column constants, a latest-year selection, a merge with the property
-file. Every one of those steps can be wrong in a way that leaves a plausible
-number behind, and a plausible number is exactly what this site cannot afford —
-it has already published a figure that was reproducible, tested, and wrong.
+joins, a latest-year selection, a merge with the property file to add recapture
+back, deflators. Every one of those steps can be wrong in a way that leaves a
+plausible number behind, and a plausible number is exactly what this site cannot
+afford — it has already published figures that were reproducible, tested, and
+wrong.
 
 So this module recomputes the same four revenue totals with nothing but the
 standard-library `csv` reader: no pandas, no dataframe, no shared helper, no
-import from the builder. It catches a wrong column constant, a year picked off
-the wrong axis, a merge that duplicated rows, a units slip. It is what lets the
-published lineage say `correctness: ok` and name a source that is NOT the
-artefact being checked.
+import from the builder.
 
-What it does NOT establish, stated so it travels with the result: agreement here
-means our two roads arrive at the same place. It cannot make TEA's filing right.
-Districts file PEIMS and it is corrected for years afterwards.
+Exactly what agreement here proves, and what it does not
+-------------------------------------------------------
+It catches: a year picked off the wrong axis, a merge that duplicated or dropped
+rows, an index join that silently misaligned districts, the recapture add-back
+applied to the wrong row or the wrong year, a units slip, and a builder edited
+without being re-run.
+
+It does NOT catch a mistake made UPSTREAM of both roads. Both read
+`data/texas_finance_clean.csv`, which is `scripts/prepare_data.py`'s output, not
+TEA's workbook — that script snake-cases and truncates column names to 60
+characters for Postgres, and both roads name the same truncated columns. If the
+wrong TEA column were mapped there, both roads would reproduce it identically
+and agree.
+
+That link is covered elsewhere, not here: `tests/fixtures/provenance.json`
+carries a SHA-256 of the clean CSV so an upstream restatement cannot pass
+unnoticed, `tests/test_provenance.py` re-derives every headline from it longhand,
+and `scripts/verify_sources.py` asserts that what TEA's URL actually serves is
+the product we say it is. The chain is: TEA workbook -> prepare_data -> clean CSV
+(hashed) -> two independent roads -> artefact -> page.
+
+And none of it can make TEA's filing right. Districts file PEIMS and it is
+corrected for years afterwards.
 
 Usage
 -----
@@ -38,8 +56,10 @@ from pathlib import Path
 FINANCE = Path("data/texas_finance_clean.csv")
 PROPERTY = Path("data/tea_property.csv")
 
-# The exact columns, named once. TEA reports M&O revenue NET of recapture, so a
-# district that sends money to the state looks less locally funded than it is —
+# The exact columns, named once. These are prepare_data.py's snake-cased names,
+# which is why agreeing with the builder does not prove the TEA->CSV mapping is
+# right — see the docstring. TEA reports M&O revenue NET of recapture, so a
+# district that sends money to the state looks less locally funded than it is;
 # recapture is added back from the property file to get GROSS local collections.
 M_O = "all_funds_local_tax_revenue_from_m_o"
 I_S = "all_funds_local_property_taxes_from_i_s"

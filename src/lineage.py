@@ -1,17 +1,24 @@
 """Why is this number this number?
 
-The evidence contract shared by the dashboard and the question box. One object
-per published figure, carrying everything a reader needs to check it without
-trusting us: numerator, denominator, what the denominator MEANS, the formula,
-the fiscal year, the publisher, the vintage of the file it came from, and the
-verdict of the publication gate.
+The evidence contract behind one published figure: numerator, denominator, what
+the denominator MEANS, the formula, the fiscal year, the publisher, the vintage
+of the file it came from, and the verdict of the publication gate. Everything a
+reader needs to check the number without trusting us.
+
+Where it is used today
+----------------------
+`/district/{n}/lineage/{metric}`, which the dashboard calls when a reader clicks
+a figure, and the `district_lineage` MCP tool, which hands the same object to
+somebody else's assistant. `/query` — the natural-language SQL path — does NOT
+use it yet. That is worth stating rather than implying: an earlier draft of this
+docstring said it did, and a docstring describing an integration that does not
+exist is the same species of error as a freshness check watching the wrong file.
 
 The rule this exists to enforce
 -------------------------------
-The language model has EXPLANATORY authority, never NUMERICAL authority. It
-receives these objects; it does not produce them and cannot alter them. A
-figure reaches a reader only if deterministic code computed it and the gate
-passed it.
+A language model has EXPLANATORY authority here, never NUMERICAL authority. It
+receives these objects; it does not produce them and cannot alter them. A figure
+reaches a reader only if deterministic code computed it and the gate passed it.
 
 Why a gate rather than a validation flag
 ----------------------------------------
@@ -155,7 +162,14 @@ def gate(ev: Evidence) -> dict[str, Any]:
         checks["arithmetic"] = "n/a"
     else:
         implied = float(ev.numerator) / float(ev.denominator)
-        if abs(float(ev.value) - implied) <= abs(ev.rounding) + 1e-9:
+        # The tolerance has to be INCLUSIVE with real headroom, because an exact
+        # halfway case is not an edge case here — it is a whole class of ordinary
+        # district. 278,038 / 212 is exactly 1311.5, and rounding it lands
+        # exactly `rounding` away from the quotient. A bare `<= rounding` passes
+        # that only by floating-point luck, and a future TEA release reporting
+        # cents would put a public FAILED badge on correct arithmetic.
+        slack = abs(ev.rounding) + max(1e-9, abs(implied) * 1e-12)
+        if abs(float(ev.value) - implied) <= slack:
             checks["arithmetic"] = "ok"
         else:
             checks["arithmetic"] = "FAILED"

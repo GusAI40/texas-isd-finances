@@ -9,9 +9,18 @@
 # the package marker + that one module, and nothing else from scripts/.
 data/
 docs/
+#
+# ⚠️ src/sources.py reads scripts/freshness_vintages.json at request time, to
+# answer "is this source still current?" on the lineage panel. Without it the
+# answer degrades to "we do not know" — which is the honest fallback, and is
+# also indistinguishable from a working deploy unless you click a number. That
+# is exactly this project's recurring failure: a check pointed slightly to the
+# left of the thing it describes. tests/test_lineage.py fails the build if this
+# re-include disappears.
 scripts/*
 !scripts/__init__.py
 !scripts/isd_intel.py
+!scripts/freshness_vintages.json
 tests/
 sql/
 .github/

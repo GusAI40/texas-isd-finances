@@ -301,6 +301,13 @@ def district_lineage(args: dict) -> tuple[str, dict]:
         ev.independent_test = measure.get("test", "")
     try:
         ev.fresh, ev.aim_ok = _src.freshness_and_aim(raw.get("source_id", ""))
+        # How old the freshness CLAIM is, which is not how old the data is. A
+        # daily check asks the publishers, but nothing writes its answer back
+        # into the record, so "current" means "nothing newer written down yet".
+        if ev.fresh is not None and _src.recorded_on():
+            ev.notes.append(
+                f"Freshness is as recorded on {_src.recorded_on()}: no newer "
+                "release from this publisher had been written down.")
     except Exception:                    # noqa: BLE001 — unknown, never assumed ok
         ev.fresh, ev.aim_ok = None, None
 
@@ -317,10 +324,11 @@ def district_lineage(args: dict) -> tuple[str, dict]:
         + "; ".join(f"{k}={v}" for k, v in g["checks"].items()) + ".\n"
         + (" ".join(g["why"]) + "\n" if g["why"] else "")
         + (f"Caveat: {' '.join(ev.notes)}\n" if ev.notes else "")
-        + ("This figure is VERIFIED: an independent re-read of the publisher's own "
-           "file, by different code, produced the same number. That means our two "
-           "roads agree — it cannot make TEA's filing right, because districts file "
-           "PEIMS and it is corrected for years afterwards.\n"
+        + ("This figure is VERIFIED: a second, independent re-read of the source "
+           "data by different code produced the same number. That means two roads "
+           "agree. It does NOT mean the figure is true — both roads read the same "
+           "cleaned CSV, and neither can make TEA's filing right, because districts "
+           "file PEIMS and it is corrected for years afterwards.\n"
            if g["verdict"] == _lin.VERIFIED else
            "This figure did NOT pass every check. Say so if you quote it.\n"))
     return text, {**out, "available_metrics": available,

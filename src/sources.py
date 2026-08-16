@@ -413,11 +413,24 @@ MEASURES: list[dict] = [
 ]
 
 @lru_cache(maxsize=1)
-def _vintages() -> dict:
+def _vintage_file() -> dict:
     try:
-        return json.loads(_VINTAGE_FILE.read_text()).get("sources", {})
+        return json.loads(_VINTAGE_FILE.read_text())
     except Exception:                      # noqa: BLE001 — absent file is "unknown"
         return {}
+
+
+def _vintages() -> dict:
+    return _vintage_file().get("sources", {})
+
+
+def recorded_on() -> str:
+    """The date the vintage record was last edited, or "" if it is unreadable.
+
+    This is how old the freshness CLAIM is, which is a different thing from how
+    old the data is, and a reader is owed both.
+    """
+    return str(_vintage_file().get("recorded", ""))
 
 
 def freshness_and_aim(source_id: str) -> tuple[bool | None, bool | None]:
@@ -438,7 +451,15 @@ def freshness_and_aim(source_id: str) -> tuple[bool | None, bool | None]:
                release from the publisher and have not ingested it.
         None   the source offers no freshness signal at all (method
                "unverifiable"), or we have no record for it.
-        True   a checkable source with nothing newer recorded.
+        True   **no newer release is RECORDED** as of `recorded_on()`. That is a
+               weaker claim than "this is the publisher's latest", and the two
+               must not be conflated in anything a reader sees: the daily
+               watchdog asks the publishers and turns red, but it does not write
+               its answer back into this file, so between a release and someone
+               editing the record, True means only that nobody has written the
+               finding down yet. The lineage panel therefore labels this check
+               "Has a newer release been recorded?", not "Is this the latest?",
+               and shows the date the record was last touched.
 
     aim_ok
         Whether the checks that watch this source are pointed at the product we

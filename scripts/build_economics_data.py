@@ -402,8 +402,8 @@ def main() -> int:
             # numerator and denominator is how a figure becomes unfalsifiable:
             # a reader can no longer tell $23,420 from a typo, and neither can
             # we. See src/lineage.py — this object is what the dashboard shows
-            # when someone clicks the number, and what /query is handed instead
-            # of being left to hunt through JSON.
+            # when someone clicks the number, and what the district_lineage MCP
+            # tool hands to somebody else's assistant.
             #
             # The denominator is named explicitly. "Per student" is not a
             # definition: this site already publishes two per-student figures

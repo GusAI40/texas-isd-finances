@@ -2751,7 +2751,11 @@ const LIN_CHECK_TEXT = {
   computability: 'Can it be computed at all?',
   arithmetic: 'Do the parts give the total?',
   correctness: 'Does an independent re-read agree?',
-  freshness: 'Is this the publisher’s latest?',
+  // NOT "is this the latest?" — nothing here asks the publisher live. The
+  // daily watchdog does and turns red, but it never writes its answer back,
+  // so the honest claim is about what has been recorded, and the panel says
+  // when that record was last touched.
+  freshness: 'Source current, as last recorded?',
   aim: 'Did we check the right file?',
 };
 

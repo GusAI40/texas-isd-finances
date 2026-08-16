@@ -137,6 +137,17 @@ def test_rounding_tolerance_does_not_swallow_a_real_error():
                         )["checks"]["arithmetic"] == "FAILED"
 
 
+def test_an_exact_halfway_quotient_is_not_reported_as_broken_arithmetic():
+    """278,038 / 212 is exactly 1311.5 — a real district, not a contrived case.
+    Rounding lands exactly `rounding` from the quotient, so the comparison has to
+    be inclusive with headroom rather than passing on floating-point luck."""
+    for value in (1311, 1312):    # either rounding convention is correct here
+        g = lineage.gate(_ev(value=value, numerator=278038, denominator=212))
+        assert g["checks"]["arithmetic"] == "ok", f"{value} flagged as bad arithmetic"
+    assert lineage.gate(_ev(value=1315, numerator=278038, denominator=212)
+                        )["checks"]["arithmetic"] == "FAILED"
+
+
 # ------------------------------------------------- freshness from the register
 
 def test_a_source_nobody_recorded_is_unknown_never_fine():
@@ -161,6 +172,24 @@ def test_a_page_check_with_no_product_proof_does_not_claim_good_aim():
     Coincidence must not be reported as aim."""
     _, aim = sources.freshness_and_aim("tea_staar_district")
     assert aim is None
+
+
+def test_the_files_the_running_service_reads_actually_ship():
+    """`.vercelignore` excludes all of scripts/, and src/sources.py reads a file
+    that lives there. Without a re-include the deployed site answers "we do not
+    know" for freshness on every figure — the honest fallback, and completely
+    invisible from outside unless someone clicks a number. The tests would stay
+    green because the repo checkout has the file.
+
+    This is the same shape as the cron import that ImportError'd in production
+    for the same reason, which is why that re-include has a warning above it.
+    """
+    ignore = (ROOT / ".vercelignore").read_text().splitlines()
+    for needed in ("scripts/freshness_vintages.json", "scripts/isd_intel.py",
+                   "scripts/__init__.py"):
+        assert f"!{needed}" in ignore, (
+            f"{needed} is read by the running service but .vercelignore drops "
+            "it — the deploy will behave differently from every test")
 
 
 def test_every_source_the_lineage_can_cite_is_in_both_registers():
@@ -303,8 +332,13 @@ class TestLineageOverMCP:
         text = r["content"][0]["text"]
         assert "fall survey enrollment" in text, "the denominator must be named"
         assert "VERIFIED" in text
-        assert "cannot make TEA's filing right" in text, (
-            "agreement between our two roads must not be sold as truth")
+        # The two corrections a review forced, locked so they cannot drift back.
+        # A model reads this text closely and will repeat its claims verbatim.
+        assert "does NOT mean the figure is true" in text, (
+            "agreement between two roads must not be sold to an assistant as truth")
+        assert "same cleaned CSV" in text, (
+            "the tool must say the two roads share an upstream file, so a mistake "
+            "made before either of them would be reproduced by both")
 
     def test_asking_for_a_figure_with_no_working_says_what_there_is(self):
         from src import mcp_tools

@@ -105,11 +105,16 @@ def main() -> int:
                 continue
             target = tmpdir / name
             cmd = [sys.executable, f"scripts/{builder}", "--out", str(target), *extra]
-            # Point the chained builders at what we have already rebuilt.
+            # Point the chained builders at what we have already rebuilt. A
+            # builder left reading static/ instead reads the COMMITTED input, so
+            # a genuine upstream change would only surface on a second run —
+            # which is a drift check that reports clean on the run where the
+            # drift appears.
             if builder == "build_forensic_data.py":
-                cmd += ["--bonds", str(tmpdir / "bond_data.json")]
+                cmd += ["--bonds", str(tmpdir / "bond_data.json"),
+                        "--economics", str(tmpdir / "economics_data.json")]
             if builder == "build_trend_data.py":
-                pass  # reads the CSV and economics artifact only
+                cmd += ["--economics", str(tmpdir / "economics_data.json")]
             r = subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True)
             if r.returncode:
                 drift.append((name, "build failed", r.stderr.strip()[-300:]))
