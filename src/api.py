@@ -29,6 +29,7 @@ from pydantic import BaseModel, Field
 from . import (
     absences,
     analytics,
+    lineage,
     llm_config,
     mcp_protocol,
     mcp_tools,
@@ -2557,6 +2558,96 @@ async def ops_outreach_data(request: Request):
     payload = await outreach_map.build(request.app.state.db_pool, mailing)
     return JSONResponse(payload, headers={"Cache-Control": "no-store",
                                           "X-Robots-Tag": "noindex, nofollow"})
+
+
+@app.get("/district/{district_number}/lineage/{metric}", tags=["Districts"])
+async def get_metric_lineage(district_number: str, metric: str):
+    """Why is this number this number?
+
+    Returns the evidence behind one published figure — numerator, denominator,
+    what the denominator MEANS, the formula, the fiscal year, the publisher and
+    the vintage — plus the publication gate's verdict.
+
+    The gate asks four questions, and each has a real failure behind it:
+    correctness (does an independent recomputation agree), freshness (has the
+    publisher moved on), aim (did we check the file we actually publish from),
+    and computability (can this be computed at all). A figure that cannot be
+    computed is REFUSED in public rather than guessed or left blank.
+
+    What this endpoint can and cannot check, stated plainly
+    ------------------------------------------------------
+    It runs on Vercel, where the 18 MB source CSV is not present — so it CANNOT
+    re-derive the figure from the publisher's file, and it does not pretend to.
+    It checks the arithmetic (does the published numerator over the published
+    denominator give the published value?) and reports that under its own name,
+    `arithmetic`, separate from `correctness`. Calling that an independent
+    recomputation would be the exact error this repo has shipped twice: a check
+    that compares an artefact with something drawn from the same artefact, and
+    stays green through a real bug.
+
+    `correctness` therefore reads "unchecked" here and names the CI test that
+    does re-derive the figure from the state's own file, longhand. A number in
+    that state is UNVERIFIED, not VERIFIED — a badge nobody earned is worse than
+    no badge.
+    """
+    econ = _economics()
+    if econ is None:
+        raise HTTPException(
+            status_code=503,
+            detail="Economics data not built. Run scripts/build_economics_data.py")
+    rec = (econ.get("districts") or {}).get(district_number)
+    if not rec:
+        raise HTTPException(status_code=404,
+                            detail="District not in the economics dataset")
+    meta = econ.get("meta") or {}
+    lin = (rec.get("revenue") or {}).get("lineage") or {}
+    figures = lin.get("figures") or {}
+    templates = meta.get("lineage_templates") or {}
+    if metric not in figures or metric not in templates:
+        raise HTTPException(
+            status_code=404,
+            detail=(f"No lineage published for {metric!r}. Figures without "
+                    "emitted evidence are not yet clickable — the builder must "
+                    "emit the numerator and denominator, they cannot be "
+                    "recovered from a rounded result. Published for this "
+                    f"district: {sorted(set(figures) & set(templates))}"))
+    # Constants come from the one template; only the numbers are per district.
+    raw = {**templates[metric], **figures[metric],
+           "denominator": lin.get("denominator")}
+
+    ev = lineage.Evidence(
+        metric=raw["metric"], value=raw["value"],
+        numerator=raw.get("numerator"), denominator=raw.get("denominator"),
+        denominator_type=raw.get("denominator_type", ""),
+        formula=raw.get("formula", ""), unit=raw.get("unit", ""),
+        rounding=raw.get("rounding", 0.5),
+        fiscal_year=raw.get("fiscal_year"), district_number=district_number,
+        source=raw.get("source", ""), artifact=raw.get("artifact", ""),
+        source_vintage=str(meta.get("year", "")),
+        notes=[raw["source_note"]] if raw.get("source_note") else [],
+        # CORRECTNESS. The build stamped what a second, independent read of
+        # TEA's own CSV produced — standard-library csv, no pandas, nothing
+        # shared with the builder. `recomputed_from` names those files, not this
+        # artefact, which is what makes the check worth anything.
+        recomputed_value=raw.get("recomputed_value"),
+        recomputed_from=lin.get("recomputed_from", "") if "recomputed_value" in raw else "",
+    )
+    # Everything below comes from the source register, never from the artefact
+    # being described. A source that is unknown to the register leaves these
+    # None, and None renders as "unchecked" — never as "fine".
+    src = sources.SOURCES.get(raw.get("source_id", ""), {})
+    ev.source_url = src.get("url", "")
+    measure = next((m for m in sources.MEASURES
+                    if m["id"] == raw.get("measure_id")), None)
+    if measure:
+        ev.independent_test = measure.get("test", "")
+    try:
+        ev.fresh, ev.aim_ok = sources.freshness_and_aim(raw.get("source_id", ""))
+    except Exception:                     # noqa: BLE001 — unknown, never assumed ok
+        ev.fresh, ev.aim_ok = None, None
+
+    return JSONResponse(ev.to_dict(),
+                        headers={"Cache-Control": "public, max-age=600"})
 
 
 @app.get("/geomap", include_in_schema=False)

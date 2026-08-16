@@ -300,6 +300,39 @@
                  font-size:var(--fs-sm); line-height:1.55; color:var(--ink);
                  text-transform:none; letter-spacing:normal; font-weight:400; }
   .explain-pop b { display:block; margin-bottom:.15rem; }
+  /* A number you can click to see where it came from. Dotted underline, not a
+     link colour: it opens the working, it does not navigate away. */
+  .lin { border:0; background:none; padding:0; font:inherit; color:inherit;
+         cursor:pointer; border-bottom:1px dotted var(--ink-3); }
+  .lin:hover, .lin:focus-visible { color:var(--accent); border-bottom-color:var(--accent); }
+  .lin-pop { position:absolute; z-index:60; width:min(26rem, calc(100vw - 1.5rem));
+             background:var(--surface); border:1px solid var(--rule);
+             border-radius:var(--r-md); box-shadow:0 6px 24px rgba(0,0,0,.12);
+             padding:.85rem 1rem; font-size:var(--fs-sm); line-height:1.5;
+             color:var(--ink); text-transform:none; letter-spacing:normal;
+             font-weight:400; }
+  .lin-pop .close-x { float:right; border:0; background:none; color:var(--ink-3);
+                      font-size:var(--fs-base); cursor:pointer; padding:0 0 .2rem .5rem; }
+  .lin-pop h5 { margin:0 0 .5rem; font-size:var(--fs-sm); }
+  .lin-pop .sum { font-family:var(--font-serif); font-size:var(--fs-md);
+                  font-variant-numeric:tabular-nums; margin:.2rem 0 .5rem; }
+  .lin-pop .sum i { font-style:normal; color:var(--ink-3); }
+  .lin-pop dl { display:grid; grid-template-columns:auto 1fr; gap:.15rem .6rem;
+                margin:.5rem 0; font-size:var(--fs-xs); }
+  .lin-pop dt { color:var(--ink-3); }
+  .lin-pop dd { margin:0; font-variant-numeric:tabular-nums; }
+  .lin-pop .why { font-size:var(--fs-xs); color:var(--ink-2); margin:.4rem 0 0; }
+  .lin-pop .verdict { display:inline-block; font-size:var(--fs-micro); font-weight:700;
+                      letter-spacing:.1em; text-transform:uppercase; padding:.12rem .45rem;
+                      border-radius:var(--r-sm); border:1px solid currentColor; }
+  .lin-pop .v-VERIFIED { color:var(--good); }
+  .lin-pop .v-UNVERIFIED, .lin-pop .v-STALE, .lin-pop .v-REFUSED { color:var(--muted); }
+  .lin-pop .v-FAILED { color:var(--bad); }
+  .lin-pop .checks { list-style:none; padding:0; margin:.5rem 0 0; font-size:var(--fs-xs); }
+  .lin-pop .checks li { display:flex; justify-content:space-between; gap:1rem;
+                        border-top:1px solid var(--rule); padding:.22rem 0; }
+  .lin-pop .checks li span:last-child { color:var(--ink-3); }
+  .lin-pop .checks li.bad span:last-child { color:var(--bad); font-weight:600; }
   .wow { margin:1.1rem 0 .4rem; }
   .wow .wow-kick { font-size:var(--fs-micro); letter-spacing:.14em; text-transform:uppercase;
                    color:var(--accent); font-weight:700; }
@@ -2701,6 +2734,102 @@ document.addEventListener('keydown', e => {
 function xb(key) {
   return '<button class="explain" data-explain="' + key + '" aria-label="What does this mean?" title="What does this mean?">?</button>';
 }
+
+/* ---- clickable lineage: why is this number this number? ----
+   Every other "trust us" affordance on this site is a sentence. This one is the
+   arithmetic: the numerator, the denominator, WHICH student count the
+   denominator is, the publisher, and whether a second independent read of TEA's
+   own file agreed. The verdict is shown even when it is not VERIFIED — a number
+   whose freshness we cannot establish says so, because rendering unknown as
+   fine is exactly how this site once ran two years stale looking healthy. */
+function linBtn(metric, label) {
+  return '<button class="lin" data-lineage="' + metric +
+    '" aria-label="Where did ' + label + ' come from?">' + label + '</button>';
+}
+
+const LIN_CHECK_TEXT = {
+  computability: 'Can it be computed at all?',
+  arithmetic: 'Do the parts give the total?',
+  correctness: 'Does an independent re-read agree?',
+  freshness: 'Is this the publisher’s latest?',
+  aim: 'Did we check the right file?',
+};
+
+async function showLineage(btn) {
+  document.querySelectorAll('.lin-pop').forEach(p => p.remove());
+  if (!state.district || !state.district.num) return;
+  const metric = btn.dataset.lineage;
+  const pop = document.createElement('div');
+  pop.className = 'lin-pop';
+  pop.setAttribute('role', 'dialog');
+  pop.innerHTML = '<button class="close-x" aria-label="Close">×</button>Checking…';
+  document.body.appendChild(pop);
+  const place = () => {
+    const r = btn.getBoundingClientRect();
+    const left = Math.min(r.left + window.scrollX,
+      window.scrollX + document.documentElement.clientWidth - pop.offsetWidth - 12);
+    pop.style.left = Math.max(8, left) + 'px';
+    pop.style.top = (r.bottom + window.scrollY + 8) + 'px';
+  };
+  place();
+  pop.querySelector('.close-x').onclick = () => pop.remove();
+
+  let d;
+  try {
+    d = await api('/district/' + encodeURIComponent(state.district.num) +
+                  '/lineage/' + encodeURIComponent(metric));
+  } catch (err) {
+    pop.innerHTML = '<button class="close-x" aria-label="Close">×</button>' +
+      '<h5>Where this number came from</h5>' +
+      '<p class="why">The working could not be loaded just now. The figure itself ' +
+      'comes from TEA’s Summarized PEIMS Actual Financial Data.</p>';
+    pop.querySelector('.close-x').onclick = () => pop.remove();
+    place();
+    return;
+  }
+
+  const g = d.gate || { verdict: '', checks: {}, why: [] };
+  const checks = Object.keys(g.checks || {}).map(k => {
+    const v = g.checks[k];
+    const bad = v === 'FAILED' || v === 'STALE' || v === 'REFUSED';
+    return '<li class="' + (bad ? 'bad' : '') + '"><span>' +
+      (LIN_CHECK_TEXT[k] || k) + '</span><span>' +
+      (v === 'ok' ? 'yes' : v === 'unchecked' ? 'not here' : v) + '</span></li>';
+  }).join('');
+  const sum = (d.numerator != null && d.denominator != null)
+    ? '<div class="sum">' + money(d.numerator) + ' <i>&divide;</i> ' +
+      Number(d.denominator).toLocaleString() + ' <i>=</i> ' + money(d.value) + '</div>'
+    : '';
+  pop.innerHTML =
+    '<button class="close-x" aria-label="Close">×</button>' +
+    '<h5>Where this number came from ' +
+      '<span class="verdict v-' + g.verdict + '">' + g.verdict + '</span></h5>' +
+    sum +
+    '<dl>' +
+      (d.denominator_type ? '<dt>divided by</dt><dd>' + d.denominator_type + '</dd>' : '') +
+      (d.fiscal_year ? '<dt>fiscal year</dt><dd>' + d.fiscal_year + '</dd>' : '') +
+      (d.source ? '<dt>published by</dt><dd>' + d.source + '</dd>' : '') +
+    '</dl>' +
+    '<ul class="checks">' + checks + '</ul>' +
+    (g.why && g.why.length ? '<p class="why">' + g.why.join(' ') + '</p>' : '') +
+    (d.notes && d.notes.length ? '<p class="why">' + d.notes.join(' ') + '</p>' : '') +
+    (d.source_url ? '<p class="why"><a href="' + d.source_url +
+       '" target="_blank" rel="noopener">Download the original file</a> and redo the ' +
+       'arithmetic yourself.</p>' : '');
+  pop.querySelector('.close-x').onclick = () => pop.remove();
+  place();
+}
+
+document.addEventListener('click', e => {
+  const btn = e.target.closest('.lin');
+  if (btn) { showLineage(btn); return; }
+  if (!e.target.closest('.lin-pop')) {
+    document.querySelectorAll('.lin-pop').forEach(p => p.remove());
+  }
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') document.querySelectorAll('.lin-pop').forEach(p => p.remove());
+});
 function balanceCard(cur) {
   const label = '<div class="kpi"><div class="label">Operating balance ' + xb('balance') + '</div>';
   if (cur.operating_spend != null) {
@@ -3574,7 +3703,18 @@ function renderEconomics() {
       `<span><i style="background:${ECON_C.debt}"></i>local property tax ${rv.local_pct}%</span>` +
       `<span><i style="background:${ECON_C.teach}"></i>state ${rv.state_pct}%</span>` +
       `<span><i style="background:${ECON_C.other}"></i>federal ${rv.federal_pct}%</span></div>` +
-      '<div class="econ-sub">' +
+      // Every one of these dollar figures opens its own working: numerator,
+      // denominator, which student count the denominator is, the formula, the
+      // publisher, and whether an independent re-read of TEA's file agreed.
+      // A percentage cannot do that honestly — the three shares are forced to
+      // sum to 100 so the labels add up, so federal% is a subtraction rather
+      // than a division and has no numerator to show.
+      '<div class="econ-sub">' + (rv.lineage ? 'Per student: ' +
+        [['total_per_student', 'total'], ['local_per_student', 'local'],
+         ['state_per_student', 'state'], ['federal_per_student', 'federal']]
+          .filter(([k]) => rv.lineage.figures && rv.lineage.figures[k])
+          .map(([k, lbl]) => `${lbl} ${linBtn(k, money(rv.lineage.figures[k].value))}`)
+          .join(' &middot; ') + '. Click any figure to see where it came from. ' : '') +
       (sr ? `Texas overall is ${sr.local_pct}% local, ${sr.state_pct}% state, ${sr.federal_pct}% federal. ` : '') +
       `Local is <b>gross property tax before recapture</b> &mdash; the money your neighbours paid, ` +
       `whether or not this district kept it.</div>`;

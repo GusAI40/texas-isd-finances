@@ -7,7 +7,7 @@
     "",
     "When it fires, there are exactly two honest responses, and both are edits:",
     "  1. ingest the new release and bump the vintage here in the same change; or",
-    "  2. decide not to ingest yet and bump the vintage anyway, with a note —",
+    "  2. decide not to ingest yet and bump the vintage anyway, with a note \u2014",
     "     the git diff of this file IS the record that the release was seen.",
     "Silencing the check any other way recreates the failure it exists to catch:",
     "the bond layer ran two years stale with a green test suite the whole time.",
@@ -18,7 +18,13 @@
     "the URL the NEXT release would have (a 200 with non-HTML content means it",
     "shipped); 'etag' watches a published file's ETag/Last-Modified for change;",
     "'unverifiable' is an explicit admission that the source offers no signal,",
-    "and never fails."
+    "and never fails.",
+    "",
+    "'known_stale': true records that we HAVE seen a newer release and have not",
+    "ingested it. It is not a snooze — the check still fires. It exists so the",
+    "fact is machine-readable: src/sources.py:freshness_and_aim() reads it, so a",
+    "known-stale source is reported as STALE on the site's own lineage view",
+    "instead of only in this file's prose, where no reader will ever find it."
   ],
   "recorded": "2026-08-12",
   "sources": {
@@ -41,9 +47,10 @@
     "tea_staar_district": {
       "method": "page_year",
       "check_url": "https://tea.texas.gov/student-assessment/student-assessment-results/statewide-summary-reports",
-      "pattern": "(20\\d{2})[-–—](20\\d{2})\\s+STAAR",
+      "pattern": "(20\\d{2})[-\u2013\u2014](20\\d{2})\\s+STAAR",
       "vintage_year": 2025,
-      "meaning": "Latest school year in data/staar_district_long.csv (SY 2024 and 2025). GENUINELY STALE: TEA released SY 2025-26 district results on 2026-06-16. Ingesting them is a MANUAL step — TEA put its own STAAR Aggregate Data page behind a login (HTTP 403, 'Login required'), and the district file now lives only in the Texas Assessment Research Portal (txresearchportal.com, a Cambium SPA) whose bulk CSV export is gated behind email verification (/Query/Offline + /Query/Verify). Download 'District STAAR Performance, All Grades' for SY 2025-26 to data/staar_district_2026.csv, then run ingest_staar_district.py --files data/staar_district_2024.csv data/staar_district_2025.csv data/staar_district_2026.csv, then build_equity_data.py. NOTE the pattern below matches the page's statewide 'All Results Analysis' PDF, not the district product — it was right about 2026 by coincidence, not by evidence."
+      "known_stale": true,
+      "meaning": "Latest school year in data/staar_district_long.csv (SY 2024 and 2025). GENUINELY STALE: TEA released SY 2025-26 district results on 2026-06-16. Ingesting them is a MANUAL step \u2014 TEA put its own STAAR Aggregate Data page behind a login (HTTP 403, 'Login required'), and the district file now lives only in the Texas Assessment Research Portal (txresearchportal.com, a Cambium SPA) whose bulk CSV export is gated behind email verification (/Query/Offline + /Query/Verify). Download 'District STAAR Performance, All Grades' for SY 2025-26 to data/staar_district_2026.csv, then run ingest_staar_district.py --files data/staar_district_2024.csv data/staar_district_2025.csv data/staar_district_2026.csv, then build_equity_data.py. NOTE the pattern below matches the page's statewide 'All Results Analysis' PDF, not the district product \u2014 it was right about 2026 by coincidence, not by evidence."
     },
     "tea_property": {
       "method": "page_year",
@@ -57,7 +64,7 @@
       "method": "etag",
       "check_url": "https://tea.texas.gov/about-tea/state-funding/state-funding-reports-and-data/recapture-paid-by-district-1994-2026-nov-2025xlsx-0.xlsx",
       "last_modified": "Sun, 24 May 2026 02:17:03 GMT",
-      "meaning": "Watches the recapture-paid-by-district workbook THIS SITE ACTUALLY INGESTS (fiscal 1994-2026), by its own Last-Modified. It previously watched the excess-local-revenue landing page and fired on '2026-2027' — a school-year label on the ELR district LIST, which is a different product that scripts/ingest_tea_property.py does not read. That is a false alarm, and a check that cries wolf trains people to ignore it. Verified 2026-08-14: no 1994-2027 workbook exists yet."
+      "meaning": "Watches the recapture-paid-by-district workbook THIS SITE ACTUALLY INGESTS (fiscal 1994-2026), by its own Last-Modified. It previously watched the excess-local-revenue landing page and fired on '2026-2027' \u2014 a school-year label on the ELR district LIST, which is a different product that scripts/ingest_tea_property.py does not read. That is a false alarm, and a check that cries wolf trains people to ignore it. Verified 2026-08-14: no 1994-2027 workbook exists yet."
     },
     "tea_accountability": {
       "method": "next_url",
@@ -75,7 +82,7 @@
       "method": "socrata",
       "check_url": "https://data.texas.gov/api/views/kbmc-qmvg.json",
       "vintage_utc": "2026-08-14T04:02:26Z",
-      "meaning": "Ingested first-party from data.texas.gov; re-ingested 2026-08-14 (4,992 decided propositions, unchanged in count). The portal's rowsUpdatedAt moved because the Board BACKFILLED vote tallies for two propositions that previously reported none — a real data correction, not a metadata touch, so the check was right to fire. votes_reported 80.0% -> 80.1%. Anything after this date is data we have not seen."
+      "meaning": "Ingested first-party from data.texas.gov; re-ingested 2026-08-14 (4,992 decided propositions, unchanged in count). The portal's rowsUpdatedAt moved because the Board BACKFILLED vote tallies for two propositions that previously reported none \u2014 a real data correction, not a metadata touch, so the check was right to fire. votes_reported 80.0% -> 80.1%. Anything after this date is data we have not seen."
     },
     "brb_debt_outstanding": {
       "method": "etag",

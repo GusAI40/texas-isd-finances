@@ -38,6 +38,12 @@ ROOT = Path(__file__).resolve().parent.parent
 # artifact -> (builder, extra args). Order matters: forensic and trend read the
 # artifacts the earlier ones write, which is also the documented rebuild order.
 CHAIN = [
+    # economics_data.json was missing from this chain for months. It is the
+    # artefact the forensic and trend layers read, and since it now carries the
+    # per-district lineage a reader can click, a builder edited and never re-run
+    # would leave that evidence describing arithmetic the site no longer does.
+    # It rebuilds byte-identically, so there is no reason for it to be exempt.
+    ("economics_data.json", "build_economics_data.py", []),
     ("bond_data.json", "build_bond_data.py", []),
     ("forensic_data.json", "build_forensic_data.py", []),
     ("trend_data.json", "build_trend_data.py", []),

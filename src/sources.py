@@ -28,7 +28,13 @@ re-derivation test does not belong on the site.
 """
 from __future__ import annotations
 
+import json
+from functools import lru_cache
+from pathlib import Path
+
 SITE = "https://txisd.dev"
+
+_VINTAGE_FILE = Path(__file__).resolve().parent.parent / "scripts" / "freshness_vintages.json"
 
 SOURCES: dict[str, dict] = {
     "tea_peims": {
@@ -405,6 +411,72 @@ MEASURES: list[dict] = [
         "test": "tests/test_provenance.py::test_debt_per_student_recomputes_from_source",
     },
 ]
+
+@lru_cache(maxsize=1)
+def _vintages() -> dict:
+    try:
+        return json.loads(_VINTAGE_FILE.read_text()).get("sources", {})
+    except Exception:                      # noqa: BLE001 — absent file is "unknown"
+        return {}
+
+
+def freshness_and_aim(source_id: str) -> tuple[bool | None, bool | None]:
+    """Is this source current, and did we check the file we actually publish from?
+
+    Returns (fresh, aim_ok). **None means "we do not know", and never "fine"** —
+    the whole reason this project keeps finding two-year-old data behind a green
+    suite is that unknown kept getting rendered as ok.
+
+    This reads only what the repository RECORDS. It makes no network call: it is
+    on the request path, and a page that renders as fast as TEA's website
+    answers is not a transparency portal. The daily watchdog
+    (`scripts/check_freshness.py`) is what actually asks the publishers; this
+    reports the standing state between those runs.
+
+    fresh
+        False  the vintage record says `known_stale` — we have seen a newer
+               release from the publisher and have not ingested it.
+        None   the source offers no freshness signal at all (method
+               "unverifiable"), or we have no record for it.
+        True   a checkable source with nothing newer recorded.
+
+    aim_ok
+        Whether the checks that watch this source are pointed at the product we
+        ingest, rather than a neighbour on the same page. `proves_it` in the
+        register makes verify_sources.py assert on what the URL actually serves;
+        `product_proof` does the same for the freshness check's year match. A
+        `page_year` check with neither is exactly the tea_staar_district case —
+        its pattern matched a statewide PDF, not the district file, and was
+        right about the year by coincidence. That returns None, not False:
+        aiming unproven is not the same as aiming proven wrong.
+    """
+    src = SOURCES.get(source_id)
+    if src is None:
+        return None, None
+    spec = _vintages().get(source_id)
+    if spec is None:
+        return None, None
+
+    method = spec.get("method", "")
+    if spec.get("known_stale"):
+        fresh = False
+    elif method == "unverifiable":
+        fresh = None
+    else:
+        fresh = True
+
+    # A URL-pinned method (a dataset id, a file's own ETag, the exact path the
+    # next release will occupy) IS its own aim proof — there is no neighbouring
+    # product on the page to match by mistake. A page_year check has to say
+    # which product its year belongs to.
+    aimed = bool(src.get("proves_it"))
+    if method == "page_year":
+        aimed = aimed and bool(spec.get("product_proof"))
+    elif method == "unverifiable":
+        aimed = False
+    aim_ok = True if aimed else None
+    return fresh, aim_ok
+
 
 # How a sceptic checks the whole thing rather than one number.
 HOW_TO_VERIFY = [

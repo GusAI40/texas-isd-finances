@@ -248,6 +248,85 @@ def district_money(args: dict) -> tuple[str, dict]:
     return text, {**rec, "limits": data["meta"].get("limits", [])}
 
 
+def district_lineage(args: dict) -> tuple[str, dict]:
+    """Why is this number this number — the working, and the gate's verdict.
+
+    This is the tool that makes the rest of them checkable rather than merely
+    quotable. An assistant handed "$17,053 per student" has no way to tell a
+    real figure from a fluent one; handed the numerator, the denominator, WHICH
+    student count the denominator is, and whether an independent re-read of
+    TEA's own file agreed, it can say so, or say that it cannot.
+
+    The verdict travels whatever it is. UNVERIFIED and STALE are returned as
+    plainly as VERIFIED — a model that only ever hears good news will report
+    good news, and this project has already published a two-year-old dataset
+    that every check called healthy.
+    """
+    from . import lineage as _lin
+    from . import sources as _src
+
+    num = _resolve(args.get("district_number"))
+    data = _need(_api()._economics, "economics")
+    rec = (data.get("districts") or {}).get(num)
+    if rec is None:
+        raise ToolError(f"District {num} is not in the finance dataset.")
+    meta = data.get("meta") or {}
+    lin = (rec.get("revenue") or {}).get("lineage") or {}
+    figures, templates = lin.get("figures") or {}, meta.get("lineage_templates") or {}
+    available = sorted(set(figures) & set(templates))
+    metric = args.get("metric") or "total_per_student"
+    if metric not in available:
+        raise ToolError(
+            f"No published working for {metric!r}. This district publishes "
+            f"working for: {', '.join(available) or 'nothing yet'}. Figures "
+            "without an emitted numerator and denominator cannot have one "
+            "reconstructed from the rounded result.")
+
+    raw = {**templates[metric], **figures[metric], "denominator": lin.get("denominator")}
+    ev = _lin.Evidence(
+        metric=raw["metric"], value=raw["value"], numerator=raw.get("numerator"),
+        denominator=raw.get("denominator"),
+        denominator_type=raw.get("denominator_type", ""),
+        formula=raw.get("formula", ""), unit=raw.get("unit", ""),
+        rounding=raw.get("rounding", 0.5), fiscal_year=raw.get("fiscal_year"),
+        district_number=num, source=raw.get("source", ""),
+        source_url=(_src.SOURCES.get(raw.get("source_id", "")) or {}).get("url", ""),
+        artifact=raw.get("artifact", ""), source_vintage=str(meta.get("year", "")),
+        notes=[raw["source_note"]] if raw.get("source_note") else [],
+        recomputed_value=raw.get("recomputed_value"),
+        recomputed_from=lin.get("recomputed_from", "") if "recomputed_value" in raw else "",
+    )
+    measure = next((m for m in _src.MEASURES if m["id"] == raw.get("measure_id")), None)
+    if measure:
+        ev.independent_test = measure.get("test", "")
+    try:
+        ev.fresh, ev.aim_ok = _src.freshness_and_aim(raw.get("source_id", ""))
+    except Exception:                    # noqa: BLE001 — unknown, never assumed ok
+        ev.fresh, ev.aim_ok = None, None
+
+    out = ev.to_dict()
+    g = out["gate"]
+    name = _title(rec.get("district_name", num))
+    text = (
+        f"{name} ({num}), {ev.metric}, fiscal {ev.fiscal_year}: "
+        f"{_usd(ev.value)} per student.\n"
+        f"Working: {ev.numerator:,} divided by {ev.denominator:,} "
+        f"({ev.denominator_type}). Formula: {ev.formula}.\n"
+        f"Published by {ev.source}.\n"
+        f"Publication gate: {g['verdict']}. "
+        + "; ".join(f"{k}={v}" for k, v in g["checks"].items()) + ".\n"
+        + (" ".join(g["why"]) + "\n" if g["why"] else "")
+        + (f"Caveat: {' '.join(ev.notes)}\n" if ev.notes else "")
+        + ("This figure is VERIFIED: an independent re-read of the publisher's own "
+           "file, by different code, produced the same number. That means our two "
+           "roads agree — it cannot make TEA's filing right, because districts file "
+           "PEIMS and it is corrected for years afterwards.\n"
+           if g["verdict"] == _lin.VERIFIED else
+           "This figure did NOT pass every check. Say so if you quote it.\n"))
+    return text, {**out, "available_metrics": available,
+                  "limits": data["meta"].get("limits", [])}
+
+
 def district_forensics(args: dict) -> tuple[str, dict]:
     num = _resolve(args.get("district_number"))
     data = _need(_api()._forensics, "forensic")
@@ -571,6 +650,33 @@ TOOLS: list[dict] = [
                         "required": ["district_number"], "additionalProperties": False},
         "annotations": {"readOnlyHint": True, "openWorldHint": False},
         "handler": district_money,
+    },
+    {
+        "name": "district_lineage",
+        "title": "Why is this number this number",
+        "description": ("The working behind a published per-student revenue figure: "
+                        "numerator, denominator, which student count the denominator "
+                        "IS, the formula, the publisher, and the verdict of the "
+                        "publication gate — whether an independent re-read of TEA's "
+                        "own file agreed, whether the source is current, and whether "
+                        "the source check was aimed at the file actually published "
+                        "from. Call this before quoting a figure as settled. The "
+                        "verdict may be UNVERIFIED, STALE or REFUSED, and those are "
+                        "returned as plainly as VERIFIED."),
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "district_number": _DISTRICT_ARG,
+                "metric": {"type": "string",
+                           "enum": ["total_per_student", "local_per_student",
+                                    "state_per_student", "federal_per_student"],
+                           "description": "Which published figure to open up. "
+                                          "Defaults to total_per_student."},
+            },
+            "required": ["district_number"], "additionalProperties": False,
+        },
+        "annotations": {"readOnlyHint": True, "openWorldHint": False},
+        "handler": district_lineage,
     },
     {
         "name": "district_forensics",
