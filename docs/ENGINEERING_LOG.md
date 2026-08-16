@@ -90,6 +90,45 @@ sections, both motion preferences).
 
 ---
 
+## 2026-08-16 — The bond chart, and the claim the data walked away from
+
+**What changed** (PR #21). Beat 2 of the bond story redesigned per the audit,
+plus a factual correction found on the way in: the title said "Stadiums, fewer
+than half" while `bond_data.json` now carries **stadium pass_rate 50.3%** — the
+Board's 2026 refresh moved the number and the prose gloss went stale on the
+live site. Beat 4 had the same defect one screen down ("a coin flip" over a
+card rendering 56%). **Both beats now derive their headline numbers from the
+data at render time** — the same rule the MCP `instructions` learned when they
+kept claiming 4,588 bond elections: prose that summarises a number must be
+recomputed with it.
+
+Design changes, each tied to an audit finding: athletics was warning-orange
+while arts venues, tied at 58%, sat grey — the discussed row is now
+**accent-blue against neutral grey** (a pointer, not a verdict); "100%
+approved" gets a real axis line plus a 50% "half pass" reference; all
+`.econ-fig` SVGs are **capped at 720px** because viewBox scaling inflated 11px
+chart labels to ~19px — larger than the section heading (measured after:
+12.8px vs 16px); the duplicate giant stat is gone; "over 66 years" is computed
+(68); both title figures share one guarded failure mode (numberless title, not
+"classrooms NaN%" and not a blanked section).
+
+**Gotchas.**
+- **The design system defends itself**: `scripts/design_audit.py` failed the
+  build on the first attempt's `▸` marker. Emphasis devices must come from the
+  typographic system — colour, weight, opacity — never a glyph.
+- **Opacity is not an emphasis device on dark grounds**: 55%-alpha over
+  `#101216` measured ~2.1:1, under WCAG's 3:1 for graphics. `BOND_C` is a JS
+  constant no theme token can rescue — use solid hexes that hold in both
+  themes.
+- **A hardcoded prose gloss of a computed number is a time bomb.** Two went
+  off in one section. Grep candidates: any headline containing a quantity word
+  ("half", "coin flip", "most", "double") near a rendered figure.
+
+**Verified live** after merge: "Stadium-specific asks, 50%" serving on
+production, verify_live green. 763 tests pass, ruff clean.
+
+---
+
 ## 2026-08-16 — The A+ pass: five audit gaps, ten review catches, two PRs
 
 **What changed.** The visual audit's five named gaps between B+ and A are

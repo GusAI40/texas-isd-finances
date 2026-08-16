@@ -67,7 +67,7 @@
 <meta name="twitter:description" content="$109 billion a year across 1,310 districts. Where every penny goes, and what it actually buys.">
 <title>Texas ISD Finances — District Dashboard</title>
 <!-- design-system:start -->
-<link rel="stylesheet" href="/static/design.css?v=3">
+<link rel="stylesheet" href="/static/design.css?v=4">
 <!-- design-system:end -->
 <style>
   /* Keyboard users reach the content without tabbing the whole header. The
@@ -735,6 +735,8 @@
   }
   .chips button:hover { border-color:var(--ink); color:var(--ink); }
   .chips button.ghost { border-style:dashed; color:var(--muted); }
+  .chips .chip-sep { width:1px; align-self:stretch; background:var(--rule, var(--hairline));
+                     margin:0 .35rem; }
   .hero-fig { margin:0; }
   .hero-fig .pennies { max-width:100%; margin:.2rem 0 .7rem; }
   .hero-fig .pennies i { cursor:default; }
@@ -890,7 +892,7 @@
   <div class="m-in">
     <a class="m-brand" href="/"><span class="m-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
       Texas ISD<span class="m-sub">Financial Resource Guide</span></a>
-    <div class="m-tabs"><a href="/" aria-current="page">The Report</a><a href="/feed">The Feed</a><a href="/forensics">Forensic File</a><a href="/geomap">Map</a><a href="/heatmap">Heatmap</a><a href="/about">About</a><a href="/sources">Sources</a><details class="m-more"><summary>More</summary><div class="m-menu"><a href="/map">Seating chart</a><a href="/intel">Daily briefing</a><a href="/transparency">How this was made</a></div></details></div>
+    <div class="m-tabs"><a href="/" aria-current="page">The Report</a><a href="/feed">The Feed</a><a href="/forensics">Forensic File</a><a href="/geomap">Map</a><a href="/heatmap">Heatmap</a><a href="/about">About</a><a href="/sources">Sources</a><details class="m-more"><summary>More</summary><div class="m-menu"><a href="/map">Seating chart</a><a href="/intel">Daily briefing</a><a href="/transparency">How this was made</a><button type="button" id="mm-tour">60-second tutorial</button><button type="button" id="mm-disclaimer">Disclaimer</button><button type="button" id="mm-print">Print this report</button></div></details></div>
     <button class="mast-theme" id="mast-theme" type="button" aria-label="Toggle light and dark theme">Theme</button>
   </div>
 </nav>
@@ -937,9 +939,6 @@
       <button id="btn-heatmap" class="feature">Heatmap</button>
       <button id="btn-map">Seating chart</button>
       <button id="btn-about">About</button>
-      <button id="btn-tour">Tutorial</button>
-      <button id="btn-disclaimer">Disclaimer</button>
-      <button id="btn-print" title="Print or save as PDF">Print</button>
       <button id="btn-theme" title="Switch light / dark" aria-label="Switch light or dark theme"><svg class="ico" aria-hidden="true"><use href="#i-contrast"/></svg></button>
     </div>
   </header>
@@ -1577,6 +1576,12 @@
 <script>
 const $ = id => document.getElementById(id);
 const fmtMoney = v => v == null ? '—' : '$' + Math.round(v).toLocaleString();
+/* '91th' is not a word. Every percentile rendered before this took 'th'
+   unconditionally, which is wrong for anything ending 1, 2 or 3 outside the
+   teens — and the KPI card set the wrong suffix in display type. */
+const ordSuf = n => n % 10 === 1 && n % 100 !== 11 ? 'st'
+              : n % 10 === 2 && n % 100 !== 12 ? 'nd'
+              : n % 10 === 3 && n % 100 !== 13 ? 'rd' : 'th';
 const fmtNum = v => v == null ? '—' : Number(v).toLocaleString();
 const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
 const pct = (a, b) => b ? Math.round(100 * (a - b) / b) : null;
@@ -2156,7 +2161,7 @@ function lensStory() {
       return `<strong>${name}</strong> (FY${cur.year}): ${M(cur.total_spend)} total spending (all funds, ` +
         `including construction and debt${cur.operating_spend != null ? `; operating ${M(cur.operating_spend)}` : ''}), ` +
         `${N(cur.enrollment)} students, ` +
-        `${M(cur.spend_per_student)}/student all-funds — ${pctile != null ? `${pctile}th percentile statewide` : 'n/a'}, ` +
+        `${M(cur.spend_per_student)}/student all-funds — ${pctile != null ? `${pctile}${ordSuf(pctile)} percentile statewide` : 'n/a'}, ` +
         `<strong>#${rank} of ${peerRows.length}</strong> among structurally similar districts. ` +
         (ins ? `Largest peer variance: <strong>${ins.metric} ${Math.abs(ins.pct_vs_peers)}% ${ins.direction} peers (${ins.annual_dollars_vs_peers})</strong>. ` : '') +
         `${flagYears} of 17 years carry automatic change flags — sharp year-over-year moves in the filings, ` +
@@ -2503,7 +2508,8 @@ function renderKPIs() {
       ${delta(cur.spend_per_student, prev?.spend_per_student)}
       <div class="plain">State median ${fmtMoney(st.statewide_median_spend)}${cmp ? ' · ' + state.compare.name.split(' ')[0] + ' ' + fmtMoney(cmp.spend_per_student) : ''}${opsPerStudentNote(cur)}</div></div>
     <div class="kpi"><div class="label">Statewide rank ${xb('rank')}</div>
-      <div class="value">${pctile == null ? '—' : pctile + '<span style="font-size:1.1rem">th</span>'}</div>
+      <div class="value">${pctile == null ? '—'
+        : pctile + '<span style="font-size:.55em;vertical-align:.5em;letter-spacing:.02em">' + ordSuf(pctile) + '</span>'}</div>
       <div class="plain">${pctile == null ? '' : 'Spends more per student than ' + pctile + '% of Texas districts, counting construction & debt.'}</div></div>
     <div class="kpi"><div class="label">Enrollment ${xb('enrollment')}</div>
       <div class="value">${fmtNum(cur.enrollment)}</div>
@@ -4662,16 +4668,18 @@ function updateHeroDollar() {
 }
 
 /* The credential line: what this report is actually made of. Every figure is
-   read from the data at load, never typed in — if a source grows, this grows. */
+   read from the data at load, never typed in — if a source grows, this grows.
+
+   Deliberately does NOT repeat the proof row 100px above it. This line once
+   restated "17 years" and "1,310 districts" in small type directly under a
+   stat row showing the same figures in display type — and a number said twice
+   in one screen reads as filler, which is the opposite of a credential. Only
+   what the proof row does not say appears here. */
 function renderCredential(s, tx) {
   const el = $('credential');
   if (!el) return;
   const bits = [];
-  if (s) {
-    bits.push(`<span><b>${s.end_year - s.start_year + 1}</b> years of state records (${s.start_year}–${s.end_year})</span>`);
-    bits.push(`<span><b>${fmtNum(s.total_districts)}</b> districts</span>`);
-    bits.push(`<span><b>${fmtNum(s.total_records)}</b> financial records</span>`);
-  }
+  if (s) bits.push(`<span><b>${fmtNum(s.total_records)}</b> financial records</span>`);
   if (tx) bits.push(`<span><b>${fmtBig(tx.total_spend)}</b> a year accounted for</span>`);
   bits.push(`<span>Every number traceable to the State of Texas</span>`);
   el.innerHTML = bits.join('');
@@ -4682,6 +4690,10 @@ function renderQuickPicks(largest) {
   el.innerHTML = largest.map(d =>
     `<button type="button" data-num="${d.district_number}" data-name="${titleCase(d.district_name)}">` +
     `${titleCase(d.district_name).replace(/ ISD$/, '')}</button>`).join('') +
+    // Jumping to a district and leaving the page are different kinds of act,
+    // and they used to sit in one undifferentiated row. A rule between the
+    // groups + the dashed ghost style make the seam visible.
+    `<span class="chip-sep" aria-hidden="true"></span>` +
     `<button type="button" class="ghost" id="chip-random">Surprise me</button>` +
     `<button type="button" class="ghost" id="chip-map">See the map of Texas</button>` +
     `<button type="button" class="ghost" id="chip-heatmap"><svg class="ico" aria-hidden="true"><use href="#i-map"/></svg> Heatmap</button>` +
@@ -4762,7 +4774,6 @@ $('csearchbtn').onclick = () => doSearch('csearch', 'cresults', selectCompare);
 $('csearch').addEventListener('keydown', e => { if (e.key === 'Enter') doSearch('csearch', 'cresults', selectCompare); });
 $('askbtn').onclick = ask;
 $('question').addEventListener('keydown', e => { if (e.key === 'Enter') ask(); });
-$('btn-print').onclick = () => window.print();
 function applyThemeIcon() {
   // The icon is a single contrast mark that reads correctly in either theme,
   // so it never needs swapping — only the state and the label change. (It
@@ -4822,7 +4833,13 @@ $('lensbar').addEventListener('click', e => {
   localStorage.setItem('tisd_lens', state.lens);
   renderExec();
 });
-$('btn-tour').onclick = () => { tourBuild(); tourShow(0); };
+/* The Tutorial / Disclaimer / Print row was the fourth stacked bar before any
+   content, spending prime phone space on "Print". Its three actions live in
+   the masthead's More menu now — same reach, one fewer bar, and the tutorial
+   keeps its second entry point on the welcome card. */
+const _mmClose = () => { const d = document.querySelector('#masthead .m-more'); if (d) d.open = false; };
+$('mm-tour').onclick = () => { _mmClose(); tourBuild(); tourShow(0); };
+$('mm-print').onclick = () => { _mmClose(); window.print(); };
 /* Welcome-band actions: send a first-time visitor straight into the finder or
    the tour. The other two CTAs are plain links (/feed, /geomap). */
 if ($('wc-find')) $('wc-find').onclick = (e) => {
@@ -4844,7 +4861,7 @@ addEventListener('keydown', ev => {
   closeSheets();
   document.querySelectorAll('.tour-highlight').forEach(el => el.classList.remove('tour-highlight'));
 });
-$('btn-disclaimer').onclick = () => { $('overlay').style.display = 'block'; $('disc-modal').style.display = 'block'; };
+$('mm-disclaimer').onclick = () => { _mmClose(); $('overlay').style.display = 'block'; $('disc-modal').style.display = 'block'; };
 $('open-disc').onclick = e => { e.preventDefault(); $('overlay').style.display = 'block'; $('disc-modal').style.display = 'block'; };
 $('disc-close').onclick = closeSheets;
 $('btn-compare').onclick = () => { $('overlay').style.display = 'block'; $('compare-modal').style.display = 'block'; };
