@@ -67,7 +67,7 @@
 <meta name="twitter:description" content="$109 billion a year across 1,310 districts. Where every penny goes, and what it actually buys.">
 <title>Texas ISD Finances — District Dashboard</title>
 <!-- design-system:start -->
-<link rel="stylesheet" href="/static/design.css?v=3">
+<link rel="stylesheet" href="/static/design.css?v=4">
 <!-- design-system:end -->
 <style>
   /* Keyboard users reach the content without tabbing the whole header. The
@@ -1576,6 +1576,12 @@
 <script>
 const $ = id => document.getElementById(id);
 const fmtMoney = v => v == null ? '—' : '$' + Math.round(v).toLocaleString();
+/* '91th' is not a word. Every percentile rendered before this took 'th'
+   unconditionally, which is wrong for anything ending 1, 2 or 3 outside the
+   teens — and the KPI card set the wrong suffix in display type. */
+const ordSuf = n => n % 10 === 1 && n % 100 !== 11 ? 'st'
+              : n % 10 === 2 && n % 100 !== 12 ? 'nd'
+              : n % 10 === 3 && n % 100 !== 13 ? 'rd' : 'th';
 const fmtNum = v => v == null ? '—' : Number(v).toLocaleString();
 const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
 const pct = (a, b) => b ? Math.round(100 * (a - b) / b) : null;
@@ -2155,7 +2161,7 @@ function lensStory() {
       return `<strong>${name}</strong> (FY${cur.year}): ${M(cur.total_spend)} total spending (all funds, ` +
         `including construction and debt${cur.operating_spend != null ? `; operating ${M(cur.operating_spend)}` : ''}), ` +
         `${N(cur.enrollment)} students, ` +
-        `${M(cur.spend_per_student)}/student all-funds — ${pctile != null ? `${pctile}th percentile statewide` : 'n/a'}, ` +
+        `${M(cur.spend_per_student)}/student all-funds — ${pctile != null ? `${pctile}${ordSuf(pctile)} percentile statewide` : 'n/a'}, ` +
         `<strong>#${rank} of ${peerRows.length}</strong> among structurally similar districts. ` +
         (ins ? `Largest peer variance: <strong>${ins.metric} ${Math.abs(ins.pct_vs_peers)}% ${ins.direction} peers (${ins.annual_dollars_vs_peers})</strong>. ` : '') +
         `${flagYears} of 17 years carry automatic change flags — sharp year-over-year moves in the filings, ` +
@@ -2503,7 +2509,7 @@ function renderKPIs() {
       <div class="plain">State median ${fmtMoney(st.statewide_median_spend)}${cmp ? ' · ' + state.compare.name.split(' ')[0] + ' ' + fmtMoney(cmp.spend_per_student) : ''}${opsPerStudentNote(cur)}</div></div>
     <div class="kpi"><div class="label">Statewide rank ${xb('rank')}</div>
       <div class="value">${pctile == null ? '—'
-        : pctile + '<span style="font-size:.55em;vertical-align:.5em;letter-spacing:.02em">th</span>'}</div>
+        : pctile + '<span style="font-size:.55em;vertical-align:.5em;letter-spacing:.02em">' + ordSuf(pctile) + '</span>'}</div>
       <div class="plain">${pctile == null ? '' : 'Spends more per student than ' + pctile + '% of Texas districts, counting construction & debt.'}</div></div>
     <div class="kpi"><div class="label">Enrollment ${xb('enrollment')}</div>
       <div class="value">${fmtNum(cur.enrollment)}</div>
