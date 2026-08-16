@@ -4081,18 +4081,23 @@ function bondDetail(e) {
 
 /* BEAT 2 — pass rate by stated purpose, sorted so the ranking IS the shape.
 
-   Every bar is the same colour, on purpose. The first version painted
-   athletics orange and left everything else grey — but arts venues passes at
-   the same rate, and colouring one of a tied pair reads as a judgement the
-   data does not make. The category the headline discusses gets a marker on
-   its label instead: a pointer, not a verdict. And the reference lines are
-   REAL lines now — "100% approved" used to float at the bottom right as an
-   axis label with no axis, which reads as a stray caption.
+   The first version painted athletics warning-orange and left everything else
+   grey — but arts venues passes at the same rate, and colouring one of a tied
+   pair in an alarm hue reads as a judgement the data does not make. The row
+   the headline discusses is now set in the site's ACCENT blue against neutral
+   grey: "this is the one the text is about", never "this is the bad one".
 
-   No marker glyph on the label: this site replaced every emoji and dingbat
-   with a typographic system, and scripts/design_audit.py fails the build on
-   any that return. The emphasized row is the solid bar; the rest sit back at
-   55% — same hue, so it reads as a pointer, never a verdict. */
+   Solid colours, not opacity: a 55%-alpha bar measured ~2.1:1 against the
+   dark theme's ground — below the 3:1 WCAG asks of graphical objects — and
+   BOND_C is a JS constant no theme token can rescue. Both of these hexes hold
+   in both themes. No marker glyph on the label either: this site replaced
+   every emoji and dingbat with a typographic system, and
+   scripts/design_audit.py fails the build on any that return (it caught the
+   first attempt's pointer character).
+
+   And the reference lines are REAL lines now — "100% approved" used to float
+   at the bottom right as an axis label with no axis, reading as a stray
+   caption. */
 function bondPurpose(svg, rows) {
   const data = rows.filter(r => r.props >= 30).sort((a, b) => b.pass_rate - a.pass_rate);
   const W = 620, rowH = 40, m = { t: 8, r: 20, b: 30, l: 20 };
@@ -4104,7 +4109,7 @@ function bondPurpose(svg, rows) {
     const top = m.t + i * rowH, y = top + 22, hi = r.category === 'athletics';
     g += `<text class="lbl" x="${m.l}" y="${top + 12}">`
       + `${r.category}<tspan class="tick" font-weight="400"> · ${r.props.toLocaleString()} on the ballot</tspan></text>`
-      + `<rect x="${m.l}" y="${y}" width="${(X(r.pass_rate) - m.l).toFixed(1)}" height="11" rx="4" fill="${BOND_C.yes}" fill-opacity="${hi ? 1 : 0.55}"/>`
+      + `<rect x="${m.l}" y="${y}" width="${(X(r.pass_rate) - m.l).toFixed(1)}" height="11" rx="4" fill="${hi ? BOND_C.yes : BOND_C.no}"/>`
       + `<text class="lbl" x="${(X(r.pass_rate) + 7).toFixed(1)}" y="${y + 10}">`
       + `${Math.round(r.pass_rate)}%</text>`;
   });
@@ -4172,17 +4177,26 @@ function renderBonds() {
   //
   // One number per idea: the giant duplicate stat that used to sit under the
   // title said the same thing a third time within three inches.
-  const bld = C.by_purpose.find(r => r.category === 'buildings & other') || {};
+  // Guarded the same way on BOTH figures. One was `|| {}` (which would have
+  // published "classrooms NaN% of the time" if the free-text classifier ever
+  // renamed a category) and the other unguarded (which would have thrown and
+  // blanked the section). Same drift, one behaviour: fall back to a title
+  // with no numbers rather than a wrong number or a missing section.
+  const bld = C.by_purpose.find(r => r.category === 'buildings & other');
+  const stad = C.stadium;
   $('bond-b2-title').textContent =
-    `Texans approve classrooms ${Math.round(bld.pass_rate)}% of the time. ` +
-    `Stadium-specific asks, ${Math.round(C.stadium.pass_rate)}%.`;
+    (bld && bld.pass_rate != null && stad && stad.pass_rate != null)
+      ? `Texans approve classrooms ${Math.round(bld.pass_rate)}% of the time. ` +
+        `Stadium-specific asks, ${Math.round(stad.pass_rate)}%.`
+      : 'What voters back, by stated purpose';
   $('bond-b2-sub').innerHTML =
-    `<span class="stat-note">${C.stadium.props} stadium-specific propositions among ` +
+    `<span class="stat-note">${stad && stad.props ? stad.props + ' stadium-specific propositions among ' : ''}` +
     `${b.meta.propositions.toLocaleString()} total since ${b.meta.first_year}. ` +
-    `The solid athletics bar below is the broader measure — any proposition that mentions athletics.</span>`;
+    `The blue athletics bar below is the broader measure — any proposition that mentions athletics.</span>`;
   bondPurpose($('bond-purpose'), C.by_purpose);
   $('bond-b2-cap').textContent =
-    'Categories with at least 30 propositions. Purpose is free text written by hundreds of districts over 66 years; ' +
+    `Categories with at least 30 propositions. Purpose is free text written by hundreds of districts over ` +
+    `${b.meta.last_year - b.meta.first_year} years; ` +
     'a proposition reading "School Building & Gymnasium" counts under athletics, so athletics is an upper bound.';
 
   // BEAT 3
@@ -4197,9 +4211,14 @@ function renderBonds() {
     'comparable, which is why the approval rate beneath each bar is the measure to read across eras.';
 
   // BEAT 4
+  //
+  // Computed, like Beat 2's title now is. This said "a coin flip" while its
+  // own card underneath rendered 56% — the same stale-gloss defect, one beat
+  // down. Prose that summarises a number must be derived from the number.
   const B = C.bundling, alone = B.athletics_alone, bund = B.athletics_with_buildings, sch = B.buildings_alone;
   $('bond-b4-title').textContent =
-    'Put a stadium on the ballot by itself and it is a coin flip. Attach it to classrooms and the odds jump — so does the price.';
+    `Athletics on its own passes ${Math.round(alone.pass_rate)}% of the time. ` +
+    `Bundled with classrooms, ${Math.round(bund.pass_rate)}% — and the ask gets bigger.`;
   $('bond-b4-sub').innerHTML =
     'A vote for classrooms is often a vote for the field house too.';
   const card = (h, r, cap, hi) =>
