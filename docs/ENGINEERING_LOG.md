@@ -17,6 +17,42 @@ Entry template:
 
 ---
 
+## 2026-08-16 — Fifteen bugs, two reviews, and a test that validated itself
+
+**What happened.** Asked for `/code-review` over the week's work. First pass on
+the caching change found 6; second pass over the previously unreviewed changes
+found 9. All fifteen were mine, all in code I had already reported as working,
+all with a green suite behind them.
+
+**The one worth remembering.** `tests/test_geo_boundaries.py` checked
+`district_geo.json` against the crosswalk's `has_boundary` column — which
+`build_district_crosswalk.py` GENERATES from that same payload. Reintroduce the
+twin-collapse bug, rebuild both artefacts, and the tests stay green while five
+districts are drawn on another district's land. It was circular from the day I
+wrote it, in the same commit where I claimed it "fails against the old payload
+and passes against the new" — true then, meaningless as a guard. Replaced with
+a fact no rebuild can launder: a TEA number's first three digits ARE its county
+code, so each twin's centroid must fall in the county its own number encodes.
+
+**Two were user-facing.** The map credited TIGER/Line 2024 in four places while
+serving 2025 boundaries — the exact class of defect (fresh data, stale label)
+this week was spent eliminating elsewhere. And `/ops/*` returned 500 rather
+than 404 for a non-ASCII token, because `secrets.compare_digest` raises on
+non-ASCII `str`; the crash confirmed the private route exists, defeating the
+whole "404 not 403" design. Both fixed, deployed, verified live.
+
+**Two more had real blast radius.** `/feed.xml` got a 24-hour cache despite
+being rebuilt daily by cron with no deploy. And CDN caching could have bypassed
+`SITE_PASSWORD` entirely — the gate is middleware and a cached response never
+runs middleware. Root cause was placement: cache rules in static `vercel.json`,
+the gate a runtime switch, so they could never coordinate. Moved into the app
+beside the gate.
+
+**The rule, now in CLAUDE.md:** run the review BEFORE the merge. A passing
+suite is evidence about the tests, not about the code.
+
+---
+
 ## 2026-08-14 (evening) — The outreach map: seeing the campaign on the state
 
 **What changed.** A private map of where the outreach actually landed:

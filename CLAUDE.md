@@ -82,6 +82,17 @@ curl -s https://txisd.dev/health
 python scripts/verify_live.py             # does PRODUCTION serve what this tree says?
 ```
 
+**Run `/code-review` BEFORE the merge, not after.** Two review passes on
+2026-08-15/16 found **fifteen** real defects in work already reported as done
+and verified, with a green suite behind every one of them. Two were
+user-facing (the map credited TIGER 2024 while serving 2025; the private ops
+route answered 500 instead of 404 for a non-ASCII token, confirming it exists),
+and one was a **test that validated itself** — the twin-boundary check compared
+`district_geo.json` against `has_boundary`, which is generated FROM it, so
+reintroducing the bug and rebuilding both left the suite green while five
+districts sat on the wrong land. A passing suite is evidence about the tests,
+not about the code. The review is cheap; shipping and then finding out is not.
+
 **`verify_live.py` is the check the other three could not make.**
 `verify_sources.py` proves the publisher's file is the publisher's file,
 `test_provenance.py` re-derives every headline from it, `verify_artifacts.py`
