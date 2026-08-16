@@ -4606,7 +4606,14 @@ function updateHeroDollar() {
       ? `, of which <b>${fmtMoney(ops)} runs schools</b> and the rest builds them`
       : '') +
     (cls ? `. ${cls.cents}¢ of the dollar reaches classroom teaching` : '') +
-    `. The full breakdown is one scroll away.`;
+    `. The full breakdown is one scroll away.` +
+    // The statewide render always carried this legend; the district render
+    // dropped it, leaving eleven colours above the fold with only blue and
+    // "the rest" explained. Same rule for both: the signature visual never
+    // ships without its key.
+    `<div class="tx-legend">` + d.parts.filter(p => p.cents > 0).slice(0, 6).map(p =>
+      `<span><i style="background:${p.color}"></i>${p.label} ${p.cents}¢</span>`
+    ).join('') + `<span class="rest">…and the rest</span></div>`;
 }
 
 /* The credential line: what this report is actually made of. Every figure is
