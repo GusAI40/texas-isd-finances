@@ -17,6 +17,79 @@ Entry template:
 
 ---
 
+## 2026-08-16 — The invisible half: a browser audit, three blockers, all fixed
+
+**What happened.** A corner-to-corner visual audit — 13 pages rendered in
+Chromium at 1440px and 390px against live production — found that the site's
+biggest defects were ones no existing check could see, because none of them
+rendered a page. Then all three blockers were fixed, verified in a browser, and
+pushed, along with the outreach repairs from the KPI report.
+
+**Blocker 1 — eight of sixteen sections never painted.** On the district report,
+`.reveal` set `opacity:0` from CSS alone and eight sections waited on an
+IntersectionObserver that never fired — full height, full content, blank.
+Lost: trends, peers, where the money goes, payroll vs contracts, who the money
+serves, anomalies, insights, and the question box. Confirmed by experiment:
+`prefers-reduced-motion: reduce` (which makes `wireReveals()` bail) showed 0
+invisible vs 8, same URL back to back. **Fix: the hidden state now requires
+`.armed`, added only in the same statement that hands the section to the
+observer — CSS alone can never hide content again.** A narrow rescue sweep
+reveals only sections the reader has reached and warns to console. Verified:
+0 invisible, animation intact (observer does the work, watchdog silent).
+
+**Blocker 2 — /docs was a blank page.** HTTP 200, zero pixels,
+`SwaggerUIBundle is not defined`: FastAPI's Swagger loads from cdn.jsdelivr.net
+and our CSP is `script-src 'self'`. They had been fighting since the header
+shipped. Fix: built-ins off; `/docs` is server-rendered from the app's own
+OpenAPI schema — 40 endpoints, zero external requests, works with JS disabled.
+Building it surfaced the `/district-geo` docstring citing TIGER 2024 for 2025
+boundaries (fixed), and the geomap eyebrow now names BOTH vintages.
+
+**Blocker 3 — the AI disclosure named the wrong vendor** ("OpenAI gpt-4o-mini",
+nine days after the DeepSeek switch). Now read from `/health` at load; neutral
+wording if the call fails. Same class as the MCP "4,588 bond elections" bug:
+derive it, don't repeat it.
+
+**The new rung: `tests/test_render.py`.** Boots the app, renders the report in
+Chromium, scrolls like a reader, fails on any section laid out at full height
+and painting nothing; plus a static CSS guard **verified to FAIL with the bug
+reintroduced**. Honest limit, stated in the file: without a database the
+browser test cannot see this exact bug (the affected sections are DB-backed and
+correctly `display:none`), so the static guard is the regression test.
+
+**Gotcha that mattered: the sandbox proxy ate localhost.** Under the full suite
+the render tests silently SKIPPED — `HTTP(S)_PROXY` sent the fixture's
+`127.0.0.1` health probe to the proxy, which refused, and the fixture read that
+as "app did not start". Fixed with an explicit no-proxy opener, and the fixture
+now FAILS with the server log instead of skipping. A skip that hides a working
+check is the same disease as a check aimed at the wrong file.
+
+**Outreach (the KPI report's list, every item doable without keys):**
+- **Every reply-able address is now gus@ubntag.com.** The unsubscribe fallback
+  was `hello@txisd.dev` — an inbox that does not exist. It never actually
+  shipped (two `or` clauses always won), but that was luck. Test-enforced via
+  parsed string literals — a text grep failed on its own comment, again.
+- **The 11 undeliverable addresses are committed** in
+  `data/outreach_suppression.json` as SHA-256 hashes (contact data never lands
+  in git); `send_outreach` refuses them before any other check.
+  `scripts/prune_bad_addresses.py` rebuilds it from the KPI report.
+- **`usage_report.py` now leads with the first-party email click-through**
+  (`src:email` by day) — counted since 2026-08-12 12:50, never read. Still
+  needs SUPABASE_PAT to run; not present in this container.
+- `KNOWN_SOURCES` gains `email-w2/w3/w4` — wave tokens, identical within a
+  wave, so waves compare without identifying anyone.
+
+**Still owner-only:** Resend click/open tracking toggles for ubntag.com;
+running `usage_report.py` / `outreach_kpi.py` (needs RESEND_API_KEY +
+SUPABASE_PAT); checking gus@ubntag.com for replies (no connected mailbox sees
+it); repo secrets for the Monday KPI workflow.
+
+**Verified.** ruff clean; 763 tests pass; verify_live 26/26 against a local
+build; JS parse clean; the fixed page re-rendered in Chromium (0 invisible
+sections, both motion preferences).
+
+---
+
 ## 2026-08-16 — Clickable lineage: why is this number this number
 
 **What changed.** A reader can now click a published per-student revenue figure
