@@ -86,8 +86,13 @@
      paint (see the head script) so there is never a flash of light. */
 /* The proof row: what am I looking at, answered before any scrolling. Four
      counted facts, not adjectives. */
-  .proof { display: flex; flex-wrap: wrap; gap: .2rem 2.2rem; margin: 1rem 0 .9rem;
+  /* A grid, not a wrap: four figures land as 4-up, or 2×2 on a phone — never
+     as three plus a widow. "10 official sources" sat alone on its own row,
+     which reads as a layout accident rather than a credential. */
+  .proof { display: grid; grid-template-columns: repeat(4, auto); justify-content: start;
+    gap: .5rem 2.2rem; margin: 1rem 0 .9rem;
     padding: .8rem 0; border-top: 1px solid var(--hairline); border-bottom: 1px solid var(--hairline); }
+  @media (max-width: 620px) { .proof { grid-template-columns: repeat(2, auto); } }
   .proof span { display: inline-flex; flex-direction: column; }
   .proof b { font-size: var(--fs-xl); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; color: var(--ink); }
   .proof i { font-style: normal; font-size: var(--fs-xs); color: var(--muted); text-transform: uppercase;
@@ -105,10 +110,22 @@
     backdrop-filter: blur(8px); border-bottom: 1px solid var(--hairline); margin-bottom: .2rem; }
   #sectionnav.hidden { display: none; }
   .navchips { display: flex; gap: .1rem; overflow-x: auto; scrollbar-width: none;
-    max-width: 1240px; margin: 0 auto; padding: .45rem calc(1.5rem - .6rem); }
+    max-width: 1240px; margin: 0 auto; padding: .45rem calc(1.5rem - .6rem);
+    /* Scroll shadows: a soft edge appears only on the side that has more
+       chips, and vanishes at the ends. On a phone this strip hides 1,294px of
+       itself; with no cue it read as a rendering fault, not an invitation.
+       The first two gradients scroll WITH the content (background-attachment:
+       local) and cover the shadows when there is nothing more to see. */
+    background:
+      linear-gradient(90deg, var(--nav-bg) 40%, transparent) left/2.2rem 100%,
+      linear-gradient(270deg, var(--nav-bg) 40%, transparent) right/2.2rem 100%,
+      radial-gradient(farthest-side at 0 50%, var(--scroll-shadow, rgba(0,0,0,.22)), transparent) left/1rem 100%,
+      radial-gradient(farthest-side at 100% 50%, var(--scroll-shadow, rgba(0,0,0,.22)), transparent) right/1rem 100%;
+    background-repeat: no-repeat;
+    background-attachment: local, local, scroll, scroll; }
   .navchips::-webkit-scrollbar { display: none; }
   .navchips button { flex: 0 0 auto; background: none; border: none; font: inherit;
-    font-size: var(--fs-xs); color: var(--muted); padding: .3rem .6rem; border-radius: var(--r-md);
+    font-size: var(--fs-xs); color: var(--muted); padding: .55rem .6rem; border-radius: var(--r-md);
     cursor: pointer; white-space: nowrap; border-bottom: 2px solid transparent; }
   .navchips button:hover { color: var(--ink); background: var(--wash); }
   .navchips button.on { color: var(--ink); font-weight: 600; border-bottom-color: var(--blue); }
@@ -244,7 +261,9 @@
   .hbtns { display: flex; gap: .35rem; flex-wrap: wrap; }
   .hbtns button {
     background: none; border: none; color: var(--ink-2); font: inherit; font-size: var(--fs-sm);
-    cursor: pointer; padding: .25rem .5rem; border-radius: var(--r-md);
+    cursor: pointer; padding: .45rem .6rem; border-radius: var(--r-md);
+    /* tall enough to tap — these carried 30px targets on phones */
+    min-height: 2rem;
   }
   .hbtns button:hover { background: var(--wash); }
   /* The map is the most compelling thing here; it was hidden in a row of quiet
@@ -288,11 +307,15 @@
   .kpi .value { font-size: var(--fs-2xl); font-weight: 700; letter-spacing: -.02em; line-height: 1.15; font-variant-numeric: tabular-nums; }
   .kpi .delta { font-size: var(--fs-xs); font-variant-numeric: tabular-nums; }
   .kpi .plain { font-size: var(--fs-xs); color: var(--ink-2); margin-top: .2rem; max-width: 24ch; }
+  /* 24px minimum, not a style choice: these "?" buttons are the site's whole
+     strategy for explaining itself in plain English, and at their old
+     18×18px they were the hardest thing on the page to hit on a phone —
+     below WCAG 2.5.8 and well below what either phone platform asks for. */
   .explain { display:inline-flex; align-items:center; justify-content:center;
-             width: 1.15rem; height: 1.15rem; margin-left:.35rem; padding:0;
+             width: 1.5rem; height: 1.5rem; margin-left:.3rem; padding:0;
              border:1px solid var(--rule); border-radius:50%; background:var(--surface);
              color:var(--ink-3); font-size:var(--fs-micro); font-weight:700; line-height:1;
-             cursor:pointer; vertical-align:.08em; }
+             cursor:pointer; vertical-align:-.15em; }
   .explain:hover, .explain:focus-visible { color:var(--accent); border-color:var(--accent); }
   .explain-pop { position:absolute; z-index:60; max-width:20rem; background:var(--surface);
                  border:1px solid var(--rule); border-radius:var(--r-md);
@@ -500,7 +523,8 @@
   /* ---- Ticker: computed figures, continuously cycling ----
      Every item is a real number from the data on this page. Nothing here is a
      headline someone wrote; if a figure cannot be computed the item is not
-     shown. Pauses on hover/focus, and stops entirely for reduced-motion. */
+     shown. One whole figure at a time; pauses on hover, focus or tap;
+     reduced-motion readers get a static strip they scroll themselves. */
   .ticker {
     display:flex; align-items:stretch; gap:0; margin:.1rem 0 .9rem;
     border-top:1px solid var(--hairline); border-bottom:1px solid var(--hairline);
@@ -511,28 +535,36 @@
     background:var(--ink); color:var(--ink-invert); font-size:var(--fs-micro); font-weight:700;
     letter-spacing:.1em; text-transform:uppercase; white-space:nowrap;
   }
-  .ticker-view { flex:1; overflow:hidden; position:relative;
-    -webkit-mask-image:linear-gradient(to right, transparent 0, #000 1.2rem, #000 calc(100% - 2.2rem), transparent 100%);
-            mask-image:linear-gradient(to right, transparent 0, #000 1.2rem, #000 calc(100% - 2.2rem), transparent 100%); }
+  /* One WHOLE item at a time, rotating — not a marquee. The marquee showed a
+     sentence fragment with no beginning and no end at every moment ("…ro" on
+     one edge, a clipped number on the other): a strip that exists to reward a
+     glance was punishing it. Now a complete figure sits still long enough to
+     read, then the next one takes its place — and never mid-read: it pauses
+     on hover, and the strip is focusable so a tap holds it on touch screens.
+     Under reduced motion nothing self-updates at all: every item renders at
+     once in a strip the reader scrolls themselves. */
+  .ticker-view { flex:1; overflow:hidden; position:relative; display:flex; align-items:center; }
   .ticker-track {
-    display:inline-flex; align-items:center; gap:2.4rem; white-space:nowrap;
-    padding:.45rem 1.2rem; will-change:transform;
-    animation:ticker-scroll var(--ticker-dur,60s) linear infinite;
+    display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    width:100%; padding:.45rem 1.2rem; transition:opacity .3s ease;
   }
-  .ticker:hover .ticker-track, .ticker:focus-within .ticker-track { animation-play-state:paused; }
-  @keyframes ticker-scroll { from { transform:translateX(0); } to { transform:translateX(-50%); } }
+  .ticker-track.swap { opacity:0; }
+  @media (max-width:620px) {
+    /* a figure longer than a phone is wide wraps to a second line instead of
+       amputating its number behind an ellipsis */
+    .ticker-track { white-space:normal; }
+  }
+  .ticker-track.all { white-space:nowrap; overflow-x:auto; text-overflow:clip;
+                      scrollbar-width:thin; transition:none; }
+  .tick-sep { color:var(--muted); padding:0 .8rem; }
   .tick { font-size:var(--fs-xs); color:var(--ink-2); font-variant-numeric:tabular-nums; }
   .tick b { color:var(--ink); }
   .tick .up { color:var(--good); font-weight:700; }
   .tick .dn { color:var(--bad); font-weight:700; }
   .tick .who { color:var(--muted); font-weight:700; letter-spacing:.06em;
                text-transform:uppercase; font-size:var(--fs-micro); margin-right:.35rem; }
-  @media (prefers-reduced-motion: reduce) {
-    .ticker-track { animation:none; }
-    .ticker-view { overflow-x:auto; }
-  }
   @media (max-width:620px) {
-    .ticker-track { gap:1.5rem; padding:.4rem .8rem; }
+    .ticker-track { padding:.4rem .8rem; }
     .tick { font-size:var(--fs-micro); }
     .ticker-tag { padding:.4rem .5rem; font-size:var(--fs-micro); }
   }
@@ -564,13 +596,22 @@
   }
   .whobar .who b { color:var(--ink); font-variant-numeric:tabular-nums; }
   .whobar .who span { color:var(--muted); }
-  .drivers { display:grid; grid-template-columns:repeat(auto-fit,minmax(255px,1fr)); gap:.9rem; max-width:1000px; }
+  /* minmax 220, not 255: at full width the seven cards land 4+3 instead of
+     3+3+1 with a lone card on its own row. Honestly stated: this holds where
+     the grid gets ≥ ~940px; on mid-width screens (small laptop, tablet
+     landscape) three columns return and the seventh sits alone — the trade
+     there is readable card sizes, and seven is a number no column count
+     divides. */
+  .drivers { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:.9rem; max-width:1000px; }
   .driver { border:1px solid var(--hairline); border-radius:var(--r-lg); padding:.9rem 1rem; }
   .driver .dl { font-size:var(--fs-xs); color:var(--muted); letter-spacing:.02em; }
   .driver .dv { font-size:var(--fs-2xl); font-weight:700; letter-spacing:-.02em; font-variant-numeric:tabular-nums;
                 margin:.1rem 0 .35rem; line-height:1.1; }
   .driver .dcmp { font-size:var(--fs-xs); color:var(--ink-2); }
   .driver .dcmp b { font-variant-numeric:tabular-nums; }
+  /* a value never parts from its unit or its label at a line break —
+     "all Texas 11.9 / yrs" made the unit look like a stray word */
+  .driver .dcmp .nb { white-space:nowrap; }
   /* one bar: your value against the peer median, direction-aware */
   .dbar { position:relative; height:7px; border-radius:var(--r-sm); background:var(--hairline);
           margin:.5rem 0 .4rem; overflow:hidden; }
@@ -713,7 +754,11 @@
   /* ---- The dollar: 100 pennies, guided ---- */
   .pennies { display:grid; grid-template-columns:repeat(20,1fr); gap:3px; max-width:520px; margin:.9rem 0 .6rem; }
   .pennies i { display:block; aspect-ratio:1; border-radius:var(--r-sm); cursor:pointer;
-               transition:opacity .12s ease, transform .12s ease; }
+               transition:opacity .12s ease, transform .12s ease;
+               /* a neutral hairline on every square: the near-black
+                  construction block otherwise disappears into the dark
+                  theme's ground, reading as a hole in the grid */
+               box-shadow: inset 0 0 0 1px rgba(127,127,127,.28); }
   .pennies.focusing i { opacity:.3; }
   .pennies.focusing i.on { opacity:1; box-shadow:0 0 0 1.5px var(--ink); }
   .penny-legend { display:flex; flex-wrap:wrap; gap:.35rem .5rem; font-size:var(--fs-sm); color:var(--ink-2); }
@@ -896,7 +941,7 @@
 
   <div class="ticker" id="ticker" hidden>
     <span class="ticker-tag">Live figures</span>
-    <div class="ticker-view"><div class="ticker-track" id="ticker-track"></div></div>
+    <div class="ticker-view"><div class="ticker-track" id="ticker-track" tabindex="0" aria-label="Live figures from this page — tap or focus to hold the current one"></div></div>
   </div>
 
   <div class="warnbar" id="dbwarn">The database is not reachable right now. If this persists,
@@ -1001,7 +1046,7 @@
       <div class="finder finder-solo">
         <label class="finder-lab" for="search" id="finder-lab"><span class="lbl-new">Find your district</span><span class="lbl-return">Look up a different district</span></label>
         <div class="row">
-          <input type="search" id="search" placeholder="Start typing — Dallas, Katy, Alamo Heights…"
+          <input type="search" id="search" placeholder="Start typing — Dallas, Katy…"
                  autocomplete="off" aria-label="Search districts">
           <button class="primary" id="searchbtn">Show me</button>
         </div>
@@ -1551,9 +1596,18 @@ const state = { district: null, summary: [], benchmarks: [], peers: null, flags:
    GET /district/{id}/dollar so this page, the share card and any other client
    tell one story from one definition. Colours are keyed to the CATEGORY, not
    its rank, so a category looks the same in every district you open. */
+/* Colour does the whole job in a grid of 12px squares, so every category needs
+   its own HUE. The first palette had four greys — construction, administration,
+   buildings, and "everything else" — which were near-indistinguishable at that
+   size, and indistinguishable full stop for the roughly 1-in-12 male readers
+   with red-green colour vision deficiency, for whom a grey ramp is the one
+   thing left to lean on. Administration is now burgundy and buildings brown;
+   only the two ends of the scale keep grey: construction (near-black, the
+   second-largest block, unmissable) and the residual "everything else" (light
+   grey, correctly reading as 'unclassified'). */
 const DOLLAR_COLORS = {
-  classroom: '#2a78d6', debt: '#8fb4e6', construction: '#55534e', admin: '#8b897f',
-  facilities: '#b8b6ad', transport_food: '#eb6834', support: '#1baf7a',
+  classroom: '#2a78d6', debt: '#8fb4e6', construction: '#3d3b37', admin: '#9c4f63',
+  facilities: '#8d6b4a', transport_food: '#eb6834', support: '#1baf7a',
   extracurricular: '#c9a227', safety_tech: '#7a5cc7', community: '#d98cae', other: '#c9c7be',
 };
 /* The question each category is really about — what a board member, reporter or
@@ -1655,14 +1709,29 @@ function setCmpValues(k) {
 }
 
 /* ---- the guide: what the pointer is resting on ---- */
+function _topPennyKey() {
+  const d = dollarParts();
+  if (!d || !d.parts.length) return null;
+  return d.parts.slice().sort((a, b) => b.v - a.v)[0].key;
+}
 function focusCat(k) {
+  // Never an empty resting state. The panel used to be four lines of
+  // instructions above a void, waiting for a hover that never happens on a
+  // phone. Worse than empty would be a panel describing a category while the
+  // grid highlights nothing — so the default is applied HERE, where the grid,
+  // the comparison bars and the panel are all driven from the same key, and
+  // all three agree on which penny is being shown.
+  const defaulted = !k && (k = _topPennyKey());
   const g = $('pennies'), c = $('cmpbars');
   g.classList.toggle('focusing', !!k);
   c.classList.toggle('focusing', !!k);
   g.querySelectorAll('i').forEach(el => el.classList.toggle('on', el.dataset.k === k));
   c.querySelectorAll('.bar span').forEach(el => el.classList.toggle('on', el.dataset.k === k));
   setCmpValues(k);
-  $('guide').innerHTML = guideHTML(k);
+  $('guide').innerHTML = (defaulted
+    ? `<div class="rest">Showing the biggest penny. <strong>Point at any square</strong> — ` +
+      `or tap one — to see what that one pays for instead.</div>`
+    : '') + guideHTML(k);
 }
 function hoverCat(k) { state.dollarHover = k; focusCat(k || state.dollarPin); }
 function guideHTML(k) {
@@ -1832,15 +1901,36 @@ function tickerItems() {
   }
   return t;
 }
+let _tickerTimer = null, _tickerFade = null;
 function renderTicker() {
   const items = tickerItems(), bar = $('ticker'), track = $('ticker-track');
+  // Both timers die first, on EVERY path — including the too-few-items bail
+  // below. A cleared interval with its 300ms fade still pending would write
+  // the previous district's figure back into the new district's strip.
+  clearInterval(_tickerTimer); clearTimeout(_tickerFade);
+  track.classList.remove('swap');
   if (items.length < 3) { bar.hidden = true; return; }
-  const html = items.map(x => `<span class="tick">${x}</span>`).join('');
-  track.innerHTML = html + html;          // doubled so the loop is seamless
   bar.hidden = false;
-  // Pace it by content length so a long feed doesn't race past unreadably.
-  const secs = Math.max(25, Math.round(items.join('').replace(/<[^>]+>/g, '').length / 12));
-  track.style.setProperty('--ticker-dur', secs + 's');
+  // Reduced motion means no self-updating content, full stop — the old
+  // marquee froze completely, and rotating "gently" would still be motion
+  // the reader asked not to have. They get every item at once, in a strip
+  // they scroll themselves.
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    track.classList.add('all');
+    track.innerHTML = items.map(x => `<span class="tick">${x}</span>`).join('<span class="tick-sep">·</span>');
+    return;
+  }
+  track.classList.remove('all');
+  let i = 0;
+  const show = () => { track.innerHTML = `<span class="tick">${items[i % items.length]}</span>`; i++; };
+  show();
+  _tickerTimer = setInterval(() => {
+    // Never swap the sentence out from under someone reading it. The strip is
+    // focusable, so on a touch screen a tap holds the current figure still.
+    if (bar.matches(':hover') || bar.matches(':focus-within')) return;
+    track.classList.add('swap');
+    _tickerFade = setTimeout(() => { show(); track.classList.remove('swap'); }, 300);
+  }, 8000);
 }
 
 /* ===== What the money buys: students, teachers, results =====
@@ -1914,7 +2004,8 @@ function renderOutcomes() {
         cls === 'good' ? 'var(--good)' : cls === 'watch' ? 'var(--bad)' : 'var(--faint)'}"></i>${
         peer != null ? `<u style="left:${Math.min(99, 100 * peer / hi)}%"></u>` : ''}</div>
       <div class="tag">${tag}</div>
-      <div class="dcmp">Similar districts <b>${fmtv(peer)}</b> · all Texas <b>${fmtv(def.state_median)}</b></div>
+      <div class="dcmp"><span class="nb">Similar districts <b>${fmtv(peer)}</b></span> · <span
+        class="nb">all Texas <b>${fmtv(def.state_median)}</b></span></div>
     </div>`;
   }).join('');
 
@@ -2896,21 +2987,37 @@ document.addEventListener('click', e => {
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') document.querySelectorAll('.lin-pop').forEach(p => p.remove());
 });
+/* Billions belong in prose as $1.99B, not as $1,986,168,795 — ten digits in a
+   sentence is a number nobody can read at the size it is set. The exact figure
+   still lives in every payload and CSV export; this is the card's copy. */
+const fmtMoneyShort = v => {
+  if (v == null) return '—';
+  const a = Math.abs(v);
+  // Branch on the value AS DISPLAYED, not the raw value: $999,960,000 rounds
+  // to "1000.0" at one decimal, and "$1000.0M" on a site whose pitch is
+  // receipts is worse than either neighbour.
+  return a >= 999.95e6 ? '$' + (v / 1e9).toFixed(2) + 'B'
+       : a >= 999.95e3 ? '$' + (v / 1e6).toFixed(1) + 'M' : fmtMoney(v);
+};
 function balanceCard(cur) {
   const label = '<div class="kpi"><div class="label">Operating balance ' + xb('balance') + '</div>';
   if (cur.operating_spend != null) {
     const surplus = +cur.total_revenue >= +cur.operating_spend;
     const nonOp = +cur.total_spend - +cur.operating_spend;
+    // "Deficit" was the only alarming word on the card and the only one with
+    // no colour, while a routine +1.4% two cells away rendered green. The
+    // colour system has to agree with the words or it teaches readers to
+    // ignore it.
     return label +
-      `<div class="value">${surplus ? 'Surplus' : 'Deficit'}</div>
-      <div class="plain">Operating revenue ${fmtMoney(cur.total_revenue)} vs operating
-      spending ${fmtMoney(cur.operating_spend)}.${nonOp > 1e6 ? ' A further ' + fmtMoney(nonOp) +
+      `<div class="value ${surplus ? 'up' : 'down'}">${surplus ? 'Surplus' : 'Deficit'}</div>
+      <div class="plain">Operating revenue ${fmtMoneyShort(cur.total_revenue)} vs operating
+      spending ${fmtMoneyShort(cur.operating_spend)}.${nonOp > 1e6 ? ' A further ' + fmtMoneyShort(nonOp) +
       ' went to construction and debt payments, funded by bonds — not the operating budget.' : ''}</div></div>`;
   }
   return `<div class="kpi"><div class="label">All money in vs out ${xb('balance')}</div>
       <div class="value">${+cur.total_revenue >= +cur.total_spend ? 'In exceeds out' : 'Out exceeds in'}</div>
-      <div class="plain">Operating revenue ${fmtMoney(cur.total_revenue)} vs ALL spending
-      ${fmtMoney(cur.total_spend)} — the second includes bond-funded construction and debt,
+      <div class="plain">Operating revenue ${fmtMoneyShort(cur.total_revenue)} vs ALL spending
+      ${fmtMoneyShort(cur.total_spend)} — the second includes bond-funded construction and debt,
       so this is not an operating deficit.</div></div>`;
 }
 function opsPerStudentNote(cur) {
