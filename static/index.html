@@ -211,7 +211,12 @@
   /* On a phone these must SCROLL, not shrink — a 700-unit viewBox squeezed into
      360px renders the axis type at about 5px, which is unreadable. The wrapper
      scrolls instead, and the table twin below is the non-scrolling path. */
-  .econ-fig svg { display: block; width: 100%; height: auto; min-width: 620px; }
+  .econ-fig svg { display: block; width: 100%; height: auto; min-width: 620px;
+    /* ...and never far ABOVE it either. These charts scale with the column, so
+       on a wide screen a 620-unit viewBox inflated its 11px labels to ~19px —
+       larger than the section heading, which inverts the hierarchy: the
+       chart's category labels shouted over the title that explains them. */
+    max-width: 720px; }
   .econ-fig .grid { stroke: var(--hairline); stroke-width: 1; }
   .econ-fig .axis { stroke: var(--faint); stroke-width: 1; }
   .econ-fig text { font: 11px system-ui, sans-serif; fill: var(--ink-2); }
@@ -4074,26 +4079,42 @@ function bondDetail(e) {
     (e.passed ? ' You are still paying this off.' : ' It was never issued.') + '</div>';
 }
 
-/* BEAT 2 — pass rate by stated purpose. Bars are grey except athletics, which
-   is the point being made. Sorted by pass rate so the ranking IS the shape. */
+/* BEAT 2 — pass rate by stated purpose, sorted so the ranking IS the shape.
+
+   The first version painted athletics warning-orange and left everything else
+   grey — but arts venues passes at the same rate, and colouring one of a tied
+   pair in an alarm hue reads as a judgement the data does not make. The row
+   the headline discusses is now set in the site's ACCENT blue against neutral
+   grey: "this is the one the text is about", never "this is the bad one".
+
+   Solid colours, not opacity: a 55%-alpha bar measured ~2.1:1 against the
+   dark theme's ground — below the 3:1 WCAG asks of graphical objects — and
+   BOND_C is a JS constant no theme token can rescue. Both of these hexes hold
+   in both themes. No marker glyph on the label either: this site replaced
+   every emoji and dingbat with a typographic system, and
+   scripts/design_audit.py fails the build on any that return (it caught the
+   first attempt's pointer character).
+
+   And the reference lines are REAL lines now — "100% approved" used to float
+   at the bottom right as an axis label with no axis, reading as a stray
+   caption. */
 function bondPurpose(svg, rows) {
   const data = rows.filter(r => r.props >= 30).sort((a, b) => b.pass_rate - a.pass_rate);
   const W = 620, rowH = 40, m = { t: 8, r: 20, b: 30, l: 20 };
   const H = m.t + data.length * rowH + m.b;
   const X = v => m.l + v / 100 * (W - m.l - m.r);
-  let g = '';
+  let g = `<line class="grid" x1="${X(50).toFixed(1)}" y1="${m.t}" x2="${X(50).toFixed(1)}" y2="${H - m.b}"/>`
+        + `<line class="grid" x1="${X(100).toFixed(1)}" y1="${m.t}" x2="${X(100).toFixed(1)}" y2="${H - m.b}"/>`;
   data.forEach((r, i) => {
     const top = m.t + i * rowH, y = top + 22, hi = r.category === 'athletics';
-    const col = hi ? BOND_C.focus : BOND_C.no;
-    g += `<text class="lbl" x="${m.l}" y="${top + 12}" ${hi ? `fill="${BOND_C.focus}"` : ''}>`
+    g += `<text class="lbl" x="${m.l}" y="${top + 12}">`
       + `${r.category}<tspan class="tick" font-weight="400"> · ${r.props.toLocaleString()} on the ballot</tspan></text>`
-      + `<rect x="${m.l}" y="${y}" width="${(X(r.pass_rate) - m.l).toFixed(1)}" height="11" rx="4" fill="${col}"/>`
-      + `<text class="lbl" x="${(X(r.pass_rate) + 7).toFixed(1)}" y="${y + 10}" ${hi ? `fill="${BOND_C.focus}"` : ''}>`
+      + `<rect x="${m.l}" y="${y}" width="${(X(r.pass_rate) - m.l).toFixed(1)}" height="11" rx="4" fill="${hi ? BOND_C.yes : BOND_C.no}"/>`
+      + `<text class="lbl" x="${(X(r.pass_rate) + 7).toFixed(1)}" y="${y + 10}">`
       + `${Math.round(r.pass_rate)}%</text>`;
   });
-  // the bars share a left edge, so alignment anchors them — no axis rule needed
-  g += `<text class="tick" x="${X(100).toFixed(1)}" y="${H - m.b + 14}" text-anchor="end">`
-    + `100% approved</text>`;
+  g += `<text class="tick" x="${X(50).toFixed(1)}" y="${H - m.b + 14}" text-anchor="middle">half pass</text>`
+    + `<text class="tick" x="${X(100).toFixed(1)}" y="${H - m.b + 14}" text-anchor="end">100% approved</text>`;
   svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
   svg.innerHTML = g;
 }
@@ -4147,16 +4168,35 @@ function renderBonds() {
     `Bond elections held by ${nm}, ${t.first_year}–${t.last_year}. Amounts as asked, in the dollars of their year.`;
 
   // BEAT 2
-  const ath = C.by_purpose.find(r => r.category === 'athletics') || {};
-  const bld = C.by_purpose.find(r => r.category === 'buildings & other') || {};
+  //
+  // The title carries the NUMBERS, never a prose gloss of them. It used to say
+  // "Stadiums, fewer than half" — true when written, false after the Bond
+  // Review Board's 2026 refresh nudged stadium approvals to 50.3%, and it sat
+  // wrong on the page until this render was rebuilt to read the figure it
+  // publishes. A claim derived from data must be recomputed with it.
+  //
+  // One number per idea: the giant duplicate stat that used to sit under the
+  // title said the same thing a third time within three inches.
+  // Guarded the same way on BOTH figures. One was `|| {}` (which would have
+  // published "classrooms NaN% of the time" if the free-text classifier ever
+  // renamed a category) and the other unguarded (which would have thrown and
+  // blanked the section). Same drift, one behaviour: fall back to a title
+  // with no numbers rather than a wrong number or a missing section.
+  const bld = C.by_purpose.find(r => r.category === 'buildings & other');
+  const stad = C.stadium;
   $('bond-b2-title').textContent =
-    `Texans approve classrooms ${Math.round(bld.pass_rate)}% of the time. Stadiums, fewer than half.`;
+    (bld && bld.pass_rate != null && stad && stad.pass_rate != null)
+      ? `Texans approve classrooms ${Math.round(bld.pass_rate)}% of the time. ` +
+        `Stadium-specific asks, ${Math.round(stad.pass_rate)}%.`
+      : 'What voters back, by stated purpose';
   $('bond-b2-sub').innerHTML =
-    `<span class="stat"><b>${Math.round(C.stadium.pass_rate)}%</b><i>of ${C.stadium.props} stadium bonds passed</i></span>` +
-    `<span class="stat-note">${b.meta.propositions.toLocaleString()} propositions since ${b.meta.first_year}</span>`;
+    `<span class="stat-note">${stad && stad.props ? stad.props + ' stadium-specific propositions among ' : ''}` +
+    `${b.meta.propositions.toLocaleString()} total since ${b.meta.first_year}. ` +
+    `The blue athletics bar below is the broader measure — any proposition that mentions athletics.</span>`;
   bondPurpose($('bond-purpose'), C.by_purpose);
   $('bond-b2-cap').textContent =
-    'Categories with at least 30 propositions. Purpose is free text written by hundreds of districts over 66 years; ' +
+    `Categories with at least 30 propositions. Purpose is free text written by hundreds of districts over ` +
+    `${b.meta.last_year - b.meta.first_year} years; ` +
     'a proposition reading "School Building & Gymnasium" counts under athletics, so athletics is an upper bound.';
 
   // BEAT 3
@@ -4171,9 +4211,14 @@ function renderBonds() {
     'comparable, which is why the approval rate beneath each bar is the measure to read across eras.';
 
   // BEAT 4
+  //
+  // Computed, like Beat 2's title now is. This said "a coin flip" while its
+  // own card underneath rendered 56% — the same stale-gloss defect, one beat
+  // down. Prose that summarises a number must be derived from the number.
   const B = C.bundling, alone = B.athletics_alone, bund = B.athletics_with_buildings, sch = B.buildings_alone;
   $('bond-b4-title').textContent =
-    'Put a stadium on the ballot by itself and it is a coin flip. Attach it to classrooms and the odds jump — so does the price.';
+    `Athletics on its own passes ${Math.round(alone.pass_rate)}% of the time. ` +
+    `Bundled with classrooms, ${Math.round(bund.pass_rate)}% — and the ask gets bigger.`;
   $('bond-b4-sub').innerHTML =
     'A vote for classrooms is often a vote for the field house too.';
   const card = (h, r, cap, hi) =>
