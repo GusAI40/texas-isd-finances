@@ -90,6 +90,66 @@ sections, both motion preferences).
 
 ---
 
+## 2026-08-16 — The A+ pass: five audit gaps, ten review catches, two PRs
+
+**What changed.** The visual audit's five named gaps between B+ and A are
+closed and live (PR #19 + #20): tap targets (the "?" buttons 18→24px, zero
+controls under 24px, was fourteen under 32); scroll-shadow affordance on the
+masthead and section nav (pure CSS, `background-attachment: local`, themed via
+a new `--scroll-shadow` token); the ticker rebuilt from marquee to
+one-whole-item rotation (pauses on hover/focus/tap; reduced motion gets a
+static all-items strip — no self-updating content for readers who opted out);
+the penny palette's four greys cut to two meaningful ones (admin → burgundy
+#9c4f63, buildings → brown #8d6b4a, plus a neutral hairline inset so
+near-black construction survives the dark theme); and the orphaned cells fixed
+(proof stats a real 4-up/2×2 grid, drivers 4+3 at full width). Also: "Deficit"
+in the alarm colour, `fmtMoneyShort` for ten-digit prose, value–unit nowrap,
+the "Start anywhere" panel defaults to the largest penny INSIDE `focusCat` so
+grid/bars/text agree, placeholders unclipped, and the district hero's penny
+legend restored (the statewide render always had one; personalising dropped it).
+
+**The review before the merge caught ten defects in the first attempt**, and
+the three sharpest were regressions in the fixes themselves, all dark-theme or
+accessibility: the scroll shadow was hard-coded black on a dark surface —
+invisible to exactly the readers it was added for; the darkened construction
+penny vanished into the dark ground; and the new ticker auto-rotated under
+prefers-reduced-motion where the old marquee froze completely. Plus a real
+interval/timeout leak that could write district A's figure into district B's
+strip, a "$1000.0M" formatter boundary (branch on the value AS DISPLAYED —
+`toFixed(1)` rounds at 50k, so the B threshold is 999.95e6), and the geomap
+placeholder trim that had deleted "press Enter" — the only instruction for the
+only trigger.
+
+**Gotchas.**
+- **A fix can be its own regression, invisibly.** Everything looked right in
+  the light theme where I was testing. The review's dark-theme pass is what
+  caught two of the three worst items. Check both themes for any colour that
+  is not a token.
+- **Scroll shadows via `background-attachment: local` need themed colours** —
+  the technique is CSS-only and appears/disappears correctly at the ends, but
+  the shadow colour must come from a token or it dies in dark mode.
+- **Seven is prime**: no column count divides the drivers grid evenly; 4+3 at
+  full width is the best obtainable and the comment now says honestly where it
+  holds. Don't chase the mid-width orphan with span tricks.
+- **Reduced motion is not "gentler motion".** Rotating content is still
+  self-updating content; the compliant fallback is everything-at-once, reader-
+  scrolled.
+- Foreground `sleep`-then-check is blocked in this harness; use
+  `run_in_background` with an `until` loop for deploy waits.
+
+**Verified live** after both merges: `verify_live.py` green, `--scroll-shadow`
+resolves to `rgba(255,255,255,0.28)` under `data-theme=dark` on production,
+reduced-motion strip static with 14 items, ticker rotating and pausing,
+palette hexes live, no JS errors. 763 tests pass; ruff clean.
+
+**Open items.** Unchanged (owner queue: mailbox, Resend toggles, keys as repo
+secrets, credential rotation, DeepSeek cap, STAAR download). Audit items left
+open by choice, not oversight: the bond chart's label hierarchy and colour
+implication (C+, needs a design decision), map zoom (feature), page length,
+the utility row, the repeated credential line.
+
+---
+
 ## 2026-08-16 — Clickable lineage: why is this number this number
 
 **What changed.** A reader can now click a published per-student revenue figure
