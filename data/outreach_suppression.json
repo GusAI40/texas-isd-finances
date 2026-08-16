@@ -1,0 +1,60 @@
+{
+ "_what_this_is": "SHA-256 hashes of lowercased email addresses that hard-bounced, were suppressed by the provider, or complained. The sender refuses these before any other check. Hashes, not addresses: contact data is never committed. Additive only \u2014 a dead mailbox does not come back, and a corrected district address hashes differently. Rebuilt by scripts/prune_bad_addresses.py from the KPI report.",
+ "entries": {
+  "023f060266a2b0a6368ff3a59f9920a733ab268a0db66884cd792f20ac484f83": {
+   "district_number": "014902",
+   "recorded": "2026-08-16",
+   "status": "suppressed"
+  },
+  "0d7ad9a590b8f0f8fab2690955ef5e54d033cf5f6d911b9a6eed7b34c1be8a1d": {
+   "district_number": "037901",
+   "recorded": "2026-08-16",
+   "status": "bounced"
+  },
+  "1adf360cc83f20227b047fa39f30533dea017e2c210b20247420f892e95dc30a": {
+   "district_number": "047901",
+   "recorded": "2026-08-16",
+   "status": "bounced"
+  },
+  "2c1e490f7686c198764b4630f189906bda0d948e871e6976ade3c9ce7ae1126a": {
+   "district_number": "001902",
+   "recorded": "2026-08-16",
+   "status": "bounced"
+  },
+  "620f8972b613aac913718c5f3c2154dc2e502773482e9a3714fd3d9987e9b2b5": {
+   "district_number": "065901",
+   "recorded": "2026-08-16",
+   "status": "bounced"
+  },
+  "6779516212183897da6b19d6becb754fac9fd7a6baed6f4bc62e93832fcf6e5a": {
+   "district_number": "032902",
+   "recorded": "2026-08-16",
+   "status": "suppressed"
+  },
+  "74907c7de9184332e9a848122c21543b39202888a026855a9f5b507286a638ca": {
+   "district_number": "043917",
+   "recorded": "2026-08-16",
+   "status": "bounced"
+  },
+  "c03018fb1ee9e31fc6d51315c10c6b6d0cdb95f1f3a5130d67cf047ffdd68473": {
+   "district_number": "042905",
+   "recorded": "2026-08-16",
+   "status": "suppressed"
+  },
+  "cb2c9a7259d7094eb0363705d8dc38db7577ac9d41d86deebf46c49ca5739fe2": {
+   "district_number": "034905",
+   "recorded": "2026-08-16",
+   "status": "suppressed"
+  },
+  "ec5daec9ef48a54bc8b095b569e9acffe53e150625d61226dce5cafb612fa76d": {
+   "district_number": "015912",
+   "recorded": "2026-08-16",
+   "status": "bounced"
+  },
+  "ed225069796dff21df0031e1b56415fb6e39bcc4a77b508e5d00203d18d740fb": {
+   "district_number": "066005",
+   "recorded": "2026-08-16",
+   "status": "suppressed"
+  }
+ }
+}

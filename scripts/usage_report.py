@@ -83,6 +83,26 @@ def main() -> int:
                   f"ORDER BY views DESC;", pat),
           ["device", "views"], [12, 7])
 
+    # The one number the outreach KPIs cannot see from Resend's side: Resend
+    # recorded 0 clicks because its click tracking was off, but every outreach
+    # link since 2026-08-12 12:50 carries ?src=email and is counted HERE, in
+    # our own table, immune to that switch. This is the campaign's actual
+    # objective — a superintendent on their own report — measured first-party.
+    # Channel-level on purpose: the tag is identical for every recipient.
+    print("\n  CLICKED THROUGH FROM THE OUTREACH EMAIL  (first-party, by day)")
+    email_rows = run_sql(
+        f"SELECT day::text AS day, sum(hits) AS visits "
+        f"FROM public.site_visits WHERE referrer_host LIKE 'src:email%' "
+        f"AND day >= current_date - {d} GROUP BY day ORDER BY day DESC;", pat)
+    if email_rows:
+        table(email_rows, ["day", "visits"], [12, 7])
+        total = sum(int(r["visits"]) for r in email_rows)
+        print(f"    {total} email-driven visits in the window. Counted since "
+              f"2026-08-12 12:50; sends before that predate the tag.")
+    else:
+        print("    none recorded in this window — distinguish 'nobody clicked' "
+              "from 'window predates the tag (2026-08-12 12:50)'.")
+
     print("\n  WHERE THEY CAME FROM  (blank = direct / typed the address)")
     table(run_sql(f"SELECT coalesce(nullif(referrer_host,''),'(direct)') AS source, "
                   f"sum(hits) AS views FROM public.site_visits "

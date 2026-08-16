@@ -356,7 +356,18 @@
   @media (prefers-reduced-motion: no-preference) {
     .dyk .dyk-txt { transition:opacity .45s ease; }
     .dyk .dyk-txt.fade { opacity:0; }
-    #dash section.reveal { opacity:0; transform:translateY(6px);
+    /* A section is VISIBLE by default and animates in only once JavaScript has
+       promised to reveal it. `.armed` is added by wireReveals() immediately
+       before it hands the element to the observer, so the hidden state cannot
+       outlive the code that undoes it.
+
+       This was the other way round and it cost half the page: sections started
+       at opacity:0 from CSS alone, waiting on an IntersectionObserver that
+       never fired for eight of the sixteen. They kept their full height and
+       their full content and painted nothing — including the question box —
+       for every visitor who had not turned on "reduce motion". A progressive
+       enhancement must never be able to hide content when it fails. */
+    #dash section.reveal.armed { opacity:0; transform:translateY(6px);
                            transition:opacity .45s ease, transform .45s ease; }
     #dash section.reveal.in { opacity:1; transform:none; }
   }
@@ -1337,7 +1348,14 @@
         <button class="primary" id="askbtn">Ask</button>
       </div>
       <div class="answer" id="answer"></div>
-      <div class="cite">Answers by OpenAI (gpt-4o-mini) via LangChain, run as a read-only role over the
+      <!-- The model name is filled in from /health at load. It was hardcoded as
+           "OpenAI (gpt-4o-mini)" and stayed that way for nine days after the
+           service moved to DeepSeek — a disclosure sentence that named the
+           wrong company, on the one page whose whole argument is that its
+           claims can be checked. The service already knows the answer, so the
+           page asks it instead of repeating it. -->
+      <div class="cite">Answers by <span id="ask-model">the configured AI model</span> via LangChain,
+        run as a read-only role over the
         two public views — nothing else is reachable. Built by
         <a href="https://ubntag.com" target="_blank" rel="noopener">TAG ai</a>.
         Double-check important figures against
@@ -2682,9 +2700,53 @@ function wireReveals() {
     if (sec.classList.contains('in')) return;
     const r = sec.getBoundingClientRect();
     if (r.top < innerHeight) { sec.classList.add('reveal', 'in'); return; }  // already on screen
-    sec.classList.add('reveal'); _revealObs.observe(sec);
+    // Order matters: arm it (which is what makes it transparent) only in the
+    // same statement that hands it to the observer. If any line above throws,
+    // the section is still visible.
+    sec.classList.add('reveal', 'armed');
+    _revealObs.observe(sec);
   });
+  scheduleRevealWatchdog();
 }
+
+/* A hidden section must never outlive its reveal. The observer can miss an
+   element for reasons this page does not control — it is re-rendered after
+   being observed, it is laid out at zero height while its data is still in
+   flight, the callback is starved. Every one of those is a bug somewhere else,
+   and none of them is a reason a reader should meet blank space where the
+   analysis was.
+
+   The rescue is deliberately narrow: it reveals only sections the reader has
+   ALREADY REACHED — top above the bottom of the viewport — because those are
+   exactly the ones the observer owed and did not deliver. Sections still below
+   the fold are left armed and keep their animation. A blunt "show everything
+   after N seconds" would have fixed the bug and quietly deleted the effect for
+   anyone who scrolls slowly.
+
+   It is not what makes the failure impossible; the CSS above does that, by
+   keeping a section visible until the code that will reveal it has run. This
+   is what makes the failure LOUD — it warns to the console, so a regression
+   shows up in devtools instead of in a reader's blank page. */
+let _revealWatchdog = null;
+function sweepStuckReveals() {
+  const stuck = [...document.querySelectorAll('#dash section.reveal.armed')]
+    .filter(s => !s.classList.contains('in')
+                 && s.getBoundingClientRect().top < innerHeight);
+  if (!stuck.length) return;
+  stuck.forEach(s => s.classList.add('in'));
+  console.warn('[reveal] shown without animating — the observer never fired for: '
+    + stuck.map(s => s.id || '(unnamed)').join(', '));
+}
+function scheduleRevealWatchdog() {
+  clearTimeout(_revealWatchdog);
+  _revealWatchdog = setTimeout(sweepStuckReveals, 2500);
+}
+// Re-check shortly after the reader stops scrolling: a section that has come
+// into view and still has not painted has missed its chance, whenever that is.
+addEventListener('scroll', () => {
+  clearTimeout(_revealWatchdog);
+  _revealWatchdog = setTimeout(sweepStuckReveals, 700);
+}, { passive: true });
 
 const EXPLAIN = {
   'spend': 'This is everything the district spent this year, divided by its students. It includes building new schools with money voters approved. The cost of just running school day-to-day is the smaller number underneath.',
@@ -4641,6 +4703,28 @@ $('trend-tabs').addEventListener('click', e => {
 });
 function slug() { return (state.district?.name || 'district').replace(/\W+/g, '_'); }
 
+/* Name the AI vendor from the service, never from memory.
+
+   /health reports the live provider as "deepseek:deepseek-v4-flash via
+   https://api.deepseek.com (configured)". A reader is owed the vendor and the
+   model, not our hosting URL or whether a key is set, so this takes the part
+   before " via ". If the call fails the sentence keeps its neutral wording
+   rather than asserting a vendor we have not confirmed — the failure mode of
+   the old hardcoded string was naming the wrong one for nine days. */
+async function nameTheModel() {
+  const el = $('ask-model');
+  if (!el) return;
+  try {
+    const h = await api('/health');
+    const live = String(h.llm || '').split(' via ')[0].trim();
+    if (!live) return;
+    const [vendor, ...model] = live.split(':');
+    const pretty = { openai: 'OpenAI', deepseek: 'DeepSeek', anthropic: 'Anthropic' };
+    el.textContent = (pretty[vendor.toLowerCase()] || vendor)
+      + (model.length ? ` (${model.join(':')})` : '');
+  } catch { /* leave the neutral wording in place */ }
+}
+
 (async function boot() {
   const savedLens = localStorage.getItem('tisd_lens');
   if (savedLens) {
@@ -4649,6 +4733,7 @@ function slug() { return (state.district?.name || 'district').replace(/\W+/g, '_
       x.setAttribute('aria-pressed', x.dataset.lens === savedLens));
   }
   const statewide = loadStatewide();   // don't block the district on this
+  nameTheModel();                      // fire and forget; never blocks the page
   // A link is worth nothing if it opens on the reader's own district instead
   // of the one that was shared. ?d= wins over whatever this device remembers.
   const linked = new URLSearchParams(location.search).get('d');
