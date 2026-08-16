@@ -311,3 +311,23 @@ def test_ask_footer_names_only_the_llm_actually_used():
     assert "OpenAI" in html and "LangChain" in html
     for absent in ("Perplexity", "Pinecone", "MongoDB", "Multi-LLM", "GOAT-UIX"):
         assert absent not in html, f"{absent} is not in this stack and must not appear"
+
+
+# --- the trust question, asked the way a reader asks it -----------------------
+
+def test_the_trust_question_is_asked_and_answered_in_plain_language():
+    """The trust machinery predates this section — /sources, /provenance,
+    /transparency, clickable lineage — but it was spread across four pages and
+    a click nobody knew to make. This locks the one place that asks the
+    reader's actual question and answers all five parts of it: origin,
+    checking, corrections, the AI's role, and check-it-yourself. The Wills
+    Point correction is named because a real mistake, fixed in public, is the
+    strongest trust evidence the site owns."""
+    html = (ROOT / "static" / "index.html").read_text()
+    assert 'id="trust"' in html
+    assert "Can I trust these numbers?" in html
+    for must in ("/sources", "/provenance", "/transparency"):
+        section = html.split('id="trust"')[1].split("</section>")[0]
+        assert must in section, f"the trust section no longer links {must}"
+    assert "Wills Point" in html.split('id="trust"')[1].split("</section>")[0], (
+        "the public-correction receipt is gone from the trust answer")

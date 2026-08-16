@@ -78,7 +78,10 @@
   --fs-micro:   0.75rem;    /* 12px — eyebrows, badges, table micro-labels */
   --fs-xs:      0.8125rem;  /* 13px — dense UI, table cells */
   --fs-sm:      0.875rem;   /* 14px — secondary text, captions */
-  --fs-base:    0.9375rem;  /* 15px — default body */
+  /* 16px, not 15: the accessibility floor for older readers. This site's
+     stated bar is a 90-year-old reading it without reaching for browser
+     zoom, and 15px body text fails that bar by exactly one pixel. */
+  --fs-base:    1rem;       /* 16px — default body */
   --fs-md:      1rem;       /* 16px — lead paragraphs */
   --fs-lg:      1.25rem;    /* 20px — h3, card headlines */
   --fs-xl:      1.5rem;     /* 24px — h2 */
