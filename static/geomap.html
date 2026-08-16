@@ -95,6 +95,20 @@
             margin-top:.6rem; flex-wrap:wrap; }
   .ramp { display:flex; }
   .ramp i { width:26px; height:11px; display:block; }
+  .borders { margin-top:1.6rem; }
+  .borders-h { font-family:ui-serif,Georgia,serif; font-weight:600; font-size:var(--fs-lg);
+               margin:.1rem 0 .3rem; letter-spacing:-.01em; }
+  .borders-list { display:grid; grid-template-columns:repeat(auto-fit,minmax(270px,1fr));
+                  gap:.7rem; margin-top:.7rem; }
+  .bpair { text-align:left; font:inherit; cursor:pointer; background:var(--card);
+           border:1px solid var(--hairline); border-radius:var(--r-lg); padding:.8rem 1rem; }
+  .bpair:hover { border-color:var(--blue); }
+  .bpair:focus-visible { outline:2px solid var(--blue); outline-offset:2px; }
+  .bpair .gap { font-size:var(--fs-xl); font-weight:700; letter-spacing:-.02em;
+                font-variant-numeric:tabular-nums; }
+  .bpair .gap small { font-size:var(--fs-xs); font-weight:400; color:var(--muted); }
+  .bpair .pair { font-size:var(--fs-sm); color:var(--ink-2); margin-top:.2rem; }
+  .bpair .pair b { font-variant-numeric:tabular-nums; }
   .cite { font-size:var(--fs-micro); color:var(--muted); margin-top:.9rem; max-width:48rem; }
   .cite a { color:var(--ink-2); }
   .readout { background:var(--wash); border-radius:var(--r-lg); padding:.85rem 1.05rem; margin:.8rem 0 0;
@@ -264,6 +278,15 @@
   <div class="legend" id="legend"></div>
   <div class="readout" id="readout"></div>
 
+  <section class="borders" id="borders" hidden>
+    <div class="eyebrow">The starkest borders</div>
+    <h2 class="borders-h">Cross one road, change school systems</h2>
+    <p class="support">Every pair below shares a real boundary line. The figures are the same
+      TEA PEIMS spending measure the map colours; districts under 500 students are excluded,
+      the same rule this site applies to every ranking. Click a pair to see the line.</p>
+    <div class="borders-list" id="borders-list"></div>
+  </section>
+
   <p class="cite">Boundaries: <a href="https://www2.census.gov/geo/tiger/TIGER2025/UNSD/" target="_blank" rel="noopener">US Census TIGER/Line 2025</a>
     (public domain), joined to TEA district numbers by name. Measures: TEA Snapshot 2024 and
     Summarized PEIMS. <strong>Charter districts are not shown</strong> — they have no geographic
@@ -280,7 +303,7 @@ const titleCase = s => (s || '').toLowerCase()
   .replace(_ACR, m => m.toUpperCase())
   .replace(/\bMc([a-z])/g, (_m,c) => 'Mc' + c.toUpperCase());
 const cv = $('map'), ctx = cv.getContext('2d'), wrap = $('wrap'), tip = $('tip');
-let geo = null, ids = [], rings = {}, adj = {}, view = {k:1,x:0,y:0}, hover = null, pinned = null;
+let geo = null, ids = [], rings = {}, adj = {}, adjStrength = {}, view = {k:1,x:0,y:0}, hover = null, pinned = null;
 let metric = 't', bounds = null, dpr = Math.min(devicePixelRatio || 1, 2);
 
 const METRICS = {
@@ -681,8 +704,9 @@ fetch('/district-geo').then(r => r.json()).then(d => {
   for (const [k,n] of pair) if (n >= 1) {
     const [a,b] = k.split('|');
     (adj[a] = adj[a] || []).push(b); (adj[b] = adj[b] || []).push(a);
+    adjStrength[k] = n;    // shared quantised vertices — 1 can be a mere corner touch
   }
-  renderA11yTable(); renderLegend(); renderPanelDefault(); resize();
+  renderA11yTable(); renderLegend(); renderPanelDefault(); renderBorders(); resize();
   const want = new URLSearchParams(location.search).get('d');
   if (want && d.d[want]) focusOn(want);
 }).catch(err => {
@@ -690,6 +714,65 @@ fetch('/district-geo').then(r => r.json()).then(d => {
   const ro = $('readout'); ro.style.display = 'block';
   ro.textContent = 'The map data could not be loaded right now. Please try again in a moment.';
 });
+
+/* ---- the starkest borders: the whole site's thesis in one list ----
+   "Where you live decides which school system you pay for" is the page's own
+   headline; this makes it checkable. Every pair genuinely shares a boundary
+   (the same adjacency the neighbour outlines use), both figures are the same
+   per-student spending measure the map colours (TEA PEIMS, cited below the
+   map), and districts under 500 students are excluded because one hire or one
+   retirement moves their per-student figures — the site-wide ranking rule,
+   applied here too, and stated on the section. Clicking a pair pins one side;
+   the orange outlines that appear are its real neighbours, including the
+   other side of this line. */
+function renderBorders() {
+  if (!geo) return;
+  const MIN_STUDENTS = 500;
+  const seen = new Set(), pairs = [];
+  for (const a of ids) {
+    const ma = geo.d[a].m;
+    if (!ma || ma.s == null || (ma.e || 0) < MIN_STUDENTS) continue;
+    for (const b of (adj[a] || [])) {
+      const key = a < b ? a + '|' + b : b + '|' + a;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      // "Shares a real boundary line" must mean a LINE. One shared quantised
+      // vertex (~50m grid) can be a corner touch or a rounding coincidence —
+      // and this list selects the extreme tail of thousands of edges, exactly
+      // where such artifacts would surface. Two or more shared vertices means
+      // an actual edge segment. The forgiving n>=1 stays for the orange
+      // neighbour outlines, where a false neighbour costs nothing.
+      if ((adjStrength[key] || 0) < 2) continue;
+      const mb = geo.d[b].m;
+      if (!mb || mb.s == null || (mb.e || 0) < MIN_STUDENTS) continue;
+      // The gap is the difference of the ROUNDED figures the reader sees, so
+      // the card's own subtraction always checks out — the builder learned
+      // this the hard way ("round once and derive the rest").
+      pairs.push({ a, b, gap: Math.abs(Math.round(ma.s) - Math.round(mb.s)) });
+    }
+  }
+  pairs.sort((x, y) => y.gap - x.gap);
+  const top = pairs.slice(0, 6);
+  if (!top.length) return;
+  $('borders-list').innerHTML = top.map(p => {
+    const hiId = geo.d[p.a].m.s >= geo.d[p.b].m.s ? p.a : p.b;
+    const loId = hiId === p.a ? p.b : p.a;
+    const hi = geo.d[hiId], lo = geo.d[loId];
+    return `<button type="button" class="bpair" data-a="${hiId}">` +
+      `<div class="gap">${fmtM(p.gap)}<small> /student across one line</small></div>` +
+      `<div class="pair"><b>${fmtM(hi.m.s)}</b> ${hi.n}<br><b>${fmtM(lo.m.s)}</b> ${lo.n}</div>` +
+      `</button>`;
+  }).join('');
+  $('borders').hidden = false;
+  $('borders-list').onclick = e => {
+    const b = e.target.closest('.bpair');
+    if (!b) return;
+    focusOn(b.dataset.a);
+    $('wrap').scrollIntoView({
+      behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+      block: 'center' });
+  };
+}
 
 /* Theme toggle — shares tisd_theme with the portal so the choice follows the reader. */
 (function () {

@@ -90,6 +90,47 @@ sections, both motion preferences).
 
 ---
 
+## 2026-08-16 — A+ close-out: the zoom that already existed, and the last of the ledger
+
+**What changed** (PR #22, live and verified). The map's "no zoom" finding
+dissolved on inspection: wheel, pinch and drag all existed and read as absent,
+because nothing on desktop announced them and zoom flew away from the cursor.
+Now **anchored on the pointer** (`zoomAt` reuses `unproject()`/`project()` —
+change scale, see where the anchor lands, pan the difference away; verified:
+the same district stays under the cursor through a 2× zoom), pinch anchors on
+the finger midpoint, **+/− buttons** + a desktop hint, double-click zoom that
+**defers click-to-pin 280ms and cancels it** (both mouseups used to pin, the
+second against an already-flown view — it could pin a NEIGHBOUR). The side
+panel rests on a statewide read of the current metric with clickable extremes.
+Toolbar down to two button styles (filled = primary/active, outline = idle).
+
+On the report: the **Tutorial/Disclaimer/Print bar is retired** into the
+masthead's More menu (`#mm-*` buttons; `.m-menu button` styled in design.css);
+the credential line no longer repeats the proof row; the picker chips carry a
+`.chip-sep` seam between district jumps and page exits; percentiles are
+grammatical (`ordSuf`: 91st/22nd/43rd — every one said "th" before, in display
+type).
+
+**Gotchas.**
+- **"Missing feature" is often "unannounced feature."** Grade discoverability
+  before granting the feature request.
+- **An unanchored zoom is indistinguishable from a broken one.** Anchor on the
+  pointer or don't ship the wheel handler.
+- **`design.css` changes need the `?v=` bump on all ten pages** (v3→v4 this
+  time) — max-age=3600 means an unbumped change serves naked UA styling to
+  returning visitors for up to an hour. Second time this has bitten.
+- **dblclick and click-to-pin share mouseups**; any double-click gesture on a
+  click-target surface needs the deferred-click pattern.
+- `zoomAt` must no-op before the geo fetch resolves — the review caught it
+  throwing on every wheel tick over a still-loading map.
+
+**The audit is closed at A+**: C− → B+ → A− → A+ across four waves (PRs #19–
+#22), every re-inspection measured in Chromium against production, artifact
+updated in place. Left open by stated choice: the 28-screen page length (the
+long-form design is the page's own promise; all its mitigations now function).
+
+---
+
 ## 2026-08-16 — The bond chart, and the claim the data walked away from
 
 **What changed** (PR #21). Beat 2 of the bond story redesigned per the audit,
