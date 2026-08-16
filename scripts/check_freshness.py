@@ -148,8 +148,16 @@ def check_page_year(spec: dict, fetch_fn=fetch) -> dict:
     # publisher writes it. Same idea as verify_sources.py's `proves_it`.
     proof = spec.get("product_proof")
     if proof:
-        near = any(proof.lower() in html[max(0, m.start() - 260):m.end() + 260].lower()
-                   for m in re.finditer(spec["pattern"], html, re.IGNORECASE))
+        # Beside the match that PRODUCED the answer, not beside any match. The
+        # verdict comes from max(years); checking "some match somewhere has the
+        # proof near it" lets an old, correctly-labelled release vouch for a
+        # newer year that belongs to a different product on the same page —
+        # which is exactly the confusion this was added to prevent.
+        winner = max(re.finditer(spec["pattern"], html, re.IGNORECASE),
+                     key=lambda m: max(int(y) for y in re.findall(r"20\d{2}", m.group(0))),
+                     default=None)
+        near = winner is not None and proof.lower() in html[
+            max(0, winner.start() - 260):winner.end() + 260].lower()
         if not near:
             return _result(UNVERIFIABLE,
                            f"the year label was found but {proof!r} was not beside "

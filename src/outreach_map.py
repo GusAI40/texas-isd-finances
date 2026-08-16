@@ -79,20 +79,53 @@ async def build(pool, mailing_list: set[str] | None = None) -> dict[str, Any]:
 
     if pool is not None:
         async with pool.acquire() as conn:
+            # These tables hold one row per address / per message / per rid, so
+            # a district mailed in two campaigns has SEVERAL rows. Taking
+            # whichever arrived last would let an untouched second send erase a
+            # real click from the first — the map would quietly downgrade
+            # someone who did engage. So: keep the earliest send, and keep the
+            # FURTHEST progress rather than the most recent row.
             for r in await _rows(conn,
                                  "SELECT district_number, sent_at FROM public.outreach_sent"):
-                if r.get("district_number"):
-                    sent[r["district_number"]] = r
+                num = r.get("district_number")
+                if not num:
+                    continue
+                prev = sent.get(num)
+                if prev is None or (r.get("sent_at") and prev.get("sent_at")
+                                    and r["sent_at"] < prev["sent_at"]):
+                    sent[num] = r
+
+            # Rank so a weaker later row cannot overwrite a stronger earlier one.
+            RANK = {"opened": 3, "delivered": 2, "bounced": 1, "suppressed": 1}
             for r in await _rows(conn,
                                  "SELECT district_number, status FROM public.outreach_status"):
-                if r.get("district_number"):
-                    status[r["district_number"]] = (r.get("status") or "").lower()
+                num = r.get("district_number")
+                if not num:
+                    continue
+                st = (r.get("status") or "").lower()
+                if RANK.get(st, 0) >= RANK.get(status.get(num, ""), 0):
+                    status[num] = st
+
             for r in await _rows(conn, """
                     SELECT district_number, first_open_at, opens, first_click_at,
                            pageviews, distinct_pages, total_dwell_ms, last_seen_at
                       FROM public.v_recipient_journey"""):
-                if r.get("district_number"):
-                    journey[r["district_number"]] = r
+                num = r.get("district_number")
+                if not num:
+                    continue
+                prev = journey.get(num)
+                if prev is None:
+                    journey[num] = dict(r)
+                    continue
+                # Merge: any click, any open, and the sums, survive.
+                for k in ("first_open_at", "first_click_at"):
+                    if r.get(k) and (not prev.get(k) or r[k] < prev[k]):
+                        prev[k] = r[k]
+                for k in ("opens", "pageviews", "distinct_pages", "total_dwell_ms"):
+                    prev[k] = (prev.get(k) or 0) + (r.get(k) or 0)
+                if r.get("last_seen_at") and (not prev.get("last_seen_at")
+                                              or r["last_seen_at"] > prev["last_seen_at"]):
+                    prev["last_seen_at"] = r["last_seen_at"]
 
     # The map is about outreach, so the universe is the mailing list plus
     # anyone already emailed — NOT all 1,310 districts. Nearly 300 have no

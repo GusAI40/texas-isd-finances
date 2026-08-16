@@ -47,15 +47,25 @@ def test_there_really_are_shared_names(rows):
 
 
 def test_every_district_sharing_a_name_has_its_own_boundary(geo, rows):
-    """The bug's signature: one twin present, the other silently gone."""
+    """The bug's signature: one twin present, the other silently gone.
+
+    Checked against the SHARED-NAME LIST, not against has_boundary. That flag
+    is derived FROM this payload by build_district_crosswalk.py, so asserting
+    the two agree is circular — reintroduce the bug, rebuild both, and the
+    suite stays green while five districts are drawn on the wrong land. The
+    non-circular fact is that both twins of a name are real Texas districts
+    with real territory, so BOTH must be present.
+    """
     missing = []
     for name, twins in _shared_names(rows).items():
         for t in twins:
-            if t["has_boundary"].strip().lower() == "true" \
-                    and t["district_number"] not in geo["d"]:
+            if t["is_charter"].strip().lower() == "true":
+                continue                      # charters have no territory
+            if t["district_number"] not in geo["d"]:
                 missing.append(f'{t["district_number"]} {name} ({t["county"]})')
-    assert not missing, "registry says these have a boundary, payload lacks it: " \
-                        + "; ".join(missing)
+    assert not missing, (
+        "both districts sharing a name must each have their own boundary; "
+        "missing: " + "; ".join(missing))
 
 
 def test_no_two_districts_share_one_polygon(geo):
@@ -73,13 +83,46 @@ def test_no_two_districts_share_one_polygon(geo):
 
 
 def test_payload_and_registry_agree_on_who_has_a_boundary(geo, rows):
-    """A drifting count is how a stale flag hides a real change."""
+    """A drifting count is how a stale flag hides a real change.
+
+    NOTE this one IS circular by construction — has_boundary is generated from
+    the payload — so it catches a STALE crosswalk (rebuilt one, not the other)
+    and nothing else. It is kept for that, not as a guard on the join; the
+    twin test above is the real guard.
+    """
     flagged = {r["district_number"] for r in rows
                if r["has_boundary"].strip().lower() == "true"}
     assert flagged == set(geo["d"]), (
         f"registry says {len(flagged)}, payload has {len(geo['d'])}; "
         f"only in registry: {sorted(flagged - set(geo['d']))[:5]}, "
         f"only in payload: {sorted(set(geo['d']) - flagged)[:5]}")
+
+
+def test_each_twin_sits_in_its_own_county(geo, rows):
+    """The strongest non-circular check available without a shapefile.
+
+    A TEA district number's first three digits ARE its county code, and the
+    crosswalk carries the county name independently. Two twins must therefore
+    have different county codes AND different geometry. When the join collapsed,
+    both resolved to one number — so the survivor held its twin's polygon and
+    the centroids could not possibly both be right.
+    """
+    import csv as _csv
+    with open(ROOT / "data" / "district_crosswalk.csv") as fh:
+        county_of = {r["district_number"]: r["county_code"] for r in _csv.DictReader(fh)}
+    for name, twins in _shared_names(rows).items():
+        nums = [t["district_number"] for t in twins
+                if t["district_number"] in geo["d"]]
+        if len(nums) < 2:
+            continue
+        codes = {county_of[n] for n in nums}
+        assert len(codes) == len(nums), f"{name}: twins share a county code {codes}"
+        for n in nums:
+            assert n[:3] == county_of[n], (
+                f"{n} ({name}) does not sit in the county its number encodes")
+        cents = {tuple(geo["d"][n]["c"]) for n in nums}
+        assert len(cents) == len(nums), (
+            f"{name}: twins share a centroid — the join collapsed them")
 
 
 def test_every_centroid_is_inside_texas(geo):

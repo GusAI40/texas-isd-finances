@@ -665,6 +665,20 @@ _CLAIM_SQL = """
 """
 
 
+def _degraded_ceiling_reached() -> bool:
+    """The tight local budget used when the shared meter is unreachable.
+
+    Bounds CALLS, not DOLLARS. Only a provider-side spend cap does that.
+    """
+    now = time.monotonic()
+    global _degraded_hits
+    _degraded_hits = [t for t in _degraded_hits if now - t < _RATE_WINDOW]
+    if len(_degraded_hits) >= _DEGRADED_LIMIT:
+        return True
+    _degraded_hits.append(now)
+    return False
+
+
 async def _shared_limit_reached(pool) -> bool:
     """Claim one call against the minute and day ceilings shared by every instance.
 
@@ -677,7 +691,7 @@ async def _shared_limit_reached(pool) -> bool:
     per-instance ceiling still applies. Refusing here would break a working
     feature over a migration that has not run yet.
 
-    **Cannot reach the database** -> fail CLOSED. This used to fail open too,
+    **Cannot reach the database** -> DEGRADE to a tight local budget. This used to fail open too,
     which sounded cautious and was not: /query answers by running SQL against
     that same Supabase project, so if the pool is unreachable the question
     cannot be answered anyway — the agent would spend LLM tokens building a
@@ -687,6 +701,15 @@ async def _shared_limit_reached(pool) -> bool:
     still holds when the free tier pauses.
     """
     if pool is None:
+        # No pool at all is the SHAPE OF THE OUTAGE THIS GUARD EXISTS FOR: a
+        # Supabase pause means the app boots without one, and returning False
+        # here skipped the degraded ceiling entirely — the bill stayed unbounded
+        # during exactly the failure it was written to bound. Locally (no
+        # SUPABASE_DB_URL configured at all) there is nothing to meter and
+        # nothing to spend, so only degrade when a URL was configured and the
+        # pool still could not be built.
+        if os.getenv("SUPABASE_DB_URL"):
+            return _degraded_ceiling_reached()
         return False
     try:
         async with pool.acquire() as conn:
@@ -711,13 +734,7 @@ async def _shared_limit_reached(pool) -> bool:
         # money ceiling is the provider-side spend cap.
         print(f"WARNING: metering unreachable, degrading to "
               f"{_DEGRADED_LIMIT}/min for this instance: {exc}")
-        now = time.monotonic()
-        global _degraded_hits
-        _degraded_hits = [t for t in _degraded_hits if now - t < _RATE_WINDOW]
-        if len(_degraded_hits) >= _DEGRADED_LIMIT:
-            return True
-        _degraded_hits.append(now)
-        return False
+        return _degraded_ceiling_reached()
     return False
 
 
@@ -2503,7 +2520,15 @@ def _ops_ok(request: Request) -> bool:
         return False
     got = (request.query_params.get("token")
            or request.headers.get("x-ops-token") or "")
-    return secrets.compare_digest(got, want)
+    # Compare BYTES, not str. secrets.compare_digest raises TypeError on a
+    # non-ASCII str, and an unhandled exception here returns 500 — which tells
+    # anyone who tries `?token=café` that this route exists, defeating the
+    # whole point of answering 404. Encoding first makes every wrong token
+    # wrong the same way.
+    try:
+        return secrets.compare_digest(got.encode("utf-8"), want.encode("utf-8"))
+    except Exception:  # noqa: BLE001 — a bad token must never be a 500
+        return False
 
 
 @app.get("/ops/outreach", include_in_schema=False)
