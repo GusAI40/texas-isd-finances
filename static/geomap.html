@@ -109,7 +109,7 @@
   .a11y thead th { position:sticky; top:0; background:var(--card); border-bottom:1px solid var(--ink); }
   .a11y td a { color:var(--blue); }
   .mobonly { display:none; }
-  @media (max-width:760px){ .mobonly { display:inline; } }
+  @media (max-width:760px){ .mobonly { display:inline; } .deskonly { display:none; } }
 </style>
 </head>
 <body>
@@ -211,7 +211,9 @@
   <p class="support">Every shape below is one school district's actual boundary. Colour it by what
     you want to know, then find yours — and look at the district on the other side of the line.
     <span class="mobonly"><br>On a phone: <strong>tap</strong> a district, <strong>drag</strong> to move,
-    <strong>pinch</strong> to zoom.</span></p>
+    <strong>pinch</strong> to zoom.</span><span class="deskonly"><br><strong>Scroll or
+    double-click</strong> to zoom in on a city, <strong>drag</strong> to move — urban districts are
+    small at state scale.</span></p>
 
   <div class="toolbar">
     <button class="chip solid" id="locate"><svg class="ico" aria-hidden="true"><use href="#i-pin"/></svg> Find my district</button>
@@ -220,6 +222,8 @@
     <button class="chip" id="m-spend" aria-pressed="false">Spending / student</button>
     <button class="chip" id="m-pov" aria-pressed="false">Student poverty</button>
     <button class="chip" id="m-gap" aria-pressed="false">Beats prediction</button>
+    <button class="chip" id="zin" aria-label="Zoom in">+</button>
+    <button class="chip" id="zout" aria-label="Zoom out">&minus;</button>
     <button class="chip" id="reset">Reset view</button>
   </div>
 
@@ -462,11 +466,40 @@ function renderLegend() {
     `<span class="ramp">${ramp}</span><span>${M.diverge ? 'above prediction' : 'higher'}</span>` +
     `<span style="color:var(--muted)">· ${M.help}</span>`;
 }
+/* The panel's resting state is a statewide read of the current colouring, not
+   an empty box with instructions — the same rule the report's penny panel
+   learned: a panel showing nothing reads as a panel that failed to load, and
+   on a phone the hover it waits for never comes. The extremes are links, so
+   the resting state is also the fastest route to the most interesting shapes. */
+function renderPanelDefault() {
+  if (pinned || !geo) return;
+  const M = METRICS[metric];
+  const rows = ids.map(id => [id, valueOf(id)]).filter(r => r[1] != null)
+                  .sort((a, b) => a[1] - b[1]);
+  if (!rows.length) return;
+  const fmt = v => M.unit === '$' ? fmtM(v) : v + M.unit;
+  const med = rows[Math.floor(rows.length / 2)];
+  const lo = rows[0], hi = rows[rows.length - 1];
+  const link = ([id, v]) => `<a href="#" data-goto="${id}">${geo.d[id].n}</a> — ${fmt(v)}`;
+  $('p-empty').innerHTML =
+    `<div class="eyebrow" style="margin-bottom:.3rem">${M.label} · all of Texas</div>` +
+    `<div class="kv"><span>Median district</span><b>${fmt(med[1])}</b></div>` +
+    `<div class="kv"><span>Lowest</span><b style="font-weight:400">${link(lo)}</b></div>` +
+    `<div class="kv"><span>Highest</span><b style="font-weight:400">${link(hi)}</b></div>` +
+    `<p style="margin:.7rem 0 0;font-size:var(--fs-xs);color:var(--muted)">Hover any district for a ` +
+    `quick read; click to pin it and see who it borders.</p>`;
+}
+$('p-empty').addEventListener('click', e => {
+  const a = e.target.closest('a[data-goto]');
+  if (!a) return;
+  e.preventDefault();
+  focusOn(a.dataset.goto);
+});
 function setMetric(m) {
   metric = m;
   [['t','m-turn'],['s','m-spend'],['p','m-pov'],['g','m-gap']].forEach(([k,el]) =>
     $(el).setAttribute('aria-pressed', String(k === m)));
-  renderLegend(); draw();
+  renderLegend(); renderPanelDefault(); draw();
 }
 function focusOn(id) {
   pinned = id; showPanel(id);
@@ -503,10 +536,39 @@ cv.addEventListener('mousemove', e => {
   } else tip.style.display = 'none';
 });
 cv.addEventListener('mouseleave', () => { hover = null; tip.style.display='none'; draw(); });
+/* Zoom about a POINT, not about the middle. Wheel zoom existed here for
+   months and read as broken, because zooming flew away from whatever the
+   cursor was over — an audit graded this map "no zoom" from the desktop,
+   which is what an unanchored, unannounced zoom earns. The algebra mirrors
+   project(): solve for the view offset that keeps the world coordinate under
+   (px,py) at (px,py) after the scale changes. */
+function baseScale() {
+  const [x0,y0,x1,y1] = bounds, pad = 12 * dpr;
+  return Math.min((cv.width - 2*pad) / (x1-x0), (cv.height - 2*pad) / (y1-y0));
+}
+function zoomAt(px, py, factor) {
+  const [x0,y0,x1,y1] = bounds, pad = 12 * dpr, s0 = baseScale();
+  const s = s0 * view.k, k2 = Math.max(1, Math.min(20, view.k * factor)), s2 = s0 * k2;
+  if (k2 === view.k) return;
+  const cx = s => (cv.width  - 2*pad - (x1-x0)*s) / 2;
+  const cy = s => (cv.height - 2*pad - (y1-y0)*s) / 2;
+  const wx = (px - pad - view.x*dpr - cx(s)) / s;                  // world x under the pointer
+  const wy = (cv.height - pad - py + view.y*dpr - cy(s)) / s;     // world y (axis flipped)
+  view.k = k2;
+  view.x = (px - pad - wx*s2 - cx(s2)) / dpr;
+  view.y = (py - cv.height + pad + wy*s2 + cy(s2)) / dpr;
+  draw();
+}
 cv.addEventListener('wheel', e => {
   e.preventDefault();
-  view.k = Math.max(1, Math.min(20, view.k * (e.deltaY < 0 ? 1.12 : 1/1.12))); draw();
+  zoomAt(e.offsetX * dpr, e.offsetY * dpr, e.deltaY < 0 ? 1.12 : 1/1.12);
 }, {passive:false});
+cv.addEventListener('dblclick', e => {
+  e.preventDefault();
+  zoomAt(e.offsetX * dpr, e.offsetY * dpr, 1.8);
+});
+$('zin').onclick = () => zoomAt(cv.width / 2, cv.height / 2, 1.5);
+$('zout').onclick = () => zoomAt(cv.width / 2, cv.height / 2, 1 / 1.5);
 
 /* ---- touch: pan, pinch, tap ---- */
 let t0 = null;
@@ -525,8 +587,14 @@ cv.addEventListener('touchmove', e => {
     if (Math.abs(t.clientX-t0.x) + Math.abs(t.clientY-t0.y) > 6) t0.moved = true;
     view.x = t0.vx + (t.clientX-t0.x); view.y = t0.vy + (t.clientY-t0.y); draw();
   } else if (t0.mode === 'pinch' && e.touches.length === 2) {
+    // Anchored on the pinch midpoint, same as the wheel: zooming about the
+    // centre while the fingers are over Houston flings Houston off-screen.
     const dx = e.touches[0].clientX-e.touches[1].clientX, dy = e.touches[0].clientY-e.touches[1].clientY;
-    view.k = Math.max(1, Math.min(20, t0.k * (Math.hypot(dx,dy)/t0.dist))); draw();
+    const target = Math.max(1, Math.min(20, t0.k * (Math.hypot(dx,dy)/t0.dist)));
+    const r = cv.getBoundingClientRect();
+    const mx = ((e.touches[0].clientX+e.touches[1].clientX)/2 - r.left) * (cv.width / r.width);
+    const my = ((e.touches[0].clientY+e.touches[1].clientY)/2 - r.top) * (cv.height / r.height);
+    zoomAt(mx, my, target / view.k);
   }
 }, {passive:false});
 cv.addEventListener('touchend', e => {
@@ -564,7 +632,7 @@ $('find').addEventListener('keydown', e => {
   if (id) focusOn(id);
 });
 $('reset').onclick = () => { view = {k:1,x:0,y:0}; pinned = null; $('readout').style.display='none';
-  $('p-body').style.display='none'; $('p-empty').style.display='block'; draw(); };
+  $('p-body').style.display='none'; $('p-empty').style.display='block'; renderPanelDefault(); draw(); };
 $('m-turn').onclick = () => setMetric('t');
 $('m-spend').onclick = () => setMetric('s');
 $('m-pov').onclick = () => setMetric('p');
@@ -602,7 +670,7 @@ fetch('/district-geo').then(r => r.json()).then(d => {
     const [a,b] = k.split('|');
     (adj[a] = adj[a] || []).push(b); (adj[b] = adj[b] || []).push(a);
   }
-  renderA11yTable(); renderLegend(); resize();
+  renderA11yTable(); renderLegend(); renderPanelDefault(); resize();
   const want = new URLSearchParams(location.search).get('d');
   if (want && d.d[want]) focusOn(want);
 }).catch(err => {

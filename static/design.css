@@ -520,6 +520,14 @@ hr, .rule {
   padding: .4rem .7rem; border-radius: var(--r-sm); white-space: nowrap; }
 #masthead .m-menu a:hover { color: var(--ink); background: var(--wash); }
 #masthead .m-menu a[aria-current="page"] { color: var(--ink); font-weight: var(--fw-bold); }
+/* Page-local ACTIONS (tutorial, disclaimer, print) share the menu with the
+   links — they retired the old utility row, which was a fourth stacked bar
+   spending prime phone space on "Print". Buttons, because they act instead of
+   navigate; dressed identically, because a reader is choosing from one list. */
+#masthead .m-menu button { color: var(--ink-2); text-decoration: none; font-size: var(--fs-sm);
+  padding: .4rem .7rem; border-radius: var(--r-sm); white-space: nowrap;
+  background: none; border: 0; font-family: inherit; text-align: left; cursor: pointer; }
+#masthead .m-menu button:hover { color: var(--ink); background: var(--wash); }
 #masthead .mast-theme { background: none; border: 1px solid var(--rule);
   color: var(--ink-2); border-radius: var(--r-md); font: inherit;
   font-size: var(--fs-xs); padding: .4rem .65rem; min-height: 2rem;
