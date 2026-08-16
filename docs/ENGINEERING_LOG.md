@@ -90,6 +90,52 @@ sections, both motion preferences).
 
 ---
 
+## 2026-08-16 — Three insights that carry their own receipts
+
+**What changed** (PR #23, live). Three reader-facing features from data already
+ingested, each printing its working in place — the answer to "is every number
+traceable?" is designed in, not bolted on.
+
+1. **The money clock** (hero): $109.4B/yr ÷ 31,536,000s = **$3,471/second**,
+   counting up with the reader's time on page. The `?` opens the numerator,
+   divisor, fiscal year and source, led by the honesty sentence: *"This is an
+   average, not a meter."* Static under reduced motion. The tick touches only
+   `#clock-amt.textContent` — rebuilding innerHTML each second destroyed the
+   `?` button under keyboard focus.
+2. **Your house, your share** (What you pay): reader types a taxable value →
+   bill with the arithmetic beside it (`$500,000 ÷ 100 × 1.0138 = $5,069`),
+   scaled recapture share, and *"your household funds ~1.1 minutes of Dallas
+   ISD's year"* — denominator named as operations+debt, construction excluded.
+   Fully client-side. ⚠️ **The decimal guard matters**: `'250,000.00'` (every
+   appraisal site's format) inflated 100× when non-digits were stripped
+   naively; the point is truncated FIRST, and a test locks the guard.
+3. **The starkest borders** (map): top-6 same-boundary spending gaps from the
+   existing adjacency + the map's own PEIMS measure. Today's sharpest:
+   **Cotulla ISD $23,636 vs United ISD $12,679 — $10,957/student across one
+   line.** Click → pins the line. Rules, all stated on the section and
+   test-enforced: under-500-student districts excluded (site ranking rule);
+   pairs must share ≥2 quantised vertices (**one vertex can be a corner
+   touch**, and a tail-of-the-distribution list is exactly where such
+   artifacts surface); the gap is the difference of the ROUNDED figures shown,
+   so the reader's own subtraction checks out.
+
+**Review caught seven defects pre-merge** (decimal inflation, focus-destroying
+tick, corner-touch adjacency, unrounded gap, unnamed denominator, smooth
+scroll ignoring reduced motion, zero tests). `tests/test_wow.py` (9 tests)
+holds each published claim to its code — divisor to its stated value,
+exclusion rule to its prose.
+
+**Traceability state, stated precisely**: the four revenue figures have full
+clickable lineage with gate verdicts; the three new features print numerator/
+divisor/source in place; everything else traces via /sources + the provenance
+tests but is not yet click-openable (builders would need to emit numerators —
+the lineage backlog).
+
+772 tests pass; verified in a driven browser with arithmetic re-checked by
+hand; verify_live green after deploy.
+
+---
+
 ## 2026-08-16 — A+ close-out: the zoom that already existed, and the last of the ledger
 
 **What changed** (PR #22, live and verified). The map's "no zoom" finding
