@@ -17,6 +17,210 @@ Entry template:
 
 ---
 
+## 2026-08-16 — The invisible half: a browser audit, three blockers, all fixed
+
+**What happened.** A corner-to-corner visual audit — 13 pages rendered in
+Chromium at 1440px and 390px against live production — found that the site's
+biggest defects were ones no existing check could see, because none of them
+rendered a page. Then all three blockers were fixed, verified in a browser, and
+pushed, along with the outreach repairs from the KPI report.
+
+**Blocker 1 — eight of sixteen sections never painted.** On the district report,
+`.reveal` set `opacity:0` from CSS alone and eight sections waited on an
+IntersectionObserver that never fired — full height, full content, blank.
+Lost: trends, peers, where the money goes, payroll vs contracts, who the money
+serves, anomalies, insights, and the question box. Confirmed by experiment:
+`prefers-reduced-motion: reduce` (which makes `wireReveals()` bail) showed 0
+invisible vs 8, same URL back to back. **Fix: the hidden state now requires
+`.armed`, added only in the same statement that hands the section to the
+observer — CSS alone can never hide content again.** A narrow rescue sweep
+reveals only sections the reader has reached and warns to console. Verified:
+0 invisible, animation intact (observer does the work, watchdog silent).
+
+**Blocker 2 — /docs was a blank page.** HTTP 200, zero pixels,
+`SwaggerUIBundle is not defined`: FastAPI's Swagger loads from cdn.jsdelivr.net
+and our CSP is `script-src 'self'`. They had been fighting since the header
+shipped. Fix: built-ins off; `/docs` is server-rendered from the app's own
+OpenAPI schema — 40 endpoints, zero external requests, works with JS disabled.
+Building it surfaced the `/district-geo` docstring citing TIGER 2024 for 2025
+boundaries (fixed), and the geomap eyebrow now names BOTH vintages.
+
+**Blocker 3 — the AI disclosure named the wrong vendor** ("OpenAI gpt-4o-mini",
+nine days after the DeepSeek switch). Now read from `/health` at load; neutral
+wording if the call fails. Same class as the MCP "4,588 bond elections" bug:
+derive it, don't repeat it.
+
+**The new rung: `tests/test_render.py`.** Boots the app, renders the report in
+Chromium, scrolls like a reader, fails on any section laid out at full height
+and painting nothing; plus a static CSS guard **verified to FAIL with the bug
+reintroduced**. Honest limit, stated in the file: without a database the
+browser test cannot see this exact bug (the affected sections are DB-backed and
+correctly `display:none`), so the static guard is the regression test.
+
+**Gotcha that mattered: the sandbox proxy ate localhost.** Under the full suite
+the render tests silently SKIPPED — `HTTP(S)_PROXY` sent the fixture's
+`127.0.0.1` health probe to the proxy, which refused, and the fixture read that
+as "app did not start". Fixed with an explicit no-proxy opener, and the fixture
+now FAILS with the server log instead of skipping. A skip that hides a working
+check is the same disease as a check aimed at the wrong file.
+
+**Outreach (the KPI report's list, every item doable without keys):**
+- **Every reply-able address is now gus@ubntag.com.** The unsubscribe fallback
+  was `hello@txisd.dev` — an inbox that does not exist. It never actually
+  shipped (two `or` clauses always won), but that was luck. Test-enforced via
+  parsed string literals — a text grep failed on its own comment, again.
+- **The 11 undeliverable addresses are committed** in
+  `data/outreach_suppression.json` as SHA-256 hashes (contact data never lands
+  in git); `send_outreach` refuses them before any other check.
+  `scripts/prune_bad_addresses.py` rebuilds it from the KPI report.
+- **`usage_report.py` now leads with the first-party email click-through**
+  (`src:email` by day) — counted since 2026-08-12 12:50, never read. Still
+  needs SUPABASE_PAT to run; not present in this container.
+- `KNOWN_SOURCES` gains `email-w2/w3/w4` — wave tokens, identical within a
+  wave, so waves compare without identifying anyone.
+
+**Still owner-only:** Resend click/open tracking toggles for ubntag.com;
+running `usage_report.py` / `outreach_kpi.py` (needs RESEND_API_KEY +
+SUPABASE_PAT); checking gus@ubntag.com for replies (no connected mailbox sees
+it); repo secrets for the Monday KPI workflow.
+
+**Verified.** ruff clean; 763 tests pass; verify_live 26/26 against a local
+build; JS parse clean; the fixed page re-rendered in Chromium (0 invisible
+sections, both motion preferences).
+
+---
+
+## 2026-08-16 — Clickable lineage: why is this number this number
+
+**What changed.** A reader can now click a published per-student revenue figure
+on a district page and see the working: numerator, denominator, **which student
+count the denominator is**, the formula, the fiscal year, the publisher, a link
+to the original file, and the verdict of a publication gate. New:
+`src/lineage.py` (the Evidence object + `gate()`), `scripts/recompute_revenue.py`
+(a second, independent re-derivation), `GET /district/{n}/lineage/{metric}`,
+a tenth MCP tool `district_lineage`, `tests/test_lineage.py` (34 tests), and the
+panel itself in `static/index.html`. `scripts/build_economics_data.py` emits the
+evidence; `src/sources.py` gained `freshness_and_aim()` and `recorded_on()`.
+
+**Why a gate and not a validation flag.** "Deterministic" is not "true". Every
+reader-visible error this project has shipped came from deterministic code with
+a green suite behind it — the bond layer two years stale, five districts drawn
+on another district's land, a test comparing an artefact to a column generated
+from that artefact. So VERIFIED requires four separate questions to pass, and
+each has one of those failures behind it: **computability** (can it be computed,
+and does a per-unit figure name its denominator — "per student" is not a
+definition, this site publishes per-student figures on different denominators
+that legitimately disagree), **arithmetic**, **correctness** (does an
+independent re-read agree), **freshness**, **aim**. `gate()` refuses to return
+VERIFIED when `recomputed_from` names the artefact being checked, and a figure
+nobody recomputed is **UNVERIFIED**, not VERIFIED — a badge nobody earned is
+worse than no badge.
+
+**The second road.** `scripts/recompute_revenue.py` re-derives all four figures
+with the standard-library `csv` module — no pandas, no helper shared with the
+builder — and the build **refuses to write the artefact** if any of the 4,808
+figures disagree. A test parses its imports (via `ast`, not grep — the first
+draft failed on its own docstring) so it cannot quietly become a wrapper around
+the builder. `meta.lineage_recomputation` records that the check ran and found
+zero, because a check that ran and found nothing must not look like a check that
+never ran.
+
+**Six bugs found by reviewing BEFORE the merge.** All mine, from the commit
+before the fix.
+1. **`.vercelignore` drops all of `scripts/`**, and `src/sources.py` reads
+   `scripts/freshness_vintages.json` at request time. In a deploy-shaped tree
+   every verdict fell to UNVERIFIED — correct behaviour and a broken deploy at
+   once, invisible unless someone clicked a number, with tests green because the
+   repo checkout has the file. Re-included; reproduced both the failure and the
+   fix in a tree built to the ignore file's own rules.
+2. **The second road overclaimed.** It reads `prepare_data.py`'s cleaned CSV,
+   not TEA's workbook, and names the same 60-char-truncated columns as the
+   builder — so a wrong TEA-to-CSV mapping would be reproduced by both roads and
+   still publish VERIFIED under the words "an independent re-read of the
+   publisher's own file". Prose corrected in three places.
+3. **`fresh=True` was inferred from the ABSENCE of a hand-typed flag** and shown
+   as "Is this the publisher's latest? yes". The daily watchdog asks the
+   publishers but never writes back, so that claim was unearned. Label is now
+   "Source current, as last recorded?" and the panel states the record's date.
+4. `verify_artifacts.py` added economics to the chain but left the downstream
+   builders reading `static/`, so drift would surface only on a second run.
+5. Two docstrings claimed `/query` uses the Evidence object. It does not.
+6. The arithmetic tolerance had zero headroom — 278,038 / 212 is exactly 1311.5
+   and passed on floating-point luck.
+
+**Gotchas.**
+- **`.vercelignore` is a silent third environment.** Tests and local runs both
+  see the full checkout; only the deploy sees the filtered tree. Anything under
+  `src/` that opens a file outside `src/`, `static/` or `api/` needs a
+  re-include AND a test asserting it, or it behaves differently in production
+  from everywhere it was checked.
+- **Store only what varies.** The first draft emitted the formula, unit and
+  denominator name per district and nearly doubled the artefact (2.4 MB) for no
+  new fact. Constants now live once in `meta.lineage_templates`: 1,202 copies of
+  "the formula" is 1,202 chances for one to differ. Cost with four metrics:
+  +320 KB raw, ~286 KB gzipped.
+- **`economics_data.json` was never in `verify_artifacts.py`'s rebuild chain**,
+  despite being what the forensic and trend layers read. It rebuilds
+  byte-identically, so there was no reason for the exemption. Added.
+- **The three revenue PERCENTAGES deliberately get no lineage.** `federal_pct`
+  is 100 minus the other two so the bar's labels add to 100 — a subtraction, not
+  a division. A numerator for it would describe a calculation that never
+  happened.
+- **`tea_staar_district` now carries `known_stale: true`.** Being a release
+  behind was recorded only in a JSON comment, where no reader would ever find
+  it; it is now machine-readable and reaches the lineage panel.
+- `verify_live.py` covers the endpoint: 21 checks to **26**, including the
+  verdict itself and that the recomputation never derives from the artefact it
+  validates. Confirmed it exits 1 against a deploy missing the vintage file.
+
+**Verified.** ruff clean; 754 tests pass; `verify_artifacts` byte-identical on
+all four artefacts; `verify_live` 26/26 against a local build; and the panel
+rendered in Chromium — four clickable figures, full working, Escape closes, no
+JS errors. Dallas ISD: $2,383,669,437 / 139,776 = $17,053, VERIFIED.
+
+**Open items.** Unchanged from the previous entry, plus: lineage covers the four
+revenue figures only — spending, debt and outcome figures still publish
+result-only and cannot be opened up until their builders emit numerators. The
+`/query` path does not use the Evidence object yet.
+
+---
+
+## 2026-08-16 — Fifteen bugs, two reviews, and a test that validated itself
+
+**What happened.** Asked for `/code-review` over the week's work. First pass on
+the caching change found 6; second pass over the previously unreviewed changes
+found 9. All fifteen were mine, all in code I had already reported as working,
+all with a green suite behind them.
+
+**The one worth remembering.** `tests/test_geo_boundaries.py` checked
+`district_geo.json` against the crosswalk's `has_boundary` column — which
+`build_district_crosswalk.py` GENERATES from that same payload. Reintroduce the
+twin-collapse bug, rebuild both artefacts, and the tests stay green while five
+districts are drawn on another district's land. It was circular from the day I
+wrote it, in the same commit where I claimed it "fails against the old payload
+and passes against the new" — true then, meaningless as a guard. Replaced with
+a fact no rebuild can launder: a TEA number's first three digits ARE its county
+code, so each twin's centroid must fall in the county its own number encodes.
+
+**Two were user-facing.** The map credited TIGER/Line 2024 in four places while
+serving 2025 boundaries — the exact class of defect (fresh data, stale label)
+this week was spent eliminating elsewhere. And `/ops/*` returned 500 rather
+than 404 for a non-ASCII token, because `secrets.compare_digest` raises on
+non-ASCII `str`; the crash confirmed the private route exists, defeating the
+whole "404 not 403" design. Both fixed, deployed, verified live.
+
+**Two more had real blast radius.** `/feed.xml` got a 24-hour cache despite
+being rebuilt daily by cron with no deploy. And CDN caching could have bypassed
+`SITE_PASSWORD` entirely — the gate is middleware and a cached response never
+runs middleware. Root cause was placement: cache rules in static `vercel.json`,
+the gate a runtime switch, so they could never coordinate. Moved into the app
+beside the gate.
+
+**The rule, now in CLAUDE.md:** run the review BEFORE the merge. A passing
+suite is evidence about the tests, not about the code.
+
+---
+
 ## 2026-08-14 (evening) — The outreach map: seeing the campaign on the state
 
 **What changed.** A private map of where the outreach actually landed:

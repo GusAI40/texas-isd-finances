@@ -38,6 +38,12 @@ ROOT = Path(__file__).resolve().parent.parent
 # artifact -> (builder, extra args). Order matters: forensic and trend read the
 # artifacts the earlier ones write, which is also the documented rebuild order.
 CHAIN = [
+    # economics_data.json was missing from this chain for months. It is the
+    # artefact the forensic and trend layers read, and since it now carries the
+    # per-district lineage a reader can click, a builder edited and never re-run
+    # would leave that evidence describing arithmetic the site no longer does.
+    # It rebuilds byte-identically, so there is no reason for it to be exempt.
+    ("economics_data.json", "build_economics_data.py", []),
     ("bond_data.json", "build_bond_data.py", []),
     ("forensic_data.json", "build_forensic_data.py", []),
     ("trend_data.json", "build_trend_data.py", []),
@@ -99,11 +105,16 @@ def main() -> int:
                 continue
             target = tmpdir / name
             cmd = [sys.executable, f"scripts/{builder}", "--out", str(target), *extra]
-            # Point the chained builders at what we have already rebuilt.
+            # Point the chained builders at what we have already rebuilt. A
+            # builder left reading static/ instead reads the COMMITTED input, so
+            # a genuine upstream change would only surface on a second run —
+            # which is a drift check that reports clean on the run where the
+            # drift appears.
             if builder == "build_forensic_data.py":
-                cmd += ["--bonds", str(tmpdir / "bond_data.json")]
+                cmd += ["--bonds", str(tmpdir / "bond_data.json"),
+                        "--economics", str(tmpdir / "economics_data.json")]
             if builder == "build_trend_data.py":
-                pass  # reads the CSV and economics artifact only
+                cmd += ["--economics", str(tmpdir / "economics_data.json")]
             r = subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True)
             if r.returncode:
                 drift.append((name, "build failed", r.stderr.strip()[-300:]))

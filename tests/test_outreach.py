@@ -33,7 +33,7 @@ ROW = {
     "subject": "Every number Texas publishes about Argyle ISD",
 }
 POSTAL = "123 Main St, Suite 1, Dallas TX 75201"
-UNSUB = "mailto:hello@txisd.dev?subject=unsubscribe"
+UNSUB = "mailto:gus@ubntag.com?subject=unsubscribe"
 
 
 def _rendered():
@@ -165,3 +165,61 @@ def test_the_pipeline_graphic_exists_and_has_a_route():
     assert (ROOT / "static" / "tag_pipeline.png").exists()
     api = (ROOT / "src" / "api.py").read_text()
     assert "/static/tag-pipeline.png" in api
+
+
+# --- every address we hand a superintendent must be a mailbox we read ---------
+
+def test_no_unmonitored_address_can_reach_a_recipient():
+    """gus@ubntag.com is the only mailbox anyone watches.
+
+    The unsubscribe fallback was hello@txisd.dev — a domain that resolves and
+    an inbox that does not exist. It sat behind two `or` clauses that always
+    won, so it never actually shipped; that is luck, not design. A reply or an
+    unsubscribe sent to an address nobody opens is indistinguishable from being
+    ignored, and this campaign has already gone to 571 superintendents.
+
+    Checked against the parsed string literals, not the file text: a comment
+    explaining which address was retired would otherwise fail this test, which
+    is a check firing on prose about the thing instead of the thing.
+    """
+    import ast
+    tree = ast.parse((ROOT / "scripts" / "send_outreach.py").read_text())
+    literals = [n.value for n in ast.walk(tree)
+                if isinstance(n, ast.Constant) and isinstance(n.value, str)]
+    joined = "\n".join(literals)
+    for dead in ("hello@txisd.dev", "reports@txisd.dev", "noreply@"):
+        assert dead not in joined, (
+            f"{dead} is a live string in the sender — every address a "
+            "recipient can reply to must be a mailbox someone reads")
+    assert "gus@ubntag.com" in joined
+
+
+# --- known-dead addresses are refused before the provider sees them -----------
+
+def test_the_suppression_list_is_committed_and_blocks_by_hash():
+    """6 addresses hard-bounced and 5 were provider-suppressed in wave 1.
+    Mailing them again reaches nobody and teaches every mail filter that this
+    domain writes to dead addresses — which costs delivery to the live ones.
+
+    The sent-log also covers them, but it is gitignored and container-only,
+    and this repo has already once resolved a skip-list of ZERO in a fresh
+    container. So the suppression is committed — as hashes, because contact
+    data never is.
+    """
+    import json as _json
+
+    from scripts.send_outreach import SUPPRESSION, _digest, load_suppressed
+
+    assert SUPPRESSION.exists(), "data/outreach_suppression.json must be committed"
+    data = _json.loads(SUPPRESSION.read_text())
+    entries = data["entries"]
+    assert len(entries) >= 11, "the 11 wave-1 failures must be recorded"
+    for h, meta in entries.items():
+        assert len(h) == 64 and all(c in "0123456789abcdef" for c in h), (
+            "entries must be SHA-256 hex — never an address")
+        assert "@" not in _json.dumps(meta), "no contact data in the metadata"
+        assert meta["status"] in ("bounced", "suppressed", "complained")
+    # and the loader actually reads them
+    assert load_suppressed() == set(entries)
+    # digest is over the canonicalised address, so case cannot dodge the block
+    assert _digest("A@B.Com ") == _digest("a@b.com")

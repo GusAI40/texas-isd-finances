@@ -103,7 +103,11 @@ def referrer_host(referer: str | None, own_host: str | None = None) -> str:
 # /?src=<anything> could mint unlimited counter rows. Campaign-level tags
 # ('came from our email') are the same for every recipient, so they identify
 # a channel, never a person — the privacy rule above still holds.
-KNOWN_SOURCES = frozenset({"email"})
+# Wave tokens are per-CAMPAIGN, not per-recipient: every email in a wave
+# carries the identical token, so the counter can answer "did wave 2 out-pull
+# wave 1" while two recipients in the same wave stay indistinguishable — the
+# same rule that admitted "email" in the first place.
+KNOWN_SOURCES = frozenset({"email", "email-w2", "email-w3", "email-w4"})
 
 
 def source_tag(src: str | None) -> str:

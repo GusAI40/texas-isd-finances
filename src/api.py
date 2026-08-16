@@ -29,6 +29,7 @@ from pydantic import BaseModel, Field
 from . import (
     absences,
     analytics,
+    lineage,
     llm_config,
     mcp_protocol,
     mcp_tools,
@@ -107,6 +108,20 @@ app = FastAPI(
     ),
     version="1.0.0",
     lifespan=lifespan,
+    # FastAPI's built-in /docs and /redoc load their JavaScript and CSS from
+    # cdn.jsdelivr.net. This site's own CSP is `script-src 'self'`, so the
+    # browser blocked them and /docs rendered as a COMPLETELY BLANK PAGE —
+    # HTTP 200, zero pixels tall, one console error — for as long as the
+    # security header has existed. It is linked from the report's footer and
+    # named in the project docs as the API reference.
+    #
+    # Two ways out: widen the CSP, or stop needing the CDN. Widening it to
+    # admit a third-party script host so that a documentation page can render
+    # is a poor trade on a site that already refused a vendor basemap for the
+    # same reason. So /docs below is built from this app's own OpenAPI schema,
+    # self-contained, no external asset of any kind.
+    docs_url=None,
+    redoc_url=None,
 )
 
 # CORS: this is a public, read-only API. Set CORS_ALLOW_ORIGINS to a
@@ -2559,6 +2574,211 @@ async def ops_outreach_data(request: Request):
                                           "X-Robots-Tag": "noindex, nofollow"})
 
 
+@app.get("/district/{district_number}/lineage/{metric}", tags=["Districts"])
+async def get_metric_lineage(district_number: str, metric: str):
+    """Why is this number this number?
+
+    Returns the evidence behind one published figure — numerator, denominator,
+    what the denominator MEANS, the formula, the fiscal year, the publisher and
+    the vintage — plus the publication gate's verdict.
+
+    The gate asks four questions, and each has a real failure behind it:
+    correctness (does an independent recomputation agree), freshness (has the
+    publisher moved on), aim (did we check the file we actually publish from),
+    and computability (can this be computed at all). A figure that cannot be
+    computed is REFUSED in public rather than guessed or left blank.
+
+    What each check does and does not prove
+    --------------------------------------
+    `arithmetic` is narrow on purpose: the numerator and the denominator live in
+    the same file as the value, so it proves the division, never the inputs. It
+    is reported under its own name rather than folded into `correctness`,
+    because a figure would otherwise wear a badge reading checked-against-the-
+    state when nothing had left the artefact.
+
+    `correctness` carries a recomputation the BUILD stamped in, from
+    scripts/recompute_revenue.py — a longhand re-read of the source CSV with the
+    standard-library csv module, no pandas, nothing shared with the builder.
+    That is genuinely a second road through the pandas pipeline, but both roads
+    read prepare_data.py's cleaned CSV rather than TEA's workbook, so a wrong
+    column mapping upstream of both would be reproduced by both. That last link
+    is held by the SHA-256 in tests/fixtures/provenance.json and by
+    scripts/verify_sources.py, not by this check.
+
+    A figure with no recomputation at all is UNVERIFIED, not VERIFIED. A badge
+    nobody earned is worse than no badge.
+    """
+    econ = _economics()
+    if econ is None:
+        raise HTTPException(
+            status_code=503,
+            detail="Economics data not built. Run scripts/build_economics_data.py")
+    rec = (econ.get("districts") or {}).get(district_number)
+    if not rec:
+        raise HTTPException(status_code=404,
+                            detail="District not in the economics dataset")
+    meta = econ.get("meta") or {}
+    lin = (rec.get("revenue") or {}).get("lineage") or {}
+    figures = lin.get("figures") or {}
+    templates = meta.get("lineage_templates") or {}
+    if metric not in figures or metric not in templates:
+        raise HTTPException(
+            status_code=404,
+            detail=(f"No lineage published for {metric!r}. Figures without "
+                    "emitted evidence are not yet clickable — the builder must "
+                    "emit the numerator and denominator, they cannot be "
+                    "recovered from a rounded result. Published for this "
+                    f"district: {sorted(set(figures) & set(templates))}"))
+    # Constants come from the one template; only the numbers are per district.
+    raw = {**templates[metric], **figures[metric],
+           "denominator": lin.get("denominator")}
+
+    ev = lineage.Evidence(
+        metric=raw["metric"], value=raw["value"],
+        numerator=raw.get("numerator"), denominator=raw.get("denominator"),
+        denominator_type=raw.get("denominator_type", ""),
+        formula=raw.get("formula", ""), unit=raw.get("unit", ""),
+        rounding=raw.get("rounding", 0.5),
+        fiscal_year=raw.get("fiscal_year"), district_number=district_number,
+        source=raw.get("source", ""), artifact=raw.get("artifact", ""),
+        source_vintage=str(meta.get("year", "")),
+        notes=[raw["source_note"]] if raw.get("source_note") else [],
+        # CORRECTNESS. The build stamped what a second, independent read of
+        # TEA's own CSV produced — standard-library csv, no pandas, nothing
+        # shared with the builder. `recomputed_from` names those files, not this
+        # artefact, which is what makes the check worth anything.
+        recomputed_value=raw.get("recomputed_value"),
+        recomputed_from=lin.get("recomputed_from", "") if "recomputed_value" in raw else "",
+    )
+    # Everything below comes from the source register, never from the artefact
+    # being described. A source that is unknown to the register leaves these
+    # None, and None renders as "unchecked" — never as "fine".
+    src = sources.SOURCES.get(raw.get("source_id", ""), {})
+    ev.source_url = src.get("url", "")
+    measure = next((m for m in sources.MEASURES
+                    if m["id"] == raw.get("measure_id")), None)
+    if measure:
+        ev.independent_test = measure.get("test", "")
+    try:
+        ev.fresh, ev.aim_ok = sources.freshness_and_aim(raw.get("source_id", ""))
+        # How old the freshness CLAIM is, which is not how old the data is. The
+        # daily watchdog asks the publishers and turns red, but nothing writes
+        # its answer back here, so "nothing newer recorded" is only as good as
+        # the date somebody last edited the record.
+        if ev.fresh is not None and sources.recorded_on():
+            ev.notes.append(
+                f"Freshness is as recorded on {sources.recorded_on()}: no newer "
+                "release from this publisher had been written down. A daily check "
+                "asks the publishers, but it does not update this record by itself.")
+    except Exception:                     # noqa: BLE001 — unknown, never assumed ok
+        ev.fresh, ev.aim_ok = None, None
+
+    return JSONResponse(ev.to_dict(),
+                        headers={"Cache-Control": "public, max-age=600"})
+
+
+def _docs_html() -> str:
+    """The API reference, built from this app's own schema, with no CDN.
+
+    Deliberately plain: every endpoint here is a GET a reader can paste into a
+    browser, so the page's job is to list them accurately, not to be an
+    interactive console. Rendered server-side, so it needs no JavaScript at all
+    and cannot be blanked by a blocked script the way the Swagger page was.
+    """
+    schema = app.openapi()
+    groups: Dict[str, list] = {}
+    for path, ops in sorted(schema.get("paths", {}).items()):
+        for method, op in sorted(ops.items()):
+            if method.upper() not in ("GET", "POST"):
+                continue
+            tag = (op.get("tags") or ["Other"])[0]
+            groups.setdefault(tag, []).append((method.upper(), path, op))
+
+    def esc(s: object) -> str:
+        return (str(s or "").replace("&", "&amp;").replace("<", "&lt;")
+                .replace(">", "&gt;").replace('"', "&quot;"))
+
+    out = []
+    for tag, ops in sorted(groups.items()):
+        rows = []
+        for method, path, op in ops:
+            summary = esc(op.get("summary") or "")
+            doc = esc((op.get("description") or "").strip().split("\n\n")[0])
+            params = ", ".join(
+                esc(p.get("name")) + ("" if p.get("required") else "?")
+                for p in op.get("parameters", []))
+            link = (f'<a href="{esc(path)}">{esc(path)}</a>'
+                    if method == "GET" and "{" not in path else esc(path))
+            rows.append(
+                f'<tr><td class="m m-{method.lower()}">{method}</td>'
+                f'<td class="p"><code>{link}</code>'
+                + (f'<div class="par">{params}</div>' if params else "")
+                + f'</td><td class="d"><b>{summary}</b>'
+                + (f"<p>{doc}</p>" if doc else "") + "</td></tr>")
+        out.append(f"<h2>{esc(tag)}</h2><table>"
+                   "<thead><tr><th>Method</th><th>Path</th><th>What it returns</th>"
+                   "</tr></thead><tbody>" + "".join(rows) + "</tbody></table>")
+
+    return f"""<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>API reference &mdash; Texas ISD Finances</title>
+<style>
+  :root {{ --ink:#14171a; --ink-2:#4a5157; --ink-3:#767c82; --rule:#e3e6e8;
+           --bg:#fff; --surface:#f7f8f9; --accent:#1a56a8; }}
+  @media (prefers-color-scheme: dark) {{
+    :root {{ --ink:#e9ecef; --ink-2:#b3b9be; --ink-3:#868d93; --rule:#2a2f34;
+             --bg:#101216; --surface:#171a1f; --accent:#78a9f0; }}
+  }}
+  * {{ box-sizing:border-box; }}
+  body {{ background:var(--bg); color:var(--ink); margin:0; padding:2.5rem 1.25rem 5rem;
+         font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }}
+  .wrap {{ max-width:60rem; margin:0 auto; }}
+  a {{ color:var(--accent); }}
+  h1 {{ font-size:2rem; margin:0 0 .4rem; letter-spacing:-.02em; }}
+  .lede {{ color:var(--ink-2); margin:0 0 1.2rem; max-width:44rem; }}
+  .bar {{ display:flex; flex-wrap:wrap; gap:.5rem 1.2rem; font-size:.85rem;
+          padding-bottom:1.2rem; border-bottom:2px solid var(--ink); margin-bottom:.5rem; }}
+  h2 {{ font-size:.78rem; letter-spacing:.12em; text-transform:uppercase;
+        color:var(--ink-3); margin:2.6rem 0 .5rem; }}
+  table {{ width:100%; border-collapse:collapse; font-size:.9rem; }}
+  th {{ text-align:left; font-size:.7rem; letter-spacing:.1em; text-transform:uppercase;
+        color:var(--ink-3); padding:.5rem .6rem; border-bottom:1px solid var(--rule); }}
+  td {{ padding:.6rem; border-bottom:1px solid var(--rule); vertical-align:top; }}
+  td.m {{ font-family:ui-monospace,Menlo,monospace; font-size:.72rem; font-weight:700;
+          width:4.5rem; }}
+  .m-get {{ color:#1a7f4b; }} .m-post {{ color:#a2591b; }}
+  td.p {{ width:34%; }}
+  code {{ font-family:ui-monospace,Menlo,monospace; font-size:.85em; }}
+  .par {{ font-size:.74rem; color:var(--ink-3); margin-top:.2rem;
+          font-family:ui-monospace,Menlo,monospace; }}
+  td.d b {{ font-weight:600; }}
+  td.d p {{ margin:.25rem 0 0; color:var(--ink-2); font-size:.85rem; }}
+  .tw {{ overflow-x:auto; }}
+  footer {{ margin-top:3rem; padding-top:1rem; border-top:1px solid var(--rule);
+            color:var(--ink-3); font-size:.82rem; }}
+</style></head><body><div class="wrap">
+<h1>API reference</h1>
+<p class="lede">Every endpoint is public, read-only and needs no key. Most are plain
+GETs you can open in a browser or pipe through <code>curl</code>. Figures come from
+the State of Texas &mdash; see <a href="/sources">where each number comes from</a>.</p>
+<div class="bar">
+  <span><a href="/openapi.json">OpenAPI schema (JSON)</a></span>
+  <span><a href="/health">Service health</a></span>
+  <span><a href="/mcp">MCP endpoint</a> &middot; <a href="/.well-known/mcp.json">discovery</a></span>
+  <span><a href="/">Back to the report</a></span>
+</div>
+<div class="tw">{''.join(out)}</div>
+<footer>Rendered from this service's own OpenAPI schema. Served with no external
+scripts, styles or fonts, so it works under the site's content-security policy
+and stays readable with JavaScript disabled.</footer>
+</div></body></html>"""
+
+
+@app.get("/docs", include_in_schema=False)
+async def api_docs():
+    return HTMLResponse(_docs_html())
+
+
 @app.get("/geomap", include_in_schema=False)
 async def geomap_page():
     """The real geographic map of Texas school district boundaries."""
@@ -2570,7 +2790,7 @@ async def geomap_page():
 
 @app.get("/district-geo", tags=["Districts"])
 async def district_geo():
-    """Simplified Texas school-district boundaries (Census TIGER 2024, public
+    """Simplified Texas school-district boundaries (Census TIGER/Line 2025, public
     domain) joined to TEA district numbers, with the headline measures merged
     in. Charter districts are absent — they have no geographic boundary."""
     data = STATIC_DIR / "district_geo.json"

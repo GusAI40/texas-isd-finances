@@ -53,6 +53,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import hashlib
 import html
 import json
 import os
@@ -404,6 +405,29 @@ def load_sent() -> set[str]:
     return local | _remote_emails("outreach_sent")
 
 
+SUPPRESSION = ROOT / "data" / "outreach_suppression.json"
+
+
+def load_suppressed() -> set[str]:
+    """SHA-256 hashes of addresses that must never be mailed again.
+
+    Hard bounces, provider suppressions, complaints — recorded by
+    scripts/prune_bad_addresses.py and COMMITTED, because the sent-log that
+    also covers these addresses is gitignored and container-only. Mailing a
+    dead address reaches nobody and teaches every mail filter that this domain
+    writes to dead addresses, which costs delivery to the live ones.
+
+    Hashes rather than addresses: the file is public and contact data is not.
+    """
+    if not SUPPRESSION.exists():
+        return set()
+    return set(json.loads(SUPPRESSION.read_text()).get("entries", {}))
+
+
+def _digest(email: str) -> str:
+    return hashlib.sha256(email.strip().lower().encode()).hexdigest()
+
+
 def load_optout() -> set[str]:
     """Everyone who asked us to stop: local file ∪ the Supabase mirror,
     lower-cased (the caller compares lower-cased)."""
@@ -526,8 +550,12 @@ def main() -> int:
     # exactly what each superintendent received; TAG_BCC="" disables it
     bcc_addr = os.environ.get("TAG_BCC", "gus@ubntag.com").strip()
     key = os.environ.get("RESEND_API_KEY", "").strip()
+    # The last resort must be a mailbox someone actually reads. This used to
+    # fall back to hello@txisd.dev, which nobody monitors — an unsubscribe
+    # request sent there would have vanished, and an unsubscribe that goes
+    # nowhere is worse than no unsubscribe link at all.
     unsub_addr = (os.environ.get("RESEND_REPLY_TO") or from_addr
-                  or "hello@txisd.dev").split("<")[-1].rstrip(">")
+                  or "gus@ubntag.com").split("<")[-1].rstrip(">")
     unsubscribe = f"mailto:{unsub_addr}?subject=unsubscribe"
 
     # ---- dry run (default): render previews, send nothing -------------------
@@ -609,12 +637,16 @@ def main() -> int:
         print(refusal)
         return 1
 
+    suppressed = load_suppressed()
+    dead = [r for r in rows if _digest(r["email"]) in suppressed]
     todo = [r for r in rows if r["email"] not in sent
-            and r["email"].lower() not in optout]
+            and r["email"].lower() not in optout
+            and _digest(r["email"]) not in suppressed]
     skipped = len(rows) - len(todo)
     if args.limit:
         todo = todo[:args.limit]
-    print(f"{len(rows)} districts in merge · {skipped} already sent/opted out "
+    print(f"{len(rows)} districts in merge · {skipped} already sent/opted "
+          f"out/undeliverable ({len(dead)} known-dead addresses) "
           f"· sending {len(todo)} now")
 
     ok = fail = 0

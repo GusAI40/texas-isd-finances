@@ -1,0 +1,51 @@
+# Daily question-box balance check.
+#
+# WHY THIS IS NOT IN monitor.yml
+# ------------------------------
+# monitor.yml deliberately references no secrets: every endpoint it hits is
+# public, so it always runs and can never silently skip. This check needs the
+# provider key, so putting it there would have quietly broken that guarantee —
+# the workflow would still look green while one of its steps did nothing. That
+# is the exact failure this project keeps finding (see the KPI job, which had
+# been skipping every Monday unnoticed), so it lives in its own file where the
+# dependency is stated at the top and impossible to miss.
+#
+# WHAT IT WATCHES
+# ---------------
+# /query runs on a PREPAID DeepSeek balance. That is a real dollar ceiling and
+# it fails safe — when it empties, the question box stops and every other page
+# keeps working. What it is not is visible: a draining balance looks exactly
+# like nothing happening, right up until the site's most distinctive feature is
+# quietly dead with no error anywhere.
+#
+# Needs one repository secret (Settings → Secrets → Actions):
+#   DEEPSEEK_API_KEY
+# Without it the script says so and exits 0 — but note that means this workflow
+# is INERT until the secret exists. Check the run log once after adding it.
+
+name: LLM balance
+
+on:
+  schedule:
+    - cron: "15 13 * * *"     # daily, 13:15 UTC (8:15 AM Central)
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  balance:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: How much money is left for the question box?
+        env:
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+        # --min fails the run below $2, which is roughly a fortnight of
+        # observed demand and a few days of the configured ceiling.
+        run: python scripts/check_llm_balance.py --min 2.00

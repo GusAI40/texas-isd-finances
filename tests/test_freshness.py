@@ -268,3 +268,53 @@ def test_every_page_year_source_either_proves_itself_or_says_why():
         if not spec.get("product_proof"):
             assert "coincidence" in spec.get("meaning", "").lower(), (
                 f"{name} has no product_proof and does not say why")
+
+
+# --- the question box runs on a prepaid balance -------------------------------
+
+def test_no_key_is_not_a_failure(monkeypatch):
+    """A monitor that fails for a credential the runner was never given is a
+    monitor people switch off."""
+    import importlib.util
+    from pathlib import Path as _P
+    sp = _P(__file__).resolve().parents[1] / "scripts" / "check_llm_balance.py"
+    spec = importlib.util.spec_from_file_location("_bal", sp)
+    m = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(m)
+    monkeypatch.delenv("DEEPSEEK_API_KEY", raising=False)
+    monkeypatch.setattr("sys.argv", ["check_llm_balance.py"])
+    assert m.main() == 0
+
+
+def test_an_unreachable_provider_is_never_reported_as_empty():
+    """'Could not tell' and 'zero dollars' must never be the same answer."""
+    import importlib.util
+    from pathlib import Path as _P
+    sp = _P(__file__).resolve().parents[1] / "scripts" / "check_llm_balance.py"
+    spec = importlib.util.spec_from_file_location("_bal2", sp)
+    m = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(m)
+
+    def boom(url, **kw):
+        raise OSError("network down")
+    m.urllib.request.urlopen = boom
+    balance, detail = m.fetch_balance("sk-whatever")
+    assert balance is None, "an outage must not read as an empty account"
+    assert "reach" in detail
+
+
+def test_the_balance_check_has_its_own_workflow():
+    """Deliberately NOT in monitor.yml. That workflow references no secrets so
+    it always runs and can never silently skip; this check needs the provider
+    key, and adding it there would have left monitor.yml green while one step
+    quietly did nothing — the exact failure the KPI job had been having every
+    Monday. Its own file states the dependency at the top."""
+    from pathlib import Path as _P
+    wf_dir = _P(__file__).resolve().parents[1] / ".github" / "workflows"
+    own = (wf_dir / "llm-balance.yml").read_text()
+    assert "check_llm_balance.py" in own
+    assert "DEEPSEEK_API_KEY" in own
+    assert "INERT until the secret exists" in own, \
+        "a workflow that no-ops without a secret must say so where it is read"
+    assert "check_llm_balance" not in (wf_dir / "monitor.yml").read_text(), \
+        "monitor.yml must stay secret-free"

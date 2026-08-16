@@ -68,6 +68,14 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import recompute_revenue  # noqa: E402 — sibling script, path set above
+
+# Named once, so the artefact says which file the second road actually read
+# rather than describing it in prose that can drift from the code.
+RECOMPUTED_FROM = ("data/texas_finance_clean.csv + data/tea_property.csv, "
+                   "re-read longhand by scripts/recompute_revenue.py")
+
 # CPI-U annual averages, US city average (BLS). Used to state every dollar in
 # constant 2024 terms — nominal school spending rises every year regardless.
 CPI = {2009: 214.5, 2010: 218.1, 2011: 224.9, 2012: 229.6, 2013: 233.0,
@@ -323,6 +331,14 @@ def main() -> int:
     # A teacher-equivalent, for translating debt service into something legible.
     teacher_cost = float(snap[snap.year == snap.year.max()].avg_teacher_salary.median())
 
+    # The independent re-derivation, computed once for every district before the
+    # loop. See scripts/recompute_revenue.py for why it exists and what its
+    # agreement does and does not prove.
+    redone = recompute_revenue.recompute(args.finance, args.property, int(latest))
+    disagreements: list[str] = []
+    unrecomputed: list[str] = []
+    recomputed = 0
+
     districts = {}
     withheld = no_tax_jurisdiction = 0
     for num, row in f.iterrows():
@@ -382,6 +398,63 @@ def main() -> int:
                 "local_pct": _lp, "state_pct": _sp, "federal_pct": 100 - _lp - _sp,
                 "note": "local is gross property tax before recapture is deducted",
             }
+            # Emit the EVIDENCE, not just the answer. Rounding away the
+            # numerator and denominator is how a figure becomes unfalsifiable:
+            # a reader can no longer tell $23,420 from a typo, and neither can
+            # we. See src/lineage.py — this object is what the dashboard shows
+            # when someone clicks the number, and what the district_lineage MCP
+            # tool hands to somebody else's assistant.
+            #
+            # The denominator is named explicitly. "Per student" is not a
+            # definition: this site already publishes two per-student figures
+            # that legitimately disagree because one divides by enrolment and
+            # the other by a different total.
+            #
+            # Only what VARIES is stored per district. The formula, the unit, the
+            # name of the denominator and the source id are identical for all
+            # 1,202 of them, so they live once in meta.lineage_templates below.
+            # Emitting them per district doubled this artefact for no new fact —
+            # and worse, it would let one district's copy of "the formula" drift
+            # from another's, which is precisely the thing lineage exists to stop.
+            #
+            # `recomputed` is the SECOND road: scripts/recompute_revenue.py
+            # re-reads TEA's own CSV with the standard-library csv module, no
+            # pandas and no helper shared with this file. Comparing this
+            # artefact against something derived from this artefact would prove
+            # only that the generator ran — a mistake this repo shipped once and
+            # stayed green through for weeks.
+            _redo = redone.get(num) or {}
+            _revenue["lineage"] = {
+                "denominator": round(enrol),
+                "recomputed_from": RECOMPUTED_FROM,
+                "figures": {
+                    key: {
+                        "value": round(numer / enrol),
+                        "numerator": round(numer),
+                        **({"recomputed_value": round(_redo[field] / _redo["enrollment"])}
+                           if _redo.get("enrollment") else {}),
+                    }
+                    for key, field, numer in (
+                        ("total_per_student", "total", _tot),
+                        ("local_per_student", "local", _loc),
+                        ("state_per_student", "state", _st),
+                        ("federal_per_student", "federal", _fed))
+                },
+            }
+            for key, fig in _revenue["lineage"]["figures"].items():
+                if "recomputed_value" not in fig:
+                    unrecomputed.append(f"{num} {key}")
+                    continue
+                recomputed += 1
+                if fig["recomputed_value"] != fig["value"]:
+                    disagreements.append(
+                        f"{num} {key}: built {fig['value']}, "
+                        f"re-derived {fig['recomputed_value']}")
+            # The three PERCENTAGES deliberately get no lineage entry. They are
+            # not divisions: federal_pct is 100 minus the other two, so the bar's
+            # labels add to 100 instead of to 99 or 101. Publishing a numerator
+            # and denominator for it would describe a calculation that did not
+            # happen, which is worse than publishing nothing.
 
         debt_ps, instr_ps = float(row[DEBT + "_ps"]), float(row[INSTR + "_ps"])
         _instr, _debt = round(instr_ps), round(debt_ps)
@@ -446,6 +519,50 @@ def main() -> int:
             "tax_figures_withheld_qa": withheld,
             "no_tax_jurisdiction": no_tax_jurisdiction,
             "split_half_reliability": rel.attrs["split_half_r"],
+            # What every district's revenue lineage means. Stored once, on
+            # purpose: 1,202 copies of "the formula" is 1,202 chances for one of
+            # them to say something different from the rest.
+            #
+            # `denominator_type` is not decoration. "Per student" is not a
+            # definition — this site publishes per-student figures divided by
+            # enrolment and others divided by different totals, and they
+            # legitimately disagree. A figure that will not name its denominator
+            # is refused by the publication gate rather than shown.
+            "lineage_templates": {
+                key: {
+                    "metric": f"revenue_{key}",
+                    "formula": f"{label} / fall survey enrollment",
+                    "denominator_type": "fall survey enrollment",
+                    "unit": "USD per student",
+                    "rounding": 0.5,
+                    "fiscal_year": int(latest),
+                    "source_id": "tea_peims",
+                    "measure_id": "revenue_mix",
+                    "source": "Texas Education Agency",
+                    "source_note": ("local is GROSS property tax collections; TEA "
+                                    "reports M&O revenue net of recapture, which "
+                                    "understates property-funded districts"),
+                    "artifact": "economics_data.json",
+                }
+                for key, label in (
+                    ("total_per_student", "gross local + state + federal revenue"),
+                    ("local_per_student",
+                     "gross local M&O tax + I&S tax + other local revenue"),
+                    ("state_per_student", "state revenue"),
+                    ("federal_per_student", "federal revenue"),
+                )
+            },
+            # A check that ran and found nothing must not look like a check that
+            # never ran. This is that distinction, recorded in the artefact.
+            "lineage_recomputation": {
+                "road": RECOMPUTED_FROM,
+                "figures_checked": recomputed,
+                "disagreements": len(disagreements),
+                "not_recomputed": len(unrecomputed),
+                "note": "Agreement means our two roads arrive at the same place. "
+                        "It cannot make TEA's filing right — districts file PEIMS "
+                        "and it is corrected for years afterwards.",
+            },
             "dollars": "constant 2024 dollars where marked real; CPI-U annual average",
             "sources": [
                 "TEA Summarized PEIMS Actual Financial Data, fiscal 2009-2025",
@@ -486,6 +603,22 @@ def main() -> int:
         },
         "districts": districts,
     }
+    # The artefact is written only if the two roads agree. A figure whose
+    # independent re-derivation disagrees must not reach a reader while someone
+    # decides what to do about it — that is the whole reason the second road
+    # exists, and a warning nobody is watching is not a gate.
+    if disagreements:
+        print(f"REFUSING TO WRITE {args.out}: {len(disagreements)} revenue "
+              f"figures disagree with their re-derivation from TEA's own file.",
+              file=sys.stderr)
+        for line in disagreements[:20]:
+            print(f"  {line}", file=sys.stderr)
+        if len(disagreements) > 20:
+            print(f"  ... and {len(disagreements) - 20} more", file=sys.stderr)
+        print("  Fix the builder or scripts/recompute_revenue.py — do not "
+              "silence this.", file=sys.stderr)
+        return 1
+
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(payload, separators=(",", ":")))
     kb = args.out.stat().st_size / 1024

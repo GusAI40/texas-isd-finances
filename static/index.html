@@ -300,6 +300,39 @@
                  font-size:var(--fs-sm); line-height:1.55; color:var(--ink);
                  text-transform:none; letter-spacing:normal; font-weight:400; }
   .explain-pop b { display:block; margin-bottom:.15rem; }
+  /* A number you can click to see where it came from. Dotted underline, not a
+     link colour: it opens the working, it does not navigate away. */
+  .lin { border:0; background:none; padding:0; font:inherit; color:inherit;
+         cursor:pointer; border-bottom:1px dotted var(--ink-3); }
+  .lin:hover, .lin:focus-visible { color:var(--accent); border-bottom-color:var(--accent); }
+  .lin-pop { position:absolute; z-index:60; width:min(26rem, calc(100vw - 1.5rem));
+             background:var(--surface); border:1px solid var(--rule);
+             border-radius:var(--r-md); box-shadow:0 6px 24px rgba(0,0,0,.12);
+             padding:.85rem 1rem; font-size:var(--fs-sm); line-height:1.5;
+             color:var(--ink); text-transform:none; letter-spacing:normal;
+             font-weight:400; }
+  .lin-pop .close-x { float:right; border:0; background:none; color:var(--ink-3);
+                      font-size:var(--fs-base); cursor:pointer; padding:0 0 .2rem .5rem; }
+  .lin-pop h5 { margin:0 0 .5rem; font-size:var(--fs-sm); }
+  .lin-pop .sum { font-family:var(--font-serif); font-size:var(--fs-md);
+                  font-variant-numeric:tabular-nums; margin:.2rem 0 .5rem; }
+  .lin-pop .sum i { font-style:normal; color:var(--ink-3); }
+  .lin-pop dl { display:grid; grid-template-columns:auto 1fr; gap:.15rem .6rem;
+                margin:.5rem 0; font-size:var(--fs-xs); }
+  .lin-pop dt { color:var(--ink-3); }
+  .lin-pop dd { margin:0; font-variant-numeric:tabular-nums; }
+  .lin-pop .why { font-size:var(--fs-xs); color:var(--ink-2); margin:.4rem 0 0; }
+  .lin-pop .verdict { display:inline-block; font-size:var(--fs-micro); font-weight:700;
+                      letter-spacing:.1em; text-transform:uppercase; padding:.12rem .45rem;
+                      border-radius:var(--r-sm); border:1px solid currentColor; }
+  .lin-pop .v-VERIFIED { color:var(--good); }
+  .lin-pop .v-UNVERIFIED, .lin-pop .v-STALE, .lin-pop .v-REFUSED { color:var(--muted); }
+  .lin-pop .v-FAILED { color:var(--bad); }
+  .lin-pop .checks { list-style:none; padding:0; margin:.5rem 0 0; font-size:var(--fs-xs); }
+  .lin-pop .checks li { display:flex; justify-content:space-between; gap:1rem;
+                        border-top:1px solid var(--rule); padding:.22rem 0; }
+  .lin-pop .checks li span:last-child { color:var(--ink-3); }
+  .lin-pop .checks li.bad span:last-child { color:var(--bad); font-weight:600; }
   .wow { margin:1.1rem 0 .4rem; }
   .wow .wow-kick { font-size:var(--fs-micro); letter-spacing:.14em; text-transform:uppercase;
                    color:var(--accent); font-weight:700; }
@@ -323,7 +356,18 @@
   @media (prefers-reduced-motion: no-preference) {
     .dyk .dyk-txt { transition:opacity .45s ease; }
     .dyk .dyk-txt.fade { opacity:0; }
-    #dash section.reveal { opacity:0; transform:translateY(6px);
+    /* A section is VISIBLE by default and animates in only once JavaScript has
+       promised to reveal it. `.armed` is added by wireReveals() immediately
+       before it hands the element to the observer, so the hidden state cannot
+       outlive the code that undoes it.
+
+       This was the other way round and it cost half the page: sections started
+       at opacity:0 from CSS alone, waiting on an IntersectionObserver that
+       never fired for eight of the sixteen. They kept their full height and
+       their full content and painted nothing — including the question box —
+       for every visitor who had not turned on "reduce motion". A progressive
+       enhancement must never be able to hide content when it fails. */
+    #dash section.reveal.armed { opacity:0; transform:translateY(6px);
                            transition:opacity .45s ease, transform .45s ease; }
     #dash section.reveal.in { opacity:1; transform:none; }
   }
@@ -1304,7 +1348,14 @@
         <button class="primary" id="askbtn">Ask</button>
       </div>
       <div class="answer" id="answer"></div>
-      <div class="cite">Answers by OpenAI (gpt-4o-mini) via LangChain, run as a read-only role over the
+      <!-- The model name is filled in from /health at load. It was hardcoded as
+           "OpenAI (gpt-4o-mini)" and stayed that way for nine days after the
+           service moved to DeepSeek — a disclosure sentence that named the
+           wrong company, on the one page whose whole argument is that its
+           claims can be checked. The service already knows the answer, so the
+           page asks it instead of repeating it. -->
+      <div class="cite">Answers by <span id="ask-model">the configured AI model</span> via LangChain,
+        run as a read-only role over the
         two public views — nothing else is reachable. Built by
         <a href="https://ubntag.com" target="_blank" rel="noopener">TAG ai</a>.
         Double-check important figures against
@@ -2649,9 +2700,53 @@ function wireReveals() {
     if (sec.classList.contains('in')) return;
     const r = sec.getBoundingClientRect();
     if (r.top < innerHeight) { sec.classList.add('reveal', 'in'); return; }  // already on screen
-    sec.classList.add('reveal'); _revealObs.observe(sec);
+    // Order matters: arm it (which is what makes it transparent) only in the
+    // same statement that hands it to the observer. If any line above throws,
+    // the section is still visible.
+    sec.classList.add('reveal', 'armed');
+    _revealObs.observe(sec);
   });
+  scheduleRevealWatchdog();
 }
+
+/* A hidden section must never outlive its reveal. The observer can miss an
+   element for reasons this page does not control — it is re-rendered after
+   being observed, it is laid out at zero height while its data is still in
+   flight, the callback is starved. Every one of those is a bug somewhere else,
+   and none of them is a reason a reader should meet blank space where the
+   analysis was.
+
+   The rescue is deliberately narrow: it reveals only sections the reader has
+   ALREADY REACHED — top above the bottom of the viewport — because those are
+   exactly the ones the observer owed and did not deliver. Sections still below
+   the fold are left armed and keep their animation. A blunt "show everything
+   after N seconds" would have fixed the bug and quietly deleted the effect for
+   anyone who scrolls slowly.
+
+   It is not what makes the failure impossible; the CSS above does that, by
+   keeping a section visible until the code that will reveal it has run. This
+   is what makes the failure LOUD — it warns to the console, so a regression
+   shows up in devtools instead of in a reader's blank page. */
+let _revealWatchdog = null;
+function sweepStuckReveals() {
+  const stuck = [...document.querySelectorAll('#dash section.reveal.armed')]
+    .filter(s => !s.classList.contains('in')
+                 && s.getBoundingClientRect().top < innerHeight);
+  if (!stuck.length) return;
+  stuck.forEach(s => s.classList.add('in'));
+  console.warn('[reveal] shown without animating — the observer never fired for: '
+    + stuck.map(s => s.id || '(unnamed)').join(', '));
+}
+function scheduleRevealWatchdog() {
+  clearTimeout(_revealWatchdog);
+  _revealWatchdog = setTimeout(sweepStuckReveals, 2500);
+}
+// Re-check shortly after the reader stops scrolling: a section that has come
+// into view and still has not painted has missed its chance, whenever that is.
+addEventListener('scroll', () => {
+  clearTimeout(_revealWatchdog);
+  _revealWatchdog = setTimeout(sweepStuckReveals, 700);
+}, { passive: true });
 
 const EXPLAIN = {
   'spend': 'This is everything the district spent this year, divided by its students. It includes building new schools with money voters approved. The cost of just running school day-to-day is the smaller number underneath.',
@@ -2701,6 +2796,106 @@ document.addEventListener('keydown', e => {
 function xb(key) {
   return '<button class="explain" data-explain="' + key + '" aria-label="What does this mean?" title="What does this mean?">?</button>';
 }
+
+/* ---- clickable lineage: why is this number this number? ----
+   Every other "trust us" affordance on this site is a sentence. This one is the
+   arithmetic: the numerator, the denominator, WHICH student count the
+   denominator is, the publisher, and whether a second independent read of TEA's
+   own file agreed. The verdict is shown even when it is not VERIFIED — a number
+   whose freshness we cannot establish says so, because rendering unknown as
+   fine is exactly how this site once ran two years stale looking healthy. */
+function linBtn(metric, label) {
+  return '<button class="lin" data-lineage="' + metric +
+    '" aria-label="Where did ' + label + ' come from?">' + label + '</button>';
+}
+
+const LIN_CHECK_TEXT = {
+  computability: 'Can it be computed at all?',
+  arithmetic: 'Do the parts give the total?',
+  correctness: 'Does an independent re-read agree?',
+  // NOT "is this the latest?" — nothing here asks the publisher live. The
+  // daily watchdog does and turns red, but it never writes its answer back,
+  // so the honest claim is about what has been recorded, and the panel says
+  // when that record was last touched.
+  freshness: 'Source current, as last recorded?',
+  aim: 'Did we check the right file?',
+};
+
+async function showLineage(btn) {
+  document.querySelectorAll('.lin-pop').forEach(p => p.remove());
+  if (!state.district || !state.district.num) return;
+  const metric = btn.dataset.lineage;
+  const pop = document.createElement('div');
+  pop.className = 'lin-pop';
+  pop.setAttribute('role', 'dialog');
+  pop.innerHTML = '<button class="close-x" aria-label="Close">×</button>Checking…';
+  document.body.appendChild(pop);
+  const place = () => {
+    const r = btn.getBoundingClientRect();
+    const left = Math.min(r.left + window.scrollX,
+      window.scrollX + document.documentElement.clientWidth - pop.offsetWidth - 12);
+    pop.style.left = Math.max(8, left) + 'px';
+    pop.style.top = (r.bottom + window.scrollY + 8) + 'px';
+  };
+  place();
+  pop.querySelector('.close-x').onclick = () => pop.remove();
+
+  let d;
+  try {
+    d = await api('/district/' + encodeURIComponent(state.district.num) +
+                  '/lineage/' + encodeURIComponent(metric));
+  } catch (err) {
+    pop.innerHTML = '<button class="close-x" aria-label="Close">×</button>' +
+      '<h5>Where this number came from</h5>' +
+      '<p class="why">The working could not be loaded just now. The figure itself ' +
+      'comes from TEA’s Summarized PEIMS Actual Financial Data.</p>';
+    pop.querySelector('.close-x').onclick = () => pop.remove();
+    place();
+    return;
+  }
+
+  const g = d.gate || { verdict: '', checks: {}, why: [] };
+  const checks = Object.keys(g.checks || {}).map(k => {
+    const v = g.checks[k];
+    const bad = v === 'FAILED' || v === 'STALE' || v === 'REFUSED';
+    return '<li class="' + (bad ? 'bad' : '') + '"><span>' +
+      (LIN_CHECK_TEXT[k] || k) + '</span><span>' +
+      (v === 'ok' ? 'yes' : v === 'unchecked' ? 'not here' : v) + '</span></li>';
+  }).join('');
+  const sum = (d.numerator != null && d.denominator != null)
+    ? '<div class="sum">' + money(d.numerator) + ' <i>&divide;</i> ' +
+      Number(d.denominator).toLocaleString() + ' <i>=</i> ' + money(d.value) + '</div>'
+    : '';
+  pop.innerHTML =
+    '<button class="close-x" aria-label="Close">×</button>' +
+    '<h5>Where this number came from ' +
+      '<span class="verdict v-' + g.verdict + '">' + g.verdict + '</span></h5>' +
+    sum +
+    '<dl>' +
+      (d.denominator_type ? '<dt>divided by</dt><dd>' + d.denominator_type + '</dd>' : '') +
+      (d.fiscal_year ? '<dt>fiscal year</dt><dd>' + d.fiscal_year + '</dd>' : '') +
+      (d.source ? '<dt>published by</dt><dd>' + d.source + '</dd>' : '') +
+    '</dl>' +
+    '<ul class="checks">' + checks + '</ul>' +
+    (g.why && g.why.length ? '<p class="why">' + g.why.join(' ') + '</p>' : '') +
+    (d.notes && d.notes.length ? '<p class="why">' + d.notes.join(' ') + '</p>' : '') +
+    (d.source_url ? '<p class="why"><a href="' + d.source_url +
+       '" target="_blank" rel="noopener">Download the original file</a> and redo the ' +
+       'arithmetic yourself.</p>' : '');
+  pop.querySelector('.close-x').onclick = () => pop.remove();
+  place();
+}
+
+document.addEventListener('click', e => {
+  const btn = e.target.closest('.lin');
+  if (btn) { showLineage(btn); return; }
+  if (!e.target.closest('.lin-pop')) {
+    document.querySelectorAll('.lin-pop').forEach(p => p.remove());
+  }
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') document.querySelectorAll('.lin-pop').forEach(p => p.remove());
+});
 function balanceCard(cur) {
   const label = '<div class="kpi"><div class="label">Operating balance ' + xb('balance') + '</div>';
   if (cur.operating_spend != null) {
@@ -3574,7 +3769,18 @@ function renderEconomics() {
       `<span><i style="background:${ECON_C.debt}"></i>local property tax ${rv.local_pct}%</span>` +
       `<span><i style="background:${ECON_C.teach}"></i>state ${rv.state_pct}%</span>` +
       `<span><i style="background:${ECON_C.other}"></i>federal ${rv.federal_pct}%</span></div>` +
-      '<div class="econ-sub">' +
+      // Every one of these dollar figures opens its own working: numerator,
+      // denominator, which student count the denominator is, the formula, the
+      // publisher, and whether an independent re-read of TEA's file agreed.
+      // A percentage cannot do that honestly — the three shares are forced to
+      // sum to 100 so the labels add up, so federal% is a subtraction rather
+      // than a division and has no numerator to show.
+      '<div class="econ-sub">' + (rv.lineage ? 'Per student: ' +
+        [['total_per_student', 'total'], ['local_per_student', 'local'],
+         ['state_per_student', 'state'], ['federal_per_student', 'federal']]
+          .filter(([k]) => rv.lineage.figures && rv.lineage.figures[k])
+          .map(([k, lbl]) => `${lbl} ${linBtn(k, money(rv.lineage.figures[k].value))}`)
+          .join(' &middot; ') + '. Click any figure to see where it came from. ' : '') +
       (sr ? `Texas overall is ${sr.local_pct}% local, ${sr.state_pct}% state, ${sr.federal_pct}% federal. ` : '') +
       `Local is <b>gross property tax before recapture</b> &mdash; the money your neighbours paid, ` +
       `whether or not this district kept it.</div>`;
@@ -4497,6 +4703,28 @@ $('trend-tabs').addEventListener('click', e => {
 });
 function slug() { return (state.district?.name || 'district').replace(/\W+/g, '_'); }
 
+/* Name the AI vendor from the service, never from memory.
+
+   /health reports the live provider as "deepseek:deepseek-v4-flash via
+   https://api.deepseek.com (configured)". A reader is owed the vendor and the
+   model, not our hosting URL or whether a key is set, so this takes the part
+   before " via ". If the call fails the sentence keeps its neutral wording
+   rather than asserting a vendor we have not confirmed — the failure mode of
+   the old hardcoded string was naming the wrong one for nine days. */
+async function nameTheModel() {
+  const el = $('ask-model');
+  if (!el) return;
+  try {
+    const h = await api('/health');
+    const live = String(h.llm || '').split(' via ')[0].trim();
+    if (!live) return;
+    const [vendor, ...model] = live.split(':');
+    const pretty = { openai: 'OpenAI', deepseek: 'DeepSeek', anthropic: 'Anthropic' };
+    el.textContent = (pretty[vendor.toLowerCase()] || vendor)
+      + (model.length ? ` (${model.join(':')})` : '');
+  } catch { /* leave the neutral wording in place */ }
+}
+
 (async function boot() {
   const savedLens = localStorage.getItem('tisd_lens');
   if (savedLens) {
@@ -4505,6 +4733,7 @@ function slug() { return (state.district?.name || 'district').replace(/\W+/g, '_
       x.setAttribute('aria-pressed', x.dataset.lens === savedLens));
   }
   const statewide = loadStatewide();   // don't block the district on this
+  nameTheModel();                      // fire and forget; never blocks the page
   // A link is worth nothing if it opens on the reader's own district instead
   // of the one that was shared. ?d= wins over whatever this device remembers.
   const linked = new URLSearchParams(location.search).get('d');
