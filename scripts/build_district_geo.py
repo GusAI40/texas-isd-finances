@@ -9,7 +9,7 @@ No Mapbox, no tile server, no API key: the polygons are ours, the renderer is
 our own canvas code, and "which district am I in?" is answered by
 point-in-polygon in the browser, so a user's location never leaves their device.
 
-Source: https://www2.census.gov/geo/tiger/TIGER2024/UNSD/tl_2024_48_unsd.zip
+Source: https://www2.census.gov/geo/tiger/TIGER2025/UNSD/tl_2025_48_unsd.zip
 (public domain). Charter districts are absent by nature — they are not
 geographic entities — which is why the payload records its own coverage.
 
@@ -297,11 +297,13 @@ def main() -> int:
             "note": ("Charter districts have no geographic boundary and are absent by nature, "
                      "not by omission."),
             "unmatched_polygons": unmatched,
+            # Published like unmatched: a refusal nobody can see is a
+            # refusal nobody acts on.
+            "ambiguous_polygons": [a[0] for a in ambiguous],
         },
         "d": out,
     }
     p = Path(args.out)
-    p.write_text(json.dumps(payload, separators=(",", ":")))
     print(f"districts written : {len(out):,}")
     print(f"unmatched polygons: {len(unmatched)}  {unmatched}")
     if ambiguous:
@@ -317,6 +319,11 @@ def main() -> int:
             f"accounted for ({len(out)} written, {len(unmatched)} unmatched, "
             f"{len(ambiguous)} ambiguous, {dropped_no_ring} with no ring left). "
             "A polygon vanished without being named.")
+
+    # Written only now. Writing first meant a failed accounting check left the
+    # bad payload on disk for the next command to pick up — the build "died"
+    # and shipped anyway.
+    p.write_text(json.dumps(payload, separators=(",", ":")))
     print(f"vertices          : {raw_pts:,} -> {kept_pts:,} "
           f"({100*kept_pts/raw_pts:.1f}% kept, epsilon {args.epsilon}deg)")
     print(f"payload           : {p} [{p.stat().st_size/1024:.0f} KB]")

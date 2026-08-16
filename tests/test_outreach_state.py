@@ -158,6 +158,16 @@ def test_log_sent_quotes_sql_literals():
 
 # --- the re-send footgun ------------------------------------------------------
 
+def mod_floor():
+    import importlib.util
+    from pathlib import Path as _P
+    sp = _P(__file__).resolve().parents[1] / "scripts" / "send_outreach.py"
+    spec = importlib.util.spec_from_file_location("_wm", sp)
+    m = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(m)
+    return m.watermark_floor()
+
+
 def test_watermark_is_committed_and_matches_the_waves():
     """data/outreach_sent.csv is gitignored and has never been committed, and
     _remote_emails() returns an empty set (not an error) when SUPABASE_PAT is
@@ -172,6 +182,10 @@ def test_watermark_is_committed_and_matches_the_waves():
     assert d["sent_total"] == sum(w["sent"] for w in d["waves"]), \
         "sent_total must equal the sum of the waves it lists"
     assert d["sent_total"] >= 571
+    # The guard compares against unique_emails, so that is the number that must
+    # track reality. It can never exceed the send count.
+    assert d["unique_emails"] <= d["sent_total"]
+    assert mod_floor() == d["unique_emails"]
 
 
 def test_send_refuses_when_the_skiplist_shrank():

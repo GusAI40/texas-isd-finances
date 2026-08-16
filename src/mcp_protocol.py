@@ -168,9 +168,17 @@ def cache_directive(body: dict | None) -> str:
     ttl_ms = res.get("ttlMs")
     if not isinstance(ttl_ms, int) or ttl_ms <= 0:
         return "no-store"                     # tools/call: arguments + MRTR state
-    scope = res.get("cacheScope") or "private"
     seconds = ttl_ms // 1000
-    return f"{'public' if scope == 'public' else 'private'}, max-age={seconds}"
+    # Always `private`, even when the payload says cacheScope "public".
+    #
+    # cacheScope is an MCP-level statement — "this content is not user
+    # specific" — and a client may honour it. Cache-Control is an HTTP-level
+    # instruction to every cache on the path, and this is a POST whose body and
+    # headers decide the answer. `public` would invite a shared proxy to key on
+    # the URL alone and hand one method's reply to another. The payload keeps
+    # saying cacheScope "public" for clients that understand it; the transport
+    # stays conservative, which is the safe direction to disagree in.
+    return f"private, max-age={seconds}"
 
 
 def handle(

@@ -180,12 +180,12 @@ SOURCES: dict[str, dict] = {
     "census_tiger": {
         "title": "TIGER/Line Unified School Districts, Texas",
         "publisher": "US Census Bureau (public domain)",
-        "url": "https://www2.census.gov/geo/tiger/TIGER2024/UNSD/tl_2024_48_unsd.zip",
+        "url": "https://www2.census.gov/geo/tiger/TIGER2025/UNSD/tl_2025_48_unsd.zip",
         # A zip has no prose to check, but it names its own members in the local
         # file headers at the very front of the archive — so a ranged read of the
         # first bytes proves this is the Texas (FIPS 48) school-district file and
         # not some other TIGER product served from the same directory.
-        "proves_it": ["PK\u0003\u0004", "tl_2024_48_unsd.dbf"],
+        "proves_it": ["PK\u0003\u0004", "tl_2025_48_unsd.dbf"],
         "covers": "2024 boundaries, 1,005 districts",
         "authoritative_for": "district geographic boundaries",
         "note": "Charter districts have no attendance boundary, so ~8% of "

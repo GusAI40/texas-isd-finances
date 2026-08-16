@@ -180,35 +180,46 @@ def post(url: str, payload: dict) -> tuple[Any, str | None]:
         return raw, None
 
 
-def check_caching(base: str) -> tuple[bool, str]:
-    """Is the CDN actually caching the committed artefacts?
+def check_caching(base: str) -> tuple[str, str]:
+    """Are the big files coming from the cache instead of being rebuilt?
 
-    Vercel caches a function response only when the request is GET/HEAD AND the
-    response carries s-maxage. Without it, every request for a 535 KB artefact
-    cold-invokes a Python function to read a file off disk — and the only
-    outward sign is `x-vercel-cache: MISS` on a repeat hit, which nobody looks
-    at. So the deploy gate looks at it.
+    Returns (state, why) where state is "ok", "DRIFT" or "SKIP".
 
-    A miss on the FIRST request is normal (cold key). This asks twice and
-    reports on the second, which is the one that proves the cache took.
+    Only Vercel sends the x-vercel-cache header. Running against a local server
+    there is nothing to check, so this SKIPS rather than failing — the local
+    pre-ship run is a documented flow and a check that always fails there is a
+    check people learn to ignore.
+
+    A miss on the first request is normal. This asks twice and judges the
+    second, which is the one that proves the cache took.
     """
+    if not base.rstrip("/").endswith("txisd.dev"):
+        return "SKIP", "not Vercel — the cache header only exists in production"
+
     probes = ["/bonds/texas", "/district-geo"]
     bad = []
     for path in probes:
         url = base + path
-        get(url)                                   # prime
+        get(url)                                   # prime the cache
         req = urllib.request.Request(url, headers={"User-Agent": UA})
         try:
             with urllib.request.urlopen(req, timeout=TIMEOUT, context=_ctx) as r:
                 state = (r.headers.get("x-vercel-cache") or "?").upper()
                 cc = r.headers.get("cache-control") or ""
+        except urllib.error.HTTPError as e:
+            # The site answered, it just said no. That is a deploy problem and
+            # the other checks report it properly; do not relabel it as a cache
+            # miss, which would send someone hunting the wrong thing.
+            return "SKIP", f"{path} returned HTTP {e.code} — see the checks above"
         except Exception as e:  # noqa: BLE001
-            return False, f"{path}: {type(e).__name__}"
+            # A network blip must never fail the run. Same rule as everywhere
+            # else in this file.
+            return "SKIP", f"could not reach {path} ({type(e).__name__})"
         if state not in ("HIT", "STALE", "REVALIDATED"):
             bad.append(f"{path} -> x-vercel-cache: {state} (cache-control: {cc!r})")
     if bad:
-        return False, "artefacts are not being served from the CDN: " + "; ".join(bad)
-    return True, "committed artefacts served from the edge cache"
+        return "DRIFT", "big files are not coming from the cache: " + "; ".join(bad)
+    return "ok", "big files served from the cache"
 
 
 def check_query(base: str) -> tuple[bool, str]:
@@ -334,14 +345,15 @@ def main() -> int:
         print(f"{'  ok  ' if state == 'ok' else ' DRIFT' if state == 'DRIFT' else ' ---- '}"
               f"  {label:44}")
 
-    good, why = check_caching(base)
-    rows.append({"check": "artefacts served from the CDN cache",
-                 "endpoint": "/bonds/texas", "state": "ok" if good else "DRIFT",
-                 "error": None if good else why})
-    print(f"{'  ok  ' if good else ' DRIFT'}  "
-          f"{'artefacts served from the CDN cache':44}{'' if good else '  ' + why}")
-    if not good:
-        drift.append(("CDN caching", "artefacts cached at the edge", why))
+    cstate, why = check_caching(base)
+    rows.append({"check": "big files served from the cache",
+                 "endpoint": "/bonds/texas", "state": cstate,
+                 "error": None if cstate == "ok" else why})
+    mark = {"ok": "  ok  ", "DRIFT": " DRIFT", "SKIP": " ---- "}[cstate]
+    print(f"{mark}  {'big files served from the cache':44}"
+          f"{'' if cstate == 'ok' else '  ' + why}")
+    if cstate == "DRIFT":
+        drift.append(("CDN caching", "big files cached", why))
 
     if args.with_query:
         good, why = check_query(base)

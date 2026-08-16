@@ -121,6 +121,7 @@ function draw() {
   }
 }
 function nearest(mx, my) {
+  if (!ops) return null;          // pointer can move before the data lands
   let best = null, bd = 18 * dpr;
   for (const id in ops.d) {
     const r = ops.d[id]; if (!r.c) continue;

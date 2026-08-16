@@ -359,7 +359,11 @@ def watermark_floor() -> int:
     """How many addresses we KNOW have been emailed, from committed state."""
     if not WATERMARK.exists():
         return 0
-    return int(json.loads(WATERMARK.read_text()).get("sent_total", 0))
+    d = json.loads(WATERMARK.read_text())
+    # Compare like with like. The skip-list is a SET OF ADDRESSES; sent_total
+    # counts SENDS. Two districts sharing one address would make sends exceed
+    # addresses forever, tripping the refusal with no way out but a flag.
+    return int(d.get("unique_emails", d.get("sent_total", 0)))
 
 
 def skiplist_shrank(resolved: int) -> str:

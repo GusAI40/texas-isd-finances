@@ -172,6 +172,48 @@ async def site_password_gate(request: Request, call_next):
     return await call_next(request)
 
 
+# Routes whose body is a committed file that changes only when a deploy
+# replaces it. Everything else — anything per-visitor, per-question, live, or
+# private — is absent on purpose and must stay absent.
+_CACHEABLE_PATHS = frozenset({
+    "/district-geo",
+    "/bonds/texas", "/debt/texas", "/campuses/texas", "/trends/texas",
+    "/forensics/texas", "/economics/texas", "/equity/texas",
+    "/takeover/houston",
+})
+
+
+@app.middleware("http")
+async def cache_the_committed_files(request: Request, call_next):
+    """Let the CDN serve the big unchanging files instead of rebuilding them.
+
+    This lives in the app rather than vercel.json for one reason that matters:
+    SITE_PASSWORD is a runtime switch and vercel.json is static. A shared cache
+    is filled by whoever asks first, and a cached response is returned WITHOUT
+    running the middleware above — so if the site were ever locked, one
+    authorised request could prime the cache and everyone else would be served
+    that copy with no password. Here the two decisions are made in the same
+    place and cannot disagree.
+
+    /feed.xml is deliberately NOT in this list: it is built from the database
+    and rewritten by the daily cron with no deploy, so a day-long cache would
+    hide new items. Its handler sets its own shorter time.
+    """
+    response = await call_next(request)
+    if (request.method in ("GET", "HEAD")
+            and request.url.path in _CACHEABLE_PATHS
+            and response.status_code == 200
+            and not site_gate.gate_password()     # locked site: never cache
+            and "set-cookie" not in response.headers):
+        # Browser: short, so a reader picks up a deploy quickly.
+        response.headers["Cache-Control"] = "public, max-age=600"
+        # Vercel's own cache: a day, serving the old copy for a week while it
+        # refreshes. A deploy clears it, so this cannot outlive a release.
+        response.headers["Vercel-CDN-Cache-Control"] = (
+            "public, s-maxage=86400, stale-while-revalidate=604800")
+    return response
+
+
 @app.middleware("http")
 async def security_headers(request: Request, call_next):
     """Baseline hardening, set by the app so it survives the deploy target.
@@ -623,6 +665,20 @@ _CLAIM_SQL = """
 """
 
 
+def _degraded_ceiling_reached() -> bool:
+    """The tight local budget used when the shared meter is unreachable.
+
+    Bounds CALLS, not DOLLARS. Only a provider-side spend cap does that.
+    """
+    now = time.monotonic()
+    global _degraded_hits
+    _degraded_hits = [t for t in _degraded_hits if now - t < _RATE_WINDOW]
+    if len(_degraded_hits) >= _DEGRADED_LIMIT:
+        return True
+    _degraded_hits.append(now)
+    return False
+
+
 async def _shared_limit_reached(pool) -> bool:
     """Claim one call against the minute and day ceilings shared by every instance.
 
@@ -635,7 +691,7 @@ async def _shared_limit_reached(pool) -> bool:
     per-instance ceiling still applies. Refusing here would break a working
     feature over a migration that has not run yet.
 
-    **Cannot reach the database** -> fail CLOSED. This used to fail open too,
+    **Cannot reach the database** -> DEGRADE to a tight local budget. This used to fail open too,
     which sounded cautious and was not: /query answers by running SQL against
     that same Supabase project, so if the pool is unreachable the question
     cannot be answered anyway — the agent would spend LLM tokens building a
@@ -645,6 +701,15 @@ async def _shared_limit_reached(pool) -> bool:
     still holds when the free tier pauses.
     """
     if pool is None:
+        # No pool at all is the SHAPE OF THE OUTAGE THIS GUARD EXISTS FOR: a
+        # Supabase pause means the app boots without one, and returning False
+        # here skipped the degraded ceiling entirely — the bill stayed unbounded
+        # during exactly the failure it was written to bound. Locally (no
+        # SUPABASE_DB_URL configured at all) there is nothing to meter and
+        # nothing to spend, so only degrade when a URL was configured and the
+        # pool still could not be built.
+        if os.getenv("SUPABASE_DB_URL"):
+            return _degraded_ceiling_reached()
         return False
     try:
         async with pool.acquire() as conn:
@@ -669,13 +734,7 @@ async def _shared_limit_reached(pool) -> bool:
         # money ceiling is the provider-side spend cap.
         print(f"WARNING: metering unreachable, degrading to "
               f"{_DEGRADED_LIMIT}/min for this instance: {exc}")
-        now = time.monotonic()
-        global _degraded_hits
-        _degraded_hits = [t for t in _degraded_hits if now - t < _RATE_WINDOW]
-        if len(_degraded_hits) >= _DEGRADED_LIMIT:
-            return True
-        _degraded_hits.append(now)
-        return False
+        return _degraded_ceiling_reached()
     return False
 
 
@@ -2461,7 +2520,15 @@ def _ops_ok(request: Request) -> bool:
         return False
     got = (request.query_params.get("token")
            or request.headers.get("x-ops-token") or "")
-    return secrets.compare_digest(got, want)
+    # Compare BYTES, not str. secrets.compare_digest raises TypeError on a
+    # non-ASCII str, and an unhandled exception here returns 500 — which tells
+    # anyone who tries `?token=café` that this route exists, defeating the
+    # whole point of answering 404. Encoding first makes every wrong token
+    # wrong the same way.
+    try:
+        return secrets.compare_digest(got.encode("utf-8"), want.encode("utf-8"))
+    except Exception:  # noqa: BLE001 — a bad token must never be a 500
+        return False
 
 
 @app.get("/ops/outreach", include_in_schema=False)
