@@ -3859,7 +3859,10 @@ function renderEconomics() {
       const districtTotal = (e.students && a && a.total_per_student)
         ? e.students * a.total_per_student : null;
       const upd = () => {
-        const v = Number(String(inp.value).replace(/[^0-9]/g, ''));
+        // Cents must not inflate the house: '250,000.00' pasted straight from
+        // an appraisal-district site would read as 25,000,000 if the decimal
+        // point were stripped with the commas. Truncate at the point first.
+        const v = Number(String(inp.value).split('.')[0].replace(/[^0-9]/g, ''));
         if (!v || v < 1000) { out.textContent = ''; return; }
         const bill = v / 100 * t.total_rate;
         const leaves = t.bill_on_home > 0 ? bill * (t.leaves_district / t.bill_on_home) : 0;
@@ -3873,7 +3876,9 @@ function renderEconomics() {
           (mins != null && mins > 0
             ? '. Your household funds about <b>' + (mins >= 10 ? Math.round(mins)
               : mins.toFixed(1)) + ' minutes</b> of ' + nm + '&rsquo;s year &mdash; ' +
-              money(bill) + ' of the ' + fmtBig(districtTotal) + ' it spends across 525,600 minutes.'
+              money(bill) + ' of the ' + fmtBig(districtTotal) +
+              ' it spends on operations and debt across 525,600 minutes (construction excluded, ' +
+              'as in the card below).'
             : '.') + '</div>';
       };
       inp.addEventListener('input', upd);
@@ -4678,13 +4683,14 @@ function startMoneyClock(tx) {
     el.hidden = false;
     return;
   }
-  const t0 = Date.now();
-  const tick = () => {
-    const dollars = rate * (Date.now() - t0) / 1000;
-    el.innerHTML = rateLine + ' — <b>' + fmtMoney(dollars) +
-      '</b> since you opened this page. ' + xb('clock');
-    el.hidden = false;
-  };
+  // The markup renders ONCE; each tick touches only the counter's text.
+  // Rebuilding innerHTML every second destroyed and recreated the '?' button
+  // under the reader — keyboard focus fell to <body> within a second, and a
+  // mousedown could lose its mouseup to the swap.
+  el.innerHTML = rateLine + ' — <b id="clock-amt"></b> since you opened this page. ' + xb('clock');
+  el.hidden = false;
+  const t0 = Date.now(), amt = $('clock-amt');
+  const tick = () => { amt.textContent = fmtMoney(rate * (Date.now() - t0) / 1000); };
   tick();
   _clockTimer = setInterval(tick, 1000);
 }

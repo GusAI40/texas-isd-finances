@@ -303,7 +303,7 @@ const titleCase = s => (s || '').toLowerCase()
   .replace(_ACR, m => m.toUpperCase())
   .replace(/\bMc([a-z])/g, (_m,c) => 'Mc' + c.toUpperCase());
 const cv = $('map'), ctx = cv.getContext('2d'), wrap = $('wrap'), tip = $('tip');
-let geo = null, ids = [], rings = {}, adj = {}, view = {k:1,x:0,y:0}, hover = null, pinned = null;
+let geo = null, ids = [], rings = {}, adj = {}, adjStrength = {}, view = {k:1,x:0,y:0}, hover = null, pinned = null;
 let metric = 't', bounds = null, dpr = Math.min(devicePixelRatio || 1, 2);
 
 const METRICS = {
@@ -704,6 +704,7 @@ fetch('/district-geo').then(r => r.json()).then(d => {
   for (const [k,n] of pair) if (n >= 1) {
     const [a,b] = k.split('|');
     (adj[a] = adj[a] || []).push(b); (adj[b] = adj[b] || []).push(a);
+    adjStrength[k] = n;    // shared quantised vertices — 1 can be a mere corner touch
   }
   renderA11yTable(); renderLegend(); renderPanelDefault(); renderBorders(); resize();
   const want = new URLSearchParams(location.search).get('d');
@@ -735,9 +736,19 @@ function renderBorders() {
       const key = a < b ? a + '|' + b : b + '|' + a;
       if (seen.has(key)) continue;
       seen.add(key);
+      // "Shares a real boundary line" must mean a LINE. One shared quantised
+      // vertex (~50m grid) can be a corner touch or a rounding coincidence —
+      // and this list selects the extreme tail of thousands of edges, exactly
+      // where such artifacts would surface. Two or more shared vertices means
+      // an actual edge segment. The forgiving n>=1 stays for the orange
+      // neighbour outlines, where a false neighbour costs nothing.
+      if ((adjStrength[key] || 0) < 2) continue;
       const mb = geo.d[b].m;
       if (!mb || mb.s == null || (mb.e || 0) < MIN_STUDENTS) continue;
-      pairs.push({ a, b, gap: Math.abs(ma.s - mb.s) });
+      // The gap is the difference of the ROUNDED figures the reader sees, so
+      // the card's own subtraction always checks out — the builder learned
+      // this the hard way ("round once and derive the rest").
+      pairs.push({ a, b, gap: Math.abs(Math.round(ma.s) - Math.round(mb.s)) });
     }
   }
   pairs.sort((x, y) => y.gap - x.gap);
@@ -757,7 +768,9 @@ function renderBorders() {
     const b = e.target.closest('.bpair');
     if (!b) return;
     focusOn(b.dataset.a);
-    $('wrap').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    $('wrap').scrollIntoView({
+      behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+      block: 'center' });
   };
 }
 
