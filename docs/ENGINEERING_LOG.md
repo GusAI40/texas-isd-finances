@@ -17,6 +17,101 @@ Entry template:
 
 ---
 
+## 2026-08-16 — Clickable lineage: why is this number this number
+
+**What changed.** A reader can now click a published per-student revenue figure
+on a district page and see the working: numerator, denominator, **which student
+count the denominator is**, the formula, the fiscal year, the publisher, a link
+to the original file, and the verdict of a publication gate. New:
+`src/lineage.py` (the Evidence object + `gate()`), `scripts/recompute_revenue.py`
+(a second, independent re-derivation), `GET /district/{n}/lineage/{metric}`,
+a tenth MCP tool `district_lineage`, `tests/test_lineage.py` (34 tests), and the
+panel itself in `static/index.html`. `scripts/build_economics_data.py` emits the
+evidence; `src/sources.py` gained `freshness_and_aim()` and `recorded_on()`.
+
+**Why a gate and not a validation flag.** "Deterministic" is not "true". Every
+reader-visible error this project has shipped came from deterministic code with
+a green suite behind it — the bond layer two years stale, five districts drawn
+on another district's land, a test comparing an artefact to a column generated
+from that artefact. So VERIFIED requires four separate questions to pass, and
+each has one of those failures behind it: **computability** (can it be computed,
+and does a per-unit figure name its denominator — "per student" is not a
+definition, this site publishes per-student figures on different denominators
+that legitimately disagree), **arithmetic**, **correctness** (does an
+independent re-read agree), **freshness**, **aim**. `gate()` refuses to return
+VERIFIED when `recomputed_from` names the artefact being checked, and a figure
+nobody recomputed is **UNVERIFIED**, not VERIFIED — a badge nobody earned is
+worse than no badge.
+
+**The second road.** `scripts/recompute_revenue.py` re-derives all four figures
+with the standard-library `csv` module — no pandas, no helper shared with the
+builder — and the build **refuses to write the artefact** if any of the 4,808
+figures disagree. A test parses its imports (via `ast`, not grep — the first
+draft failed on its own docstring) so it cannot quietly become a wrapper around
+the builder. `meta.lineage_recomputation` records that the check ran and found
+zero, because a check that ran and found nothing must not look like a check that
+never ran.
+
+**Six bugs found by reviewing BEFORE the merge.** All mine, from the commit
+before the fix.
+1. **`.vercelignore` drops all of `scripts/`**, and `src/sources.py` reads
+   `scripts/freshness_vintages.json` at request time. In a deploy-shaped tree
+   every verdict fell to UNVERIFIED — correct behaviour and a broken deploy at
+   once, invisible unless someone clicked a number, with tests green because the
+   repo checkout has the file. Re-included; reproduced both the failure and the
+   fix in a tree built to the ignore file's own rules.
+2. **The second road overclaimed.** It reads `prepare_data.py`'s cleaned CSV,
+   not TEA's workbook, and names the same 60-char-truncated columns as the
+   builder — so a wrong TEA-to-CSV mapping would be reproduced by both roads and
+   still publish VERIFIED under the words "an independent re-read of the
+   publisher's own file". Prose corrected in three places.
+3. **`fresh=True` was inferred from the ABSENCE of a hand-typed flag** and shown
+   as "Is this the publisher's latest? yes". The daily watchdog asks the
+   publishers but never writes back, so that claim was unearned. Label is now
+   "Source current, as last recorded?" and the panel states the record's date.
+4. `verify_artifacts.py` added economics to the chain but left the downstream
+   builders reading `static/`, so drift would surface only on a second run.
+5. Two docstrings claimed `/query` uses the Evidence object. It does not.
+6. The arithmetic tolerance had zero headroom — 278,038 / 212 is exactly 1311.5
+   and passed on floating-point luck.
+
+**Gotchas.**
+- **`.vercelignore` is a silent third environment.** Tests and local runs both
+  see the full checkout; only the deploy sees the filtered tree. Anything under
+  `src/` that opens a file outside `src/`, `static/` or `api/` needs a
+  re-include AND a test asserting it, or it behaves differently in production
+  from everywhere it was checked.
+- **Store only what varies.** The first draft emitted the formula, unit and
+  denominator name per district and nearly doubled the artefact (2.4 MB) for no
+  new fact. Constants now live once in `meta.lineage_templates`: 1,202 copies of
+  "the formula" is 1,202 chances for one to differ. Cost with four metrics:
+  +320 KB raw, ~286 KB gzipped.
+- **`economics_data.json` was never in `verify_artifacts.py`'s rebuild chain**,
+  despite being what the forensic and trend layers read. It rebuilds
+  byte-identically, so there was no reason for the exemption. Added.
+- **The three revenue PERCENTAGES deliberately get no lineage.** `federal_pct`
+  is 100 minus the other two so the bar's labels add to 100 — a subtraction, not
+  a division. A numerator for it would describe a calculation that never
+  happened.
+- **`tea_staar_district` now carries `known_stale: true`.** Being a release
+  behind was recorded only in a JSON comment, where no reader would ever find
+  it; it is now machine-readable and reaches the lineage panel.
+- `verify_live.py` covers the endpoint: 21 checks to **26**, including the
+  verdict itself and that the recomputation never derives from the artefact it
+  validates. Confirmed it exits 1 against a deploy missing the vintage file.
+
+**Verified.** ruff clean; 754 tests pass; `verify_artifacts` byte-identical on
+all four artefacts; `verify_live` 26/26 against a local build; and the panel
+rendered in Chromium — four clickable figures, full working, Escape closes, no
+JS errors. Dallas ISD: $2,383,669,437 / 139,776 = $17,053, VERIFIED.
+
+**Open items.** Unchanged from the previous entry, plus: lineage covers the four
+revenue figures only — spending, debt and outcome figures still publish
+result-only and cannot be opened up until their builders emit numerators. The
+`/query` path does not use the Evidence object yet.
+
+---
+
 ## 2026-08-16 — Fifteen bugs, two reviews, and a test that validated itself
 
 **What happened.** Asked for `/code-review` over the week's work. First pass on
