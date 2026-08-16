@@ -98,6 +98,16 @@
   .proof i { font-style: normal; font-size: var(--fs-xs); color: var(--muted); text-transform: uppercase;
     letter-spacing: .05em; margin-top: .15rem; }
   .hero-why { color: var(--ink-2); font-size: var(--fs-base); max-width: 46rem; margin: 0 0 .4rem; }
+  .clock { font-size: var(--fs-base); color: var(--ink-2); margin: .9rem 0 0; max-width: 46rem; }
+  .clock b { font-variant-numeric: tabular-nums; color: var(--ink); }
+  .clock .rate { color: var(--ink); font-weight: 700; }
+  .econ-mine { margin-top: .9rem; padding-top: .8rem; border-top: 1px dashed var(--hairline); }
+  .econ-mine label { font-size: var(--fs-xs); color: var(--muted); display: block; margin-bottom: .25rem; }
+  .econ-mine-in { font-size: var(--fs-md); font-weight: 600; }
+  .econ-mine-in input { font: inherit; width: 9ch; padding: .25rem .4rem; border: 1px solid var(--rule);
+    border-radius: var(--r-sm); background: var(--surface); color: var(--ink);
+    font-variant-numeric: tabular-nums; }
+  .econ-mine-out { margin-top: .4rem; }
   @media (max-width: 600px) { .proof { gap: .6rem 1.6rem; } .proof b { font-size: var(--fs-lg); } }
   /* Progress rail + section nav. Both are navigation chrome, so they stay
      visually quiet — a 3px hairline and small grey chips — and never compete
@@ -1036,6 +1046,7 @@
       state&rsquo;s own files at thousands of checkpoints &mdash; and still capable of error. We say so
       up front, not in the fine print. <a href="/transparency">How this was made, and the full
       terms&nbsp;&rarr;</a></p>
+    <p class="clock" id="moneyclock" hidden aria-live="off"></p>
     <div class="proof" id="proof">
       <span title="2,882,180 finance values · 2,248,478 STAAR · 894,286 Snapshot · 432,327 property and tax · 96,848 boundary coordinates · 51,744 bond records"><b id="proof-points">6.6 million</b><i>data points analysed</i></span>
       <span><b id="proof-districts">1,310</b><i>school districts</i></span>
@@ -3831,7 +3842,44 @@ function renderEconomics() {
           money(t.leaves_district) + '</span></div>'
         : '') +
       '<div class="econ-sub">Rate ' + t.total_rate.toFixed(4) + ' per $100 &mdash; ' +
-      t.mo_rate.toFixed(4) + ' operating, ' + t.is_rate.toFixed(4) + ' debt.</div>';
+      t.mo_rate.toFixed(4) + ' operating, ' + t.is_rate.toFixed(4) + ' debt.</div>' +
+      // Your house, not a hypothetical one. Everything below is the same
+      // arithmetic as the $300k figure above — value ÷ 100 × the adopted rate —
+      // recomputed for the number the reader types, with the working printed
+      // beside the answer so the bill is checkable, not oracular. Runs entirely
+      // in the browser; the home value never leaves the page.
+      '<div class="econ-mine"><label for="myhome">Your home&rsquo;s taxable value</label> ' +
+      '<span class="econ-mine-in">$<input id="myhome" type="text" inputmode="numeric" ' +
+      'value="' + t.home_value.toLocaleString() + '" aria-describedby="myhome-out"></span>' +
+      '<div id="myhome-out" class="econ-mine-out"></div></div>';
+    const wireMyHome = () => {
+      const inp = $('myhome'), out = $('myhome-out');
+      if (!inp || !out) return;
+      const yearMinutes = 525600;
+      const districtTotal = (e.students && a && a.total_per_student)
+        ? e.students * a.total_per_student : null;
+      const upd = () => {
+        const v = Number(String(inp.value).replace(/[^0-9]/g, ''));
+        if (!v || v < 1000) { out.textContent = ''; return; }
+        const bill = v / 100 * t.total_rate;
+        const leaves = t.bill_on_home > 0 ? bill * (t.leaves_district / t.bill_on_home) : 0;
+        const mins = districtTotal ? bill / districtTotal * yearMinutes : null;
+        out.innerHTML =
+          '<div class="econ-big" style="font-size:var(--fs-xl)">' + money(bill) +
+          '<span style="font-size:var(--fs-sm);font-weight:400;color:var(--muted)"> / year</span></div>' +
+          '<div class="econ-sub">= ' + money(v) + ' &divide; 100 &times; ' + t.total_rate.toFixed(4) +
+          ' (the adopted rate above)' +
+          (leaves > 0 ? ' &middot; about ' + money(leaves) + ' of it leaves under recapture' : '') +
+          (mins != null && mins > 0
+            ? '. Your household funds about <b>' + (mins >= 10 ? Math.round(mins)
+              : mins.toFixed(1)) + ' minutes</b> of ' + nm + '&rsquo;s year &mdash; ' +
+              money(bill) + ' of the ' + fmtBig(districtTotal) + ' it spends across 525,600 minutes.'
+            : '.') + '</div>';
+      };
+      inp.addEventListener('input', upd);
+      upd();
+    };
+    wireMyHome();
   } else {
     $('econ-support').textContent = 'A charter district — no property tax, so no bill.';
     $('econ-bill').innerHTML = '<h4>Your school tax</h4><div class="econ-sub">' +
@@ -4599,8 +4647,50 @@ function closeSheets() {
 /* ---------- the hero: show the product, don't describe it ---------- */
 const fmtBig = v => v >= 1e9 ? '$' + (v / 1e9).toFixed(1) + ' billion'
                 : v >= 1e6 ? '$' + Math.round(v / 1e6) + ' million' : fmtMoney(v);
+/* The money clock. $109.4B a year is unimaginable; $3,466 a second is not.
+   Same number, presented as time — and it carries its working like every
+   other figure here: the "?" opens the exact division, the numerator, the
+   fiscal year and the source, because a counter that cannot show its
+   arithmetic is a gimmick, not a statistic.
+
+   Honesty rules: the rate divides the LAST COMPLETE fiscal year by the
+   seconds in a calendar year — it is an average, and the popover says so.
+   Under reduced motion nothing ticks: the reader gets the static rate. */
+let _clockTimer = null;
+function startMoneyClock(tx) {
+  const el = $('moneyclock');
+  if (!el || !tx || !tx.total_spend) return;
+  clearInterval(_clockTimer);
+  const SECS = 31536000;                      // 365 days — the divisor, stated in the popover
+  const rate = tx.total_spend / SECS;
+  EXPLAIN.clock = 'This is an average, not a meter. Texas districts reported ' +
+    fmtBig(tx.total_spend) + ' of total spending in fiscal ' + tx.year +
+    ' (TEA Summarized PEIMS Actual Financial Data, all funds, all ' +
+    fmtNum(tx.districts) + ' districts). Divided by the 31,536,000 seconds in a year, that is ' +
+    fmtMoney(rate) + ' per second. The counter multiplies that rate by your time on this page — ' +
+    'spending is not literally smooth, but the total is real. ' +
+    '<a href="/sources">Where every number comes from</a>.';
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const rateLine = 'Texas public schools spend <span class="rate">' + fmtMoney(rate) +
+    ' every second</span>';
+  if (reduced) {
+    el.innerHTML = rateLine + ' — ' + fmtBig(tx.total_spend) + ' over fiscal ' + tx.year + '. ' + xb('clock');
+    el.hidden = false;
+    return;
+  }
+  const t0 = Date.now();
+  const tick = () => {
+    const dollars = rate * (Date.now() - t0) / 1000;
+    el.innerHTML = rateLine + ' — <b>' + fmtMoney(dollars) +
+      '</b> since you opened this page. ' + xb('clock');
+    el.hidden = false;
+  };
+  tick();
+  _clockTimer = setInterval(tick, 1000);
+}
 function renderTexasDollar(tx) {
   if (!tx || !tx.parts) return;
+  startMoneyClock(tx);
   // On district views renderWelcomeFor has already rewritten the headline and
   // #hero-num no longer exists. Unguarded, this line threw and took the whole
   // penny figure with it — the hero's right column sat on "Loading…" forever.
