@@ -35,6 +35,10 @@
   --surface:   #ffffff;   /* cards, sheets, popovers */
   --surface-2: #f7f7f5;   /* recessed wells, table stripes */
   --overlay:   rgba(20, 20, 20, 0.45);
+  /* Edge cue for horizontal scrollers (masthead tabs, section nav). A themed
+     token, not a literal: a hard-coded black shadow is invisible on the dark
+     surface, and the whole point of the cue is to be seen. */
+  --scroll-shadow: rgba(0, 0, 0, 0.22);
 
   /* Ink. Four steps is enough hierarchy; more invites inconsistency. */
   --ink:       #17171a;   /* headlines, figures */
@@ -126,6 +130,7 @@
   --surface:   #191c22;
   --surface-2: #21242c;
   --overlay:   rgba(0, 0, 0, 0.6);
+  --scroll-shadow: rgba(255, 255, 255, 0.28);
 
   --ink:       #edeef1;
   --ink-2:     #c2c4cb;
@@ -489,8 +494,8 @@ hr, .rule {
   background:
     linear-gradient(90deg, var(--surface) 40%, transparent) left/2.2rem 100%,
     linear-gradient(270deg, var(--surface) 40%, transparent) right/2.2rem 100%,
-    radial-gradient(farthest-side at 0 50%, rgba(0,0,0,.22), transparent) left/1rem 100%,
-    radial-gradient(farthest-side at 100% 50%, rgba(0,0,0,.22), transparent) right/1rem 100%;
+    radial-gradient(farthest-side at 0 50%, var(--scroll-shadow), transparent) left/1rem 100%,
+    radial-gradient(farthest-side at 100% 50%, var(--scroll-shadow), transparent) right/1rem 100%;
   background-repeat: no-repeat;
   background-attachment: local, local, scroll, scroll; }
 #masthead .m-tabs::-webkit-scrollbar { display: none; }

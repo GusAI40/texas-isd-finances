@@ -119,8 +119,8 @@
     background:
       linear-gradient(90deg, var(--nav-bg) 40%, transparent) left/2.2rem 100%,
       linear-gradient(270deg, var(--nav-bg) 40%, transparent) right/2.2rem 100%,
-      radial-gradient(farthest-side at 0 50%, rgba(0,0,0,.22), transparent) left/1rem 100%,
-      radial-gradient(farthest-side at 100% 50%, rgba(0,0,0,.22), transparent) right/1rem 100%;
+      radial-gradient(farthest-side at 0 50%, var(--scroll-shadow, rgba(0,0,0,.22)), transparent) left/1rem 100%,
+      radial-gradient(farthest-side at 100% 50%, var(--scroll-shadow, rgba(0,0,0,.22)), transparent) right/1rem 100%;
     background-repeat: no-repeat;
     background-attachment: local, local, scroll, scroll; }
   .navchips::-webkit-scrollbar { display: none; }
@@ -523,7 +523,8 @@
   /* ---- Ticker: computed figures, continuously cycling ----
      Every item is a real number from the data on this page. Nothing here is a
      headline someone wrote; if a figure cannot be computed the item is not
-     shown. Pauses on hover/focus, and stops entirely for reduced-motion. */
+     shown. One whole figure at a time; pauses on hover, focus or tap;
+     reduced-motion readers get a static strip they scroll themselves. */
   .ticker {
     display:flex; align-items:stretch; gap:0; margin:.1rem 0 .9rem;
     border-top:1px solid var(--hairline); border-bottom:1px solid var(--hairline);
@@ -538,26 +539,32 @@
      sentence fragment with no beginning and no end at every moment ("…ro" on
      one edge, a clipped number on the other): a strip that exists to reward a
      glance was punishing it. Now a complete figure sits still long enough to
-     read, then the next one takes its place. */
+     read, then the next one takes its place — and never mid-read: it pauses
+     on hover, and the strip is focusable so a tap holds it on touch screens.
+     Under reduced motion nothing self-updates at all: every item renders at
+     once in a strip the reader scrolls themselves. */
   .ticker-view { flex:1; overflow:hidden; position:relative; display:flex; align-items:center; }
   .ticker-track {
     display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
     width:100%; padding:.45rem 1.2rem; transition:opacity .3s ease;
   }
   .ticker-track.swap { opacity:0; }
-  @media (prefers-reduced-motion: reduce) { .ticker-track { transition:none; } }
+  @media (max-width:620px) {
+    /* a figure longer than a phone is wide wraps to a second line instead of
+       amputating its number behind an ellipsis */
+    .ticker-track { white-space:normal; }
+  }
+  .ticker-track.all { white-space:nowrap; overflow-x:auto; text-overflow:clip;
+                      scrollbar-width:thin; transition:none; }
+  .tick-sep { color:var(--muted); padding:0 .8rem; }
   .tick { font-size:var(--fs-xs); color:var(--ink-2); font-variant-numeric:tabular-nums; }
   .tick b { color:var(--ink); }
   .tick .up { color:var(--good); font-weight:700; }
   .tick .dn { color:var(--bad); font-weight:700; }
   .tick .who { color:var(--muted); font-weight:700; letter-spacing:.06em;
                text-transform:uppercase; font-size:var(--fs-micro); margin-right:.35rem; }
-  @media (prefers-reduced-motion: reduce) {
-    .ticker-track { animation:none; }
-    .ticker-view { overflow-x:auto; }
-  }
   @media (max-width:620px) {
-    .ticker-track { gap:1.5rem; padding:.4rem .8rem; }
+    .ticker-track { padding:.4rem .8rem; }
     .tick { font-size:var(--fs-micro); }
     .ticker-tag { padding:.4rem .5rem; font-size:var(--fs-micro); }
   }
@@ -589,8 +596,12 @@
   }
   .whobar .who b { color:var(--ink); font-variant-numeric:tabular-nums; }
   .whobar .who span { color:var(--muted); }
-  /* minmax 220, not 255: seven cards must land 4+3, not 3+3+1 — a lone card on
-     its own row reads as a mistake, and this grid holds exactly seven. */
+  /* minmax 220, not 255: at full width the seven cards land 4+3 instead of
+     3+3+1 with a lone card on its own row. Honestly stated: this holds where
+     the grid gets ≥ ~940px; on mid-width screens (small laptop, tablet
+     landscape) three columns return and the seventh sits alone — the trade
+     there is readable card sizes, and seven is a number no column count
+     divides. */
   .drivers { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:.9rem; max-width:1000px; }
   .driver { border:1px solid var(--hairline); border-radius:var(--r-lg); padding:.9rem 1rem; }
   .driver .dl { font-size:var(--fs-xs); color:var(--muted); letter-spacing:.02em; }
@@ -743,7 +754,11 @@
   /* ---- The dollar: 100 pennies, guided ---- */
   .pennies { display:grid; grid-template-columns:repeat(20,1fr); gap:3px; max-width:520px; margin:.9rem 0 .6rem; }
   .pennies i { display:block; aspect-ratio:1; border-radius:var(--r-sm); cursor:pointer;
-               transition:opacity .12s ease, transform .12s ease; }
+               transition:opacity .12s ease, transform .12s ease;
+               /* a neutral hairline on every square: the near-black
+                  construction block otherwise disappears into the dark
+                  theme's ground, reading as a hole in the grid */
+               box-shadow: inset 0 0 0 1px rgba(127,127,127,.28); }
   .pennies.focusing i { opacity:.3; }
   .pennies.focusing i.on { opacity:1; box-shadow:0 0 0 1.5px var(--ink); }
   .penny-legend { display:flex; flex-wrap:wrap; gap:.35rem .5rem; font-size:var(--fs-sm); color:var(--ink-2); }
@@ -926,7 +941,7 @@
 
   <div class="ticker" id="ticker" hidden>
     <span class="ticker-tag">Live figures</span>
-    <div class="ticker-view"><div class="ticker-track" id="ticker-track"></div></div>
+    <div class="ticker-view"><div class="ticker-track" id="ticker-track" tabindex="0" aria-label="Live figures from this page — tap or focus to hold the current one"></div></div>
   </div>
 
   <div class="warnbar" id="dbwarn">The database is not reachable right now. If this persists,
@@ -1694,14 +1709,29 @@ function setCmpValues(k) {
 }
 
 /* ---- the guide: what the pointer is resting on ---- */
+function _topPennyKey() {
+  const d = dollarParts();
+  if (!d || !d.parts.length) return null;
+  return d.parts.slice().sort((a, b) => b.v - a.v)[0].key;
+}
 function focusCat(k) {
+  // Never an empty resting state. The panel used to be four lines of
+  // instructions above a void, waiting for a hover that never happens on a
+  // phone. Worse than empty would be a panel describing a category while the
+  // grid highlights nothing — so the default is applied HERE, where the grid,
+  // the comparison bars and the panel are all driven from the same key, and
+  // all three agree on which penny is being shown.
+  const defaulted = !k && (k = _topPennyKey());
   const g = $('pennies'), c = $('cmpbars');
   g.classList.toggle('focusing', !!k);
   c.classList.toggle('focusing', !!k);
   g.querySelectorAll('i').forEach(el => el.classList.toggle('on', el.dataset.k === k));
   c.querySelectorAll('.bar span').forEach(el => el.classList.toggle('on', el.dataset.k === k));
   setCmpValues(k);
-  $('guide').innerHTML = guideHTML(k);
+  $('guide').innerHTML = (defaulted
+    ? `<div class="rest">Showing the biggest penny. <strong>Point at any square</strong> — ` +
+      `or tap one — to see what that one pays for instead.</div>`
+    : '') + guideHTML(k);
 }
 function hoverCat(k) { state.dollarHover = k; focusCat(k || state.dollarPin); }
 function guideHTML(k) {
@@ -1709,16 +1739,6 @@ function guideHTML(k) {
   if (!d) return '';
   const p = k ? d.parts.find(x => x.key === k) : null;
   if (!p) {
-    // Never an empty box. The resting state used to be four lines of
-    // instructions above a void, waiting for a hover that never happens on a
-    // phone — a panel showing nothing reads as a panel that failed to load.
-    // So the resting state IS the largest penny, with a one-line cue that
-    // pointing (or tapping) switches it.
-    const top = d.parts.slice().sort((a, b) => b.v - a.v)[0];
-    if (top) {
-      return `<div class="rest">Showing the biggest penny. <strong>Point at any square</strong> — ` +
-        `or tap one — to see what that one pays for instead.</div>` + guideHTML(top.key);
-    }
     return `<div class="rest"><strong>Start anywhere.</strong> Point at any square — or tap one on a phone, ` +
       `or use the buttons under the grid — and this panel will tell you what that penny pays for, ` +
       `how it compares with districts like this one and with all of Texas, and what the difference is ` +
@@ -1881,22 +1901,35 @@ function tickerItems() {
   }
   return t;
 }
-let _tickerTimer = null;
+let _tickerTimer = null, _tickerFade = null;
 function renderTicker() {
   const items = tickerItems(), bar = $('ticker'), track = $('ticker-track');
+  // Both timers die first, on EVERY path — including the too-few-items bail
+  // below. A cleared interval with its 300ms fade still pending would write
+  // the previous district's figure back into the new district's strip.
+  clearInterval(_tickerTimer); clearTimeout(_tickerFade);
+  track.classList.remove('swap');
   if (items.length < 3) { bar.hidden = true; return; }
   bar.hidden = false;
-  clearInterval(_tickerTimer);
+  // Reduced motion means no self-updating content, full stop — the old
+  // marquee froze completely, and rotating "gently" would still be motion
+  // the reader asked not to have. They get every item at once, in a strip
+  // they scroll themselves.
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    track.classList.add('all');
+    track.innerHTML = items.map(x => `<span class="tick">${x}</span>`).join('<span class="tick-sep">·</span>');
+    return;
+  }
+  track.classList.remove('all');
   let i = 0;
   const show = () => { track.innerHTML = `<span class="tick">${items[i % items.length]}</span>`; i++; };
   show();
-  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
   _tickerTimer = setInterval(() => {
-    // Never swap the sentence out from under someone reading it.
+    // Never swap the sentence out from under someone reading it. The strip is
+    // focusable, so on a touch screen a tap holds the current figure still.
     if (bar.matches(':hover') || bar.matches(':focus-within')) return;
-    if (reduced) { show(); return; }
     track.classList.add('swap');
-    setTimeout(() => { show(); track.classList.remove('swap'); }, 300);
+    _tickerFade = setTimeout(() => { show(); track.classList.remove('swap'); }, 300);
   }, 8000);
 }
 
@@ -2960,8 +2993,11 @@ document.addEventListener('keydown', e => {
 const fmtMoneyShort = v => {
   if (v == null) return '—';
   const a = Math.abs(v);
-  return a >= 1e9 ? '$' + (v / 1e9).toFixed(2) + 'B'
-       : a >= 1e6 ? '$' + (v / 1e6).toFixed(1) + 'M' : fmtMoney(v);
+  // Branch on the value AS DISPLAYED, not the raw value: $999,960,000 rounds
+  // to "1000.0" at one decimal, and "$1000.0M" on a site whose pitch is
+  // receipts is worse than either neighbour.
+  return a >= 999.95e6 ? '$' + (v / 1e9).toFixed(2) + 'B'
+       : a >= 999.95e3 ? '$' + (v / 1e6).toFixed(1) + 'M' : fmtMoney(v);
 };
 function balanceCard(cur) {
   const label = '<div class="kpi"><div class="label">Operating balance ' + xb('balance') + '</div>';
