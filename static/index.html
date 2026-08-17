@@ -605,6 +605,16 @@
     text-transform:uppercase; color:var(--accent); text-decoration:none;
     border-left:1px solid var(--hairline); white-space:nowrap; }
   .ticker-all:hover { text-decoration:underline; }
+  @media (max-width:620px) {
+    /* On a phone the headline was squeezed into the sliver between the tag
+       and the Feed link — ten lines of one word each, most of the screen
+       (owner screenshot). Stack instead: tag + link on one row, the
+       headline full-width beneath. */
+    .newsticker { flex-wrap:wrap; }
+    .newsticker .ticker-view { order:3; flex-basis:100%;
+      border-top:1px solid var(--hairline); }
+    .newsticker .ticker-all { margin-left:auto; border-left:0; }
+  }
   @media print { .ticker { display:none !important; } }
   /* ---- One child: the whole report at human scale ---- */
   .onechild { border:1px solid var(--hairline); border-radius:var(--r-lg); padding:1.4rem 1.5rem;
