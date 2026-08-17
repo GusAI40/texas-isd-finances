@@ -220,3 +220,38 @@ def test_an_answer_with_no_lead_still_renders():
     type on the card."""
     assert "if (!s.lead_runs || !s.lead_runs.length) { rest(); return; }" in JS
     assert "res.body.structured.lead" in JS and "structured.blocks || []" in JS
+
+
+def test_the_beta_chip_is_the_invitation_not_a_label():
+    """One affordance. A label beside a link nobody presses collects nothing,
+    and a site asking for help should ask where the reader already looks."""
+    assert "el('button', 'm-beta', 'Beta')" in JS
+    assert "chip.addEventListener('click'" in JS
+    # the brand is a link home; the chip must not navigate
+    assert "e.stopPropagation();                    /* the brand is a link home */" in JS
+
+
+def test_every_page_offers_the_feedback_box():
+    for page in sorted((ROOT / "static").glob("*.html")):
+        html = page.read_text(encoding="utf-8")
+        if 'class="m-more"' not in html:
+            continue
+        assert 'href="#feedback"' in html, f"{page.name} has no feedback link"
+
+
+def test_a_lost_note_never_scolds_the_person_who_wrote_it():
+    """Someone who took the trouble to write must not be shown an error for
+    their trouble — a note that did not land is our problem, logged on the
+    server, not theirs."""
+    assert ".then(thanks).catch(thanks);" in JS
+    assert "Thank you — that genuinely helps" in JS
+
+
+def test_the_feedback_box_says_what_it_keeps():
+    assert "only if you choose to give one" in JS
+    assert "/about#privacy" in JS
+
+
+def test_the_email_field_is_never_required():
+    assert "optional" in JS
+    assert "if (msg.length < 3)" in JS      # only the message is checked

@@ -305,6 +305,30 @@
     }
     main.appendChild(s5);
 
+    // ---- what people told us ----------------------------------------------
+    var s5b = section("What people told us",
+      "Volunteered, not observed — the only text on this page that someone "
+      + "chose to write. It outranks every threshold below it, because the "
+      + "event stream cannot show you what a visitor came for and did not find.");
+    if ((d.feedback || []).length) {
+      var fl = el("div", "stream");
+      d.feedback.forEach(function (f) {
+        var row = el("div");
+        row.appendChild(el("time", null, when(f.submitted_at)));
+        var body = el("span", null, f.message);
+        if (f.page) body.textContent += "  — on " + f.page;
+        if (f.left_contact) body.textContent += "  (left an email)";
+        if (f.from_a_recipient) body.textContent += "  (a recipient we mailed)";
+        row.appendChild(body);
+        fl.appendChild(row);
+      });
+      s5b.appendChild(fl);
+    } else {
+      s5b.appendChild(empty("Nobody has written in yet. The beta box is on "
+        + "every page, in the masthead and the More menu."));
+    }
+    main.appendChild(s5b);
+
     // ---- recent activity ---------------------------------------------------
     var s6 = section("Recent activity");
     if ((d.activity || []).length) {

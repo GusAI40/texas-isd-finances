@@ -712,6 +712,55 @@ async def dwell_beacon(beacon: DwellBeacon, request: Request):
     return Response(status_code=204)
 
 
+class Feedback(BaseModel):
+    """What a visitor typed into the beta feedback box.
+
+    Volunteered text, not telemetry. This is the only place on the site where
+    an anonymous visitor's words are stored, and it is the one place where
+    doing so is obviously right: they typed it into a box marked "tell us",
+    which is consent in a way that a page view never is.
+    """
+    message: str = Field(..., min_length=3, max_length=2000)
+    page: Optional[str] = Field(None, max_length=120)
+    district_number: Optional[str] = Field(None, max_length=6)
+    # Never required, and the form says so. A feedback box that demands an
+    # address collects fewer, angrier notes.
+    contact: Optional[str] = Field(None, max_length=160)
+    helpful: Optional[bool] = None
+
+
+@app.post("/feedback", include_in_schema=False)
+async def submit_feedback(body: Feedback, request: Request):
+    """Store one note. Always 200 to the visitor.
+
+    Someone taking the trouble to tell us what is missing must never be shown
+    a stack trace for their trouble — if the database is asleep the note is
+    lost, and that is a worse outcome for us than for them, so it is logged
+    loudly rather than surfaced.
+    """
+    pool = _pool_or_none(request)
+    if pool is None:
+        print("WARNING: feedback received but no database pool")
+        return {"ok": True}
+    # A tracked recipient's note belongs on their journey; everyone else's is
+    # anonymous, and the rid is read from the httpOnly cookie rather than the
+    # body so a page script cannot attribute a note to someone else.
+    rid, _, _, _ = tracking.parse_cookie(request.cookies.get(tracking.COOKIE_NAME))
+    try:
+        async with pool.acquire() as conn:
+            await conn.execute(
+                "INSERT INTO public.site_feedback "
+                "(message, page, district_number, contact, rid, helpful) "
+                "VALUES ($1,$2,$3,$4,$5,$6)",
+                body.message.strip()[:2000],
+                analytics.countable_path(body.page or "") or None,
+                body.district_number, (body.contact or "").strip()[:160] or None,
+                rid or None, body.helpful)
+    except Exception as exc:                # noqa: BLE001
+        print(f"WARNING: feedback not stored: {exc}")
+    return {"ok": True}
+
+
 @app.get("/share/{name}", include_in_schema=False)
 async def share_image(name: str):
     """Per-district 1200x630 social card (and the default). Pre-rendered into
@@ -2966,6 +3015,8 @@ async def ops_intel_data(request: Request, days: int = Query(7, ge=1, le=365)):
         a["name"] = rec.get("district_name") or num
     top_accounts = sorted(accounts.values(), key=lambda a: a["score"], reverse=True)
 
+    feedback = await rows(intel.FEEDBACK_SQL, days)
+
     return JSONResponse(jsonable_encoder({
         "meta": {
             "days": days,
@@ -3006,7 +3057,8 @@ async def ops_intel_data(request: Request, days: int = Query(7, ge=1, le=365)):
         "recent_questions": await rows(intel.RECENT_QUESTIONS_SQL, days),
         "activity": await rows(intel.ACTIVITY_SQL, days),
         "answer_quality": quality,
-        "opportunities": intel.opportunities(kinds, sections, quality),
+        "feedback": feedback,
+        "opportunities": intel.opportunities(kinds, sections, quality, feedback),
     }), headers={"X-Robots-Tag": "noindex, nofollow",
                  "Cache-Control": "no-store"})
 

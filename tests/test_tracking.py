@@ -145,3 +145,23 @@ def test_the_tracked_email_says_so():
     assert "carries a code unique to you" in src
     assert src.count("carries a code unique to you") == 2   # html + text
     assert 'if rid else ""' in src
+
+
+def test_the_privacy_page_admits_that_questions_are_grouped():
+    """`chat_turn` stores a whole conversation under one id, so the old promise
+    that a question can never be 'linked to another question you asked' became
+    false the moment the intelligence layer shipped. The disclosure travels
+    with the feature or the site is lying — the same rule that caught the
+    'we measure the site, never the visitor' sentence."""
+    about = (ROOT / "static" / "about.html").read_text(encoding="utf-8")
+    assert "linked to another question you asked" not in about, (
+        "the retired promise is back, and it is no longer true")
+    assert "questions in one sitting are stored together" in about.lower()
+    assert "carries no ip address" in about.lower() or \
+           "no ip address" in about.lower()
+
+
+def test_the_privacy_page_declares_the_feedback_box():
+    about = (ROOT / "static" / "about.html").read_text(encoding="utf-8")
+    assert "beta feedback box" in about.lower()
+    assert "only</em> if you choose to give one" in about

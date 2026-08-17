@@ -260,3 +260,51 @@ def test_no_query_interpolates_a_value(sql):
     could reach SQL is the one place this must never slip."""
     assert "%" not in sql and ".format(" not in sql
     assert not re.search(r"\+\s*['\"]", sql)
+
+
+# --- beta feedback ----------------------------------------------------------
+# The telemetry says what people DID. A note says what they came for and did
+# not find, which is the half no amount of event counting recovers.
+
+def test_feedback_outranks_every_counted_threshold():
+    """Someone who took the trouble to type a paragraph is describing a gap
+    the event stream cannot show you. It goes first, or it gets buried under
+    findings a machine produced."""
+    out = intel.opportunities(
+        [{"kind": "debt", "asked": 99}], [],
+        {"turns": 100, "failures": 50},
+        feedback=[{"message": "I could not find the tax rate anywhere"}])
+    assert out[0]["finding"].startswith("Someone wrote in:")
+    assert "volunteered, not observed" in out[0]["evidence"]
+
+
+def test_no_feedback_changes_nothing():
+    counted = intel.opportunities([], [], {"turns": 100, "failures": 20})
+    with_none = intel.opportunities([], [], {"turns": 100, "failures": 20}, [])
+    assert counted == with_none
+
+
+def test_the_feedback_query_never_returns_the_email_itself():
+    """A dashboard that prints the address turns a note into a contact list.
+    Whether someone left one is useful; the address itself is not, until a
+    human decides to reply."""
+    assert "left_contact" in intel.FEEDBACK_SQL
+    assert "f.contact IS NOT NULL" in intel.FEEDBACK_SQL
+    # the raw column must not be selected
+    select = intel.FEEDBACK_SQL[:intel.FEEDBACK_SQL.index("FROM")]
+    assert "f.contact," not in select and " contact\n" not in select
+
+
+def test_feedback_is_created_by_the_self_applying_schema():
+    assert "CREATE TABLE IF NOT EXISTS public.site_feedback" in migrations.INTEL_DDL
+    assert "REVOKE ALL ON public.site_feedback FROM PUBLIC" in migrations.INTEL_DDL
+
+
+def test_the_sentinel_is_the_object_created_last():
+    """It moved when site_feedback was added. If it had stayed on chat_turn, a
+    database that already ran the earlier version would take the fast path
+    forever and never get the new table — the migration would be a silent
+    no-op on exactly the deployments that already exist."""
+    assert migrations.INTEL_SENTINEL == "public.site_feedback"
+    ddl = migrations.INTEL_DDL
+    assert ddl.index("public.chat_turn") < ddl.index("public.site_feedback")
