@@ -70,7 +70,21 @@ code.claude.com and run the send from a session that has them.
    (AskTED contacts are public TEA data; expect ~1,019 rows). Spot-check that
    insights in a few rows name the ROW'S OWN district — the identity gate
    (`verify_targets()`) enforces this at send time, but a broken merge should
-   be caught here, not there.
+   be caught here, not there. Two rules learned 2026-08-17:
+   - **The Socrata AskTED dataset (`hzek-udky`) is a stale mirror.** Check
+     `rowsUpdatedAt` on `data.texas.gov/api/views/hzek-udky.json` before
+     calling any pull "fresh" — on 2026-08-17 it was still the May 12
+     snapshot, missing the entire summer superintendent-turnover season. The
+     live directory is askted.tea.texas.gov (blocked from this container's
+     network; its export needs a human download or another network). A
+     "fresh pull" from a stale mirror is the freshness-check-watching-the-
+     wrong-page failure all over again.
+   - **After any roster refresh, dedupe by DISTRICT, not only email.** The
+     skip-list keys on addresses; a district whose superintendent changed
+     gets a NEW address and would sail past it — re-mailing a district that
+     was already contacted, just to a different person. The sent log carries
+     `district_number`: exclude those districts from the wave unless the
+     owner explicitly wants to re-introduce to new superintendents.
 4. **Dry run** — costs nothing, sends nothing, and is the real review:
    ```bash
    python scripts/send_outreach.py --limit <N> --campaign wave<K>-<YYYY-MM-DD> --previews 3
@@ -124,6 +138,29 @@ python scripts/send_outreach.py --send --confirm GO --limit <N> --campaign wave<
   own pixel, pages, dwell, returns) for TRACKED waves only.
 - Campaign-level click-through is also counted first-party as `src:email` in
   `site_visits` — no Resend needed.
+
+**The biggest one: raw opens and clicks are mostly machines.** School districts
+run mail-security appliances (Microsoft Defender, Barracuda, Mimecast) that
+open every message and follow every link within seconds of delivery, to check
+them. In the raw counters they are indistinguishable from eager readers. On
+wave 2 (2026-08-17) this was **6 of 14 "clicks" and roughly three quarters of
+the "opens"**. `journey_report.py` now prints raw AND verified counts; quote
+the **verified click** figure and nothing else as engagement. The two
+signatures, both confirmed against real data:
+
+- **Time.** No human opens mail one second after it is sent. Anything within
+  120s of that recipient's OWN send is a machine. (Hardin ISD "clicked" at
+  +1s; 21 opens fired inside 30s.)
+- **Dead clients.** Windows XP, IE 8, and AppEngine fetchers in 2026 are
+  appliances in costume — 32 recipients produced events from these.
+- **Bonus tell:** one recipient generating clicks from *five different
+  browsers at once* is an appliance fanning out, not a diligent reader.
+
+Opens are unreliable in BOTH directions — scanners inflate them, image
+blocking deflates them — so a range is the honest form, never a point
+estimate. Also note **dwell time is capped by the instrument**: `track.js`
+flushes every 60s, so "1m 00s" means "at least a minute, still open", not a
+measured duration.
 
 Interpretation rules that have already prevented false findings once:
 - **Wave 1 (the 571 sent 2026-08-11/12/13) is untracked forever** — its links

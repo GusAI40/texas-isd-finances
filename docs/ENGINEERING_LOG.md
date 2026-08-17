@@ -17,6 +17,76 @@ Entry template:
 
 ---
 
+## 2026-08-17 — The KPIs were mostly robots: wave 2's 14% click is really 8%
+
+**What happened.** Owner asked "how accurate are the KPIs?" — the right
+question. Auditing the RAW events behind the dashboard I had just published
+showed most engagement was **mail-security appliances**, not superintendents.
+School districts run Defender/Barracuda/Mimecast, which open every message
+and follow every link within seconds to check them; in the counters they look
+exactly like eager readers.
+
+**The evidence, all from public.visitor_event (user_agent IS recorded):**
+- Hardin ISD "clicked" **1 second** after its send, using **Internet
+  Explorer 8** — dead for over a decade.
+- **21 of 43 opens fired within 30 seconds** of that recipient's own send.
+- **32 recipients** produced events from Windows XP / IE8 / an AppEngine
+  fetcher.
+- **Six districts generated clicks from up to FIVE different user agents
+  at once** — including Waco ISD, which my dashboard had celebrated for
+  "reading six pages". That was the appliance. (Waco does also have one
+  genuine human click at +4m30s.)
+
+**Corrected figures:** wave 2 raw 14% click → **8% verified** (8 recipients,
+first clicks spread naturally +2m03s to +36m43s — that spread IS the human
+signature). Opens: raw 43 → 9–10 pass both filters, but opens are unreliable
+in BOTH directions (scanners inflate, image blocking deflates), so a range is
+the only honest form. Fresh Resend pull across all 671: 299 opened (44.6%),
+13 bounced (1.9%) — same pixel caveat applies.
+
+**Fixed by construction, not by vigilance:** `journey_report.py` now computes
+raw AND verified counts itself (`MIN_HUMAN_SECONDS=120` + dead-client list)
+and prints the caveat with every run, so no future session has to rediscover
+this. Skill updated. Published dashboard corrected in place — it now leads
+with the audit rather than the raw numbers.
+
+**Also caught in the same pass:** two district numbers I was about to publish
+with WRONG names (152902 is New Deal ISD not "North Dallas"; 141902 is Lometa
+not "Blanco") — verified against the crosswalk before shipping. And "1m 00s"
+dwell readings are the track.js 60-second flush interval, not measured time.
+
+**The lesson, in one line:** a metric that only ever flatters you has not been
+audited. The same discipline this portal applies to TEA's numbers has to apply
+to our own.
+
+---
+
+## 2026-08-17 — Seven opt-outs honored and mirrored (first opt-outs on record)
+
+**What happened.** Owner forwarded 7 unsubscribe replies: 5 from the
+2026-08-13 wave (Lamesa, Waxahachie, S and S CISD, Abbott, Lipan), 1 from
+TODAY's wave 2 within hours (Lubbock ISD), and 1 from Klondike ISD. All
+verified against the sent log, appended to `data/outreach_optout.txt`,
+pushed to the Supabase mirror (remote verified: **7 opt-outs / 671 sent**),
+staged PAT shredded after use. These addresses are refused by every future
+send (opt-outs are honored before anything leaves and the remote read
+fails CLOSED).
+
+**The Klondike reply is registry staleness caught in the wild:** our
+on-file contact (from TEA's May-12 AskTED snapshot) is Steve McLaren; the
+unsubscribe came from **Kenny Lowery, Superintendent** — the chair changed
+over the summer and the new superintendent received the old one's mail.
+First concrete confirmation of the stale-mirror finding from earlier
+today; the on-file address is the one opted out, since it is the only one
+the system would ever mail.
+
+**Rate context:** 7 opt-outs of 671 sent = 1.04% — normal for cold B2G
+outreach; 74 opens on the first partial KPI reading against 7 opt-outs
+total keeps the value:annoyance ledger clearly positive, but watch wave 2's
+tracked numbers before wave 3.
+
+---
+
 ## 2026-08-17 — Wave 2 SENT: 100 emails, zero duplicates, first tracked wave (671 total)
 
 **What happened.** Owner ordered the next 100; the outreach skill's full
