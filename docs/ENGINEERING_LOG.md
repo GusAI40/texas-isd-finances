@@ -3414,3 +3414,84 @@ Full detail in CLAUDE.md's 2026-08-12 snapshot. Highlights and traps:
 - **Resend + Supabase Management APIs both 403 bare urllib via Cloudflare
   (error 1010)** — it is a User-Agent block, never an auth failure; send a
   UA or use curl.
+
+## 2026-08-17 — The answer contract: the chat stopped delegating presentation to the model
+
+**Reported:** raw Markdown on screen in the ask sheet — `**bold**`, `| pipes |`,
+`###` — with a spec asking for a react-markdown renderer, structured response
+objects, a deterministic comparability score, and clickable follow-up questions.
+
+**Audited before implementing, and two of the spec's premises did not survive:**
+
+1. There is no build step and the CSP is strict. `react-markdown` + `remark-gfm`
+   cannot be used here at all. The stack is vanilla JS served as static files.
+2. A deterministic similarity engine already exists — `district_similarity`,
+   k-NN on EXOGENOUS traits only, `/district/{n}/peers` (api.py:986) — so the
+   ranking did not need inventing, only wiring.
+
+**Root cause, which was not the missing renderer.** `/query` returned
+`{"success": true, "answer": "<model prose>"}` and `static/ask.js` rendered it
+with `textContent`. That is correct security — a model's output must never reach
+`innerHTML` — and it is also why the punctuation showed. The defect was that
+**presentation had been delegated to the model**.
+
+**The fix is a contract, not a library:**
+
+    trusted data -> deterministic calculation -> STRUCTURED ANSWER -> UI
+
+`src/answer.py` turns model prose into typed blocks (heading / paragraph / list
+/ table) and inline `{t, b}` runs, and attaches what the BUILD computed. The
+renderer's entire vocabulary for an inline run is a text node or a `<b>`, so a
+`<script>` tag in an answer is inert by construction rather than by escaping.
+
+**Decisions worth keeping:**
+
+- **Metric cards are read from `static/economics_data.json`, never parsed out of
+  the answer.** A figure lifted from a sentence is only as right as the sentence.
+  Each card carries the lineage metric that opens its own working, and the panel
+  opens INSIDE the sheet, so checking a number never costs the reader their
+  conversation.
+- **No `total_per_student` card.** Operating + debt is a sum; the composed-total
+  rule bans division lineage on it, and a card whose "calculation" is an invented
+  denominator is worse than no card.
+- **The cards can disagree with the answer above them.** The model reads the
+  finance VIEW (all funds, construction included — Dallas $23,420); the artefact
+  reports operating $14,210 and debt $3,578 with no construction. Both are right,
+  about different questions. The caption states the basis. This was found by
+  looking at the rendered screen, not by reasoning about the payload.
+- **The ranked comparison is `who_does_better`** — matched on enrolment and
+  economic disadvantage at build time — and the basis line says "computed from
+  the state's filings, not written by the AI". If the model writes a ranking in
+  prose it STAYS prose: a table implies a computation happened.
+- **A one-row Markdown table demotes to a paragraph.** A header with nothing
+  under it is a table making the same false claim.
+- **Follow-ups are `{label, question}`** keyed off the question kind and the
+  district in context, every one mapping to data this repo publishes. A
+  suggestion the system cannot answer advertises a capability and then fails.
+- **`diagnostic` was moved ABOVE `spending` in the classifier.** "Is X spending
+  too much" is a judgement question; answering it with a bare figure leaves the
+  reader to draw the comparison themselves.
+
+**The duplication that caused the visible bug in the first place.**
+`static/index.html` carried its own copy of the answer renderer. Two renderers
+means one of them is always the older one — the landing page kept printing raw
+Markdown long after the sheet had components. It now calls the exported
+`window.TISDAsk.render(box, structured, alive)`; `streamAnswer` survives only as
+the plain-text fallback, and a test fails the build if the landing page stops
+using the shared one.
+
+**Verification.** Driven in Chromium at 1280×900 and 390×844, light and dark:
+4 metric cards, 2 tables (one the model's, one computed), 3 follow-up chips,
+zero raw Markdown on screen, horizontal overflow 0 on both page and sheet, the
+table scrolling inside its own `overflow-x:auto` box, no control under 36px, and
+the lineage panel returning VERIFIED with `1,986,168,795 ÷ 139,776 = $14,210`.
+The lineage result is formatted the way the card formats it — it first rendered
+as bare `14210` next to a card reading `$14,210`, which a reader would have had
+to reconcile.
+
+`scripts/verify_live.py --with-query` now fails a deployment that answers
+correctly but ships no structured answer — the text check alone would stay green
+while every reader saw punctuation.
+
+**Still true and still owed:** the ~20 pasted credentials need rotating, and a
+provider-side monthly dollar cap on DeepSeek. `/query` bounds CALLS, not dollars.

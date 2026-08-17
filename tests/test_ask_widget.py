@@ -79,7 +79,13 @@ def test_text_on_the_accent_uses_the_token_made_for_it():
     """Dark theme flips --accent to a light blue; hardcoded white text on it
     fails contrast on the reader's own bubble and the Ask button. The design
     system ships --accent-ink for exactly this."""
-    assert "color:#fff" not in JS.replace("color:var(--accent-ink, #fff)", "")
+    # The lineage verdict badges are the one exemption, and they are exempt for
+    # a reason rather than by oversight: their backgrounds are fixed dark green
+    # / amber / red in BOTH themes (a REFUSED verdict must not go pale when the
+    # reader flips to dark), so their text is fixed white to match. Everything
+    # painted on --accent must use --accent-ink.
+    body = "\n".join(ln for ln in JS.splitlines() if ".ta-badge" not in ln)
+    assert "color:#fff" not in body.replace("color:var(--accent-ink, #fff)", "")
     assert JS.count("var(--accent-ink, #fff)") >= 2
 
 
@@ -94,9 +100,14 @@ def test_answers_are_text_never_markup():
     """The model's output is untrusted. Every path that writes an answer into
     the page must go through textContent — the skeleton and caret are the only
     innerHTML writes, and both are constant strings this file owns."""
-    assert "s.textContent = tok" in JS
+    assert "if (cls) n.className = cls;" in JS      # el() builds nodes, not markup
+    assert "n.textContent = text" in JS
     assert "bub.textContent = text" in JS
     assert "res.body.answer || " in JS
+    # the structured renderer has exactly two branches for an inline run, and
+    # neither can produce markup
+    assert "node.appendChild(el('b', null, r.t))" in JS
+    assert "node.appendChild(document.createTextNode(r.t))" in JS
     # the only innerHTML assignments are the widget's own constant strings
     for line in JS.splitlines():
         if ".innerHTML" in line and "=" in line:
@@ -129,3 +140,41 @@ def test_the_disclosure_travels_with_the_sheet():
     assert "can make mistakes" in JS
     assert "/about#privacy" in JS
     assert "official TEA data" in JS
+
+
+def test_the_renderer_is_exported_so_there_is_only_one_of_them():
+    """The landing page has its own inline answer box. It used to have its own
+    copy of the answer renderer too, which is exactly how it kept printing the
+    model's literal `**bold**` after the sheet had components — two renderers
+    means one of them is always the older one."""
+    assert "render: function (target, structured, alive)" in JS
+    front = (ROOT / "static" / "index.html").read_text(encoding="utf-8")
+    assert "window.TISDAsk.render(box, r.structured" in front, (
+        "the landing page is not drawing the structured answer through ask.js")
+    # and it still degrades to plain text if the contract is not there
+    assert "streamAnswer(box, text, mine)" in front
+
+
+def test_the_district_on_screen_travels_with_the_question():
+    """Context, not steering: the number goes to the answer builder so the
+    figures and follow-ups are about the district the reader is looking at. It
+    never reaches the model's query."""
+    assert "district_number: districtNumber()" in JS
+    assert "/^\\d{6}$/.test(d || '')" in JS      # a 6-digit TEA number or nothing
+
+
+def test_a_wide_table_scrolls_inside_its_own_box():
+    """A table wide enough to push the sheet sideways makes the whole answer
+    unreadable on a phone. The overflow belongs to the table, never the page."""
+    assert ".ta-tw { margin:.7rem 0 0; overflow-x:auto;" in JS
+
+
+def test_a_figure_with_no_calculation_is_not_dressed_as_a_button():
+    """A control that looks clickable and does nothing is a small lie, and the
+    composed total genuinely has no division to open."""
+    assert "el(c.metric ? 'button' : 'div', 'ta-card')" in JS
+
+
+def test_follow_up_chips_ask_the_full_question_not_the_label():
+    assert "input.value = f.question;" in JS
+    assert "el('button', null, f.label)" in JS
