@@ -17,6 +17,85 @@ Entry template:
 
 ---
 
+## 2026-08-17 (later still) — The E-Rate layer: federal money TEA's books never see
+
+**What changed.** PR #29 merged: `/erate/texas` + `/district/{n}/erate` +
+the "Federal internet money" econ card, from `static/erate_data.json`
+(884 KB, no DB). First-party from USAC's open-data portal (Socrata, like
+the bond layer): FRN Status `qdmp-ygft` + Supplemental Entity Information
+`7i5i-83qf`, 91,332 TX FRN rows + 19,796 entities ingested by
+`scripts/ingest_erate.py`, built by `scripts/build_erate_data.py`.
+**$2.2B Funded to Texas FY2017–2026 (~$220–300M/yr); closed years drawn
+86–94%; Internal Connections $1.00B edges Internet Access $893M; Dallas
+$60M committed.** USAC pays most discounts straight to vendors, so this
+money appears in no PEIMS file — the card says so, and the artifact's
+limits forbid mixing it with TEA figures.
+
+**CORRECTION to this morning's log entry (append-only rule).** The
+scoping note said FY2018's "committed $657M vs $284M disbursed" was
+"worth investigating". It is not a finding — it is a category error I
+caught while building: `funding_commitment_request` on a PENDING row is
+the amount the applicant ASKED, and the dataset carries one row per FORM
+VERSION, so most funded requests also have a superseded Pending row.
+Funded-only FY2018 is $301M committed / $284M disbursed = **94% drawn, a
+non-story**. The builder enforces Funded-only; ingest verifies no FRN
+carries two Funded rows; a test asserts the all-status sum still dwarfs
+the Funded sum so the refusal stays load-bearing. **A scandal-shaped
+number from a mis-read status column is exactly what this project exists
+to not publish.**
+
+**The join** (BEN→TEA, `data/erate_district_match.csv`): three roads,
+disagreement refused — (1) `state_lea_code` verified against the
+crosswalk; (2) unanimous 6-digit campus-code prefix of the BEN's child
+schools, unanimity judged BEFORE the crosswalk filter and ≥2 coded
+children required when alone (one coded child with a typo'd code handed
+Orenda's money to Inspire Academies in testing); (3) name+county through
+the shared resolver, with a USAC suffix normaliser ("Indep School
+District"→ISD) whose spelling fixups are RETRY-only (a blanket Fort→Ft
+broke Fort Bend while fixing Ft Sam Houston), and the prefix road gated
+on charter flags agreeing (unqualified it matched Houston Gateway
+Academy, a charter, to Houston ISD). **1,077/1,118 BENs, 97.4% of
+district-applicant dollars.** The one conflict on record is the two
+Dawson ISDs — the entity's own code says Dawson County, its own campuses
+say Navarro — refused, never guessed. Charter networks (Harmony $23M,
+Great Hearts, ResponsiveEd) spanning many TEA districts under one BEN sit
+in the unresolved bucket, test-locked against ever landing on one
+district. Consortium money ($299M) is counted statewide and deliberately
+never split to members.
+
+**Second review pass: 8 findings, the worst a false published claim.**
+USAC writes "Wilbarger County" where the crosswalk writes "WILBARGER", so
+both county-verified roads never fired — the Wilbarger **Northside ISD**
+(a documented twin name) sat unmatched with the absence sentence denying
+its $183k of funded requests. Trailing " County" stripped; five districts
+gained. Also fixed: absence wording claims only what the artifact holds
+("no FUNDED request" — districts with Pending/Denied filings exist); the
+national+E-Rate cards now render for the 10 districts outside the
+economics dataset (renderEconomics used to hide the whole section over
+them); Socrata paging orders by the verified-unique (frn, status)
+composite; the charter-network guard test asserts presence so an
+upstream rename fails loudly; first_year has one home (the payload).
+
+**Gotchas.**
+- `dt.date.today()` in a builder breaks verify_artifacts' byte-diff at
+  midnight. The open-year clock reads the recorded ingest vintage from
+  `freshness_vintages.json`; re-ingesting IS how the clock advances.
+- USAC socrata `rowsUpdatedAt` moves continuously (FRNs churn through
+  review) — the freshness entry says re-ingest on cadence, not per fire.
+- `armCounters` arms every `.econ-big` at $0 until scrolled into view — a
+  headless read of a fresh page sees "$0 million" and it is NOT a bug;
+  scroll and wait before reading.
+- Per-district totals are the SUM OF THE ROUNDED year rows (round once,
+  derive), or a reader adding the column catches a ±3 mismatch.
+
+**Open items:** owner list unchanged. Next fountains: TAPR campus files
+(SAS broker CGI mapped, needs a session), NPEFS history, SAIPE. E-Rate
+follow-ups if wanted: an MCP tool, and the C2 budget dataset.
+
+**Notes:**
+
+---
+
 ## 2026-08-17 (later) — The press brief, tool eleven, and the strip that ate a phone screen
 
 **What changed.** Three PRs (#26, #27, #28), all merged and live.
