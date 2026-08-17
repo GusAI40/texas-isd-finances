@@ -125,7 +125,11 @@ To render *production* in a browser (Chromium can't TLS through the agent
 proxy), run `scratchpad/liveproxy.py` and point Playwright at
 `127.0.0.1:8799`.
 
-## Current Status (updated 2026-08-11 — keep this a snapshot, history goes in the log)
+## Current Status (updated 2026-08-17 — keep this a snapshot, history goes in the log)
+
+- ✅ **National layer LIVE (2026-08-17, PR #25, verify_live 31/31)** — `/national/texas` + `/district/{n}/national` + the "Against the whole country" econ card, from `static/national_data.json` (no DB). Census F-33 FY2024 + NPEFS state file + CCD LEA Directory bridge. **Texas 44th of 51** (50 states + DC) at $13,642/student in ADA; every district gets Census's own per-pupil current spending + percentile among the 9,294 U.S. districts with 500+ students (floor, never round). ⚠️ **The TEA↔NCES join is the CCD directory's `ST_LEAID`, keyed by number** — NCES ids are NOT derivable from TEA numbers (Dallas = 4816230). ⚠️ **PPCSTOT is published, never recomputed**: the Census excludes spending for students outside fall membership, so `TCURSPND/ENROLL` is ~1% wrong; the artifact quotes the Census definition verbatim. ⚠️ Charters (open and closed) have NO F-33 row — the Census surveys governments — and get `not_applicable`, never "missing information". Fiscal 2024, one year behind TEA; never mixed in one figure. Raw xlsx/CSV in `data/` are gitignored; the 57-row NPEFS file IS committed so the state-rank re-derivation runs in CI (`tests/test_national.py`).
+- ✅ **Header fixed after owner report, browser-diagnosed (2026-08-17)** — "More" was a CLIPPED dropdown (`overflow-x:auto` on `.m-tabs` clips absolute children), now a sibling of the tab strip on all 10 pages; same-destination masthead clicks scroll to top instead of silently reloading; **the ?d decoration resolves at CLICK time** so an in-page district switch no longer navigates to the previous district. All test-locked.
+- ✅ **District news ticker on `/`** — the Feed's stories under Live Figures, one whole headline at a time via the shared `rotateStrip` (one rotator for both strips, by design), reading COMMITTED `static/isd_briefing.json` (zero DB hits, survives a paused Supabase). `/sources` eyebrow counts are now digits, test-pinned to the register.
 
 - ✅ Live in production, all endpoints verified including end-to-end NLP.
 - ✅ Public portal is now the **Texas ISD Financial Resource Guide**: white-minimalist McKinsey/SWD design, penny-of-the-dollar visual, 6 audience lenses, share cards, Methods & citation section, AI disclosure + TAG footer.

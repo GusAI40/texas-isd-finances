@@ -17,6 +17,116 @@ Entry template:
 
 ---
 
+## 2026-08-17 — Texas against the other 49; the More menu was a clipped dropdown, not a dead link
+
+**What changed.** PR #25 merged and verified live (`verify_live.py` **31/31**,
+was 26). Three things shipped in one wave:
+
+**1. The national layer — the first fountain, ingested.** Census F-33 fiscal
+2024 district file (`elsec24t.xlsx`, released 2026-05-07, owner-uploaded) +
+NCES NPEFS state file (committed at `data/npefs_state_2024.txt`, 57 rows,
+pulled first-party from nces.ed.gov and cross-checked against the owner's
+paste) + CCD LEA Directory SY 2024-25 as the join bridge.
+`scripts/build_national_data.py` → `static/national_data.json` (100 KB) →
+`/national/texas` + `/district/{n}/national` (DB-free) → an "Against the
+whole country" card in the econ section + a did-you-know sentence.
+Headlines: **Texas ranks 44th of 51** (50 states + DC) at $13,642 per
+student in average daily attendance; the median ranked Texas district
+spends $13,197 in current spending vs the national median $15,770; Dallas
+ISD sits at the 43rd percentile of the 9,294 U.S. districts with 500+
+students. Robustness shipped in the artifact: ranking by fall membership
+instead of ADA moves Texas only 44→45.
+
+**Why the join is safe.** NCES ids are NOT derivable from TEA numbers
+(Dallas is 4816230, not 48+057905 — an early assumption that measurement
+killed). The CCD directory's `ST_LEAID` column ('TX-057905') is the only
+published bridge, keyed by NUMBER, so the eleven twin district names that
+once put five districts on the wrong map cannot cross-match here. All
+1,048 Texas F-33 rows resolve; the build refuses to write if the
+accounting doesn't balance; `TX-057905 → 4816230` is asserted in the
+builder AND re-checked from the raw file in `tests/test_national.py`.
+
+**Why PPCSTOT is published, not recomputed.** It is NOT
+`TCURSPND×1000/ENROLL` (~1% off, varying per district, up to 7×). The
+Census's documentation says why, and the artifact quotes it verbatim: per
+pupil excludes non-elementary-secondary programs and "spending by a school
+system for students not included in its fall membership counts." A
+homemade division would have been confidently wrong; a formula you can't
+verify doesn't get published.
+
+**Structural absence, stated.** 175 of 1,202 econ districts have no F-33
+row — 174 charters + UT Austin's lab school — because the Census surveys
+GOVERNMENTS and Texas charters aren't independent governments. Charters
+(open AND closed — the closed ones live only in the crosswalk) get a
+`not_applicable` absence, never "missing information." Percentile is
+floor, not round, so "more per student than X%" is always literally true.
+
+**2. The header — owner-reported, browser-diagnosed.** Verdicts from
+clicking every element in driven Chromium, not from reading the code:
+- **"More" was never a dead link — it was a clipped dropdown.** The
+  `<details>` lived inside `.m-tabs`, whose `overflow-x:auto` clips an
+  absolutely-positioned child; `elementFromPoint` at every menu item's
+  midpoint hit the section nav instead. Moved outside the strip on all 10
+  pages; all six items hit-test clean from any scroll position.
+- **Brand/active-tab clicks looked dead**: same-URL navigation restores
+  scroll. Same destination now scrolls to top. And the ?d decoration moved
+  from parse time to CLICK time — review caught that a district switched
+  in-page navigated masthead links to the PREVIOUS district. Modified
+  clicks (ctrl/cmd) keep native behaviour.
+- Both locked by tests (`test_the_more_menu_is_not_inside_the_scrolling_
+  tab_strip`, `test_clicking_the_tab_for_the_current_page_scrolls_to_top`).
+
+**3. District news on the front page** — a second strip under Live
+Figures rotating the Feed's stories, one WHOLE headline at a time (the
+crawling marquee was rejected on this site once already and stays
+rejected), escaped before innerHTML, reduced-motion gets a static strip.
+It reads the COMMITTED `static/isd_briefing.json`, not `/briefing` — zero
+new DB round trips on the front page, and it renders with Supabase
+paused. Both strips share ONE rotator (`rotateStrip`) after review flagged
+the copy — the `_usd`-formatter lesson, applied before the drift.
+
+**Review before merge: 9 findings, all applied.** The two that mattered
+most: the stale-district navigation above, and closed charters getting the
+wrong absence kind. Also: verify_live had no national checks (a deploy
+dropping the artifact would have been invisible — the .vercelignore class
+of failure); live-derived counts (44th, 9,294, 1,048, 14,077) sat in
+docstrings/register/og prose that no test holds to the artifact — all
+de-numberized, counts live in the payload only; `/sources` eyebrow said
+"Seven public sources" while the register held ten (pre-existing drift!) —
+now digits, test-pinned to `len(SOURCES)`/`len(MEASURES)`; the released
+date parse accepted any cell starting "20"; round() percentile could
+render the logically-false "more than 100%".
+
+**Gotchas.**
+- The NPEFS per-pupil figure `PPE15` divides by **ADA**, not membership
+  (`NCE13/ADA` matches exactly for every state; `NCE13/MEMBR23` does
+  not). Texas counts attendance, so per-ADA reads higher than per-member.
+  The page says which count the denominator is.
+- Census F-33 `STATE` column is NOT FIPS — filter on `FIPST=='48'` or you
+  get Washington.
+- Sources page counts and MEASURES: every SOURCES entry must be used by a
+  measure and mirrored by hand on `static/sources.html` (title + URL +
+  label are test-enforced), and the register now requires a vintage entry
+  per source — three new files = 3 source entries + 3 measures + 3
+  vintage entries + 3 page cards + 3 table rows, or the suite fails.
+- `pkill` in a compound Bash command still exits 144 (noted last session,
+  hit again) — start a new port.
+
+**Open items:** unchanged from 2026-08-16 (credential rotation ×7 with the
+owner, DeepSeek monthly cap, STAAR SY2026 human download, wave-2 outreach
+GO, raw-data release publish). New: the F-33 layer stops at fiscal 2024 by
+construction — the `census_f33`/`nces_npefs` vintage probes watch the
+predictable fiscal-2025 URLs; the CCD directory ships at an unpredictable
+versioned URL, so its etag only catches restatement (a human finds the new
+SY on nces.ed.gov/ccd/files.asp). NPEFS `_2a/_3a` same-year revisions
+deliberately don't fire the probe. Optional next fountains, in order:
+NPEFS detail for state comparisons over time, TAPR campus file (teacher
+certification), Census SAIPE, MSRB EMMA.
+
+**Notes:**
+
+---
+
 ## 2026-08-16 — The invisible half: a browser audit, three blockers, all fixed
 
 **What happened.** A corner-to-corner visual audit — 13 pages rendered in
