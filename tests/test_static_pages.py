@@ -482,3 +482,32 @@ def test_the_api_docs_page_no_longer_follows_the_device():
     html = _docs_html()
     assert "prefers-color-scheme: dark" not in html
     assert "color-scheme:light" in html
+
+
+def test_no_third_party_individual_is_named_on_the_public_portal():
+    """A partner credit naming a private individual, their employer, their
+    phone number and their licence number was removed at the owner's request.
+    It is pinned here because that block was footer furniture — the kind of
+    markup that gets pasted back from an old copy without anyone re-reading it.
+
+    'Coldwell EL' is deliberately NOT matched: it is a real Texas elementary
+    school in TEA's own accountability file, and a blanket ban on the word
+    would quietly delete a school from the campus layer.
+    """
+    for page in ALL_PAGES:
+        html = page.read_text(encoding="utf-8").lower()
+        for gone in ("michelle sanchez", "coldwell banker",
+                     "michellesanchezrealtor", "trec license", "0724260"):
+            assert gone not in html, f"{page.name} still names {gone!r}"
+
+
+def test_the_build_your_own_offer_is_present_and_honest():
+    """A commercial line on a civic transparency site earns its place by
+    describing the hard part truthfully rather than by selling."""
+    for name in ("index.html", "about.html"):
+        html = (STATIC / name).read_text(encoding="utf-8")
+        assert "mailto:gus@ubntag.com" in html, f"{name} has no way to get in touch"
+        assert "traceable back to the record it came from" in html, (
+            f"{name}'s offer no longer says what the hard part actually was")
+        assert "whether it is worth doing" in html, (
+            f"{name}'s offer lost the line that makes it an honest one")
