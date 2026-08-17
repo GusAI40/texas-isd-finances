@@ -17,6 +17,31 @@ Entry template:
 
 ---
 
+## 2026-08-17 (night) — Light is the default; the device never decides (PR #35)
+
+**What changed.** Owner directive: the site opens WHITE. The boot scripts
+already gated dark behind a saved `tisd_theme='dark'`, but three surfaces
+still followed the DEVICE and together read as "dark by default":
+(1) `meta color-scheme="light dark"` on all 10 pages — lets a dark-mode
+phone paint the pre-CSS canvas, scrollbars and form controls dark; now
+`"light"`, and **design.css pins `color-scheme` to the chosen theme**
+(`light` on `:root`, `dark` only under `[data-theme=dark]`), which covers
+every toggle path with CSS alone — no per-toggle JS. (2) `/docs` had no
+toggle and followed the OS — light always now. (3) `/ops/outreach` same.
+design.css → v=6 everywhere. Tests lock all three layers.
+
+**Verified** on an emulated DARK-mode iPhone, fresh profile: all 10 pages +
+/docs open rgb(255,255,255) with computed color-scheme light; a saved dark
+choice still renders dark with dark controls; the toggle returns and
+persists light.
+
+**For the owner's own device:** a phone showing dark today carries a SAVED
+dark choice from a past Theme tap (the old OS-following version never
+persisted anything; only the toggle writes). By design that choice is
+honored — one tap of Theme returns it to light permanently.
+
+---
+
 ## 2026-08-17 (evening, later) — The ask sheet: chat over any page, words that write themselves on (PR #34)
 
 **What changed.** Owner directive: top-studio feel, seamless from any page,
