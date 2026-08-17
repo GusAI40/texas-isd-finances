@@ -51,6 +51,13 @@
   --rule:      #e6e5e0;   /* hairlines */
   --rule-2:    #d2d0c9;   /* emphasised divider */
 
+  /* The BROWSER's palette follows OUR theme, never the device's. Without
+     this, `meta color-scheme: light dark` let a dark-mode phone paint the
+     pre-CSS canvas, scrollbars and form controls dark on a white site —
+     which read as "the site defaults to dark" (owner-reported). Light unless
+     the reader's explicit toggle choice says otherwise; the dark block below
+     flips it with data-theme, so every toggle path is covered by CSS alone. */
+  color-scheme: light;
   /* The one accent. Everything else is grey. */
   --accent:      #1c5cab;
   --accent-ink:  #ffffff; /* text on --accent */
@@ -129,6 +136,7 @@
 
 /* Dark. Only what must change; the structure is identical, which is the point. */
 :root[data-theme="dark"] {
+  color-scheme: dark; /* the browser's controls follow the CHOSEN theme */
   --bg:        #101216;
   --surface:   #191c22;
   --surface-2: #21242c;

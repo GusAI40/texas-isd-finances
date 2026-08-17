@@ -2925,12 +2925,11 @@ def _docs_html() -> str:
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>API reference &mdash; Texas ISD Finances</title>
 <style>
+  /* Light always — the site's rule is light by default, and this page has no
+     toggle to honour an explicit dark choice, so following the device here
+     made /docs the one surface that opened dark (owner directive). */
   :root {{ --ink:#14171a; --ink-2:#4a5157; --ink-3:#767c82; --rule:#e3e6e8;
-           --bg:#fff; --surface:#f7f8f9; --accent:#1a56a8; }}
-  @media (prefers-color-scheme: dark) {{
-    :root {{ --ink:#e9ecef; --ink-2:#b3b9be; --ink-3:#868d93; --rule:#2a2f34;
-             --bg:#101216; --surface:#171a1f; --accent:#78a9f0; }}
-  }}
+           --bg:#fff; --surface:#f7f8f9; --accent:#1a56a8; color-scheme:light; }}
   * {{ box-sizing:border-box; }}
   body {{ background:var(--bg); color:var(--ink); margin:0; padding:2.5rem 1.25rem 5rem;
          font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }}

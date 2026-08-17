@@ -441,3 +441,37 @@ def test_every_page_offers_ask_a_question_and_hash_links_stay_clean():
     assert 'class="finder-ask"' in front and 'href="#ask-section"' in front, (
         "the landing lost its visible way into the ask layer — the full box "
         "sits thousands of pixels down; the finder line is the front door")
+
+
+# --- light is the default, everywhere, and the device never decides ----------
+
+def test_light_is_the_default_and_only_an_explicit_choice_goes_dark():
+    """Owner directive: the site opens WHITE. Three layers enforce it and each
+    has a real failure behind it: the meta hint was "light dark", which let a
+    dark-mode phone paint the pre-CSS canvas and form controls dark on a white
+    site (read as "dark is the default"); the boot script must gate dark on a
+    SAVED choice, never the OS; and design.css pins the browser's own control
+    palette to the chosen theme, covering every toggle path with CSS alone."""
+    for page in ALL_PAGES:
+        html = page.read_text(encoding="utf-8")
+        assert '<meta name="color-scheme" content="light dark">' not in html, (
+            f"{page.name}: the meta hint lets the device paint the site dark")
+        assert "@media (prefers-color-scheme: dark)" not in html, (
+            f"{page.name}: a style block follows the device instead of the toggle")
+        if "tisd_theme" in html:
+            assert "if (_t === 'dark')" in html, (
+                f"{page.name}: dark must require a saved explicit choice")
+            assert "prefers-color-scheme: dark)').matches" not in html, (
+                f"{page.name}: the boot script consults the OS again")
+    css = (STATIC / "design.css").read_text(encoding="utf-8")
+    assert "color-scheme: light;" in css
+    assert "color-scheme: dark;" in css.split('[data-theme="dark"]', 1)[1]
+
+
+def test_the_api_docs_page_no_longer_follows_the_device():
+    """/docs was the one surface with no toggle that still went dark with the
+    OS — the lone counter-example to "the site opens white"."""
+    from src.api import _docs_html
+    html = _docs_html()
+    assert "prefers-color-scheme: dark" not in html
+    assert "color-scheme:light" in html
