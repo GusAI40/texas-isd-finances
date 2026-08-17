@@ -209,3 +209,43 @@ def test_an_empty_result_is_reported_as_a_finding_not_a_failure():
     one of them says so."""
     src = (ROOT / "scripts" / "ingest_replies.py").read_text()
     assert "That is a finding, not a failure" in src
+
+
+# --- failing usefully -------------------------------------------------------
+
+def test_missing_config_is_reported_all_at_once_and_before_any_network_call():
+    """The first version checked the mailbox credentials inside read_inbox(),
+    which runs AFTER the send log has been fetched — so a stale token produced
+    a urllib stack trace, and an operator who had simply not set IMAP_USER
+    never reached the message telling them to."""
+    src = (ROOT / "scripts" / "ingest_replies.py").read_text()
+    main_body = src[src.index("def main("):]
+    check = main_body.index("missing_config()")
+    fetch = main_body.index("fetch_sends(")
+    assert check < fetch, "config is validated after the first network call"
+
+
+def test_the_help_names_every_missing_variable(monkeypatch):
+    for k in ("SUPABASE_PAT", "IMAP_USER", "IMAP_PASSWORD"):
+        monkeypatch.delenv(k, raising=False)
+    missing = replies.missing_config()
+    assert set(missing) == {"SUPABASE_PAT", "IMAP_USER", "IMAP_PASSWORD"}
+    help_text = replies.config_help(missing)
+    for k in missing:
+        assert k in help_text
+    # the trap worth naming: Gmail rejects the account password outright
+    assert "APP PASSWORD" in help_text
+
+
+def test_a_configured_run_reports_nothing_missing(monkeypatch):
+    for k in ("SUPABASE_PAT", "IMAP_USER", "IMAP_PASSWORD"):
+        monkeypatch.setenv(k, "set")
+    assert replies.missing_config() == []
+
+
+def test_an_expired_token_reads_as_an_expired_token():
+    """401 is an operator action, not a bug, and a cron log has one chance to
+    say so."""
+    src = (ROOT / "scripts" / "ingest_replies.py").read_text()
+    assert "exc.code in (401, 403)" in src
+    assert "wrong or expired" in src

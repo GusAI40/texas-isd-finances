@@ -100,6 +100,37 @@ def pick_rid(sends: list[dict], replied_at: datetime) -> str | None:
     return max(eligible, key=lambda s: s["sent_at"])["rid"]
 
 
+REQUIRED = ("SUPABASE_PAT", "IMAP_USER", "IMAP_PASSWORD")
+
+
+def missing_config() -> list[str]:
+    return [k for k in REQUIRED if not os.environ.get(k, "").strip()]
+
+
+def config_help(missing: list[str]) -> str:
+    """One message that says everything that is wrong, and how to fix it.
+
+    Checked ALL AT ONCE and BEFORE any network call. The first version tested
+    the mailbox credentials inside read_inbox(), which runs after the send log
+    has already been fetched — so an operator with a stale token got a urllib
+    stack trace, and one who had simply not set IMAP_USER yet never reached the
+    message telling them to. A scheduled job that fails has one chance to say
+    something useful in a log nobody is watching.
+    """
+    lines = ["Missing configuration: " + ", ".join(missing), ""]
+    if "SUPABASE_PAT" in missing:
+        lines.append("  SUPABASE_PAT   reads who was mailed, writes the events.")
+    if "IMAP_USER" in missing or "IMAP_PASSWORD" in missing:
+        lines += [
+            "  IMAP_USER      the mailbox, e.g. gus@ubntag.com",
+            "  IMAP_PASSWORD  a Gmail APP PASSWORD, not the account password",
+            "                 (Google Account -> Security -> 2-Step "
+            "Verification -> App passwords).",
+            "                 IMAP must also be enabled in Gmail settings.",
+        ]
+    return "\n".join(lines)
+
+
 def sql(query: str, pat: str) -> list[dict]:
     req = urllib.request.Request(
         f"https://api.supabase.com/v1/projects/{PROJECT_REF}/database/query",
@@ -139,15 +170,12 @@ def read_inbox(days: int) -> list[dict]:
     stdlib imaplib on purpose: a mail SDK would be a new dependency in a
     project whose Vercel bundle is already near its cap, for one IMAP SEARCH.
     """
-    user = os.environ.get("IMAP_USER", "").strip()
-    password = os.environ.get("IMAP_PASSWORD", "").strip()
-    if not (user and password):
-        raise SystemExit(
-            "IMAP_USER and IMAP_PASSWORD are required.\n"
-            "For Gmail this must be an APP PASSWORD (Google Account -> "
-            "Security -> 2-Step Verification -> App passwords), not the "
-            "account password, and IMAP must be enabled in Gmail settings.")
+    missing = missing_config()
+    if missing:
+        raise SystemExit(config_help(missing))
 
+    user = os.environ["IMAP_USER"].strip()
+    password = os.environ["IMAP_PASSWORD"].strip()
     host = os.environ.get("IMAP_HOST", "imap.gmail.com")
     since = (datetime.now(timezone.utc) - timedelta(days=days)).strftime("%d-%b-%Y")
     out: list[dict] = []
@@ -272,12 +300,27 @@ def main() -> int:
                     help="actually record the events; otherwise dry run")
     args = ap.parse_args()
 
-    pat = os.environ.get("SUPABASE_PAT", "").strip()
-    if not pat:
-        print("SUPABASE_PAT is not set — cannot read who was mailed.")
+    missing = missing_config()
+    if missing:
+        print(config_help(missing))
         return 1
+    pat = os.environ["SUPABASE_PAT"].strip()
 
-    sends = fetch_sends(pat)
+    try:
+        sends = fetch_sends(pat)
+    except urllib.error.HTTPError as exc:
+        # A 401 here means the token expired, which is an operator action, not
+        # a bug. Saying so beats a urllib traceback in a cron log.
+        if exc.code in (401, 403):
+            print("Supabase refused the token (HTTP "
+                  f"{exc.code}). SUPABASE_PAT is wrong or expired — reissue it "
+                  "and update the repository secret.")
+        else:
+            print(f"Supabase returned HTTP {exc.code} reading the send log.")
+        return 1
+    except OSError as exc:
+        print(f"Could not reach Supabase: {exc}")
+        return 1
     print(f"  mailed addresses on record: {len(sends):,}")
 
     messages = read_inbox(args.days)
