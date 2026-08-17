@@ -17,6 +17,32 @@ Entry template:
 
 ---
 
+## 2026-08-17 — Seven opt-outs honored and mirrored (first opt-outs on record)
+
+**What happened.** Owner forwarded 7 unsubscribe replies: 5 from the
+2026-08-13 wave (Lamesa, Waxahachie, S and S CISD, Abbott, Lipan), 1 from
+TODAY's wave 2 within hours (Lubbock ISD), and 1 from Klondike ISD. All
+verified against the sent log, appended to `data/outreach_optout.txt`,
+pushed to the Supabase mirror (remote verified: **7 opt-outs / 671 sent**),
+staged PAT shredded after use. These addresses are refused by every future
+send (opt-outs are honored before anything leaves and the remote read
+fails CLOSED).
+
+**The Klondike reply is registry staleness caught in the wild:** our
+on-file contact (from TEA's May-12 AskTED snapshot) is Steve McLaren; the
+unsubscribe came from **Kenny Lowery, Superintendent** — the chair changed
+over the summer and the new superintendent received the old one's mail.
+First concrete confirmation of the stale-mirror finding from earlier
+today; the on-file address is the one opted out, since it is the only one
+the system would ever mail.
+
+**Rate context:** 7 opt-outs of 671 sent = 1.04% — normal for cold B2G
+outreach; 74 opens on the first partial KPI reading against 7 opt-outs
+total keeps the value:annoyance ledger clearly positive, but watch wave 2's
+tracked numbers before wave 3.
+
+---
+
 ## 2026-08-17 — Wave 2 SENT: 100 emails, zero duplicates, first tracked wave (671 total)
 
 **What happened.** Owner ordered the next 100; the outreach skill's full
