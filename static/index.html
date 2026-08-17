@@ -590,6 +590,10 @@
     .tick { font-size:var(--fs-micro); }
     .ticker-tag { padding:.4rem .5rem; font-size:var(--fs-micro); }
   }
+  /* An author display beats the UA's [hidden] { display:none } — so a strip
+     with nothing to show rendered as an empty visible bar (shipped once,
+     owner-reported). hidden must actually hide. */
+  .ticker[hidden] { display:none !important; }
   /* The news strip sits flush under the figures strip: the negative margin
      collapses the two 1px borders into one shared rule. */
   .newsticker { margin-top:-.95rem; }
@@ -947,6 +951,8 @@
     } catch (e) {}
     if (d && /^[0-9]{6}$/.test(d)) {
       document.querySelectorAll('#masthead a[href]').forEach(function (a) {
+        /* the brand is HOME — it never carries the district */
+        if (a.classList.contains('m-brand')) return;
         var h = a.getAttribute('href');
         if (h === '/' || h === '/geomap' || h === '/map' || h === '/forensics') {
           a.setAttribute('href', h + '?d=' + d);
@@ -973,7 +979,8 @@
         var u;
         try { u = new URL(a.getAttribute('href'), location.href); } catch (e) { return; }
         var d2 = currentD();
-        if (CARRY[u.pathname] && d2 && /^[0-9]{6}$/.test(d2)) u.searchParams.set('d', d2);
+        if (CARRY[u.pathname] && d2 && /^[0-9]{6}$/.test(d2)
+            && !a.classList.contains('m-brand')) u.searchParams.set('d', d2);
         if (u.pathname === location.pathname && u.search === location.search) {
           ev.preventDefault();
           var re = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -4992,11 +4999,13 @@ async function loadStatewide() {
     let [tx, txEcon, news] = await Promise.all([
       api('/dollar/texas').catch(() => null),
       api('/economics/texas').catch(() => null),
-      // The committed briefing snapshot, not /briefing: the strip must not
-      // add a database round trip to every front-page visit for content
-      // that changes once a day — and this way it still renders when the
-      // database is paused. /feed keeps serving the live version.
-      fetch('/static/isd_briefing.json').then(r => r.ok ? r.json() : null).catch(() => null)]);
+      // /briefing carries an hour of CDN cache and falls back server-side to
+      // the committed snapshot, so this is not a per-visit database hit and
+      // still renders when the database is paused. (A first cut fetched
+      // /static/isd_briefing.json directly and shipped an empty strip: the
+      // site deliberately has NO blanket static mount — one asset, one
+      // route — so that path 404s in production.)
+      api('/briefing').catch(() => null)]);
     renderNewsTicker(news);
     // The statewide dollar is the headline of the page. Left null it renders
     // "$—", which reads as broken rather than as a snapshot.
