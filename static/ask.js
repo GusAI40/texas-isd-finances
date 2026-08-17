@@ -674,9 +674,16 @@
 
   function render(bub, s, mine) {
     var plain = plainOf(s);
-    bub.parentNode.classList.add('rich');
-    renderInto(bub, s, function () { return mine === token; },
-               function () { settle(plain); });
+    var msg = bub.parentNode;
+    msg.classList.add('rich');
+    renderInto(bub, s, function () { return mine === token; }, function () {
+      settle(plain);
+      /* settle() scrolls to the bottom, which is right while words are still
+         arriving and wrong the moment the components land: it parks the
+         reader on the sources and pushes the actual answer off the top. Put
+         the START of this answer at the top of the thread instead. */
+      thread.scrollTop = Math.max(0, msg.offsetTop - thread.offsetTop);
+    });
   }
 
   /* Every "Ask a question" link on every page opens the sheet IN PLACE.

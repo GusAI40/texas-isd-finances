@@ -178,3 +178,10 @@ def test_a_figure_with_no_calculation_is_not_dressed_as_a_button():
 def test_follow_up_chips_ask_the_full_question_not_the_label():
     assert "input.value = f.question;" in JS
     assert "el('button', null, f.label)" in JS
+
+
+def test_the_answer_lands_at_the_top_of_the_thread_not_the_bottom():
+    """Scrolling to the bottom is right while words are still arriving and
+    wrong the moment the components land — it parks the reader on the sources
+    and pushes the answer itself off the top of the sheet."""
+    assert "thread.scrollTop = Math.max(0, msg.offsetTop - thread.offsetTop);" in JS
