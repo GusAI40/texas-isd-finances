@@ -3665,3 +3665,54 @@ so the funnel's only conversion currently reads zero for everyone — it needs a
 mailbox reader against gus@ubntag.com. Cohorts, funnel visualisations beyond
 the one funnel, pattern detection, saved filters, analytics-of-the-analytics and
 rollups are all unbuilt. The experiment table exists and nothing writes to it.
+
+### The reply ingest — closing the funnel's last stage
+
+`replied` read zero for everyone because nothing had ever written the event. A
+funnel whose final stage is structurally empty is worse than no funnel: it
+looks measured.
+
+**Checked the real mailbox first**, before writing a line. Fourteen days of
+gus@ubntag.com contained a Facebook-poster alarm repeating every four hours, a
+printer thread, and family — and **not one message from a district**. So the
+dashboard's zero was TRUE. That changed the design brief: the script's most
+common output, for a while, is "nothing", and it has to say that as a finding
+rather than exiting silently like a failure.
+
+**Design calls worth keeping:**
+
+- **Sender matching, not threading.** In-Reply-To would be more precise and is
+  not worth it: people compose fresh messages instead of hitting reply, and
+  Outlook drops References often enough to matter. Matching on the sender is
+  the same email→rid join the dashboard already uses, and the worst false
+  positive is a person we mailed writing to us about something else — which is
+  still a person writing.
+- **Most recent send BEFORE the reply.** One address can hold several tokens
+  across waves; attributing a reply to a wave that had not gone out yet would
+  put a conversion before its own cause. A message predating every send is not
+  a reply at all.
+- **The fact and the time, nothing else.** `visitor_event` has nowhere to put a
+  subject or a body and it should stay that way. A test greps the INSERT and
+  fails if `subject`, `body`, `text` or `snippet` ever appears in it.
+- **READ-ONLY mailbox.** `select("INBOX", readonly=True)` — a cron job that
+  marks a superintendent's message as read has edited the thing it was
+  measuring.
+- **Opt-outs are honoured automatically.** The asymmetry is not close: a false
+  positive costs one unsent email, a false negative breaks a promise made in
+  writing to a public official. The detector is broad but not so broad that
+  "please remove the debt chart" silences someone who is actively engaging —
+  both cases are tested.
+- **Idempotent on `reply:{rid}:{message_id}`.** The job re-reads the same three
+  weeks daily; without the key, one reply becomes twenty-one conversions and
+  the funnel inverts.
+
+**A bug the tests caught that production would have hidden.** `match()` compared
+`m["from"]` directly against the send log. `read_inbox()` happens to normalise
+first, so the IMAP path worked — and the moment anything else fed it a raw
+`Dr. Jane Doe <Super@ArgyleISD.example>` header it would have matched nothing
+and reported no replies, which is indistinguishable from there being none.
+Normalisation now happens where the comparison happens.
+
+**Not automatic:** the workflow does NOT commit the opt-out file. A bot pushing
+to a branch-protected repo on a schedule is a bigger risk than a human reading
+one warning line, so it prints the diff as a GitHub warning instead.
