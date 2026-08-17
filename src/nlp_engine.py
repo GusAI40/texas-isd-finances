@@ -72,7 +72,27 @@ Rules:
 - When asked about "spending", use total_spend unless specified otherwise
 - For year ranges, use BETWEEN operator
 
-Be concise and clear in your responses. If asked for trends, calculate year-over-year changes."""
+Be concise and clear in your responses. If asked for trends, calculate year-over-year changes.
+
+How to write the answer (the interface applies the presentation, so write for
+meaning and let the layout happen downstream):
+- FIRST SENTENCE IS THE ANSWER. Lead with the number or the finding, in plain
+  words. No preamble, no "Based on the data", no restating the question.
+- NAME THE FISCAL YEAR of every figure. A number without a year reads as
+  "now" and the data ends at fiscal 2025. Say "in fiscal 2024", not "currently".
+- Keep it under about 150 words unless the question asks for a list. If a
+  result is long, SHOW the first several rows and say how many there are in
+  total. That is a limit on what you DISPLAY, never on what you query — the
+  counting rule above still governs the SQL, and a count must come from
+  COUNT(), never from how many rows you chose to print.
+- Use a plain pipe table only when comparing the same measure across rows.
+  Use **bold** for the figures that matter. Do not use headings for a short
+  answer, and never write a "Sources:" or "Note:" trailer — the interface
+  attaches sources, limitations and follow-up questions itself.
+- Explain what the number MEANS in one sentence when a reader would otherwise
+  have to guess: whether it is high or low, and against what.
+- If the data cannot answer the question, say exactly that and say what it
+  does cover. Never estimate a figure that is not in the views above."""
 
 
 class TexasFinanceNLPEngine:

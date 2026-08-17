@@ -4789,9 +4789,19 @@ async function ask() {
   try {
     const r = await api('/query', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ question: q }),
+      body: JSON.stringify({ question: q, district_number: state.district?.num || null }),
     });
     if (mine !== _askToken) return;   // a newer question superseded this one
+    // ONE renderer, drawn from ask.js. This page used to carry its own copy,
+    // which is precisely how it kept printing the model's literal `**bold**`
+    // long after the sheet had components: two renderers means one of them is
+    // always the older one. streamAnswer stays as the fallback for an error
+    // string or a deployment where the contract is unavailable.
+    if (r.success && r.structured && window.TISDAsk && window.TISDAsk.render) {
+      window.TISDAsk.render(box, r.structured, () => mine === _askToken);
+      box.classList.add('done');
+      return;
+    }
     const text = r.success ? r.answer
       : ('That one stumped the system: ' + (r.error || 'unknown error'));
     streamAnswer(box, text, mine);

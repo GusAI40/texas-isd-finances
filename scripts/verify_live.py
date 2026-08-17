@@ -335,8 +335,16 @@ def check_query(base: str) -> tuple[bool, str]:
         return False, "/query returned a non-JSON body"
     answer = " ".join(str(body.get(k, "")) for k in ("answer", "sql", "result"))
     digits = re.sub(r"[,\s]", "", answer)
+    # The sheet draws `structured`, not `answer`. If the deployment ships the
+    # contract-less shape, the reader gets raw Markdown punctuation on screen
+    # while this check stays green on the text — which is exactly the failure
+    # this line exists to catch.
+    s = body.get("structured")
+    if not isinstance(s, dict) or not s.get("lead") or not s.get("follow_ups"):
+        return False, ("/query answered but shipped no structured answer — the "
+                       "sheet would fall back to raw text")
     if str(want) in digits:
-        return True, f"agent still answers {want:,}"
+        return True, f"agent still answers {want:,}, with a structured answer"
     if re.search(r"\b100\b", answer):
         return False, ("agent answered 100 — the LIMIT-on-a-COUNT regression is "
                        "back; see the 'counting is not limiting' rule")

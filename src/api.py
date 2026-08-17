@@ -29,6 +29,7 @@ from pydantic import BaseModel, Field
 from . import (
     absences,
     analytics,
+    answer,
     lineage,
     llm_config,
     mcp_protocol,
@@ -493,6 +494,17 @@ def get_pool(request: Request):
 class NLPQueryRequest(BaseModel):
     question: str = Field(..., min_length=3, max_length=500,
                           description="Natural language question about Texas school finances")
+    # Optional reading context: which district the reader is looking at. It
+    # never reaches the model's query, so it cannot steer what the data says,
+    # and the answer builder still refuses to attach this district's figures
+    # unless the answer is actually about it.
+    #
+    # The NUMBER only. A `district_name` field was accepted here for one
+    # revision and was a mistake: the name is resolved from the artefact for
+    # the number, and taking it from the client instead let a caller post
+    # {"district_number": "057905", "district_name": "Anything"} and get
+    # follow-ups reading "How much does Anything spend per student?".
+    district_number: Optional[str] = Field(default=None, max_length=6)
 
 
 class NLPQueryResponse(BaseModel):
@@ -500,6 +512,11 @@ class NLPQueryResponse(BaseModel):
     question: str
     answer: Optional[str] = None
     error: Optional[str] = None
+    # The structured answer (src/answer.py): typed blocks, sources, limits and
+    # follow-up questions. `answer` remains the raw model text so any existing
+    # consumer keeps working; the sheet renders `structured` and never has to
+    # interpret model output as markup.
+    structured: Optional[dict] = None
     timestamp: datetime = Field(default_factory=datetime.now)
 
 
@@ -833,6 +850,17 @@ async def nlp_query(request: NLPQueryRequest, http_request: Request):
     await _log_question(http_request.app.state.db_pool, request.question,
                         ok=bool(result.get("success")),
                         ms=int((time.monotonic() - started) * 1000))
+    # Presentation is decided here, not by the model: its prose is parsed into
+    # typed blocks and inline runs so the sheet can draw components instead of
+    # printing Markdown punctuation. A failure to structure must never lose the
+    # answer, so this degrades to the plain text it already had.
+    if result.get("success") and result.get("answer"):
+        try:
+            result["structured"] = answer.build(
+                request.question, result["answer"],
+                district_number=request.district_number)
+        except Exception as exc:         # noqa: BLE001 — never lose an answer
+            print(f"WARNING: could not structure the answer: {exc}")
     return NLPQueryResponse(**result)
 
 

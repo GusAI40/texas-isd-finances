@@ -16,8 +16,17 @@
  *   /#ask-section href. This script intercepts in the CAPTURE phase (the
  *   masthead's own click resolver runs at bubble) and opens the sheet in
  *   place; if this file ever fails to load, the links still navigate.
- * - Answers are TEXT. They are written with textContent into spans, never
- *   innerHTML — a model's output must not be able to inject markup.
+ * - Answers are DATA, not text and not markup. /query returns a `structured`
+ *   object (src/answer.py): a lead, typed blocks, deterministic figures, a
+ *   computed comparison, sources, and follow-up questions. This file decides
+ *   what those LOOK like. The model decides what they MEAN. Nothing it writes
+ *   is ever interpreted as markup — every string lands via textContent, so
+ *   the worst a hostile answer can do is read oddly.
+ *
+ *   Before this, /query returned one string and the sheet printed it with
+ *   textContent — correct security, but it meant the reader saw the model's
+ *   literal `**bold**` and `| pipes |`. The bug looked like a missing Markdown
+ *   renderer. It was actually presentation delegated to the model.
  */
 (function () {
   'use strict';
@@ -134,6 +143,70 @@
     '.ta-fine { margin:0; padding:.15rem 1.25rem calc(1rem + env(safe-area-inset-bottom, 0px));',
     '  color:var(--faint, #8b95a1); font-size:.78rem; line-height:1.5; }',
     '.ta-fine a { color:inherit; }',
+    /* ---- the structured answer, drawn as components ---- */
+    '.ta-msg.ai.rich .ta-bub { max-width:100%; background:var(--bg, #fff);',
+    '  border-radius:4px 14px 14px 14px; padding:.85rem 1rem 1rem; }',
+    '.ta-lead { margin:0; font-size:1.12rem; line-height:1.45; font-weight:600;',
+    '  letter-spacing:-.011em; color:var(--ink, #14171a); }',
+    /* The lead is the model's whole opening paragraph, and a four-sentence
+       paragraph at heading weight is a wall. Long leads step down; nothing is
+       split or hidden, only sized to what it is. */
+    '.ta-lead.long { font-size:1.02rem; font-weight:500; letter-spacing:0; }',
+    '.ta-sec { margin:.9rem 0 0; }',
+    '.ta-cards { display:grid; gap:.5rem; margin:.85rem 0 0;',
+    '  grid-template-columns:repeat(auto-fit, minmax(132px, 1fr)); }',
+    '.ta-card { text-align:left; padding:.6rem .7rem; border-radius:10px;',
+    '  border:1px solid var(--rule, #e3e6e8); background:var(--surface, #f6f7f6);',
+    '  font:inherit; color:inherit; }',
+    'button.ta-card { cursor:pointer; }',
+    'button.ta-card:hover { border-color:var(--accent, #1a56a8); }',
+    'button.ta-card:focus-visible { outline:3px solid var(--accent, #1a56a8); outline-offset:2px; }',
+    '.ta-card b { display:block; font-size:1.22rem; line-height:1.15;',
+    '  letter-spacing:-.02em; font-variant-numeric:tabular-nums; }',
+    '.ta-card span { display:block; margin-top:.2rem; font-size:.76rem;',
+    '  text-transform:uppercase; letter-spacing:.05em; color:var(--muted, #5a6572); }',
+    '.ta-cap { margin:.4rem 0 0; font-size:.78rem; color:var(--faint, #8b95a1); }',
+    '.ta-lin { margin:.55rem 0 0; padding:.7rem .8rem; border-radius:10px;',
+    '  border:1px solid var(--rule, #e3e6e8); background:var(--wash, #f4f5f4); }',
+    '.ta-linhead { display:flex; align-items:center; gap:.5rem; flex-wrap:wrap; }',
+    '.ta-badge { font-size:.68rem; font-weight:700; letter-spacing:.08em;',
+    '  padding:.2rem .45rem; border-radius:5px; background:var(--ink, #14171a);',
+    '  color:var(--bg, #fff); }',
+    '.ta-badge.v-verified { background:#1d6f42; color:#fff; }',
+    '.ta-badge.v-unverified, .ta-badge.v-stale { background:#8a6a12; color:#fff; }',
+    '.ta-badge.v-refused, .ta-badge.v-failed { background:#8a2a1e; color:#fff; }',
+    '.ta-sum { margin:.4rem 0 0; font-size:1rem; font-variant-numeric:tabular-nums;',
+    '  color:var(--ink, #14171a); }',
+    '.ta-h { margin:.95rem 0 .2rem; font-size:.8rem; font-weight:700;',
+    '  text-transform:uppercase; letter-spacing:.07em; color:var(--muted, #5a6572); }',
+    '.ta-p { margin:.5rem 0 0; font-size:.98rem; line-height:1.6; color:var(--ink-2, #3d454d); }',
+    '.ta-ul { margin:.5rem 0 0; padding-left:1.1rem; }',
+    '.ta-ul li { margin:.28rem 0; font-size:.98rem; line-height:1.55; color:var(--ink-2, #3d454d); }',
+    /* a table must scroll inside its own box; the sheet must never scroll sideways */
+    '.ta-tw { margin:.7rem 0 0; overflow-x:auto; -webkit-overflow-scrolling:touch;',
+    '  border:1px solid var(--rule, #e3e6e8); border-radius:10px; }',
+    '.ta-tw.tall { max-height:340px; overflow-y:auto; }',
+    '.ta-tw.tall .ta-tb th { position:sticky; top:0; z-index:1; }',
+    '.ta-tb { border-collapse:collapse; width:100%; font-size:.92rem; }',
+    '.ta-tb th, .ta-tb td { padding:.5rem .7rem; text-align:left; white-space:nowrap;',
+    '  border-bottom:1px solid var(--rule, #e3e6e8); }',
+    '.ta-tb th { font-size:.74rem; text-transform:uppercase; letter-spacing:.05em;',
+    '  color:var(--muted, #5a6572); background:var(--surface, #f6f7f6); }',
+    '.ta-tb td:not(:first-child) { font-variant-numeric:tabular-nums; }',
+    '.ta-tb tr:last-child td { border-bottom:none; }',
+    '.ta-tb tr.me td { font-weight:600; background:var(--wash, #f4f5f4); }',
+    '.ta-basis { margin:.35rem 0 0; font-size:.78rem; line-height:1.5; color:var(--faint, #8b95a1); }',
+    '.ta-next { display:flex; flex-wrap:wrap; gap:.45rem; margin:.9rem 0 0;',
+    '  padding-top:.8rem; border-top:1px solid var(--rule, #e3e6e8); }',
+    '.ta-next button { font:inherit; font-size:.9rem; min-height:40px; padding:.4rem .85rem;',
+    '  border-radius:999px; border:1px solid var(--rule, #e3e6e8); cursor:pointer;',
+    '  background:var(--bg, #fff); color:var(--accent, #1a56a8); text-align:left; }',
+    '.ta-next button:hover { background:var(--accent, #1a56a8); color:var(--accent-ink, #fff);',
+    '  border-color:var(--accent, #1a56a8); }',
+    '.ta-next button:focus-visible { outline:3px solid var(--ink, #14171a); outline-offset:2px; }',
+    '.ta-foot { margin:.75rem 0 0; font-size:.78rem; line-height:1.55; color:var(--faint, #8b95a1); }',
+    '.ta-foot a { color:inherit; }',
+    '.ta-foot + .ta-foot { margin-top:.3rem; }',
     '.ta-sr { position:absolute; width:1px; height:1px; overflow:hidden;',
     '  clip:rect(0 0 0 0); clip-path:inset(50%); white-space:nowrap; }',
   '@media print { .ta-fab, .ta-wrap { display:none !important; } }',
@@ -249,6 +322,262 @@
 
   var token = 0;
 
+  /* The district the reader is looking at, taken from the URL the page is
+     already on. It is sent as context so the answer's figures and follow-ups
+     are about the district on screen — it never reaches the model's query, so
+     it cannot steer what the data says. */
+  function districtNumber() {
+    try {
+      var d = new URLSearchParams(location.search).get('d');
+      return /^\d{6}$/.test(d || '') ? d : null;
+    } catch (e) { return null; }
+  }
+
+  function el(tag, cls, text) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text != null) n.textContent = text;
+    return n;
+  }
+
+  /* Inline runs -> text nodes and <b>. This is the whole reason the model's
+     prose is parsed server-side into {t, b} pairs: there is no branch here
+     that can produce anything but a text node or a bold element. */
+  function runsInto(node, runs) {
+    (runs || []).forEach(function (r) {
+      if (!r || !r.t) return;
+      if (r.b) node.appendChild(el('b', null, r.t));
+      else node.appendChild(document.createTextNode(r.t));
+    });
+    return node;
+  }
+
+  function tableOf(head, rows, selfRow) {
+    var wrapEl = el('div', 'ta-tw');
+    var t = el('table', 'ta-tb');
+    if (head && head.length) {
+      var thead = document.createElement('thead');
+      var hr = document.createElement('tr');
+      head.forEach(function (c) { hr.appendChild(el('th', null, String(c))); });
+      thead.appendChild(hr);
+      t.appendChild(thead);
+    }
+    var tb = document.createElement('tbody');
+    if (selfRow) {
+      var mr = el('tr', 'me');
+      [selfRow.name, selfRow.students, selfRow.pct_poor, 'this district']
+        .forEach(function (c) { mr.appendChild(el('td', null, String(c == null ? '' : c))); });
+      tb.appendChild(mr);
+    }
+    (rows || []).forEach(function (row) {
+      var tr = document.createElement('tr');
+      (row || []).forEach(function (c) { tr.appendChild(el('td', null, String(c == null ? '' : c))); });
+      tb.appendChild(tr);
+    });
+    t.appendChild(tb);
+    wrapEl.appendChild(t);
+    /* A model told to keep lists short can still return two hundred rows, and
+       one long table would push everything below it — the sources, the
+       follow-ups — out of reach. The table gets its own scrollable height and
+       says how many rows it has. Nothing is dropped: truncating rows would
+       hide data, which is the one thing worse than a long table. */
+    if ((rows || []).length > 12) {
+      wrapEl.classList.add('tall');
+      var cap = el('p', 'ta-cap', rows.length.toLocaleString() + ' rows — scroll the table');
+      var holder = el('div');
+      holder.appendChild(wrapEl);
+      holder.appendChild(cap);
+      return holder;
+    }
+    return wrapEl;
+  }
+
+  /* "Why is this number this number." Opens the same evidence the district
+     page shows — numerator, denominator, WHICH student count the denominator
+     is, the formula, the publisher, and the publication gate's verdict — in
+     place, so checking a figure never costs the reader their conversation. */
+  function openLineage(num, metric, label, shown, after) {
+    var old = after.parentNode.querySelector('.ta-lin');
+    if (old) {
+      var wasSame = old.getAttribute('data-metric') === metric;
+      old.remove();
+      if (wasSame) return;              /* clicking the same figure closes it */
+    }
+    var panel = el('div', 'ta-lin');
+    panel.setAttribute('data-metric', metric);
+    panel.appendChild(el('p', 'ta-basis', 'Checking ' + label + '…'));
+    after.parentNode.insertBefore(panel, after.nextSibling);
+    fetch('/district/' + encodeURIComponent(num) + '/lineage/'
+          + encodeURIComponent(metric))
+      .then(function (r) { return r.json(); })
+      .then(function (ev) {
+        panel.textContent = '';
+        var g = ev.gate || {};
+        var head = el('div', 'ta-linhead');
+        head.appendChild(el('span', 'ta-badge v-' +
+          String(g.verdict || 'unknown').toLowerCase(), g.verdict || 'UNKNOWN'));
+        head.appendChild(el('strong', null, label));
+        panel.appendChild(head);
+        if (ev.numerator != null && ev.denominator != null) {
+          panel.appendChild(el('p', 'ta-sum',
+            Number(ev.numerator).toLocaleString() + ' ÷ '
+            /* the result is written the way the card writes it — a reader
+               comparing the two must not have to notice that one is $14,210
+               and the other is 14210 */
+            + Number(ev.denominator).toLocaleString() + ' = '
+            + (shown != null ? shown : ev.value)));
+        }
+        if (ev.formula) panel.appendChild(el('p', 'ta-basis', ev.formula));
+        if (ev.denominator_type) {
+          panel.appendChild(el('p', 'ta-basis',
+            'The denominator is ' + ev.denominator_type + '.'));
+        }
+        var foot = el('p', 'ta-basis',
+          'Fiscal ' + (ev.fiscal_year || '?') + '. ' + (ev.source || ''));
+        if (ev.source_url) {
+          foot.appendChild(document.createTextNode(' '));
+          var a = el('a', null, 'the original file');
+          a.href = ev.source_url; a.target = '_blank'; a.rel = 'noopener';
+          foot.appendChild(a);
+        }
+        panel.appendChild(foot);
+        (g.why || []).forEach(function (w) {
+          panel.appendChild(el('p', 'ta-basis', w));
+        });
+      })
+      .catch(function () {
+        panel.textContent = '';
+        panel.appendChild(el('p', 'ta-basis',
+          'The working for that figure could not be loaded just now.'));
+      });
+  }
+
+  /* Everything below the lead: figures we computed, then the model's blocks,
+     then the comparison we computed, then sources and the next questions. */
+  function bodyOf(s) {
+    var frag = document.createDocumentFragment();
+
+    if (s.figures && s.figures.cards && s.figures.cards.length) {
+      var grid = el('div', 'ta-cards');
+      s.figures.cards.forEach(function (c) {
+        /* A figure with a lineage metric is a button that opens its own
+           calculation; one without is a plain box, because there is nothing
+           to open. A control that looks clickable and is not is a small lie. */
+        var box = el(c.metric ? 'button' : 'div', 'ta-card');
+        if (c.metric) {
+          box.type = 'button';
+          box.title = 'See how this number is calculated';
+          box.addEventListener('click', function () {
+            openLineage(s.figures.district_number, c.metric, c.label, c.value, grid);
+          });
+        }
+        box.appendChild(el('b', null, c.value));
+        box.appendChild(el('span', null, c.label));
+        grid.appendChild(box);
+      });
+      frag.appendChild(grid);
+      frag.appendChild(el('p', 'ta-cap',
+        (s.figures.name ? s.figures.name + ', ' : '') + 'fiscal '
+        + s.figures.year + ' · ' + s.figures.note));
+    }
+
+    (s.blocks || []).forEach(function (b) {
+      if (!b) return;
+      if (b.type === 'heading') frag.appendChild(el('h3', 'ta-h', b.text || ''));
+      else if (b.type === 'list') {
+        var ul = el('ul', 'ta-ul');
+        (b.items || []).forEach(function (item) {
+          ul.appendChild(runsInto(el('li'), item));
+        });
+        frag.appendChild(ul);
+      } else if (b.type === 'table') {
+        frag.appendChild(tableOf(b.head, b.rows, null));
+      } else if (b.type === 'paragraph') {
+        frag.appendChild(runsInto(el('p', 'ta-p'), b.runs));
+      }
+    });
+
+    if (s.comparison) {
+      frag.appendChild(el('h3', 'ta-h', s.comparison.title));
+      frag.appendChild(tableOf(s.comparison.head, s.comparison.rows, s.comparison.self));
+      frag.appendChild(el('p', 'ta-basis', s.comparison.basis));
+    }
+
+    if (s.follow_ups && s.follow_ups.length) {
+      var next = el('div', 'ta-next');
+      next.setAttribute('aria-label', 'Suggested follow-up questions');
+      s.follow_ups.forEach(function (f) {
+        /* the chip shows the short label; asking sends the full question, so
+           the engine receives something precise rather than two words */
+        var b = el('button', null, f.label);
+        b.type = 'button';
+        b.title = f.question;
+        b.addEventListener('click', function () {
+          /* the same chip appears in the sheet and, via renderInto, on the
+             landing page — opening first makes both cases identical */
+          open();
+          input.value = f.question;
+          submit();
+        });
+        next.appendChild(b);
+      });
+      frag.appendChild(next);
+    }
+
+    (s.limitations || []).forEach(function (t) {
+      frag.appendChild(el('p', 'ta-foot', t));
+    });
+    if (s.sources && s.sources.length) {
+      var p = el('p', 'ta-foot');
+      p.appendChild(document.createTextNode('Source: '));
+      s.sources.forEach(function (src, i) {
+        if (i) p.appendChild(document.createTextNode(' · '));
+        var a = el('a', null, src.name);
+        a.href = src.url;
+        if (/^https?:/.test(src.url)) { a.target = '_blank'; a.rel = 'noopener'; }
+        p.appendChild(a);
+      });
+      frag.appendChild(p);
+    }
+    return frag;
+  }
+
+  /* Plain text for the screen reader's one-shot announcement: the components
+     mutate as they arrive, and a live region reading fragments is worse than
+     no live region.
+
+     It announces the figures and the ranked table too. Reading only the
+     model's prose would leave a screen-reader user hearing the part of the
+     answer this project vouches for LEAST while the numbers it computed and
+     checked stayed silent. */
+  function plainOf(s) {
+    var parts = [s.lead || ''];
+    if (s.figures) {
+      parts.push('Filed figures for ' + (s.figures.name || 'this district')
+        + ', fiscal ' + s.figures.year + ':');
+      (s.figures.cards || []).forEach(function (c) {
+        parts.push(c.label + ' ' + c.value + '.');
+      });
+    }
+    (s.blocks || []).forEach(function (b) {
+      if (b.type === 'table') {
+        (b.rows || []).forEach(function (r) { parts.push(r.join(', ')); });
+      } else if (b.type === 'list') {
+        (b.items || []).forEach(function (i) {
+          parts.push(i.map(function (r) { return r.t; }).join(''));
+        });
+      } else if (b.runs) {
+        parts.push(b.runs.map(function (r) { return r.t; }).join(''));
+      } else if (b.text) parts.push(b.text);
+    });
+    if (s.comparison) {
+      parts.push(s.comparison.title + ':');
+      (s.comparison.rows || []).forEach(function (r) { parts.push(r.join(', ')); });
+      parts.push(s.comparison.basis);
+    }
+    return parts.join(' ').replace(/\s+/g, ' ').trim();
+  }
+
   function submit() {
     var q = (input.value || '').trim();
     if (q.length < 3 || busy) return;
@@ -266,7 +595,7 @@
     fetch('/query', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ question: q }),
+      body: JSON.stringify({ question: q, district_number: districtNumber() }),
     }).then(function (r) {
       return r.json().catch(function () { return {}; }).then(function (body) {
         return { status: r.status, body: body };
@@ -282,6 +611,12 @@
           ? 'That one stumped the system: ' + res.body.error
           : 'The question service is resting right now. Please try again in '
             + 'a little while.';
+      /* an answer that opens with a table has no lead and is still structured */
+      } else if (res.body.structured
+                 && (res.body.structured.lead
+                     || (res.body.structured.blocks || []).length)) {
+        render(bub, res.body.structured, mine);
+        return;
       } else {
         text = res.body.answer || 'No answer came back. Please try rephrasing.';
       }
@@ -307,37 +642,92 @@
   /* The answer, written onto the screen one word at a time — each word fades
      and sharpens into place behind a blinking caret. It is the answer we
      already hold, presented for the eye; reduced motion gets it whole. */
-  function reveal(bub, text, mine) {
-    if (reduce) { finish(bub, text); return; }
-    var words = text.split(/(\s+)/);
-    bub.innerHTML = '<span class="ta-caret">▌</span>';
-    var caret = bub.querySelector('.ta-caret');
+  function writeWords(target, text, alive, done) {
+    var words = String(text).split(/(\s+)/);
+    var caret = el('span', 'ta-caret', '▌');
+    target.textContent = '';
+    target.appendChild(caret);
     /* long answers speed up so nothing ever takes more than ~6 seconds */
     var base = words.length > 260 ? 6 : words.length > 120 ? 11 : 18;
     var i = 0;
     var step = function () {
-      if (mine !== token) return;
+      if (!alive()) return;
       if (i >= words.length) {
         caret.remove();
-        if (sr) sr.textContent = text;
-        busy = false;
-        sendBtn.disabled = false;
-        input.focus();
+        done();
         return;
       }
       var tok = words[i++];
       if (tok.trim() === '') {
         caret.insertAdjacentText('beforebegin', tok);
       } else {
-        var s = document.createElement('span');
-        s.className = 'w';
-        s.textContent = tok;
-        caret.insertAdjacentElement('beforebegin', s);
+        caret.insertAdjacentElement('beforebegin', el('span', 'w', tok));
       }
-      thread.scrollTop = thread.scrollHeight;
+      if (thread) thread.scrollTop = thread.scrollHeight;
       setTimeout(step, /[.!?;:]$/.test(tok) ? base * 5 : base);
     };
     step();
+  }
+
+  function settle(text) {
+    if (sr) sr.textContent = text;
+    busy = false;
+    sendBtn.disabled = false;
+    input.focus();
+    thread.scrollTop = thread.scrollHeight;
+  }
+
+  function reveal(bub, text, mine) {
+    if (reduce) { finish(bub, text); return; }
+    writeWords(bub, text, function () { return mine === token; },
+               function () { settle(text); });
+  }
+
+  /* The structured answer, drawn. The LEAD writes itself onto the screen the
+     way it always did; the components appear underneath once it lands, so the
+     reader gets the conclusion first and the evidence a beat later — which is
+     the order the answer is actually built in, not a loading trick.
+     `alive` lets a caller cancel a stale render — the landing page runs its
+     own question token and must be able to stop an older answer writing over
+     a newer one. */
+  function renderInto(target, s, alive, done) {
+    alive = alive || function () { return true; };
+    target.textContent = '';
+    var rest = function () {
+      if (!alive()) return;
+      target.appendChild(bodyOf(s));
+      if (done) done();
+    };
+    /* No lead means the model opened with a table or a heading rather than a
+       sentence. There is nothing to promote, and slicing raw text off the top
+       of such an answer is how `| District | Per student |` ended up as the
+       headline. Draw the body and let the answer start where it starts. */
+    if (!s.lead_runs || !s.lead_runs.length) { rest(); return; }
+    var leadEl = el('p', 'ta-lead' + (s.lead.length > 200 ? ' long' : ''));
+    target.appendChild(leadEl);
+    /* The reveal writes plain words; the bold arrives with the last one. The
+       text is identical either way, so nothing moves when it lands. */
+    var done2 = function () {
+      leadEl.textContent = '';
+      runsInto(leadEl, s.lead_runs);
+      rest();
+    };
+    if (reduce) { done2(); return; }
+    writeWords(leadEl, s.lead, alive, done2);
+  }
+
+  function render(bub, s, mine) {
+    var plain = plainOf(s);
+    var msg = bub.parentNode;
+    msg.classList.add('rich');
+    renderInto(bub, s, function () { return mine === token; }, function () {
+      settle(plain);
+      /* settle() scrolls to the bottom, which is right while words are still
+         arriving and wrong the moment the components land: it parks the
+         reader on the sources and pushes the actual answer off the top. Put
+         the START of this answer at the top of the thread instead. */
+      thread.scrollTop = Math.max(0, msg.offsetTop - thread.offsetTop);
+    });
   }
 
   /* Every "Ask a question" link on every page opens the sheet IN PLACE.
@@ -362,5 +752,17 @@
     build();
   }
 
-  window.TISDAsk = { open: open, close: close };
+  /* `render` is the whole point of exporting anything: the landing page has
+     its own inline answer box, and before this it had its own copy of the
+     answer renderer too. Two renderers means one of them is always the older
+     one — the raw-Markdown bug lived in exactly that gap. One implementation,
+     two places it can draw. */
+  window.TISDAsk = {
+    open: open,
+    close: close,
+    render: function (target, structured, alive) {
+      build();
+      renderInto(target, structured, alive, null);
+    },
+  };
 }());
