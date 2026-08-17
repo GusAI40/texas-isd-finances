@@ -17,6 +17,38 @@ Entry template:
 
 ---
 
+## 2026-08-17 (late) — Vercel dropped two deploy webhooks; a fresh merge unstuck it (PR #36)
+
+**What happened.** PRs #34 (ask sheet) and #35 (light default) merged to
+master cleanly and NO production deployment happened for ~45 minutes —
+txisd.dev sat frozen on #33's build (`/static/ask.js` 404, old meta,
+design.css v=5). Not our build (suite green on the exact merged tree), not
+the seat rule (same author as #33, which deployed in 75s). Diagnosis was
+blind: no Vercel CLI credentials in the container, MCP Vercel calls need
+user approval. The discriminating probe: merge the pending log-note as
+PR #36 to fire a FRESH push event — it deployed within ~2 minutes and
+brought #34+#35 with it. Verdict: Vercel dropped/stuck the two webhook
+events; a new event flushes it.
+
+**Lessons, both load-bearing:**
+- **verify_live has a blind spot for pure front-end waves.** It stayed
+  green the whole time because #34/#35 changed no artifacts and no checked
+  endpoint text — a stale STATIC deploy is invisible to it. The deploy-wait
+  scripts (curl for a new marker) are the real gate for UI waves; never
+  read "verify_live green" as "deploy landed".
+- **When a merge does not deploy, merge the next pending commit as a probe
+  before escalating** — it distinguishes dropped-events (fixed by any new
+  push) from systemic failure (needs the dashboard), and it is the only
+  lever available from this container.
+
+**Verified after the flush, all on PRODUCTION:** verify_live fully green;
+dark-mode iPhone with fresh profile opens rgb(255,255,255)/color-scheme
+light; the ask FAB + sheet work end to end with a REAL DeepSeek round trip
+— the answer streamed word-by-word and said **1,310** (the exact
+regression-watched question, correct).
+
+---
+
 ## 2026-08-17 (night) — Light is the default; the device never decides (PR #35)
 
 **What changed.** Owner directive: the site opens WHITE. The boot scripts
