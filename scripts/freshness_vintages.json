@@ -110,6 +110,18 @@
       "last_modified": "Fri, 26 Dec 2025 22:31:08 GMT",
       "meaning": "The Census-to-TEA bridge, SY 2024-25 v.1a. Each school year's directory ships at a NEW url whose name carries a version and a date, so no next-year probe can be written; this etag fires only if NCES restates the 2024-25 file in place. A new school year's directory is found by a human on nces.ed.gov/ccd/files.asp and only matters when the F-33 year advances with it."
     },
+    "usac_erate": {
+      "method": "socrata",
+      "check_url": "https://opendata.usac.org/api/views/qdmp-ygft.json",
+      "vintage_utc": "2026-08-17T00:00:00Z",
+      "meaning": "E-Rate FRN Status, ingested 2026-08-17 (91,332 TX rows, FY2016-2026). USAC updates this dataset continuously as FRNs move through review and invoicing, so rowsUpdatedAt will fire often — a NEWER here means figures have moved, not that a release shipped; re-ingest on a cadence, not on every fire. The builder's open-year rule reads this vintage date, so re-ingesting IS how the artifact's clock advances."
+    },
+    "usac_entities": {
+      "method": "socrata",
+      "check_url": "https://opendata.usac.org/api/views/7i5i-83qf.json",
+      "vintage_utc": "2026-08-17T00:00:00Z",
+      "meaning": "E-Rate Supplemental Entity Information (the BEN-to-district join), ingested 2026-08-17. Self-reported in EPC and continuously edited; same re-ingest-on-cadence rule as usac_erate."
+    },
     "bls_cpi": {
       "method": "unverifiable",
       "check_url": "https://www.bls.gov/cpi/",

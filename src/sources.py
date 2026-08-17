@@ -261,6 +261,50 @@ SOURCES: dict[str, dict] = {
         "note": "Charter districts have no attendance boundary, so ~8% of "
                 "students are not on the map by construction.",
     },
+    "usac_erate": {
+        "title": "E-Rate Request for Discount on Services: FRN Status "
+                 "(FCC Form 471)",
+        "publisher": "Universal Service Administrative Company",
+        "url": "https://opendata.usac.org/Ancillary/E-Rate-Request-for-"
+               "Discount-on-Services-FRN-Status/qdmp-ygft",
+        "attribution_url": "https://opendata.usac.org/api/views/qdmp-ygft.json",
+        "proves_it": ["Universal Service Administrative Company",
+                      "FRN Status", "qdmp-ygft"],
+        "covers": "funding years 2016–2026, every Texas funding request",
+        "authoritative_for": "federal E-Rate commitments and authorized "
+                             "disbursements for school connectivity",
+        "local_file": "data/usac_erate_frns.csv",
+        "ingested_by": "scripts/ingest_erate.py",
+        "note": "Sums on this site cover FRNs with status 'Funded' ONLY: a "
+                "Pending or Cancelled row's funding_commitment_request is "
+                "the amount the applicant ASKED for, not a commitment, and "
+                "summing every status inflates a funding year by hundreds "
+                "of millions of never-granted requests. E-Rate discounts "
+                "are mostly paid by USAC straight to vendors, so this money "
+                "appears nowhere in TEA's books.",
+    },
+    "usac_entities": {
+        "title": "E-Rate Supplemental Entity Information",
+        "publisher": "Universal Service Administrative Company",
+        "url": "https://opendata.usac.org/Ancillary/E-Rate-Supplemental-"
+               "Entity-Information/7i5i-83qf",
+        "attribution_url": "https://opendata.usac.org/api/views/7i5i-83qf.json",
+        "proves_it": ["Universal Service Administrative Company",
+                      "Supplemental Entity Information", "7i5i-83qf"],
+        "covers": "every Texas E-Rate entity (applicants and their schools)",
+        "authoritative_for": "the applicant-to-district join: billed entity "
+                             "number to TEA district number",
+        "local_file": "data/usac_entities_tx.csv",
+        "ingested_by": "scripts/ingest_erate.py",
+        "note": "Self-reported in EPC and sparse — Dallas ISD's own row "
+                "carries no state code at all. Resolution runs three roads "
+                "(state code verified against the crosswalk, unanimous "
+                "campus-code prefix of child schools, audited name+county) "
+                "and REFUSES where they disagree; the one conflict on "
+                "record is the two Dawson ISDs, a twin name. Charter "
+                "networks spanning several TEA districts under one "
+                "applicant number are never attributed to one of them.",
+    },
     "bls_cpi": {
         "title": "CPI-U, annual average",
         "publisher": "US Bureau of Labor Statistics",
@@ -507,6 +551,39 @@ MEASURES: list[dict] = [
         "api": "/district/{n}/national",
         "test": "tests/test_national.py::"
                 "test_the_bridge_is_keyed_by_number_not_name",
+    },
+    {
+        "id": "erate_district",
+        "label": "Federal E-Rate money for a district's connectivity",
+        "source": "usac_erate",
+        "columns": ["funding_commitment_request",
+                    "total_authorized_disbursement",
+                    "form_471_frn_status_name", "ben", "funding_year"],
+        "method": "Funded-status FRNs only, summed per funding year for the "
+                  "district's own billed entity number(s). Consortium money "
+                  "is counted statewide and never attributed to member "
+                  "districts. Years still inside their invoicing window are "
+                  "flagged open; a drawn percentage there is a floor.",
+        "shown_on": ["/"],
+        "api": "/district/{n}/erate",
+        "test": "tests/test_erate.py::"
+                "test_the_statewide_series_rederives_funded_only_from_the_raw_file",
+    },
+    {
+        "id": "erate_bridge",
+        "label": "The E-Rate applicant-to-district join",
+        "source": "usac_entities",
+        "columns": ["entity_number", "state_lea_code", "state_school_code",
+                    "parent_entity_number", "physical_county"],
+        "method": "Three roads — verified state code, unanimous campus-code "
+                  "prefix of child schools, audited name+county — that must "
+                  "agree; a disagreement is refused, never guessed. The "
+                  "accounting (matched + refused + unmatched = all "
+                  "applicants) is asserted at build time.",
+        "shown_on": ["/"],
+        "api": "/district/{n}/erate",
+        "test": "tests/test_erate.py::"
+                "test_the_match_accounting_balances_and_refusals_are_recorded",
     },
     {
         "id": "constant_dollars",

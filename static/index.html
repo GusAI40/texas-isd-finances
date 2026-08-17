@@ -1260,6 +1260,7 @@
         <div class="econ-card" id="econ-alloc"></div>
         <div class="econ-card" id="econ-who"></div>
         <div class="econ-card" id="econ-national" hidden></div>
+        <div class="econ-card" id="econ-erate" hidden></div>
       </div>
 
       <h3 class="econ-h">Where the money actually went, statewide</h3>
@@ -1715,7 +1716,7 @@ const titleCase = s => (s || '').toLowerCase()
 const state = { district: null, summary: [], benchmarks: [], peers: null, flags: [], breakdown: [],
                 metric: 'spend', compare: null, compareSummary: [], lens: 'parent',
                 dollar: null, dollarPin: null, dollarHover: null, outcomes: null, txDollar: null,
-                econ: null, econTexas: null, bonds: null, equity: null, takeover: null, national: null };
+                econ: null, econTexas: null, bonds: null, equity: null, takeover: null, national: null, erate: null };
 
 /* ===== The dollar: every dollar the district spends, as 100 pennies =====
    Shares, peer/statewide medians and dollars-at-stake all come from
@@ -2523,7 +2524,7 @@ async function loadDashboard(opts) {
     // sections that had ALREADY loaded from static files down with it —
     // outcomes, economics, bonds, equity, the takeover, the dollar. A reader
     // lost the entire district page over a paused free tier.
-    const [summary, peers, flags, breakdown, turnarounds, detail, insights, dollar, outcomes, econ, bonds, equity, takeover, national] = await Promise.all([
+    const [summary, peers, flags, breakdown, turnarounds, detail, insights, dollar, outcomes, econ, bonds, equity, takeover, national, erate] = await Promise.all([
       api('/district/' + encodeURIComponent(d.num) + '/summary').catch(() => []),
       api('/district/' + encodeURIComponent(d.num) + '/peers').catch(() => null),
       api('/anomalies?district_number=' + encodeURIComponent(d.num) + '&limit=50').catch(() => []),
@@ -2538,6 +2539,7 @@ async function loadDashboard(opts) {
       api('/district/' + encodeURIComponent(d.num) + '/equity').catch(() => null),
       api('/takeover/houston').catch(() => null),
       api('/district/' + encodeURIComponent(d.num) + '/national').catch(() => null),
+      api('/district/' + encodeURIComponent(d.num) + '/erate').catch(() => null),
     ]);
     // The name may be a placeholder when arriving from a shared ?d= link.
     let realName = summary.find(r => r.district_name)?.district_name;
@@ -2556,7 +2558,7 @@ async function loadDashboard(opts) {
     }
     state.summary = summary; state.peers = peers; state.flags = flags; state.breakdown = breakdown;
     state.turnarounds = turnarounds; state.detail = detail; state.insights = insights;
-    state.dollar = dollar; state.outcomes = outcomes; state.econ = econ; state.bonds = bonds; state.equity = equity; state.takeover = takeover; state.national = national;
+    state.dollar = dollar; state.outcomes = outcomes; state.econ = econ; state.bonds = bonds; state.equity = equity; state.takeover = takeover; state.national = national; state.erate = erate;
     renderAll();
     updateHeroDollar();
     updateSignature();
@@ -3008,6 +3010,7 @@ const EXPLAIN = {
   'anomaly': 'These flags mark sharp changes worth asking about. A flag is a question, not an accusation — the usual cause is a construction year voters approved.',
   'ask': 'Type a question in plain English and an AI answers from the official numbers. AI can misread a question, so double-check anything important against the cards above.',
   'statewide': 'This is all of Texas on one line — so you can tell whether what you just read is unusual, or just how Texas looks right now.',
+  'erate': 'E-Rate is the federal program that helps schools pay for internet. The money mostly goes straight from the program to the internet company, so it never shows up in the district\'s own budget numbers — this card is the only place on this page that can see it. Recent years are still being paid out, so "drawn so far" keeps growing.',
   'national': 'This compares your district with every other school district in America, using the federal government\'s own count. "Current spending" means running schools day to day — teachers, buses, lights — and leaves out construction and loan payments, so it is smaller than the all-in figure on this page. The federal file arrives a year later than the Texas one, so this compares fiscal 2024, and the two are never mixed in one number.',
 };
 document.addEventListener('click', e => {
@@ -3983,10 +3986,46 @@ function renderNational() {
   card.hidden = false;
 }
 
+function renderErate() {
+  const n = state.erate, card = $('econ-erate');
+  if (!card) return;
+  if (!n || (n.committed == null && !n.absence)) { card.hidden = true; return; }
+  const head = '<h4>Federal internet money ' + xb('erate') + '</h4>';
+  if (n.absence) {
+    card.innerHTML = head + '<div class="econ-sub">' + escText(n.absence.sentence) + '</div>';
+    card.hidden = false; return;
+  }
+  const m = n.meta || {};
+  card.innerHTML = head +
+    '<div class="econ-big">' + fmtBig(n.committed) +
+    '<span style="font-size:var(--fs-md);font-weight:400;color:var(--muted)"> since ' + (m.first_year || 2017) + '</span></div>' +
+    '<div class="econ-sub">Committed to this district by the federal E-Rate program for internet and ' +
+    'connectivity — ' + fmtBig(n.disbursed) + ' drawn so far, mostly ' +
+    escText(String(n.top_service || '').toLowerCase()) + '. Paid largely straight to vendors, so it ' +
+    'appears in no TEA budget on this page; recent years are still being invoiced, so the drawn figure ' +
+    'is a floor.</div>';
+  card.hidden = false;
+}
+
 function renderEconomics() {
   const e = state.econ, sec = $('econ-section');
-  if (!e) { sec.classList.add('hidden'); return; }
+  if (!e) {
+    /* No economics payload (a few districts sit outside that dataset) —
+       but the national and E-Rate cards are their own data and hiding the
+       whole section buried them. Show the section with only those cards. */
+    const hasOther = (state.national && state.national.ppcs != null)
+                  || (state.erate && (state.erate.committed != null || state.erate.absence));
+    if (!hasOther) { sec.classList.add('hidden'); return; }
+    sec.classList.remove('hidden');
+    $('econ-title').textContent = 'How ' + state.district.name + ' compares beyond Texas.';
+    $('econ-support').textContent = '';
+    ['econ-bill', 'econ-alloc', 'econ-who'].forEach(id => { const el = $(id); el.innerHTML = ''; el.hidden = true; });
+    renderNational();
+    renderErate();
+    return;
+  }
   sec.classList.remove('hidden');
+  ['econ-bill', 'econ-alloc', 'econ-who'].forEach(id => { $(id).hidden = false; });
   const nm = e.district_name || state.district.name;
   $('econ-title').textContent = 'What ' + nm + ' costs you, and what it buys.';
 
@@ -4134,6 +4173,7 @@ function renderEconomics() {
   // the TEA numbers beside it. Every displayed number is taken or derived
   // from the payload once; the sentence recomputes nothing.
   renderNational();
+  renderErate();
 
   /* ---- macro: the statewide series ---- */
   const M = state.econTexas;

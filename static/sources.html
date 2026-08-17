@@ -211,7 +211,7 @@
     <div class="brand">Texas ISD <span>&middot;</span> Sources<a href="/"><svg class="ico" aria-hidden="true"><use href="#i-arrow-left"/></svg> portal</a><a href="/forensics">forensic file</a><a href="/about">why this exists</a><button class="btn-theme" id="btnTheme" type="button" aria-label="Toggle dark mode"><svg class="ico" aria-hidden="true"><use href="#i-contrast"/></svg> Theme</button></div>
   </header>
 
-  <p class="eyebrow">13 public sources &middot; 19 published measures &middot; nothing behind a login</p>
+  <p class="eyebrow">15 public sources &middot; 21 published measures &middot; nothing behind a login</p>
   <h1>Where every number comes from</h1>
   <p class="lede">&ldquo;Is this accurate?&rdquo; is not a question you should have to
      take on trust. Below is every government file this site is built from, with a
@@ -317,6 +317,22 @@
   <p><a class="dl" href="https://nces.ed.gov/ccd/Data/zip/ccd_lea_029_2425_w_1a_073025.zip" rel="noopener">Download the original
      <svg class="ico" aria-hidden="true"><use href="#i-external"/></svg></a></p>
   <p class="warn">The NCES district id is NOT derivable from the TEA number by arithmetic (Dallas is 4816230, not 48+057905); this directory is the only published bridge. Keyed by number, so the eleven Texas district names shared by two districts each cannot cross-match. Every Texas F-33 row resolves through it, and the build refuses to write the artifact if the accounting does not balance.</p>
+</article>
+<article class="src" id="src-usac_erate">
+  <h3>E-Rate Request for Discount on Services: FRN Status (FCC Form 471)</h3>
+  <p class="pub">Universal Service Administrative Company &middot; funding years 2016&ndash;2026, every Texas funding request</p>
+  <p>federal E-Rate commitments and authorized disbursements for school connectivity.</p>
+  <p><a class="dl" href="https://opendata.usac.org/Ancillary/E-Rate-Request-for-Discount-on-Services-FRN-Status/qdmp-ygft" rel="noopener">Download the original
+     <svg class="ico" aria-hidden="true"><use href="#i-external"/></svg></a></p>
+  <p class="warn">Sums on this site cover FRNs with status &#x27;Funded&#x27; ONLY: a Pending or Cancelled row&#x27;s funding_commitment_request is the amount the applicant ASKED for, not a commitment, and summing every status inflates a funding year by hundreds of millions of never-granted requests. E-Rate discounts are mostly paid by USAC straight to vendors, so this money appears nowhere in TEA&#x27;s books.</p>
+</article>
+<article class="src" id="src-usac_entities">
+  <h3>E-Rate Supplemental Entity Information</h3>
+  <p class="pub">Universal Service Administrative Company &middot; every Texas E-Rate entity (applicants and their schools)</p>
+  <p>the applicant-to-district join: billed entity number to TEA district number.</p>
+  <p><a class="dl" href="https://opendata.usac.org/Ancillary/E-Rate-Supplemental-Entity-Information/7i5i-83qf" rel="noopener">Download the original
+     <svg class="ico" aria-hidden="true"><use href="#i-external"/></svg></a></p>
+  <p class="warn">Self-reported in EPC and sparse &mdash; Dallas ISD&#x27;s own row carries no state code at all. Resolution runs three roads (state code verified against the crosswalk, unanimous campus-code prefix of child schools, audited name+county) and REFUSES where they disagree; the one conflict on record is the two Dawson ISDs, a twin name. Charter networks spanning several TEA districts under one applicant number are never attributed to one of them.</p>
 </article>
 <article class="src" id="src-bls_cpi">
   <h3>CPI-U, annual average</h3>
@@ -459,6 +475,20 @@
   <td class="mono cols">LEAID<br>ST_LEAID<br>FIPST</td>
   <td>NCES ids are not derivable from TEA numbers by arithmetic, so every join goes through the CCD directory&#x27;s ST_LEAID column, keyed by number &mdash; shared district names cannot cross-match. Every Texas F-33 row resolves, or the build refuses to write the artifact.</td>
   <td class="mono">test_the_bridge_is_keyed_by_number_not_name</td>
+</tr>
+<tr>
+  <td><b>Federal E-Rate money for a district&#x27;s connectivity</b><br><span class="mono">/district/{n}/erate</span></td>
+  <td><a href="#src-usac_erate">E-Rate Request for Discount on Services: FRN Status (FCC Form 471)</a></td>
+  <td class="mono cols">funding_commitment_request<br>total_authorized_disbursement<br>form_471_frn_status_name<br>ben<br>funding_year</td>
+  <td>Funded-status FRNs only, summed per funding year for the district&#x27;s own billed entity number(s). Consortium money is counted statewide and never attributed to member districts. Years still inside their invoicing window are flagged open; a drawn percentage there is a floor.</td>
+  <td class="mono">test_the_statewide_series_rederives_funded_only_from_the_raw_file</td>
+</tr>
+<tr>
+  <td><b>The E-Rate applicant-to-district join</b><br><span class="mono">/district/{n}/erate</span></td>
+  <td><a href="#src-usac_entities">E-Rate Supplemental Entity Information</a></td>
+  <td class="mono cols">entity_number<br>state_lea_code<br>state_school_code<br>parent_entity_number<br>physical_county</td>
+  <td>Three roads &mdash; verified state code, unanimous campus-code prefix of child schools, audited name+county &mdash; that must agree; a disagreement is refused, never guessed. The accounting (matched + refused + unmatched = all applicants) is asserted at build time.</td>
+  <td class="mono">test_the_match_accounting_balances_and_refusals_are_recorded</td>
 </tr>
 <tr>
   <td><b>Constant 2024 dollars</b><br><span class="mono">/economics/texas</span></td>

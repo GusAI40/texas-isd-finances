@@ -17,6 +17,73 @@ Entry template:
 
 ---
 
+## 2026-08-17 (later) — The press brief, tool eleven, and the strip that ate a phone screen
+
+**What changed.** Three PRs (#26, #27, #28), all merged and live.
+
+**The owner's screenshot was right and the last wave's review "fix" was
+wrong.** The District News strip shipped reading
+`/static/isd_briefing.json` — but this site deliberately has NO blanket
+static mount (one asset, one route), so that path 404s in production, and
+an author `display:flex` on `.ticker` beats the UA's
+`[hidden]{display:none}`, so the failed strip rendered as an empty VISIBLE
+bar. The fetch was swapped in during review AFTER the browser test had
+run. **A fix can be its own regression, invisibly — the browser check must
+be the LAST thing that touches a front-end change, not the middle.** Now:
+the strip reads `/briefing` (server-side fallback to the committed
+snapshot; one hour of shared cache, guard identical to the caching
+middleware — never set while SITE_PASSWORD locks the site), and
+`.ticker[hidden]{display:none !important}` makes hidden mean hidden. On
+Vercel, `s-maxage` is consumed by the edge and STRIPPED from the response
+— `cache-control: public` + `x-vercel-cache: HIT` is what success looks
+like from outside, not the header you set.
+
+**The brand is HOME now.** Owner asked twice where clicking "Texas ISD /
+Financial Resource Guide" takes them; the honest answer was "nowhere you
+can see". It now never carries `?d` (excluded from parse-time decoration
+AND the click-time resolver on all 10 pages), so from a district report it
+lands on the statewide landing; on bare `/` it scrolls to top. And on
+≤620px screens the news strip wraps — tag + Feed link on the top row,
+headline full-width below (owner's phone screenshot showed ten lines of
+one word each; now 98px tall, browser-measured).
+
+**The HISD press brief exists in two forms**:
+`docs/HISD_TAKEOVER_BRIEF.md` (committed) and a designed shareable page
+(claude.ai artifact 6dd06bc0…, private until shared). Every figure from
+`takeover_data.json`; the two DIFFERENT windows (headline: mean 2024-25
+minus 2023; by-group: 2024→2025) stated so they cannot be conflated; the
+special-education regression given equal billing; limits quoted as part of
+the result.
+
+**`district_national` is MCP tool eleven.** Figures read from the artifact
+at call time; charter absences reuse `src/absences.py`'s sentences (one
+wording, two surfaces); verified live (Dallas answers with every caveat).
+Review-caught before merge: 20 artifact rows carry only the NCES id (no
+positive spending in the Census file) and the first cut crashed with a
+bare KeyError on them — now an explained absence, test-locked. The
+`docs/MCP.md` count-pin test caught the stale "ten" in the intro:
+the pin worked.
+
+**Two fountains scoped, not built:**
+- **TAPR campus files** (teacher certification): reachable first-party via
+  TEA's SAS broker CGI (`/cgi/sas/broker`, form POST, no login) — needs a
+  session to map form parameters. The old DownloadData.html path is gone.
+- **USAC E-Rate** (owner-suggested, opendata.usac.org `qdmp-ygft`,
+  Socrata like the bond layer): FRN-level, FY2017–2026, **~$500–650M/yr
+  committed to ~1,373 Texas applicants**, and committed-vs-disbursed gaps
+  (2018: $657M committed, $284M disbursed) worth investigating —
+  disbursement lags invoicing, so recent-year gaps are NOT findings.
+  Join path: BEN → USAC supplemental entity dataset (carries NCES ids) →
+  the CCD bridge already in the repo.
+
+**Open items:** unchanged owner list. New: build E-Rate or TAPR next (in
+that order — E-Rate composes with existing bridges and speaks Socrata,
+which the freshness watchdog already knows how to watch).
+
+**Notes:**
+
+---
+
 ## 2026-08-17 — Texas against the other 49; the More menu was a clipped dropdown, not a dead link
 
 **What changed.** PR #25 merged and verified live (`verify_live.py` **31/31**,

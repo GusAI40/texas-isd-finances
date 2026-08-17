@@ -202,6 +202,7 @@ def test_every_published_layer_has_a_provenance_test_here_or_upstream():
         "forensic_data.json", "trend_data.json",                  # test_provenance.py
         "economics_data.json", "outcomes_data.json",              # ditto
         "national_data.json",                                     # test_national.py
+        "erate_data.json",                                        # test_erate.py
     }
     known_uncovered = {
         # Derived entirely from artefacts already covered above, so a wrong
