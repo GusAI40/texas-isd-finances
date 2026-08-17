@@ -139,28 +139,40 @@ python scripts/send_outreach.py --send --confirm GO --limit <N> --campaign wave<
 - Campaign-level click-through is also counted first-party as `src:email` in
   `site_visits` — no Resend needed.
 
-**The biggest one: raw opens and clicks are mostly machines.** School districts
-run mail-security appliances (Microsoft Defender, Barracuda, Mimecast) that
-open every message and follow every link within seconds of delivery, to check
-them. In the raw counters they are indistinguishable from eager readers. On
-wave 2 (2026-08-17) this was **6 of 14 "clicks" and roughly three quarters of
-the "opens"**. `journey_report.py` now prints raw AND verified counts; quote
-the **verified click** figure and nothing else as engagement. The two
-signatures, both confirmed against real data:
+**The biggest one: telling a superintendent from a mail-security appliance.**
+Districts run Defender / Barracuda / Mimecast, which open every message and
+follow every link within seconds. In the raw counters they are
+indistinguishable from eager readers.
 
-- **Time.** No human opens mail one second after it is sent. Anything within
-  120s of that recipient's OWN send is a machine. (Hardin ISD "clicked" at
-  +1s; 21 opens fired inside 30s.)
-- **Dead clients.** Windows XP, IE 8, and AppEngine fetchers in 2026 are
-  appliances in costume — 32 recipients produced events from these.
-- **Bonus tell:** one recipient generating clicks from *five different
-  browsers at once* is an appliance fanning out, not a diligent reader.
+**Use the signal that actually discriminates: JavaScript execution.** `click`
+and `pageview` are written SERVER-SIDE by the HTTP request, so a scanner
+fetching the URL produces both and proves nothing. `dwell` only exists if
+`static/track.js` ran in a real rendering engine with the tab VISIBLE for a
+second or more. `journey_report.py` classifies on this and prints three
+grades — confirmed human / ambiguous browser farm / machine only — plus an
+honest RANGE. Quote the range.
 
-Opens are unreliable in BOTH directions — scanners inflate them, image
-blocking deflates them — so a range is the honest form, never a point
-estimate. Also note **dwell time is capped by the instrument**: `track.js`
-flushes every 60s, so "1m 00s" means "at least a minute, still open", not a
-measured duration.
+**The mistake worth not repeating:** the first version of this filter rejected
+any click within 120 seconds of send, reasoning that fast clicks are machines.
+It discarded seven recipients who had demonstrably rendered the page, and
+turned a raw 17% into a published 8% — further from the truth (11–15%) than
+the raw number was. **Latency is evidence about machines, never about
+humans**; plenty of people read mail the moment it arrives. An over-aggressive
+filter is as wrong as no filter and more dangerous, because it feels rigorous.
+
+**Fan-out is the remaining tell.** One recipient producing clicks from 13–15
+distinct user agents across many sessions over hours is an appliance farm
+(some detonate links in real headless browsers, so they DO produce dwell).
+Above `MAX_HUMAN_USER_AGENTS` a recipient is ambiguous — a reader may be
+inside — so it is neither counted nor discarded.
+
+**Never quote an open rate.** The pixel is fired by scanners that showed
+nobody the message and blocked by clients that suppress images. It is wrong in
+both directions with no way to bound the error. Wave 2's raw pixel says 49%;
+the number is unusable, not merely uncertain.
+
+**Dwell time is capped by the instrument**: `track.js` flushes every 60s, so
+"1m 00s" means "at least a minute, still open", not a measured duration.
 
 Interpretation rules that have already prevented false findings once:
 - **Wave 1 (the 571 sent 2026-08-11/12/13) is untracked forever** — its links
