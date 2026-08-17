@@ -393,6 +393,7 @@ def test_every_page_asks_for_the_same_design_css_version():
             versions[page.name] = m.group(1)
     assert versions, "no page links a versioned design.css"
     assert len(set(versions.values())) == 1, f"version drift: {versions}"
+<<<<<<< HEAD
 
 
 # --- the intelligence layer is global, not district-gated --------------------
@@ -441,3 +442,5 @@ def test_every_page_offers_ask_a_question_and_hash_links_stay_clean():
     assert 'class="finder-ask"' in front and 'href="#ask-section"' in front, (
         "the landing lost its visible way into the ask layer — the full box "
         "sits thousands of pixels down; the finder line is the front door")
+=======
+>>>>>>> origin/master
