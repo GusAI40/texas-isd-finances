@@ -39,7 +39,8 @@
      above the fold that depends on localStorage has to be decided here —
      doing it in boot() once left the hero on screen for two API round-trips
      and then removed it, which read as a bug. */
-  try { if (localStorage.getItem('tisd_district'))
+  try { if (localStorage.getItem('tisd_district')
+            && sessionStorage.getItem('tisd_home') !== '1')
           document.documentElement.classList.add('has-district'); } catch (e) {}
   /* Theme, also decided before first paint so there is no flash of the wrong
      one. Saved choice wins; otherwise follow the device's setting. */
@@ -988,9 +989,22 @@
         if (ev.metaKey || ev.ctrlKey || ev.shiftKey || ev.altKey || ev.button !== 0) return;
         var u;
         try { u = new URL(a.getAttribute('href'), location.href); } catch (e) { return; }
+        if (a.classList.contains('m-brand')) {
+          /* The brand means HOME — the statewide landing, visibly. Navigating
+             to / is not enough: the front page restores the reader's stored
+             district at the top, so the tap changed nothing they could see
+             (owner-reported, reproduced on live). A one-shot flag tells the
+             front page to open statewide this once; the stored district is
+             kept and stays one tap away. */
+          try { sessionStorage.setItem('tisd_home', '1'); } catch (e) {}
+          if (u.pathname === location.pathname && u.search === location.search) {
+            ev.preventDefault();
+            location.reload();
+          }
+          return;
+        }
         var d2 = currentD();
-        if (CARRY[u.pathname] && d2 && /^[0-9]{6}$/.test(d2)
-            && !a.classList.contains('m-brand')) u.searchParams.set('d', d2);
+        if (CARRY[u.pathname] && d2 && /^[0-9]{6}$/.test(d2)) u.searchParams.set('d', d2);
         if (u.pathname === location.pathname && u.search === location.search) {
           ev.preventDefault();
           var re = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -5232,7 +5246,20 @@ async function nameTheModel() {
   // A link is worth nothing if it opens on the reader's own district instead
   // of the one that was shared. ?d= wins over whatever this device remembers.
   const linked = new URLSearchParams(location.search).get('d');
-  const saved = linked ? JSON.stringify({ num: linked, name: linked }) : localStorage.getItem('tisd_district');
+  // The brand tap sets a ONE-SHOT home flag: this load shows the statewide
+  // landing even though a district is remembered — because "Home" that
+  // instantly reopens the district you just left reads as a dead link
+  // (owner-reported, reproduced). The district stays in localStorage and is
+  // one tap away; consuming the flag here means a reload or revisit behaves
+  // normally again.
+  let goHome = false;
+  try {
+    goHome = !linked && sessionStorage.getItem('tisd_home') === '1';
+    sessionStorage.removeItem('tisd_home');
+  } catch (e) {}
+  if (goHome) document.documentElement.classList.remove('has-district');
+  const saved = linked ? JSON.stringify({ num: linked, name: linked })
+              : goHome ? null : localStorage.getItem('tisd_district');
   if (saved) {
     const { num, name } = JSON.parse(saved);
     state.district = { num, name };

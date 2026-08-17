@@ -177,9 +177,22 @@
         if (ev.metaKey || ev.ctrlKey || ev.shiftKey || ev.altKey || ev.button !== 0) return;
         var u;
         try { u = new URL(a.getAttribute('href'), location.href); } catch (e) { return; }
+        if (a.classList.contains('m-brand')) {
+          /* The brand means HOME — the statewide landing, visibly. Navigating
+             to / is not enough: the front page restores the reader's stored
+             district at the top, so the tap changed nothing they could see
+             (owner-reported, reproduced on live). A one-shot flag tells the
+             front page to open statewide this once; the stored district is
+             kept and stays one tap away. */
+          try { sessionStorage.setItem('tisd_home', '1'); } catch (e) {}
+          if (u.pathname === location.pathname && u.search === location.search) {
+            ev.preventDefault();
+            location.reload();
+          }
+          return;
+        }
         var d2 = currentD();
-        if (CARRY[u.pathname] && d2 && /^[0-9]{6}$/.test(d2)
-            && !a.classList.contains('m-brand')) u.searchParams.set('d', d2);
+        if (CARRY[u.pathname] && d2 && /^[0-9]{6}$/.test(d2)) u.searchParams.set('d', d2);
         if (u.pathname === location.pathname && u.search === location.search) {
           ev.preventDefault();
           var re = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;

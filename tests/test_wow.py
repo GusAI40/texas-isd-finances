@@ -145,6 +145,21 @@ def test_the_brand_is_home_and_never_carries_the_district():
         assert html.count("a.classList.contains('m-brand')") == 2, (
             f"{page.name}: the brand-is-home exclusion is missing from the "
             f"decoration or the click resolver")
+        assert "sessionStorage.setItem('tisd_home', '1')" in html, (
+            f"{page.name}: the brand tap no longer sets the one-shot home "
+            f"flag — navigating to / is not enough, because the front page "
+            f"restores the stored district at the top and the tap reads as "
+            f"a dead link (owner-reported, reproduced on live)")
+
+
+def test_the_front_page_consumes_the_home_flag_once():
+    """Home must SHOW home: boot skips the stored-district restore exactly
+    once when the flag is set, then removes it so a plain reload behaves
+    normally — and a shared ?d link always beats the flag."""
+    assert "sessionStorage.getItem('tisd_home') === '1'" in INDEX
+    assert "sessionStorage.removeItem('tisd_home')" in INDEX
+    assert "goHome = !linked && sessionStorage.getItem" in INDEX, (
+        "a shared ?d link must win over the home flag")
 
 
 # ---------------------------------------------------------------- the borders
