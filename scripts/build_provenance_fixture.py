@@ -45,6 +45,10 @@ SUMS = {
     "local_mo_tax": "all_funds_local_tax_revenue_from_m_o",
     "payroll": "all_funds_total_payroll_expenditures",
     "enrollment": "fall_survey_enrollment",
+    # The front page's headline — "Public schools spent $109.4 billion" — is
+    # this column summed. Freezing it here is what lets CI hold the statewide
+    # lineage record to an independently derived, SHA-anchored figure.
+    "total_disbursements": "all_funds_total_disbursements",
 }
 
 

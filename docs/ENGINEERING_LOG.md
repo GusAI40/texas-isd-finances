@@ -17,6 +17,88 @@ Entry template:
 
 ---
 
+## 2026-08-17 (night) — Lineage wave 2: the spending dollar and the $109.4B headline open their working
+
+**What changed.** The owner set the direction — trust and lineage over UI
+cleanup: every major number "provably traceable from displayed value →
+deterministic calculation → source field → fiscal year → authoritative
+source". This wave extends the clickable-lineage system (2026-08-16) from the
+four revenue figures to the spending card and the statewide headline:
+
+- `scripts/recompute_spending.py` — a second stdlib-csv road for the three
+  real spending divisions (instruction fct11-95, debt service, operating, each
+  / fall survey enrollment) and the statewide sum of
+  `all_funds_total_disbursements` with the live endpoint's exact filter
+  (enrollment > 0 AND disbursements > 0). Same independence contract as
+  `recompute_revenue.py`, now AST-enforced for BOTH scripts (parametrised
+  test; they may not import pandas, the builder, src, or each other).
+- `build_economics_data.py` emits `allocation.lineage` per district (3,606
+  figures) and `meta.lineage_statewide` (the $109,448,637,486 total and
+  $19,796/student over 1,202 districts), plus three spend templates. The
+  build now refuses to write on any of **8,416** disagreements (was 4,808).
+- `build_provenance_fixture.py` freezes `total_disbursements` per year, so CI
+  re-derives the front-page headline from the SHA-anchored fixture with no
+  CSV present (`test_the_front_page_headline_recomputes_from_the_fixture`).
+- API: `/district/{n}/lineage/{metric}` now searches both cards' lineage;
+  new `GET /lineage/texas/{metric}`. MCP `district_lineage` enum grew the
+  three spend metrics. UI: the money clock's popover total, the penny
+  caption's per-student figure, and the allocation card's teaching/debt
+  figures are lineage buttons; `showLineage` routes `statewide_*` metrics to
+  the statewide endpoint and needs no district for them.
+- verify_live: 36 checks (was 33) — spending lineage value, statewide value,
+  and a text check that the statewide verdict is VERIFIED **with arithmetic
+  "n/a"**. All verified against a local server; Playwright click-through of
+  all three new panels (statewide sum panel, allocation division panel), no
+  page errors. 819 tests green; verify_artifacts clean including downstream.
+
+**Why the shape.** Three refusals carried over from wave 1, applied again
+rather than reinvented: (1) the card's TOTAL is composed (rounded operating +
+rounded debt) and "everything else" is a subtraction — neither gets a
+numerator/denominator record, because publishing one would describe a
+division that never happened (the federal_pct rule); (2) the statewide total
+is a SUM — the gate reports arithmetic **n/a** instead of wearing an invented
+denominator, and the panel shows a "how" row (what was summed) instead of a
+division; (3) the fixture sums over enrollment>0 while the headline filter
+also requires disbursements>0 — for every year on record these admit the same
+districts, so the test asserts EQUALITY and will fire loudly if TEA ever
+ships a reporting district with zero disbursements, forcing a human to decide
+which filter the headline states.
+
+**Gotchas — all from the pre-merge review, all fixed before shipping.**
+(1) **The clock's lineage button lived inside the explain popover, and the
+document-level explain listener removed that popover on ANY click before the
+button's own handler ran** — the button was detached, its rect read 0,0, and
+the working panel rendered pinned to the viewport corner. My own Playwright
+pass had asserted the panel's TEXT and never its position, so it stayed
+green. Fixed: clicks inside either popover no longer tear the explainer
+down (each × closes only its own panel), re-verified with a bounding-box
+assertion this time. (2) **The clock's displayed total comes from the live
+DB while its panel serves the committed artefact** — same column, but a TEA
+import that outruns the artefact rebuild would make the panel certify a
+different number than the one it explains, VERIFIED badge and all. New
+`check_headline_twin` in verify_live DRIFTs on disagreement and SKIPs when
+the DB is down (uptime is /health's job). (3) **Exact integer equality on
+two float sums of ~1,200 addends at $1e11** — pandas sums pairwise, the
+stdlib road sequentially, and a .5-boundary landing could refuse the build
+over summation order. Statewide comparisons now tolerate $1; per-district
+figures stay exact (single cells, not sums). (4) The statewide endpoint was
+a THIRD hand-rolled copy of the Evidence source/freshness wiring and its
+note text had already drifted — consolidated into `lineage.wire_sources()`,
+used by the API (both endpoints) and the MCP tool. (5) CLI default path of
+recompute_spending scanned the CSV twice for max(year); now reuses
+statewide()'s answer. Design fork worth recording: spending's
+`recomputed_from` is its own string (one file, not two) rather than
+borrowing revenue's, so the panel never claims a property file was read for
+a figure that never touched it.
+
+**Open items.** Unchanged owner list (rotate ~20 credentials, DeepSeek cap,
+STAAR SY2026 human download, wave-2 outreach GO, raw-data release, Vercel
+Pro). Lineage backlog: debt and outcome figures still publish result-only
+until their builders emit numerators; `/query` still does not consume
+Evidence.
+
+---
+
 ## 2026-08-17 (later still) — The E-Rate layer: federal money TEA's books never see
 
 **What changed.** PR #29 merged: `/erate/texas` + `/district/{n}/erate` +

@@ -3028,6 +3028,16 @@ const EXPLAIN = {
   'national': 'This compares your district with every other school district in America, using the federal government\'s own count. "Current spending" means running schools day to day — teachers, buses, lights — and leaves out construction and loan payments, so it is smaller than the all-in figure on this page. The federal file arrives a year later than the Texas one, so this compares fiscal 2024, and the two are never mixed in one number.',
 };
 document.addEventListener('click', e => {
+  // A click INSIDE a popover must not tear the explainer down: the clock's
+  // explainer carries a live lineage button, and removing the popover before
+  // that button's own handler runs leaves the button detached — its rect
+  // reads 0,0 and the working panel renders pinned to the viewport corner
+  // instead of under the figure the reader clicked. Only the explainer's own
+  // × falls through to the removal below; the lineage panel's × closes just
+  // itself, leaving the explainer the reader came from in place.
+  const within = e.target.closest('.explain-pop, .lin-pop');
+  if (within && !(e.target.closest('.close-x') &&
+                  within.classList.contains('explain-pop'))) return;
   const old = document.querySelector('.explain-pop');
   const btn = e.target.closest('.explain');
   if (old) old.remove();
@@ -3082,8 +3092,11 @@ const LIN_CHECK_TEXT = {
 
 async function showLineage(btn) {
   document.querySelectorAll('.lin-pop').forEach(p => p.remove());
-  if (!state.district || !state.district.num) return;
   const metric = btn.dataset.lineage;
+  // Statewide figures belong to no district — the money clock's total is all
+  // 1,202 of them summed — so they resolve against /lineage/texas instead.
+  const statewide = metric.indexOf('statewide_') === 0;
+  if (!statewide && (!state.district || !state.district.num)) return;
   const pop = document.createElement('div');
   pop.className = 'lin-pop';
   pop.setAttribute('role', 'dialog');
@@ -3101,8 +3114,10 @@ async function showLineage(btn) {
 
   let d;
   try {
-    d = await api('/district/' + encodeURIComponent(state.district.num) +
-                  '/lineage/' + encodeURIComponent(metric));
+    d = await api(statewide
+      ? '/lineage/texas/' + encodeURIComponent(metric)
+      : '/district/' + encodeURIComponent(state.district.num) +
+        '/lineage/' + encodeURIComponent(metric));
   } catch (err) {
     pop.innerHTML = '<button class="close-x" aria-label="Close">×</button>' +
       '<h5>Where this number came from</h5>' +
@@ -3124,7 +3139,9 @@ async function showLineage(btn) {
   const sum = (d.numerator != null && d.denominator != null)
     ? '<div class="sum">' + money(d.numerator) + ' <i>&divide;</i> ' +
       Number(d.denominator).toLocaleString() + ' <i>=</i> ' + money(d.value) + '</div>'
-    : '';
+    // A sum has no denominator: show the total alone rather than inventing a
+    // division for it — the "how" row below states what was summed.
+    : (d.numerator != null ? '<div class="sum">' + money(d.value) + '</div>' : '');
   pop.innerHTML =
     '<button class="close-x" aria-label="Close">×</button>' +
     '<h5>Where this number came from ' +
@@ -3132,6 +3149,7 @@ async function showLineage(btn) {
     sum +
     '<dl>' +
       (d.denominator_type ? '<dt>divided by</dt><dd>' + d.denominator_type + '</dd>' : '') +
+      (d.denominator == null && d.formula ? '<dt>how</dt><dd>' + d.formula + '</dd>' : '') +
       (d.fiscal_year ? '<dt>fiscal year</dt><dd>' + d.fiscal_year + '</dd>' : '') +
       (d.source ? '<dt>published by</dt><dd>' + d.source + '</dd>' : '') +
     '</dl>' +
@@ -4117,6 +4135,12 @@ function renderEconomics() {
   const other = a.other_operating_per_student;
   const tot = a.instruction_per_student + a.debt_per_student + other;
   const pc = v => (v / tot * 100).toFixed(1) + '%';
+  // Teaching and debt are real divisions and open their working; "everything
+  // else" is operating minus teaching and the header total is operating +
+  // debt — derived from the figures shown, not divided, so neither carries a
+  // lineage button (the same rule that keeps federal% plain on the card below).
+  const linOr = (k, v) => (a.lineage && a.lineage.figures && a.lineage.figures[k])
+    ? linBtn(k, money(v)) : money(v);
   $('econ-alloc').innerHTML =
     '<h4>Where each student&rsquo;s ' + money(a.total_per_student) + ' goes</h4>' +
     '<div class="econ-split">' +
@@ -4124,13 +4148,18 @@ function renderEconomics() {
     '<i style="background:' + ECON_C.debt + ';width:' + pc(a.debt_per_student) + '"></i>' +
     '<i style="background:' + ECON_C.other + ';width:' + pc(other) + '"></i></div>' +
     '<div class="econ-legend">' +
-    '<span><i style="background:' + ECON_C.teach + '"></i>teaching ' + money(a.instruction_per_student) + '</span>' +
-    '<span><i style="background:' + ECON_C.debt + '"></i>buildings &amp; debt ' + money(a.debt_per_student) + '</span>' +
+    '<span><i style="background:' + ECON_C.teach + '"></i>teaching ' + linOr('spend_instruction_per_student', a.instruction_per_student) + '</span>' +
+    '<span><i style="background:' + ECON_C.debt + '"></i>buildings &amp; debt ' + linOr('spend_debt_per_student', a.debt_per_student) + '</span>' +
     '<span><i style="background:' + ECON_C.other + '"></i>everything else ' + money(other) + '</span></div>' +
     '<div class="econ-sub">That is <b>' + a.cents_on_debt_per_dollar_taught + ' cents on debt for every dollar taught</b>' +
     (a.teachers_equivalent_of_debt
       ? ' &mdash; the annual debt payment costs what ' + a.teachers_equivalent_of_debt.toLocaleString() +
-        ' teacher salaries would.' : '.') + '</div>';
+        ' teacher salaries would.' : '.') +
+    (a.lineage ? ' Click teaching or debt for its working; the header total is ' +
+      'operating ' + linOr('spend_operating_per_student', a.operating_per_student) +
+      ' plus debt &mdash; composed from the rounded figures, and &ldquo;everything else&rdquo; ' +
+      'is operating minus teaching, so neither is a division with its own working.' : '') +
+    '</div>';
 
   // Answer "is that a lot?" with a picture instead of a sentence.
   const Mx = state.econTexas;
@@ -4898,11 +4927,14 @@ function startMoneyClock(tx) {
   const SECS = 31536000;                      // 365 days — the divisor, stated in the popover
   const rate = tx.total_spend / SECS;
   EXPLAIN.clock = 'This is an average, not a meter. Texas districts reported ' +
-    fmtBig(tx.total_spend) + ' of total spending in fiscal ' + tx.year +
+    linBtn('statewide_total_spend', fmtBig(tx.total_spend)) +
+    ' of total spending in fiscal ' + tx.year +
     ' (TEA Summarized PEIMS Actual Financial Data, all funds, all ' +
     fmtNum(tx.districts) + ' districts). Divided by the 31,536,000 seconds in a year, that is ' +
     fmtMoney(rate) + ' per second. The counter multiplies that rate by your time on this page — ' +
-    'spending is not literally smooth, but the total is real. ' +
+    'spending is not literally smooth, but the total is real. Click the total ' +
+    'to see the exact sum, which districts were counted, and whether an ' +
+    'independent re-read of TEA&rsquo;s own file agreed. ' +
     '<a href="/sources">Where every number comes from</a>.';
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const rateLine = 'Texas public schools spend <span class="rate">' + fmtMoney(rate) +
@@ -4941,7 +4973,7 @@ function renderTexasDollar(tx) {
     `<b>The Texas dollar, fiscal ${tx.year}.</b> Every one of the ${fmtNum(tx.districts)} districts pooled ` +
     `together: ${top.cents}¢ of every dollar goes to ${top.label.toLowerCase()}` +
     (debt ? `, ${debt.cents}¢ to paying off past building bonds` : '') +
-    `. That is ${fmtMoney(tx.per_student)} per student across ${fmtNum(tx.students)} students. ` +
+    `. That is ${linBtn('statewide_spend_per_student', fmtMoney(tx.per_student))} per student across ${fmtNum(tx.students)} students. ` +
     `Search a district to see how its dollar is different.` +
     `<div class="tx-legend">` + tx.parts.filter(p => p.cents > 0).slice(0, 6).map(p =>
       `<span><i style="background:${DOLLAR_COLORS[p.key] || '#c9c7be'}"></i>${p.label} ${p.cents}¢</span>`

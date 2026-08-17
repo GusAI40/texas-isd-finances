@@ -272,10 +272,17 @@ def district_lineage(args: dict) -> tuple[str, dict]:
     if rec is None:
         raise ToolError(f"District {num} is not in the finance dataset.")
     meta = data.get("meta") or {}
-    lin = (rec.get("revenue") or {}).get("lineage") or {}
-    figures, templates = lin.get("figures") or {}, meta.get("lineage_templates") or {}
-    available = sorted(set(figures) & set(templates))
+    # Two cards carry evidence — revenue and the spending allocation — each
+    # with its own denominator and recomputation road; pick whichever card
+    # holds the asked-for metric.
+    rev_lin = (rec.get("revenue") or {}).get("lineage") or {}
+    alloc_lin = (rec.get("allocation") or {}).get("lineage") or {}
+    templates = meta.get("lineage_templates") or {}
     metric = args.get("metric") or "total_per_student"
+    lin = alloc_lin if metric in (alloc_lin.get("figures") or {}) else rev_lin
+    figures = lin.get("figures") or {}
+    available = sorted((set(rev_lin.get("figures") or {})
+                        | set(alloc_lin.get("figures") or {})) & set(templates))
     if metric not in available:
         raise ToolError(
             f"No published working for {metric!r}. This district publishes "
@@ -291,26 +298,15 @@ def district_lineage(args: dict) -> tuple[str, dict]:
         formula=raw.get("formula", ""), unit=raw.get("unit", ""),
         rounding=raw.get("rounding", 0.5), fiscal_year=raw.get("fiscal_year"),
         district_number=num, source=raw.get("source", ""),
-        source_url=(_src.SOURCES.get(raw.get("source_id", "")) or {}).get("url", ""),
         artifact=raw.get("artifact", ""), source_vintage=str(meta.get("year", "")),
         notes=[raw["source_note"]] if raw.get("source_note") else [],
         recomputed_value=raw.get("recomputed_value"),
         recomputed_from=lin.get("recomputed_from", "") if "recomputed_value" in raw else "",
     )
-    measure = next((m for m in _src.MEASURES if m["id"] == raw.get("measure_id")), None)
-    if measure:
-        ev.independent_test = measure.get("test", "")
-    try:
-        ev.fresh, ev.aim_ok = _src.freshness_and_aim(raw.get("source_id", ""))
-        # How old the freshness CLAIM is, which is not how old the data is. A
-        # daily check asks the publishers, but nothing writes its answer back
-        # into the record, so "current" means "nothing newer written down yet".
-        if ev.fresh is not None and _src.recorded_on():
-            ev.notes.append(
-                f"Freshness is as recorded on {_src.recorded_on()}: no newer "
-                "release from this publisher had been written down.")
-    except Exception:                    # noqa: BLE001 — unknown, never assumed ok
-        ev.fresh, ev.aim_ok = None, None
+    # URL, CI test, freshness and aim all come from the register through the
+    # one shared helper — this used to be a third hand-synchronised copy of
+    # the wiring, and its note text had already drifted from the API's.
+    _lin.wire_sources(ev, raw.get("source_id", ""), raw.get("measure_id"), _src)
 
     out = ev.to_dict()
     g = out["gate"]
@@ -731,9 +727,14 @@ TOOLS: list[dict] = [
                 "district_number": _DISTRICT_ARG,
                 "metric": {"type": "string",
                            "enum": ["total_per_student", "local_per_student",
-                                    "state_per_student", "federal_per_student"],
-                           "description": "Which published figure to open up. "
-                                          "Defaults to total_per_student."},
+                                    "state_per_student", "federal_per_student",
+                                    "spend_instruction_per_student",
+                                    "spend_debt_per_student",
+                                    "spend_operating_per_student"],
+                           "description": "Which published figure to open up: "
+                                          "the four revenue figures or the "
+                                          "three spending divisions. Defaults "
+                                          "to total_per_student."},
             },
             "required": ["district_number"], "additionalProperties": False,
         },

@@ -18,7 +18,8 @@
   "state_revenue": "all_funds_state_revenue",
   "local_mo_tax": "all_funds_local_tax_revenue_from_m_o",
   "payroll": "all_funds_total_payroll_expenditures",
-  "enrollment": "fall_survey_enrollment"
+  "enrollment": "fall_survey_enrollment",
+  "total_disbursements": "all_funds_total_disbursements"
  },
  "note": "Statewide sums per year, straight from the source CSV. The provenance tests re-derive every published headline from this, so the guarantee holds in CI where the 18 MB source is not available."
 }
