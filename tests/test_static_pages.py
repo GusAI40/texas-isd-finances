@@ -361,3 +361,35 @@ def test_the_trust_question_is_asked_and_answered_in_plain_language():
         assert must in section, f"the trust section no longer links {must}"
     assert "Wills Point" in html.split('id="trust"')[1].split("</section>")[0], (
         "the public-correction receipt is gone from the trust answer")
+
+
+# --- the masthead has to be usable on a phone --------------------------------
+
+def test_the_phone_masthead_gives_the_tab_strip_its_own_row():
+    """On iPhone width the flexible tab strip was squeezed to a ~56px window
+    over 588px of tabs — brand, More and Theme kept the first row and primary
+    navigation got the leftovers. Owner-reported as nearly impossible to select
+    from; measured in a driven browser (532px of the strip hidden). Below 720px
+    the strip must take a full-width second row of its own."""
+    css = (STATIC / "design.css").read_text(encoding="utf-8")
+    i = css.find("@media (max-width: 720px)")
+    assert i != -1, "the phone masthead media query is gone"
+    block = css[i:i + 600]
+    assert "flex: 1 1 100%" in block, "the tab strip no longer claims a full row"
+    assert "order: 10" in block, (
+        "without the order the strip wraps between brand and More instead of last")
+
+
+def test_every_page_asks_for_the_same_design_css_version():
+    """The masthead rollout lesson: design.css is cached an hour, so a CSS fix
+    ships with a version bump or phones render the old header for an hour. A
+    page left on the old version silently serves the bug after everyone else
+    is fixed — all pages must cite one identical version string."""
+    import re
+    versions = {}
+    for page in sorted(STATIC.glob("*.html")):
+        m = re.search(r"design\.css\?v=(\d+)", page.read_text(encoding="utf-8"))
+        if m:
+            versions[page.name] = m.group(1)
+    assert versions, "no page links a versioned design.css"
+    assert len(set(versions.values())) == 1, f"version drift: {versions}"

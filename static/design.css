@@ -540,3 +540,16 @@ hr, .rule {
 body:has(#masthead) .brand:not(.m-brand) { display: none; }
 body:has(#masthead) .btn-theme, body:has(#masthead) #btn-theme { display: none; }
 @media (max-width: 640px) { #masthead .m-sub { display: none; } }
+/* On a phone the flexible tab strip was squeezed to a ~56px window over 588px
+   of tabs — brand, More and Theme kept the first row and the site's primary
+   navigation got what was left. The scroll shadows said "there is more" but a
+   56px porthole is not navigation, and the owner reported the header as
+   nearly impossible to select from (measured on iPhone-width: 532px of the
+   strip hidden). Below 720px the strip takes its OWN full-width second row —
+   .m-in already flex-wraps — and bleeds to the viewport edges so every tab is
+   a real target; brand, More and Theme share the top row. */
+@media (max-width: 720px) {
+  #masthead .m-in { gap: .3rem .55rem; padding: .5rem 1rem .4rem; }
+  #masthead .m-brand { margin-right: auto; }
+  #masthead .m-tabs { flex: 1 1 100%; order: 10; margin: 0 -1rem; padding: 0 1rem; }
+}
