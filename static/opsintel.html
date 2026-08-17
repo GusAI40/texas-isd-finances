@@ -1,0 +1,439 @@
+<title>Intelligence — who is engaging, and with what</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  /* Private page. Same house tokens as the public portal, light by default —
+     the device's dark setting does not decide; only an explicit data-theme. */
+  :root{
+    --bg:#ffffff; --ink:#111318; --mut:#5a5f6b; --faint:#8b95a1;
+    --line:#e4e4e0; --panel:#f7f7f5; --accent:#1a56a8; --accent-ink:#ffffff;
+    --good:#1d6f42; --warn:#8a6a12; --bad:#8a2a1e;
+    color-scheme:light;
+  }
+  :root[data-theme="dark"]{
+    color-scheme:dark;
+    --bg:#0f1115; --ink:#e9ecf1; --mut:#9aa1ad; --faint:#7b8494;
+    --line:#252a33; --panel:#161a21; --accent:#6aa5e8; --accent-ink:#0d1117;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+       font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
+  header{padding:18px 20px 12px;border-bottom:1px solid var(--line);
+         display:flex;flex-wrap:wrap;gap:12px;align-items:baseline}
+  h1{margin:0;font-size:19px;letter-spacing:-.012em}
+  .sub{color:var(--mut);font-size:13px}
+  .spacer{flex:1}
+  select{font:inherit;font-size:13px;padding:6px 10px;border-radius:8px;
+         border:1px solid var(--line);background:var(--bg);color:var(--ink)}
+  main{padding:16px 20px 60px;max-width:1180px;margin:0 auto}
+  section{margin:26px 0 0}
+  h2{margin:0 0 2px;font-size:12px;font-weight:700;text-transform:uppercase;
+     letter-spacing:.08em;color:var(--mut)}
+  .note{margin:.25rem 0 0;font-size:12.5px;line-height:1.5;color:var(--faint)}
+  .grid{display:grid;gap:12px;margin-top:12px}
+  .tiles{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+  .two{grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
+  .card{border:1px solid var(--line);border-radius:12px;background:var(--panel);
+        padding:14px 15px}
+  .tile b{display:block;font-size:30px;line-height:1.05;letter-spacing:-.025em;
+          font-variant-numeric:tabular-nums}
+  .tile span{display:block;margin-top:4px;font-size:11.5px;text-transform:uppercase;
+             letter-spacing:.06em;color:var(--mut)}
+  .tile em{display:block;margin-top:6px;font-size:11.5px;font-style:normal;
+           color:var(--faint)}
+  /* One measure, one hue, ranked — a bar list, not a chart with a legend it
+     does not need. The fill is anchored to the baseline and 4px-rounded at the
+     data end only. */
+  .bars{margin:10px 0 0;display:grid;gap:7px}
+  .bar{display:grid;grid-template-columns:minmax(110px,34%) 1fr auto;gap:10px;
+       align-items:center;font-size:13.5px}
+  .bar .lab{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .bar .track{height:10px;border-radius:2px;background:var(--line);position:relative}
+  .bar .fill{display:block;height:100%;background:var(--accent);
+             border-radius:2px 4px 4px 2px;min-width:2px}
+  .bar .val{font-variant-numeric:tabular-nums;color:var(--mut);font-size:12.5px}
+  table{border-collapse:collapse;width:100%;font-size:13.5px;margin-top:10px}
+  th,td{text-align:left;padding:7px 9px;border-bottom:1px solid var(--line);
+        white-space:nowrap}
+  th{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--mut)}
+  td:not(:first-child){font-variant-numeric:tabular-nums}
+  tr:last-child td{border-bottom:none}
+  .scroll{overflow-x:auto;border:1px solid var(--line);border-radius:12px}
+  .scroll table{margin:0}
+  button.link{font:inherit;font-size:13.5px;background:none;border:none;padding:0;
+              color:var(--accent);cursor:pointer;text-align:left}
+  button.link:hover{text-decoration:underline}
+  .pill{display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:.05em;
+        padding:2px 6px;border-radius:5px;background:var(--ink);color:var(--bg)}
+  .pill.deep{background:var(--good);color:#fff}
+  .pill.active{background:var(--warn);color:#fff}
+  .pill.arrived{background:var(--mut);color:#fff}
+  .stream{margin-top:10px;display:grid;gap:6px;font-size:13.5px}
+  .stream div{display:grid;grid-template-columns:118px 1fr;gap:10px}
+  .stream time{color:var(--faint);font-variant-numeric:tabular-nums}
+  .opp{border-left:3px solid var(--warn);padding:8px 0 8px 12px;margin-top:12px}
+  .opp.high{border-left-color:var(--bad)}
+  .opp b{display:block;font-size:14px}
+  .opp span{display:block;font-size:12.5px;color:var(--mut);margin-top:3px}
+  .opp code{font-size:11.5px;color:var(--faint)}
+  .empty{padding:14px 0;color:var(--faint);font-size:13.5px}
+  dialog{border:1px solid var(--line);border-radius:14px;background:var(--bg);
+         color:var(--ink);max-width:min(720px,94vw);width:100%;padding:0}
+  dialog::backdrop{background:rgba(10,12,14,.45)}
+  .dhead{display:flex;align-items:flex-start;gap:10px;padding:16px 18px 8px;
+         border-bottom:1px solid var(--line)}
+  .dbody{padding:12px 18px 20px;max-height:66vh;overflow:auto}
+  .x{margin-left:auto;width:36px;height:36px;border-radius:9px;cursor:pointer;
+     border:1px solid var(--line);background:none;color:var(--mut);font-size:18px}
+  @media (max-width:620px){ .stream div{grid-template-columns:1fr} }
+</style>
+
+<header>
+  <div>
+    <h1>Intelligence</h1>
+    <div class="sub" id="sub">Loading…</div>
+  </div>
+  <div class="spacer"></div>
+  <select id="days" aria-label="Time range">
+    <option value="7">Last 7 days</option>
+    <option value="30" selected>Last 30 days</option>
+    <option value="90">Last 90 days</option>
+    <option value="365">Last year</option>
+  </select>
+</header>
+
+<main id="main"><p class="empty">Loading…</p></main>
+
+<dialog id="dlg">
+  <div class="dhead"><div><h1 id="dtitle" style="font-size:17px"></h1>
+    <div class="sub" id="dsub"></div></div>
+    <button class="x" id="dx" aria-label="Close">&times;</button></div>
+  <div class="dbody" id="dbody"></div>
+</dialog>
+
+<script>
+(function () {
+  "use strict";
+
+  /* The token is in this page's own URL — it is how the reader got here — and
+     it rides along to the data endpoint. It is never stored, because a token
+     in localStorage outlives the browser tab that was authorised to have it. */
+  var TOKEN = new URLSearchParams(location.search).get("token") || "";
+  var main = document.getElementById("main");
+  var dlg = document.getElementById("dlg");
+
+  function el(tag, cls, text) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text != null) n.textContent = text;
+    return n;
+  }
+  function n(v) { return Number(v || 0).toLocaleString(); }
+  function mins(ms) {
+    var s = Math.round(Number(ms || 0) / 1000);
+    return s >= 60 ? Math.floor(s / 60) + "m " + (s % 60) + "s" : s + "s";
+  }
+  function when(t) {
+    if (!t) return "—";
+    var d = new Date(t);
+    return isNaN(d) ? "—" : d.toLocaleString(undefined,
+      { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+  }
+
+  /* A ranked bar list. One measure, one hue, sorted — so no legend (the
+     heading names the series) and no color scale to misread. The fill is a
+     block element: an inline span ignores width and renders as an empty
+     track, which has shipped here before. */
+  function bars(rows, labelOf, valueOf, fmt) {
+    var wrap = el("div", "bars");
+    var max = Math.max.apply(null, rows.map(valueOf).concat([1]));
+    rows.forEach(function (r) {
+      var row = el("div", "bar");
+      row.appendChild(el("span", "lab", labelOf(r)));
+      var track = el("span", "track");
+      var fill = el("span", "fill");
+      fill.style.width = Math.max(2, Math.round(valueOf(r) / max * 100)) + "%";
+      track.appendChild(fill);
+      row.appendChild(track);
+      row.appendChild(el("span", "val", (fmt || n)(valueOf(r))));
+      wrap.appendChild(row);
+    });
+    return wrap;
+  }
+
+  function section(title, note) {
+    var s = el("section");
+    s.appendChild(el("h2", null, title));
+    if (note) s.appendChild(el("p", "note", note));
+    return s;
+  }
+
+  function empty(msg) { return el("p", "empty", msg); }
+
+  function tile(value, label, foot) {
+    var c = el("div", "card tile");
+    c.appendChild(el("b", null, value));
+    c.appendChild(el("span", null, label));
+    if (foot) c.appendChild(el("em", null, foot));
+    return c;
+  }
+
+  function render(d) {
+    main.textContent = "";
+    var pop = (d.meta && d.meta.population) || {};
+    document.getElementById("sub").textContent =
+      n(pop.tracked) + " tracked recipients · " + d.meta.days + " days";
+
+    // ---- what is happening -------------------------------------------------
+    var f = {};
+    (d.funnel || []).forEach(function (s) { f[s.key] = s.count; });
+    var s1 = section("What is happening",
+      pop.note + " The first three tiles count "
+      + ((d.meta.populations || {}).funnel || "recipients")
+      + "; the conversation tile counts every visitor.");
+    var tiles = el("div", "grid tiles");
+    tiles.appendChild(tile(n(f.clicked), "Clicked through",
+      f.sent ? Math.round(f.clicked / f.sent * 100) + "% of tracked" : ""));
+    tiles.appendChild(tile(n(f.engaged), "Read something properly", "30s+ on a page"));
+    tiles.appendChild(tile(n(f.asked), "Asked the assistant", ""));
+    tiles.appendChild(tile(n((d.answer_quality || {}).conversations),
+      "Conversations", n((d.answer_quality || {}).turns)
+      + " questions · all visitors"));
+    tiles.appendChild(tile(n(f.replied), "Replied",
+      "the only conversion"));
+    s1.appendChild(tiles);
+    main.appendChild(s1);
+
+    // ---- funnel ------------------------------------------------------------
+    var s2 = section("The funnel", d.meta.open_caveat);
+    s2.appendChild(bars(d.funnel || [],
+      function (r) { return r.label; }, function (r) { return r.count; }));
+    main.appendChild(s2);
+
+    // ---- accounts + sections ----------------------------------------------
+    var two = el("div", "grid two");
+
+    var ca = el("div", "card");
+    ca.appendChild(el("h2", null, "Accounts by engagement"));
+    if ((d.accounts || []).length) {
+      ca.appendChild(bars(d.accounts, function (r) { return r.name; },
+        function (r) { return r.score; }));
+    } else { ca.appendChild(empty("Nobody has engaged yet.")); }
+    two.appendChild(ca);
+
+    var cs = el("div", "card");
+    cs.appendChild(el("h2", null, "Sections that hold attention"));
+    if ((d.sections || []).length) {
+      cs.appendChild(bars(d.sections, function (r) { return r.section; },
+        function (r) { return Number(r.total_dwell_ms || 0); }, mins));
+    } else {
+      cs.appendChild(empty("No section engagement recorded yet — this needs a "
+        + "tracked recipient to visit a page carrying data-section marks."));
+    }
+    two.appendChild(cs);
+    main.appendChild(two);
+
+    // ---- what they are trying to understand --------------------------------
+    /* Named, not implied: this panel is a DIFFERENT population from the
+       funnel above it. One person and two conversations reads as a bug until
+       you know that anonymous visitors ask questions too. */
+    var s3 = section("What they are trying to understand",
+      "Counted across " + ((d.meta.populations || {}).question_kinds
+        || "every visitor") + " — wider than the funnel above, which is only "
+      + "people we emailed. Topics are classified deterministically by "
+      + "src/answer.py, the same classifier the chat itself uses.");
+    if ((d.question_kinds || []).length) {
+      s3.appendChild(bars(d.question_kinds, function (r) { return r.kind || "unclassified"; },
+        function (r) { return Number(r.asked || 0); }));
+    } else { s3.appendChild(empty("No questions asked in this window.")); }
+    main.appendChild(s3);
+
+    // ---- people ------------------------------------------------------------
+    var s4 = section("Who is engaging",
+      "Score is engagement, not prediction: nothing here has been fitted "
+      + "against an outcome. Click a person for their full timeline and the "
+      + "factors behind their score.");
+    if ((d.people || []).length) {
+      var sc = el("div", "scroll");
+      var t = el("table");
+      var head = el("tr");
+      ["Person", "District", "Score", "Visits", "Sections", "Questions", "Read", "Last seen"]
+        .forEach(function (h) { head.appendChild(el("th", null, h)); });
+      var thead = document.createElement("thead"); thead.appendChild(head);
+      t.appendChild(thead);
+      var tb = document.createElement("tbody");
+      d.people.forEach(function (p) {
+        var tr = el("tr");
+        var td0 = el("td");
+        var b = el("button", "link", p.email);
+        b.addEventListener("click", function () { openJourney(p); });
+        td0.appendChild(b);
+        tr.appendChild(td0);
+        tr.appendChild(el("td", null, p.district_number));
+        var tdS = el("td");
+        var pill = el("span", "pill " + (p.score >= 70 ? "deep"
+          : p.score >= 35 ? "active" : "arrived"), String(p.score));
+        tdS.appendChild(pill);
+        tr.appendChild(tdS);
+        tr.appendChild(el("td", null, n(p.sessions)));
+        tr.appendChild(el("td", null, n(p.sections)));
+        tr.appendChild(el("td", null, n(p.questions)));
+        tr.appendChild(el("td", null, mins(p.dwell_ms)));
+        tr.appendChild(el("td", null, when(p.last_seen_at)));
+        tb.appendChild(tr);
+      });
+      t.appendChild(tb); sc.appendChild(t); s4.appendChild(sc);
+    } else {
+      s4.appendChild(empty("No tracked recipient has visited yet."));
+    }
+    main.appendChild(s4);
+
+    // ---- improvement opportunities ----------------------------------------
+    var s5 = section("What to improve next",
+      "Each one is a counted fact against a stated threshold. No model, no "
+      + "intuition. An empty list is a real answer.");
+    if ((d.opportunities || []).length) {
+      d.opportunities.forEach(function (o) {
+        var box = el("div", "opp" + (o.priority === "high" ? " high" : ""));
+        box.appendChild(el("b", null, o.finding));
+        box.appendChild(el("span", null, o.recommendation));
+        box.appendChild(el("code", null, "evidence: " + o.evidence));
+        s5.appendChild(box);
+      });
+    } else {
+      s5.appendChild(empty("Nothing has crossed a threshold yet."));
+    }
+    main.appendChild(s5);
+
+    // ---- recent activity ---------------------------------------------------
+    var s6 = section("Recent activity");
+    if ((d.activity || []).length) {
+      var st = el("div", "stream");
+      d.activity.forEach(function (a) {
+        var row = el("div");
+        row.appendChild(el("time", null, when(a.occurred_at)));
+        var what = a.event;
+        if (a.section) what += " · " + a.section;
+        if (a.path) what += " · " + a.path;
+        if (a.dwell_ms) what += " · " + mins(a.dwell_ms);
+        row.appendChild(el("span", null, what));
+        st.appendChild(row);
+      });
+      s6.appendChild(st);
+    } else { s6.appendChild(empty("Nothing recorded in this window.")); }
+    main.appendChild(s6);
+
+    // ---- can this data carry a claim --------------------------------------
+    var p = (d.meta || {}).power || {};
+    var s7 = section("Can these numbers carry a statistical claim?");
+    var pc = el("div", "card");
+    pc.appendChild(el("b", null, p.verdict || "—"));
+    pc.appendChild(el("p", "note", p.why || ""));
+    s7.appendChild(pc);
+    main.appendChild(s7);
+
+    // ---- lineage -----------------------------------------------------------
+    var s8 = section("Where every number comes from");
+    var lt = el("table");
+    Object.keys(d.meta.lineage || {}).forEach(function (k) {
+      var tr = el("tr");
+      tr.appendChild(el("td", null, k));
+      var td = el("td"); td.style.whiteSpace = "normal";
+      td.textContent = d.meta.lineage[k];
+      tr.appendChild(td);
+      lt.appendChild(tr);
+    });
+    var lw = el("div", "scroll"); lw.appendChild(lt);
+    s8.appendChild(lw);
+    main.appendChild(s8);
+  }
+
+  function openJourney(p) {
+    document.getElementById("dtitle").textContent = p.email;
+    document.getElementById("dsub").textContent =
+      "District " + p.district_number + " · " + p.campaign
+      + " · score " + p.score + " of " + p.max + " (" + p.band + ")";
+    var body = document.getElementById("dbody");
+    body.textContent = "";
+
+    var f = el("table");
+    (p.factors || []).forEach(function (x) {
+      var tr = el("tr");
+      // Words, not marks: the design system bans emoji site-wide and a tick
+      // is one. It also reads better — "counted" says what happened.
+      tr.appendChild(el("td", null, x.label));
+      tr.appendChild(el("td", null, x.fired ? "counted +" + x.weight : "not counted"));
+      f.appendChild(tr);
+    });
+    body.appendChild(el("h2", null, "Why this score"));
+    var fw = el("div", "scroll"); fw.appendChild(f); body.appendChild(fw);
+
+    body.appendChild(el("h2", null, "Timeline"));
+    var loading = el("p", "empty", "Loading timeline…");
+    body.appendChild(loading);
+    dlg.showModal();
+
+    fetch("/ops/intel-journey?rid=" + encodeURIComponent(p.rid)
+          + "&token=" + encodeURIComponent(TOKEN))
+      .then(function (r) { return r.json(); })
+      .then(function (j) {
+        loading.remove();
+        var byConv = {};
+        (j.turns || []).forEach(function (t) {
+          (byConv[t.conversation_id] = byConv[t.conversation_id] || []).push(t);
+        });
+        var st = el("div", "stream");
+        (j.events || []).forEach(function (e) {
+          var row = el("div");
+          row.appendChild(el("time", null, when(e.occurred_at)));
+          var what = e.event;
+          if (e.section) what += " · " + e.section;
+          if (e.path) what += " · " + e.path;
+          if (e.dwell_ms) what += " · " + mins(e.dwell_ms);
+          row.appendChild(el("span", null, what));
+          st.appendChild(row);
+          // The questions asked in that conversation, in order, right where
+          // they happened — this is the view that makes a journey readable.
+          (byConv[e.conversation_id] || []).forEach(function (t) {
+            var q = el("div");
+            q.appendChild(el("time", null, ""));
+            var line = el("span", null, "“" + t.question + "”"
+              + (t.ok ? "" : "  (failed)"));
+            line.style.color = "var(--accent)";
+            q.appendChild(line);
+            st.appendChild(q);
+          });
+          delete byConv[e.conversation_id];
+        });
+        body.appendChild(st);
+      })
+      .catch(function () {
+        loading.textContent = "That timeline could not be loaded.";
+      });
+  }
+
+  document.getElementById("dx").addEventListener("click", function () { dlg.close(); });
+
+  function load() {
+    var days = document.getElementById("days").value;
+    main.textContent = "";
+    main.appendChild(empty("Loading…"));
+    fetch("/ops/intel-data?days=" + days + "&token=" + encodeURIComponent(TOKEN))
+      .then(function (r) {
+        if (!r.ok) throw new Error(String(r.status));
+        return r.json();
+      })
+      .then(render)
+      .catch(function (e) {
+        main.textContent = "";
+        main.appendChild(empty(String(e.message) === "503"
+          ? "The database is unavailable, so there is nothing to report. "
+            + "Every other page on the site still works without it."
+          : "Could not load the dashboard (" + e.message + ")."));
+      });
+  }
+
+  document.getElementById("days").addEventListener("change", load);
+  load();
+}());
+</script>

@@ -326,6 +326,24 @@
      already on. It is sent as context so the answer's figures and follow-ups
      are about the district on screen — it never reaches the model's query, so
      it cannot steer what the data says. */
+  /* One conversation id per chat sitting, minted here and sent with every
+     turn so the turns can be read back in order. It is opaque and carries no
+     identity: what attaches a person to it is a `question` row in the server's
+     own event stream, which exists only for someone who arrived on a token we
+     mailed. An anonymous visitor's conversation stays anonymous. */
+  var convo = null, turnNo = 0;
+  /* Set when a suggestion chip is clicked and cleared the moment it is sent,
+     so a question the reader typed themselves is never credited to a chip. */
+  var pendingFollowup = null;
+
+  function conversationId() {
+    if (!convo) {
+      convo = 'c' + Date.now().toString(36)
+        + Math.floor(Math.random() * 1e9).toString(36);
+    }
+    return convo;
+  }
+
   function districtNumber() {
     try {
       var d = new URLSearchParams(location.search).get('d');
@@ -516,6 +534,7 @@
           /* the same chip appears in the sheet and, via renderInto, on the
              landing page — opening first makes both cases identical */
           open();
+          pendingFollowup = f.label;
           input.value = f.question;
           submit();
         });
@@ -595,8 +614,17 @@
     fetch('/query', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ question: q, district_number: districtNumber() }),
+      body: JSON.stringify({
+        question: q,
+        district_number: districtNumber(),
+        conversation_id: conversationId(),
+        turn: ++turnNo,
+        /* which chip produced this question, if any — the only way to find
+           out whether the suggestions help or merely decorate */
+        followup_label: pendingFollowup,
+      }),
     }).then(function (r) {
+      pendingFollowup = null;      // credited once, to the question it produced
       return r.json().catch(function () { return {}; }).then(function (body) {
         return { status: r.status, body: body };
       });

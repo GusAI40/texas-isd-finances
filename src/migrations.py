@@ -119,6 +119,123 @@ END $$;
 """
 
 
+
+# The intelligence layer. Mirrors sql/create_intel.sql — same drift test.
+#
+# It WIDENS the existing event stream rather than starting a second one: a
+# separate analytics-events table would be a second source of truth for the
+# same journey, and the first question anyone asked of it would be which one to
+# believe. Every write path still requires the httpOnly cookie that only an
+# emailed recipient carries, so the published promise is unchanged.
+INTEL_DDL = """
+ALTER TABLE public.visitor_event ADD COLUMN IF NOT EXISTS section         text;
+ALTER TABLE public.visitor_event ADD COLUMN IF NOT EXISTS detail          text;
+ALTER TABLE public.visitor_event ADD COLUMN IF NOT EXISTS conversation_id text;
+ALTER TABLE public.visitor_event ADD COLUMN IF NOT EXISTS event_key       text;
+
+CREATE UNIQUE INDEX IF NOT EXISTS visitor_event_key_idx
+    ON public.visitor_event (event_key) WHERE event_key IS NOT NULL;
+CREATE INDEX IF NOT EXISTS visitor_event_section_idx
+    ON public.visitor_event (section, occurred_at) WHERE section IS NOT NULL;
+CREATE INDEX IF NOT EXISTS visitor_event_conversation_idx
+    ON public.visitor_event (conversation_id) WHERE conversation_id IS NOT NULL;
+
+ALTER TABLE public.visitor_event DROP CONSTRAINT IF EXISTS visitor_event_kind;
+ALTER TABLE public.visitor_event ADD  CONSTRAINT visitor_event_kind CHECK (event IN (
+    'email_open', 'click', 'pageview', 'dwell', 'question', 'return',
+    'section', 'followup', 'download', 'reply'));
+
+CREATE TABLE IF NOT EXISTS public.chat_turn (
+    id              bigserial PRIMARY KEY,
+    conversation_id text        NOT NULL,
+    turn            integer     NOT NULL,
+    asked_at        timestamptz NOT NULL DEFAULT now(),
+    question        text        NOT NULL,
+    answer          text,
+    kind            text,
+    district_number text,
+    ok              boolean     NOT NULL DEFAULT true,
+    ms              integer,
+    model           text,
+    structured      boolean     NOT NULL DEFAULT false,
+    followup_label  text,
+    error           text
+);
+
+CREATE INDEX IF NOT EXISTS chat_turn_conversation_idx
+    ON public.chat_turn (conversation_id, turn);
+CREATE INDEX IF NOT EXISTS chat_turn_time_idx ON public.chat_turn (asked_at DESC);
+CREATE INDEX IF NOT EXISTS chat_turn_kind_idx ON public.chat_turn (kind, asked_at DESC);
+
+CREATE TABLE IF NOT EXISTS public.experiment_exposure (
+    id           bigserial PRIMARY KEY,
+    experiment   text        NOT NULL,
+    variant      text        NOT NULL,
+    rid          text,
+    visitor_id   text,
+    exposed_at   timestamptz NOT NULL DEFAULT now(),
+    UNIQUE (experiment, visitor_id)
+);
+
+CREATE INDEX IF NOT EXISTS experiment_exposure_exp_idx
+    ON public.experiment_exposure (experiment, variant);
+
+CREATE OR REPLACE VIEW public.v_conversation AS
+SELECT
+    t.conversation_id,
+    count(*)                                  AS turns,
+    min(t.asked_at)                           AS started_at,
+    max(t.asked_at)                           AS last_at,
+    count(*) FILTER (WHERE NOT t.ok)          AS failures,
+    count(*) FILTER (WHERE t.followup_label IS NOT NULL) AS followups_used,
+    round(avg(t.ms))                          AS avg_ms,
+    max(t.district_number)                    AS district_number,
+    array_agg(DISTINCT t.kind) FILTER (WHERE t.kind IS NOT NULL) AS kinds,
+    max(e.rid)                                AS rid
+FROM public.chat_turn t
+LEFT JOIN public.visitor_event e
+       ON e.conversation_id = t.conversation_id AND e.event = 'question'
+GROUP BY t.conversation_id;
+
+CREATE OR REPLACE VIEW public.v_section_engagement AS
+SELECT
+    e.section,
+    e.district_number,
+    count(DISTINCT e.rid)                          AS people,
+    count(DISTINCT e.session_id)                   AS sessions,
+    count(*)                                       AS views,
+    coalesce(sum(e.dwell_ms), 0)                   AS total_dwell_ms,
+    round(avg(e.dwell_ms))                         AS avg_dwell_ms
+FROM public.visitor_event e
+WHERE e.event = 'section' AND e.section IS NOT NULL
+GROUP BY e.section, e.district_number;
+
+ALTER TABLE public.chat_turn            ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.experiment_exposure  ENABLE ROW LEVEL SECURITY;
+
+REVOKE ALL ON public.chat_turn            FROM PUBLIC;
+REVOKE ALL ON public.experiment_exposure  FROM PUBLIC;
+REVOKE ALL ON public.v_conversation       FROM PUBLIC;
+REVOKE ALL ON public.v_section_engagement FROM PUBLIC;
+
+DO $$
+DECLARE
+    r text;
+BEGIN
+    FOREACH r IN ARRAY ARRAY['anon', 'authenticated', 'nlp_reader'] LOOP
+        IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = r) THEN
+            EXECUTE format(
+                'REVOKE ALL ON public.chat_turn, public.experiment_exposure, '
+                'public.v_conversation, public.v_section_engagement FROM %I', r);
+        END IF;
+    END LOOP;
+END $$;
+"""
+
+# The object whose absence means the intelligence layer has not been applied.
+INTEL_SENTINEL = "public.chat_turn"
+
+
 # `CREATE TABLE IF NOT EXISTS` is NOT race-safe: concurrent creators fail with a
 # duplicate key on pg_type rather than one of them yielding. On a serverless
 # deploy every cold start races every other, so six workers hitting an empty
@@ -143,8 +260,15 @@ async def ensure_schema(pool) -> str:
     try:
         async with pool.acquire() as conn:
             # Fast path, and the one taken on all but the very first boot: no
-            # lock, no transaction, one index lookup.
-            if await conn.fetchval("SELECT to_regclass($1)", SENTINEL) is not None:
+            # lock, no transaction, two index lookups. BOTH sentinels are
+            # checked — a deploy that added the intelligence layer to a
+            # database which already had the tracking tables would otherwise
+            # take the fast path forever and never apply it.
+            have_tracking = await conn.fetchval(
+                "SELECT to_regclass($1)", SENTINEL) is not None
+            have_intel = await conn.fetchval(
+                "SELECT to_regclass($1)", INTEL_SENTINEL) is not None
+            if have_tracking and have_intel:
                 return "ok: tracking schema already present"
 
             async with conn.transaction():
@@ -158,9 +282,16 @@ async def ensure_schema(pool) -> str:
                 # every worker running a harmless script in turn, once ever.
                 if await conn.fetchval("SELECT to_regclass($1)", SENTINEL) is None:
                     await conn.execute(VISITOR_TRACKING_DDL)
+                # Always after the tracking block: INTEL_DDL alters
+                # visitor_event, so it cannot run against a database that does
+                # not have it yet.
+                if await conn.fetchval(
+                        "SELECT to_regclass($1)", INTEL_SENTINEL) is None:
+                    await conn.execute(INTEL_DDL)
 
-            if await conn.fetchval("SELECT to_regclass($1)", SENTINEL) is None:
-                return "ERROR: ran the DDL but the tables are still missing"
+            for name in (SENTINEL, INTEL_SENTINEL):
+                if await conn.fetchval("SELECT to_regclass($1)", name) is None:
+                    return f"ERROR: ran the DDL but {name} is still missing"
             # Deliberately reports STATE, not authorship. Several workers can
             # each run the script on a cold-start burst, and a log line saying
             # "created" on all of them would be a small lie in exactly the place
@@ -172,7 +303,8 @@ async def ensure_schema(pool) -> str:
         # fill the logs with alarms on every deploy.
         try:
             async with pool.acquire() as conn:
-                if await conn.fetchval("SELECT to_regclass($1)", SENTINEL) is not None:
+                if all(await conn.fetchval("SELECT to_regclass($1)", n) is not None
+                       for n in (SENTINEL, INTEL_SENTINEL)):
                     return "ok: tracking schema present (raced another worker)"
         except Exception:                                 # noqa: BLE001
             pass

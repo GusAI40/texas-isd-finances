@@ -3576,3 +3576,92 @@ Known limits, stated rather than papered over: follow-ups are template-driven
 per question kind, so they are always answerable but never surprising; metric
 cards are fixed to spending, so a debt or bond question gets spending cards or
 none.
+
+## 2026-08-17 — The intelligence layer: email → identity → sections → conversations → dashboard
+
+**Asked for:** a unified intelligence dashboard across email, website and AI
+chat, in 37 phases, starting with an audit and explicitly putting regression
+last.
+
+**Phase 1 found two things that changed the whole plan.**
+
+1. **There is no analytics vendor here at all.** Checked by name: PostHog 0,
+   Google Analytics 0, gtag 0, Langfuse 0, Segment 0, Mixpanel 0, Amplitude 0,
+   Sentry 0, Datadog 0, HubSpot 0, Salesforce 0, Microsoft/Outlook 0. Phase 33's
+   ownership split has nothing to split. There is also no authentication and no
+   user accounts — `OPS_TOKEN` on `/ops/*` and an unset `SITE_PASSWORD` are the
+   only access control that exists.
+2. **Most of the spec collided with a published promise.** Phases 4, 5, 6, 10,
+   11, 14 and 27 need anonymous visitor tracking. The site says it measures the
+   site and not the visitor, with one stated exception — people we emailed — and
+   `tests/test_tracking.py` fails the build if that disclosure changes. The
+   owner chose to KEEP the promise, so the whole layer is recipients-only and
+   anonymous visitors remain a number in `site_visits`.
+
+**One finding was free money.** `visitor_event`'s CHECK constraint already
+permitted `event = 'question'`, and nothing had ever emitted it — traced all
+five `_record_event` call sites. Someone designed for chat attribution and never
+wired it.
+
+**Design decisions worth keeping:**
+
+- **Widened the existing event stream instead of starting a second one.** A
+  separate analytics-events table would be a second source of truth for the same
+  journey, and the first question anyone asked of it would be which to believe.
+  `visitor_event` gained `section`, `detail`, `conversation_id`, `event_key`;
+  the kind whitelist went from 6 to 10.
+- **Content and identity live in different tables.** `chat_turn` holds the
+  questions and answers keyed by an opaque conversation id and has no identity
+  of its own; the only thing that attaches a person is a `question` row in
+  `visitor_event`, which exists only for a mailed recipient. Same shape as
+  `outreach_recipient`/`visitor_event`: drop one table and the other is
+  anonymous. An anonymous visitor's conversation stays anonymous.
+- **A client may only assert `section`, `download`, `followup`.** Everything
+  else is server-written from facts a browser cannot fake. A client that could
+  post `reply` could manufacture the only conversion this product has — the e2e
+  harness tries it and is refused.
+- **Idempotency in the database, not just the client.** `sendBeacon` retries and
+  bfcache replays; without the partial unique index on `event_key` one
+  41-second read of the debt section is three rows and nothing looks wrong.
+- **One conversion, three signals.** A reply is the only real outcome. Return
+  visits, downloads and deep chat engagement are intent signals inside the
+  score. Promoting them would manufacture a funnel with four exits where one
+  exists.
+- **Regression is REFUSED, and says why.** `intel.power()` applies the
+  events-per-variable rule and prints its own refusal on the dashboard: a
+  handful of conversions supports zero predictors, so any coefficient would be
+  noise with an interval spanning both directions. The refusal lifts itself as
+  the sample grows. This is the spec's own instruction, enforced in code.
+
+**Proved end to end against a REAL Postgres**, not mocks — `initdb` a throwaway
+cluster, let `src/migrations.py` apply its own schema, then drive the actual
+HTTP endpoints a browser drives: open pixel → click → identity cookie → page
+dwell → three sections → replayed beacon → forged event → three chat turns in
+one conversation → dashboard payload → journey timeline. All 26 checks pass.
+
+**Two real defects only that harness could have found:**
+
+- **An unparseable IP silently discarded the ENTIRE event.** The column is
+  `inet`; a hostname reaches asyncpg, raises, and because every tracking write
+  fails open the click, page view and email open all vanished with a warning in
+  a log nobody reads. `client_ip()` now returns None for anything that is not an
+  address. Losing a superintendent's click to preserve an IP we never query is
+  the wrong trade in both directions.
+- **The dashboard mixed two populations.** It showed 1 tracked person and 2
+  conversations, which reads as a bug until you know anonymous visitors ask
+  questions too. Both populations are now NAMED in the payload and on the page:
+  the funnel, people and accounts are recipients; the question panels are
+  everyone, because an anonymous question is still someone telling us what a
+  page failed to explain, and discarding it to keep one denominator would be the
+  worse answer.
+
+**Harness notes for next time:** the identity cookie is `Secure`, so a
+TestClient on http keeps it in the jar and never sends it — that looks exactly
+like tracking being broken. Use `base_url="https://testserver"`. And `initdb`
+refuses to run as root; `su postgres` first.
+
+**NOT built, and not pretended otherwise.** Nothing writes `reply` events yet,
+so the funnel's only conversion currently reads zero for everyone — it needs a
+mailbox reader against gus@ubntag.com. Cohorts, funnel visualisations beyond
+the one funnel, pattern detection, saved filters, analytics-of-the-analytics and
+rollups are all unbuilt. The experiment table exists and nothing writes to it.
