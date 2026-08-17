@@ -159,7 +159,7 @@
   <div class="m-in">
     <a class="m-brand" href="/"><span class="m-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
       Texas ISD<span class="m-sub">Financial Resource Guide</span></a>
-    <div class="m-tabs"><a href="/">The Report</a><a href="/feed" aria-current="page">The Feed</a><a href="/forensics">Forensic File</a><a href="/geomap">Map</a><a href="/heatmap">Heatmap</a><a href="/about">About</a><a href="/sources">Sources</a></div><details class="m-more"><summary>More</summary><div class="m-menu"><a href="/map">Seating chart</a><a href="/intel">Daily briefing</a><a href="/transparency">How this was made</a></div></details>
+    <div class="m-tabs"><a href="/">The Report</a><a href="/feed" aria-current="page">The Feed</a><a href="/forensics">Forensic File</a><a href="/geomap">Map</a><a href="/heatmap">Heatmap</a><a href="/about">About</a><a href="/sources">Sources</a></div><details class="m-more"><summary>More</summary><div class="m-menu"><a href="/#ask-section">Ask a question</a><a href="/map">Seating chart</a><a href="/intel">Daily briefing</a><a href="/transparency">How this was made</a></div></details>
     <button class="mast-theme" id="mast-theme" type="button" aria-label="Toggle light and dark theme">Theme</button>
   </div>
 </nav>
@@ -228,7 +228,30 @@
           return;
         }
         var d2 = currentD();
-        if (CARRY[u.pathname] && d2 && /^[0-9]{6}$/.test(d2)) u.searchParams.set('d', d2);
+        /* A hash link aims at a SECTION, not a view, so it never carries
+           ?d — the URL stays an honest section pointer. Same page: the
+           branch below scrolls in place, keeping the view exactly as it is
+           (statewide stays statewide; a district view keeps its district
+           and skips the reload). Cross-page it lands bare on /, where the
+           front page's NORMAL rules apply — a stored district is restored,
+           because the district follows the reader, unless the one-shot
+           home flag says otherwise. */
+        if (CARRY[u.pathname] && !u.hash && d2 && /^[0-9]{6}$/.test(d2)) u.searchParams.set('d', d2);
+        /* Hash link to THIS page: scroll in place. Without this a district
+           view (/?d=…) clicking "Ask a question" (/#ask-section) failed the
+           exact-match test below and did a FULL reload that dropped ?d —
+           losing the district for a reader who arrived by shared link. The
+           More dropdown is closed by hand: no navigation resets it. */
+        if (u.hash && u.pathname === location.pathname) {
+          var sec = document.getElementById(u.hash.slice(1));
+          if (sec) {
+            ev.preventDefault();
+            var dd = a.closest('details'); if (dd) dd.open = false;
+            var rm = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+            sec.scrollIntoView({ behavior: rm ? 'auto' : 'smooth' });
+            return;
+          }
+        }
         if (u.pathname === location.pathname && u.search === location.search) {
           ev.preventDefault();
           var re = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
