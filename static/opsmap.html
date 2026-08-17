@@ -7,14 +7,11 @@
     --notsent:#c9ccd2; --unknown:#ffffff; --bounced:#8a8f98;
     --delivered:#d64545; --opened:#e8a317; --clicked:#2e9e5b;
   }
-  :root:not([data-theme="light"]){}
-  @media (prefers-color-scheme: dark){
-    :root:not([data-theme="light"]){
-      --bg:#0f1115; --ink:#e9ecf1; --mut:#9aa1ad; --line:#252a33; --panel:#161a21;
-      --notsent:#3a4049; --unknown:#0f1115; --bounced:#6b7280;
-    }
-  }
+  /* Light by default, matching the portal's rule (owner directive) — the
+     device's dark setting no longer decides; only an explicit data-theme. */
+  :root{ color-scheme:light; }
   :root[data-theme="dark"]{
+    color-scheme:dark;
     --bg:#0f1115; --ink:#e9ecf1; --mut:#9aa1ad; --line:#252a33; --panel:#161a21;
     --notsent:#3a4049; --unknown:#0f1115; --bounced:#6b7280;
   }
