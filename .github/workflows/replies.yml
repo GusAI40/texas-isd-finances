@@ -1,0 +1,85 @@
+# Daily reply ingest — the only conversion this product has.
+#
+# Every other stage of the funnel is behaviour a mail-security appliance can
+# imitate: it opens the message, follows the link, loads the page. A REPLY is a
+# person typing to a person. Nothing recorded it until this job existed, so the
+# dashboard's last funnel stage read zero for everyone — worse than no funnel,
+# because it looked measured.
+#
+# The script reads the inbox READ-ONLY, matches senders against the addresses
+# we actually mailed, and records the FACT and the TIME. It never stores a
+# subject or a body: what a superintendent writes to us is correspondence, not
+# telemetry.
+#
+# Needs three repository secrets (Settings → Secrets → Actions):
+#   IMAP_USER        the mailbox, gus@ubntag.com
+#   IMAP_PASSWORD    a Gmail APP PASSWORD, not the account password
+#                    (Google Account → Security → 2-Step Verification →
+#                    App passwords). IMAP must also be enabled in Gmail.
+#   SUPABASE_PAT     read the send log, write the reply events
+# Until all three exist the job skips harmlessly and says so.
+#
+# Idempotent by design: it re-reads the same three weeks every day, and
+# `event_key` makes the repeats no-ops. Without that, one reply would become
+# twenty-one conversions and the funnel would invert.
+
+name: Reply ingest
+
+on:
+  schedule:
+    - cron: "0 13 * * *"      # daily 13:00 UTC (8:00 AM Central)
+  workflow_dispatch:
+    inputs:
+      days:
+        description: "How far back to read the inbox"
+        default: "21"
+      write:
+        description: "Record the events (false = dry run)"
+        default: "true"
+
+permissions:
+  contents: read
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Record replies from people we emailed
+        env:
+          IMAP_USER: ${{ secrets.IMAP_USER }}
+          IMAP_PASSWORD: ${{ secrets.IMAP_PASSWORD }}
+          SUPABASE_PAT: ${{ secrets.SUPABASE_PAT }}
+          DAYS: ${{ github.event.inputs.days || '21' }}
+          WRITE: ${{ github.event.inputs.write || 'true' }}
+        run: |
+          if [ -z "$IMAP_USER" ] || [ -z "$IMAP_PASSWORD" ] || [ -z "$SUPABASE_PAT" ]; then
+            echo "secrets not configured — skipping. Add IMAP_USER,"
+            echo "IMAP_PASSWORD (a Gmail APP password) and SUPABASE_PAT in"
+            echo "repo Settings → Secrets → Actions to arm this."
+            exit 0
+          fi
+          FLAG=""
+          if [ "$WRITE" = "true" ]; then FLAG="--write"; fi
+          python scripts/ingest_replies.py --days "$DAYS" $FLAG
+
+      # An opt-out request is a promise, not a metric. The script appends it to
+      # data/outreach_optout.txt, and that file is only load-bearing once it is
+      # committed — so surface it loudly rather than letting the runner discard
+      # it. Deliberately NOT an automatic commit: a bot pushing to a
+      # branch-protected repo on a schedule is a bigger risk than a person
+      # reading one line of output.
+      - name: Flag any new opt-outs for a human
+        if: always()
+        run: |
+          if ! git diff --quiet -- data/outreach_optout.txt 2>/dev/null; then
+            echo "::warning::New opt-out requests were detected. Commit"
+            echo "::warning::data/outreach_optout.txt and run"
+            echo "::warning::scripts/sync_outreach_state.py BEFORE the next wave."
+            git --no-pager diff -- data/outreach_optout.txt
+          fi
