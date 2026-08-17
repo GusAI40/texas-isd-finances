@@ -64,6 +64,33 @@ def _q(s: str) -> str:
     return "'" + s.replace("'", "''") + "'"
 
 
+# A recipient's mail is scanned before they ever see it. School districts run
+# Microsoft Defender / Barracuda / Mimecast, which open every message and follow
+# every link within seconds to check them for malware. Those events are
+# indistinguishable from an eager reader in the raw counters — on wave 2 they
+# were 6 of 14 "clicks" and most of the "opens" — so the funnel reports BOTH the
+# raw number and what survives an audit. Two signatures, each verified against
+# real wave-2 data on 2026-08-17:
+#
+#   TIME    a human does not open mail 1 second after it is sent. Anything
+#           inside MIN_HUMAN_SECONDS of that recipient's OWN send is machine.
+#   CLIENT  browsers that no longer exist in the wild. Windows XP and IE8 in
+#           2026 are appliances wearing a costume, as is an AppEngine fetcher.
+#
+# The filters are deliberately conservative: they under-remove rather than
+# discard a real reader. A district whose appliance clicks AND whose
+# superintendent later clicks still counts, because the later event survives.
+MIN_HUMAN_SECONDS = 120
+DEAD_CLIENTS = ("%Windows NT 5.1%", "%MSIE 8.0%", "%AppEngine%")
+
+
+def _human_clause(alias: str = "e") -> str:
+    """SQL that keeps only events plausibly made by a person."""
+    dead = " AND ".join(f"{alias}.user_agent NOT ILIKE '{p}'" for p in DEAD_CLIENTS)
+    return (f"EXTRACT(EPOCH FROM ({alias}.occurred_at - r.sent_at)) >= "
+            f"{MIN_HUMAN_SECONDS} AND {dead}")
+
+
 def funnel(pat: str, campaign: str | None) -> None:
     where = f"WHERE campaign = {_q(campaign)}" if campaign else ""
     rows = sql(f"""
@@ -80,16 +107,34 @@ def funnel(pat: str, campaign: str | None) -> None:
     r = rows[0]
     sent = int(r["sent"]) or 1
 
+    # The audited counts, straight from the events rather than the view.
+    ewhere = f"AND r.campaign = {_q(campaign)}" if campaign else ""
+    verified = sql(f"""
+        SELECT
+          count(DISTINCT r.rid) FILTER (WHERE e.event = 'click')      AS clicked,
+          count(DISTINCT r.rid) FILTER (WHERE e.event = 'email_open') AS opened
+        FROM public.visitor_event e
+        JOIN public.outreach_recipient r ON r.rid = e.rid
+        WHERE {_human_clause()} {ewhere}""", pat)
+    v = verified[0] if verified else {"clicked": 0, "opened": 0}
+
     def pct(n) -> str:
         return f"{int(n) / sent * 100:5.1f}%"
 
     print(f"\n  CAMPAIGN {campaign or '(all)'}\n")
     print(f"  {'sent':<26}{int(r['sent']):>7}")
-    print(f"  {'opened the email':<26}{int(r['opened']):>7}   {pct(r['opened'])}")
-    print(f"  {'clicked through':<26}{int(r['clicked']):>7}   {pct(r['clicked'])}")
+    print(f"  {'opened — raw':<26}{int(r['opened']):>7}   {pct(r['opened'])}")
+    print(f"  {'opened — verified':<26}{int(v['opened']):>7}   {pct(v['opened'])}")
+    print(f"  {'clicked — raw':<26}{int(r['clicked']):>7}   {pct(r['clicked'])}")
+    print(f"  {'clicked — VERIFIED':<26}{int(v['clicked']):>7}   {pct(v['clicked'])}")
     print(f"  {'came back later':<26}{int(r['returned']):>7}   {pct(r['returned'])}")
     print(f"\n  {'pages read':<26}{int(r['pageviews']):>7}")
     print(f"  {'total time on site':<26}{_mins(r['dwell']):>7}")
+    print(f"\n  Raw counts include mail-security scanners (they open and click"
+          f"\n  everything within seconds). VERIFIED = at least {MIN_HUMAN_SECONDS}s"
+          f" after that\n  recipient's own send, from a browser that still exists."
+          f"\n  Quote the verified click figure; opens are unreliable in BOTH"
+          f"\n  directions — scanners inflate, image-blocking deflates.")
 
 
 def roster(pat: str, campaign: str | None, limit: int) -> list[dict]:
