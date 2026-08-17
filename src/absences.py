@@ -205,6 +205,26 @@ def no_campus_ratings(name: str, year: int = 2025) -> dict:
         year=year)
 
 
+def no_national_row(name: str, is_charter: bool) -> dict:
+    """175 of the 1,202 econ-layer districts — 174 charters plus one
+    university lab school. The Census surveys GOVERNMENTS, and a Texas
+    charter is not an independent government, so it has no F-33 row at all.
+    That is an absence by construction, not a gap in our join."""
+    if is_charter:
+        return absence(
+            "national", NOT_APPLICABLE,
+            f"{name} is a charter school, and the Census Bureau's school "
+            f"finance survey covers governments — independent school "
+            f"districts — so charters have no row in it anywhere in the "
+            f"country. A national ranking cannot exist for {name}, which is "
+            f"different from it being unranked.")
+    return absence(
+        "national", NOT_MEASURED,
+        f"The Census Bureau's fiscal 2024 school finance file carries no row "
+        f"that resolves to {name}, so it has no national comparison here. "
+        f"That is missing information, not a verdict.")
+
+
 def no_equity_record(name: str) -> dict:
     """115 districts, 33,362 students."""
     return absence(

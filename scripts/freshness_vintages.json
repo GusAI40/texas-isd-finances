@@ -91,6 +91,25 @@
       "last_modified": "Tue, 11 Aug 2026 06:07:28 GMT",
       "meaning": "The Board's issuer index carries no updatedAt field, so this watches the file's own ETag (an S3 content hash: it moves only when the bytes move). Ingested 2026-08-11, fiscal 2025 actuals. If this fires repeatedly with no new fiscal year visible, the index is churning and the method should be revisited before it teaches anyone to ignore it."
     },
+    "census_f33": {
+      "method": "next_url",
+      "check_url": "https://www2.census.gov/programs-surveys/school-finances/tables/2025/secondary-education-finance/elsec25t.xlsx",
+      "vintage_year": 2024,
+      "meaning": "The national layer is built from the fiscal 2024 F-33 district file (released 2026-05-07). Census publishes each year at a predictable path, so this probes the fiscal 2025 file. After ingesting it, point this at 2026."
+    },
+    "nces_npefs": {
+      "method": "next_url",
+      "check_url": "https://nces.ed.gov/ccd/Data/txt/stfis25_1a.txt",
+      "vintage_year": 2024,
+      "meaning": "The state ranking uses the fiscal 2024 NPEFS state file. NCES names each year's file stfisYY_1a.txt, so this probes fiscal 2025. Revisions of the SAME year appear as _2a/_3a siblings and would not fire this — acceptable, because the ranking is refreshed with each new fiscal year rather than each revision."
+    },
+    "ccd_lea_directory": {
+      "method": "etag",
+      "check_url": "https://nces.ed.gov/ccd/Data/zip/ccd_lea_029_2425_w_1a_073025.zip",
+      "etag": "\"ef17a954b776dc1:0\"",
+      "last_modified": "Fri, 26 Dec 2025 22:31:08 GMT",
+      "meaning": "The Census-to-TEA bridge, SY 2024-25 v.1a. Each school year's directory ships at a NEW url whose name carries a version and a date, so no next-year probe can be written; this etag fires only if NCES restates the 2024-25 file in place. A new school year's directory is found by a human on nces.ed.gov/ccd/files.asp and only matters when the F-33 year advances with it."
+    },
     "bls_cpi": {
       "method": "unverifiable",
       "check_url": "https://www.bls.gov/cpi/",

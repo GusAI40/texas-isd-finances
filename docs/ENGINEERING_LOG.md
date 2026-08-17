@@ -90,6 +90,42 @@ sections, both motion preferences).
 
 ---
 
+## 2026-08-16 — The trust question asked out loud, and one pixel for grandma
+
+**What changed** (PR #24, live). Readability and trust, both MEASURED first.
+Flesch-Kincaid on the real page text showed the core path already reads at
+grade 5–7, with three spikes: the AI disclosure (9.2), the outcomes explainer
+(9.8), the balance explainer (8.3). All three rewritten and re-measured: 5.5,
+6.4, 5.6. Body base moved **15px → 16px** (one token, `--fs-base`) — the
+accessibility floor for older readers; re-rendered both viewports, 0 overflow.
+
+**New section: "Can I trust these numbers?"** — the question asked in the
+reader's own words, linked from the hero's AI strip, measured at a
+**grade-3.4** read. Five answers: where numbers come from (download the same
+state file), how we check (a second program redoes the math; on disagreement
+the site will not publish), what happens when we're wrong (**the Wills Point
+correction, named** — a real mistake owned in public is the strongest trust
+evidence the site has), what the AI did and did not do, and check-one-yourself
+(click any revenue figure). Static HTML on purpose: the trust answer must not
+depend on the database being awake. Test-locked including the Wills Point
+receipt.
+
+**Insight worth keeping**: the trust machinery all existed — /sources,
+/provenance, /transparency, lineage — but was an Easter-egg hunt across four
+pages. Evidence nobody can find is evidence that doesn't work. The question
+had to be asked ON the page, in the reader's words.
+
+**Next fountain decided: NCES/Census F-33** (national context — "Texas vs the
+other 49"). Sources verified live: nces.ed.gov/ccd/f33agency.asp (district
+fiscal files) and census.gov/programs-surveys/school-finances.html (the Census
+side; same joint collection). Join key: NCES LEAID carries the TEA district
+number for Texas (state 48 prefix) — verify against the crosswalk on ingest,
+never join on name.
+
+773 tests pass; verify_live green after deploy.
+
+---
+
 ## 2026-08-16 — Three insights that carry their own receipts
 
 **What changed** (PR #23, live). Three reader-facing features from data already

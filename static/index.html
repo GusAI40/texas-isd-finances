@@ -590,6 +590,17 @@
     .tick { font-size:var(--fs-micro); }
     .ticker-tag { padding:.4rem .5rem; font-size:var(--fs-micro); }
   }
+  /* The news strip sits flush under the figures strip: the negative margin
+     collapses the two 1px borders into one shared rule. */
+  .newsticker { margin-top:-.95rem; }
+  #ticker[hidden] + .newsticker { margin-top:.1rem; }
+  .tick a { color:inherit; text-decoration:none; }
+  .tick a:hover b { text-decoration:underline; }
+  .ticker-all { flex:none; display:flex; align-items:center; padding:.45rem .8rem;
+    font-size:var(--fs-micro); font-weight:700; letter-spacing:.06em;
+    text-transform:uppercase; color:var(--accent); text-decoration:none;
+    border-left:1px solid var(--hairline); white-space:nowrap; }
+  .ticker-all:hover { text-decoration:underline; }
   @media print { .ticker { display:none !important; } }
   /* ---- One child: the whole report at human scale ---- */
   .onechild { border:1px solid var(--hairline); border-radius:var(--r-lg); padding:1.4rem 1.5rem;
@@ -909,7 +920,7 @@
   <div class="m-in">
     <a class="m-brand" href="/"><span class="m-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
       Texas ISD<span class="m-sub">Financial Resource Guide</span></a>
-    <div class="m-tabs"><a href="/" aria-current="page">The Report</a><a href="/feed">The Feed</a><a href="/forensics">Forensic File</a><a href="/geomap">Map</a><a href="/heatmap">Heatmap</a><a href="/about">About</a><a href="/sources">Sources</a><details class="m-more"><summary>More</summary><div class="m-menu"><a href="/map">Seating chart</a><a href="/intel">Daily briefing</a><a href="/transparency">How this was made</a><button type="button" id="mm-tour">60-second tutorial</button><button type="button" id="mm-disclaimer">Disclaimer</button><button type="button" id="mm-print">Print this report</button></div></details></div>
+    <div class="m-tabs"><a href="/" aria-current="page">The Report</a><a href="/feed">The Feed</a><a href="/forensics">Forensic File</a><a href="/geomap">Map</a><a href="/heatmap">Heatmap</a><a href="/about">About</a><a href="/sources">Sources</a></div><details class="m-more"><summary>More</summary><div class="m-menu"><a href="/map">Seating chart</a><a href="/intel">Daily briefing</a><a href="/transparency">How this was made</a><button type="button" id="mm-tour">60-second tutorial</button><button type="button" id="mm-disclaimer">Disclaimer</button><button type="button" id="mm-print">Print this report</button></div></details>
     <button class="mast-theme" id="mast-theme" type="button" aria-label="Toggle light and dark theme">Theme</button>
   </div>
 </nav>
@@ -942,6 +953,37 @@
         }
       });
     }
+    /* The reader's district is resolved at CLICK time, not parse time: the
+       hrefs above were decorated once, so a district picked in-page after
+       load would have navigated to the PREVIOUS district. And clicking the
+       brand or the tab for the page you are already on used to be a silent
+       reload — the browser restored the scroll position, so the click
+       looked dead. Same destination now means "back to the top". */
+    var CARRY = { '/': 1, '/geomap': 1, '/map': 1, '/forensics': 1 };
+    function currentD() {
+      try {
+        return new URLSearchParams(location.search).get('d')
+            || (JSON.parse(localStorage.getItem('tisd_district') || 'null') || {}).num || null;
+      } catch (e) { return null; }
+    }
+    document.querySelectorAll('#masthead a[href]').forEach(function (a) {
+      a.addEventListener('click', function (ev) {
+        /* modified clicks (new tab, download) keep native behaviour */
+        if (ev.metaKey || ev.ctrlKey || ev.shiftKey || ev.altKey || ev.button !== 0) return;
+        var u;
+        try { u = new URL(a.getAttribute('href'), location.href); } catch (e) { return; }
+        var d2 = currentD();
+        if (CARRY[u.pathname] && d2 && /^[0-9]{6}$/.test(d2)) u.searchParams.set('d', d2);
+        if (u.pathname === location.pathname && u.search === location.search) {
+          ev.preventDefault();
+          var re = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+          window.scrollTo({ top: 0, behavior: re ? 'auto' : 'smooth' });
+        } else if (u.href !== a.href) {
+          ev.preventDefault();
+          location.href = u.href;
+        }
+      });
+    });
   }());
 </script>
 <div class="shell">
@@ -963,6 +1005,15 @@
   <div class="ticker" id="ticker" hidden>
     <span class="ticker-tag">Live figures</span>
     <div class="ticker-view"><div class="ticker-track" id="ticker-track" tabindex="0" aria-label="Live figures from this page — tap or focus to hold the current one"></div></div>
+  </div>
+
+  <!-- The Feed's newest stories, on the front page. Same discipline as the
+       strip above — one WHOLE headline at a time, never a crawling fragment;
+       every item links to /feed, which remains the full stream. -->
+  <div class="ticker newsticker" id="newsticker" hidden>
+    <span class="ticker-tag">District news</span>
+    <div class="ticker-view"><div class="ticker-track" id="news-track" tabindex="0" aria-label="Latest district news from the Feed — tap or focus to hold the current one"></div></div>
+    <a class="ticker-all" href="/feed">The Feed</a>
   </div>
 
   <div class="warnbar" id="dbwarn">The database is not reachable right now. If this persists,
@@ -1191,6 +1242,7 @@
         <div class="econ-card" id="econ-bill"></div>
         <div class="econ-card" id="econ-alloc"></div>
         <div class="econ-card" id="econ-who"></div>
+        <div class="econ-card" id="econ-national" hidden></div>
       </div>
 
       <h3 class="econ-h">Where the money actually went, statewide</h3>
@@ -1646,7 +1698,7 @@ const titleCase = s => (s || '').toLowerCase()
 const state = { district: null, summary: [], benchmarks: [], peers: null, flags: [], breakdown: [],
                 metric: 'spend', compare: null, compareSummary: [], lens: 'parent',
                 dollar: null, dollarPin: null, dollarHover: null, outcomes: null, txDollar: null,
-                econ: null, econTexas: null, bonds: null, equity: null, takeover: null };
+                econ: null, econTexas: null, bonds: null, equity: null, takeover: null, national: null };
 
 /* ===== The dollar: every dollar the district spends, as 100 pennies =====
    Shares, peer/statewide medians and dollars-at-stake all come from
@@ -1958,20 +2010,20 @@ function tickerItems() {
   }
   return t;
 }
-let _tickerTimer = null, _tickerFade = null;
-function renderTicker() {
-  const items = tickerItems(), bar = $('ticker'), track = $('ticker-track');
-  // Both timers die first, on EVERY path — including the too-few-items bail
-  // below. A cleared interval with its 300ms fade still pending would write
-  // the previous district's figure back into the new district's strip.
-  clearInterval(_tickerTimer); clearTimeout(_tickerFade);
+/* ONE rotator for every strip — the figures ticker and the news ticker share
+   a contract, so they must share the code: whole items only, hover/focus
+   holds the current one, reduced motion means nothing self-updates (every
+   item renders at once in a strip the reader scrolls). Fixing the contract
+   in one strip and not the other is exactly how the three _usd formatters
+   drifted apart. Timers live on the bar element, so each strip owns its
+   pair and both die first on EVERY path — a cleared interval with its 300ms
+   fade still pending would write a stale item back into the fresh strip. */
+function rotateStrip(bar, track, items, minItems) {
+  if (!bar || !track) return;
+  clearInterval(bar._rotTimer); clearTimeout(bar._rotFade);
   track.classList.remove('swap');
-  if (items.length < 3) { bar.hidden = true; return; }
+  if (items.length < minItems) { bar.hidden = true; return; }
   bar.hidden = false;
-  // Reduced motion means no self-updating content, full stop — the old
-  // marquee froze completely, and rotating "gently" would still be motion
-  // the reader asked not to have. They get every item at once, in a strip
-  // they scroll themselves.
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
     track.classList.add('all');
     track.innerHTML = items.map(x => `<span class="tick">${x}</span>`).join('<span class="tick-sep">·</span>');
@@ -1981,13 +2033,27 @@ function renderTicker() {
   let i = 0;
   const show = () => { track.innerHTML = `<span class="tick">${items[i % items.length]}</span>`; i++; };
   show();
-  _tickerTimer = setInterval(() => {
+  bar._rotTimer = setInterval(() => {
     // Never swap the sentence out from under someone reading it. The strip is
-    // focusable, so on a touch screen a tap holds the current figure still.
+    // focusable, so on a touch screen a tap holds the current item still.
     if (bar.matches(':hover') || bar.matches(':focus-within')) return;
     track.classList.add('swap');
-    _tickerFade = setTimeout(() => { show(); track.classList.remove('swap'); }, 300);
+    bar._rotFade = setTimeout(() => { show(); track.classList.remove('swap'); }, 300);
   }, 8000);
+}
+function renderTicker() {
+  rotateStrip($('ticker'), $('ticker-track'), tickerItems(), 3);
+}
+
+/* ---- district news, front page: the Feed's newest stories ---- */
+function renderNewsTicker(briefing) {
+  const finds = (briefing && briefing.top_findings) || [];
+  // Headlines are external text (news sources) — escape before innerHTML.
+  const items = finds
+    .filter(f => f.headline)
+    .map(f => '<a href="/feed"><span class="who">' +
+      escText(f.district_name || 'Texas') + '</span><b>' + escText(f.headline) + '</b></a>');
+  rotateStrip($('newsticker'), $('news-track'), items, 2);
 }
 
 /* ===== What the money buys: students, teachers, results =====
@@ -2440,7 +2506,7 @@ async function loadDashboard(opts) {
     // sections that had ALREADY loaded from static files down with it —
     // outcomes, economics, bonds, equity, the takeover, the dollar. A reader
     // lost the entire district page over a paused free tier.
-    const [summary, peers, flags, breakdown, turnarounds, detail, insights, dollar, outcomes, econ, bonds, equity, takeover] = await Promise.all([
+    const [summary, peers, flags, breakdown, turnarounds, detail, insights, dollar, outcomes, econ, bonds, equity, takeover, national] = await Promise.all([
       api('/district/' + encodeURIComponent(d.num) + '/summary').catch(() => []),
       api('/district/' + encodeURIComponent(d.num) + '/peers').catch(() => null),
       api('/anomalies?district_number=' + encodeURIComponent(d.num) + '&limit=50').catch(() => []),
@@ -2454,6 +2520,7 @@ async function loadDashboard(opts) {
       api('/district/' + encodeURIComponent(d.num) + '/bonds').catch(() => null),
       api('/district/' + encodeURIComponent(d.num) + '/equity').catch(() => null),
       api('/takeover/houston').catch(() => null),
+      api('/district/' + encodeURIComponent(d.num) + '/national').catch(() => null),
     ]);
     // The name may be a placeholder when arriving from a shared ?d= link.
     let realName = summary.find(r => r.district_name)?.district_name;
@@ -2472,7 +2539,7 @@ async function loadDashboard(opts) {
     }
     state.summary = summary; state.peers = peers; state.flags = flags; state.breakdown = breakdown;
     state.turnarounds = turnarounds; state.detail = detail; state.insights = insights;
-    state.dollar = dollar; state.outcomes = outcomes; state.econ = econ; state.bonds = bonds; state.equity = equity; state.takeover = takeover;
+    state.dollar = dollar; state.outcomes = outcomes; state.econ = econ; state.bonds = bonds; state.equity = equity; state.takeover = takeover; state.national = national;
     renderAll();
     updateHeroDollar();
     updateSignature();
@@ -2781,6 +2848,14 @@ function dykSentences() {
     const e2 = state.econ && state.econ.taxes && state.econ.taxes.bill_300k;
     if (e2) out.push('A $300,000 home here pays about ' + fmtMoney(e2) + ' a year in school taxes.');
   } catch (e) {}
+  try {
+    // Census F-33, fiscal 2024 — the ranked-district percentile and the state
+    // rank both arrive derived in the payload; nothing is recomputed here.
+    const n = state.national, tx = n && n.states && n.states.texas;
+    if (n && n.pctile != null && tx) out.push('Nationally, ' + nm +
+      ' spends more per student than ' + n.pctile + '% of ranked U.S. districts — while Texas as a state ranks ' +
+      tx.rank + ordSuf(tx.rank) + ' of ' + tx.of + ' in per-student spending (Census, fiscal 2024).');
+  } catch (e) {}
   return out;
 }
 function renderDyk() {
@@ -2916,6 +2991,7 @@ const EXPLAIN = {
   'anomaly': 'These flags mark sharp changes worth asking about. A flag is a question, not an accusation — the usual cause is a construction year voters approved.',
   'ask': 'Type a question in plain English and an AI answers from the official numbers. AI can misread a question, so double-check anything important against the cards above.',
   'statewide': 'This is all of Texas on one line — so you can tell whether what you just read is unusual, or just how Texas looks right now.',
+  'national': 'This compares your district with every other school district in America, using the federal government\'s own count. "Current spending" means running schools day to day — teachers, buses, lights — and leaves out construction and loan payments, so it is smaller than the all-in figure on this page. The federal file arrives a year later than the Texas one, so this compares fiscal 2024, and the two are never mixed in one number.',
 };
 document.addEventListener('click', e => {
   const old = document.querySelector('.explain-pop');
@@ -3852,6 +3928,44 @@ function renderTakeover() {
   armCounters(sec);
 }
 
+/* External or artifact text must be escaped before innerHTML — one helper,
+   used by every call site, so the escape cannot drift per copy. */
+function escText(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');
+}
+
+function renderNational() {
+  const n = state.national, card = $('econ-national');
+  if (!card) return;
+  if (!n || (n.ppcs == null && !n.absence)) { card.hidden = true; return; }
+  const tx = n.states && n.states.texas;
+  // Round-once: rank, percentile, pool and medians all arrive already derived
+  // in the payload; this function formats and never recomputes.
+  const txLine = tx
+    ? ' Texas as a whole ranks <b>' + tx.rank + ordSuf(tx.rank) + ' of ' + tx.of +
+      '</b> among the 50 states and D.C., at ' + money(tx.ppe) + ' per student in attendance.'
+    : '';
+  const head = '<h4>Against the whole country ' + xb('national') + '</h4>';
+  if (n.absence) {
+    card.innerHTML = head + '<div class="econ-sub">' + escText(n.absence.sentence) + txLine + '</div>';
+    card.hidden = false; return;
+  }
+  const pool = n.national && n.national.districts_in_pool;
+  const med = n.national && n.national.median_ppcs;
+  card.innerHTML = head +
+    '<div class="econ-big">' + money(n.ppcs) +
+    '<span style="font-size:var(--fs-md);font-weight:400;color:var(--muted)"> / student</span></div>' +
+    '<div class="econ-sub">' +
+    (n.pctile != null && pool
+      ? 'More per student than <b>' + n.pctile + '%</b> of the ' + pool.toLocaleString() +
+        ' U.S. districts with 500+ students' +
+        (med ? ' &mdash; the middle one spends ' + money(med) : '') + '.'
+      : 'Shown but not ranked &mdash; under 500 students, the same rule used across this site.') +
+    txLine +
+    ' Census current spending, fiscal 2024: construction and debt excluded, so it runs below the all-in figure elsewhere on this page.</div>';
+  card.hidden = false;
+}
+
 function renderEconomics() {
   const e = state.econ, sec = $('econ-section');
   if (!e) { sec.classList.add('hidden'); return; }
@@ -3995,6 +4109,14 @@ function renderEconomics() {
     $('econ-who').innerHTML = '<h4>Where the money comes from</h4>' +
       '<div class="econ-sub">Revenue detail is not reported for this district.</div>';
   }
+
+  /* ---- against the whole country ---- */
+  // Census F-33, fiscal 2024 — a different year and a different ruler than
+  // every other card here (current spending: no construction, no debt), so
+  // this card quotes only the Census's own figures and never mixes them with
+  // the TEA numbers beside it. Every displayed number is taken or derived
+  // from the payload once; the sentence recomputes nothing.
+  renderNational();
 
   /* ---- macro: the statewide series ---- */
   const M = state.econTexas;
@@ -4867,9 +4989,15 @@ async function loadStatewide() {
       fallback = await loadFallback();
       s = fallback.stats; bm = fallback.benchmarks; degradedFrom = fallback.captured;
     }
-    let [tx, txEcon] = await Promise.all([
+    let [tx, txEcon, news] = await Promise.all([
       api('/dollar/texas').catch(() => null),
-      api('/economics/texas').catch(() => null)]);
+      api('/economics/texas').catch(() => null),
+      // The committed briefing snapshot, not /briefing: the strip must not
+      // add a database round trip to every front-page visit for content
+      // that changes once a day — and this way it still renders when the
+      // database is paused. /feed keeps serving the live version.
+      fetch('/static/isd_briefing.json').then(r => r.ok ? r.json() : null).catch(() => null)]);
+    renderNewsTicker(news);
     // The statewide dollar is the headline of the page. Left null it renders
     // "$—", which reads as broken rather than as a snapshot.
     if (!tx && fallback) tx = fallback.dollar_texas || null;

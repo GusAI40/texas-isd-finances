@@ -71,6 +71,39 @@ def test_the_minutes_claim_names_what_the_total_excludes():
     assert "construction excluded" in INDEX
 
 
+# ------------------------------------------------------------ the news ticker
+
+def test_the_news_ticker_rotates_whole_headlines_and_links_the_feed():
+    """The front-page news strip follows the figures strip's settled rule: one
+    WHOLE headline at a time, never a crawling marquee fragment, and the full
+    stream stays one click away on /feed."""
+    assert 'id="newsticker"' in INDEX
+    assert 'id="news-track"' in INDEX
+    assert '<a class="ticker-all" href="/feed">' in INDEX
+
+
+def test_news_headlines_are_escaped_before_they_touch_innerhtml():
+    """Headlines are external text from news sources. Unescaped, a headline
+    containing markup would execute in every reader's browser."""
+    assert "replace(/&/g, '&amp;').replace(/</g, '&lt;')" in INDEX
+
+
+def test_both_strips_share_one_rotator_and_it_honours_reduced_motion():
+    """The figures strip and the news strip share a contract, so they must
+    share the code — fixing the reduced-motion rule in one and not the other
+    is how the three _usd formatters drifted apart. One rotator, two
+    callers, and the reduced-motion branch lives only in it."""
+    start = INDEX.find("function rotateStrip")
+    assert start != -1, "the shared rotator is gone"
+    body = INDEX[start:start + 1800]
+    assert "prefers-reduced-motion" in body
+    assert "classList.add('all')" in body
+    assert INDEX.count("rotateStrip(") >= 3      # definition + both callers
+    assert INDEX.count("bar.matches(':hover')") == 1, (
+        "a second strip rotator exists outside rotateStrip — the "
+        "duplication is back")
+
+
 # ---------------------------------------------------------------- the borders
 
 def test_the_borders_exclusion_rule_matches_its_own_prose():

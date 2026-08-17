@@ -142,6 +142,18 @@ CHECKS: list[tuple[str, str, str, str, str]] = [
     ("lineage value (Dallas ISD)", "/district/057905/lineage/total_per_student",
      "value", "economics_data.json",
      "districts.057905.revenue.lineage.figures.total_per_student.value"),
+    # --- the national layer: Texas against the other 49 ----------------------
+    ("Texas state rank in per-pupil spending", "/national/texas",
+     "states.texas.rank", "national_data.json", "states.texas.rank"),
+    ("states ranked", "/national/texas",
+     "states.texas.of", "national_data.json", "states.texas.of"),
+    ("districts in the national pool", "/national/texas",
+     "national.districts_in_pool", "national_data.json",
+     "national.districts_in_pool"),
+    ("national per-pupil figure (Dallas ISD)", "/district/057905/national",
+     "ppcs", "national_data.json", "districts.057905.ppcs"),
+    ("national percentile (Dallas ISD)", "/district/057905/national",
+     "pctile", "national_data.json", "districts.057905.pctile"),
 ]
 
 # Claims that are not numbers. A wrong publisher is exactly as damaging as a

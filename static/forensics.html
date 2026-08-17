@@ -262,7 +262,7 @@
   <div class="m-in">
     <a class="m-brand" href="/"><span class="m-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
       Texas ISD<span class="m-sub">Financial Resource Guide</span></a>
-    <div class="m-tabs"><a href="/">The Report</a><a href="/feed">The Feed</a><a href="/forensics" aria-current="page">Forensic File</a><a href="/geomap">Map</a><a href="/heatmap">Heatmap</a><a href="/about">About</a><a href="/sources">Sources</a><details class="m-more"><summary>More</summary><div class="m-menu"><a href="/map">Seating chart</a><a href="/intel">Daily briefing</a><a href="/transparency">How this was made</a></div></details></div>
+    <div class="m-tabs"><a href="/">The Report</a><a href="/feed">The Feed</a><a href="/forensics" aria-current="page">Forensic File</a><a href="/geomap">Map</a><a href="/heatmap">Heatmap</a><a href="/about">About</a><a href="/sources">Sources</a></div><details class="m-more"><summary>More</summary><div class="m-menu"><a href="/map">Seating chart</a><a href="/intel">Daily briefing</a><a href="/transparency">How this was made</a></div></details>
     <button class="mast-theme" id="mast-theme" type="button" aria-label="Toggle light and dark theme">Theme</button>
   </div>
 </nav>
@@ -295,6 +295,37 @@
         }
       });
     }
+    /* The reader's district is resolved at CLICK time, not parse time: the
+       hrefs above were decorated once, so a district picked in-page after
+       load would have navigated to the PREVIOUS district. And clicking the
+       brand or the tab for the page you are already on used to be a silent
+       reload — the browser restored the scroll position, so the click
+       looked dead. Same destination now means "back to the top". */
+    var CARRY = { '/': 1, '/geomap': 1, '/map': 1, '/forensics': 1 };
+    function currentD() {
+      try {
+        return new URLSearchParams(location.search).get('d')
+            || (JSON.parse(localStorage.getItem('tisd_district') || 'null') || {}).num || null;
+      } catch (e) { return null; }
+    }
+    document.querySelectorAll('#masthead a[href]').forEach(function (a) {
+      a.addEventListener('click', function (ev) {
+        /* modified clicks (new tab, download) keep native behaviour */
+        if (ev.metaKey || ev.ctrlKey || ev.shiftKey || ev.altKey || ev.button !== 0) return;
+        var u;
+        try { u = new URL(a.getAttribute('href'), location.href); } catch (e) { return; }
+        var d2 = currentD();
+        if (CARRY[u.pathname] && d2 && /^[0-9]{6}$/.test(d2)) u.searchParams.set('d', d2);
+        if (u.pathname === location.pathname && u.search === location.search) {
+          ev.preventDefault();
+          var re = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+          window.scrollTo({ top: 0, behavior: re ? 'auto' : 'smooth' });
+        } else if (u.href !== a.href) {
+          ev.preventDefault();
+          location.href = u.href;
+        }
+      });
+    });
   }());
 </script>
 <div class="shell">
