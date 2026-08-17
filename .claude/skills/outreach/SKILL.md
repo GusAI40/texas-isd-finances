@@ -139,7 +139,6 @@ python scripts/send_outreach.py --send --confirm GO --limit <N> --campaign wave<
 - Campaign-level click-through is also counted first-party as `src:email` in
   `site_visits` — no Resend needed.
 
-<<<<<<< HEAD
 **The biggest one: telling a superintendent from a mail-security appliance.**
 Districts run Defender / Barracuda / Mimecast, which open every message and
 follow every link within seconds. In the raw counters they are
@@ -174,30 +173,6 @@ the number is unusable, not merely uncertain.
 
 **Dwell time is capped by the instrument**: `track.js` flushes every 60s, so
 "1m 00s" means "at least a minute, still open", not a measured duration.
-=======
-**The biggest one: raw opens and clicks are mostly machines.** School districts
-run mail-security appliances (Microsoft Defender, Barracuda, Mimecast) that
-open every message and follow every link within seconds of delivery, to check
-them. In the raw counters they are indistinguishable from eager readers. On
-wave 2 (2026-08-17) this was **6 of 14 "clicks" and roughly three quarters of
-the "opens"**. `journey_report.py` now prints raw AND verified counts; quote
-the **verified click** figure and nothing else as engagement. The two
-signatures, both confirmed against real data:
-
-- **Time.** No human opens mail one second after it is sent. Anything within
-  120s of that recipient's OWN send is a machine. (Hardin ISD "clicked" at
-  +1s; 21 opens fired inside 30s.)
-- **Dead clients.** Windows XP, IE 8, and AppEngine fetchers in 2026 are
-  appliances in costume — 32 recipients produced events from these.
-- **Bonus tell:** one recipient generating clicks from *five different
-  browsers at once* is an appliance fanning out, not a diligent reader.
-
-Opens are unreliable in BOTH directions — scanners inflate them, image
-blocking deflates them — so a range is the honest form, never a point
-estimate. Also note **dwell time is capped by the instrument**: `track.js`
-flushes every 60s, so "1m 00s" means "at least a minute, still open", not a
-measured duration.
->>>>>>> origin/master
 
 Interpretation rules that have already prevented false findings once:
 - **Wave 1 (the 571 sent 2026-08-11/12/13) is untracked forever** — its links
