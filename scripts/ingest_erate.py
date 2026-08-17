@@ -164,12 +164,17 @@ def build_match() -> dict:
 
     ents = list(csv.DictReader(ENT_CSV.open()))
     by_num = {e["entity_number"]: e for e in ents}
-    kids = defaultdict(set)
+    # Per parent: every coded child's 6-digit prefix (a Texas campus code IS
+    # district+campus), and how many coded children there are — counted here,
+    # once, rather than re-scanning the entity list per BEN.
+    kids: dict[str, set] = defaultdict(set)
+    kid_count: dict[str, int] = defaultdict(int)
     for e in ents:
         if e["entity_type"] == "School" and e["parent_entity_number"]:
             code = (e["state_school_code"] or "").strip()
             if re.fullmatch(r"\d{9}", code):
                 kids[e["parent_entity_number"]].add(code[:6])
+                kid_count[e["parent_entity_number"]] += 1
 
     # The BENs that actually carry money as district applicants.
     bens = sorted({r["ben"] for r in csv.DictReader(FRN_CSV.open())
@@ -185,20 +190,18 @@ def build_match() -> dict:
         if re.fullmatch(r"\d{6}", lea) and lea in xw_numbers:
             roads["lea_code"] = lea
 
-        prefixes = {p for p in kids.get(ben, set()) if p in xw_numbers}
-        if len(prefixes) == 1:
-            roads["children"] = next(iter(prefixes))
+        # Unanimity is judged on ALL coded children, BEFORE the crosswalk
+        # filter — a child whose prefix is not a real district is still a
+        # disagreement, not a vote to ignore (filtering first let a lone
+        # typo pass as "unanimous").
+        all_prefixes = kids.get(ben, set())
+        if len(all_prefixes) == 1 and next(iter(all_prefixes)) in xw_numbers:
+            roads["children"] = next(iter(all_prefixes))
             # A single coded child is thin evidence — one EPC typo attributed
             # Orenda's money to Inspire Academies through one school row.
             # Alone, the children road needs at least two coded schools
             # agreeing; with another road agreeing, one is corroboration.
-            single_child = sum(
-                1 for k in ents
-                if k["entity_type"] == "School"
-                and k["parent_entity_number"] == ben
-                and re.fullmatch(r"\d{9}", (k["state_school_code"] or "").strip())
-            ) < 2
-            if single_child:
+            if kid_count.get(ben, 0) < 2:
                 roads["children_weak"] = roads.pop("children")
 
         # The resolver's prefix road exists for RENAMES ("KIPP Austin Public
@@ -206,8 +209,16 @@ def build_match() -> dict:
         # Gateway Academy" (a charter) to Houston ISD — so a prefix match is
         # accepted only when the charter flags agree: a charter organisation
         # can never be a traditional ISD, and vice versa.
+        # USAC writes "Wilbarger County"; the crosswalk writes "WILBARGER".
+        # county_key() squashes both to letters, so the literal word COUNTY
+        # has to go or the two never compare equal — which is how the
+        # Wilbarger Northside ISD (a documented twin name) sat unmatched
+        # with a false absence published against it.
+        county = re.sub(r"\s+county$", "", e.get("physical_county", "") or "",
+                        flags=re.IGNORECASE)
+
         def name_road(nm: str) -> str | None:
-            num, how = resolver.resolve(nm, e.get("physical_county", ""))
+            num, how = resolver.resolve(nm, county)
             if not num:
                 return None
             if how in ("name+county", "name"):
@@ -271,8 +282,12 @@ def main(argv: list[str] | None = None) -> int:
     args = ap.parse_args(argv)
     if not args.no_fetch:
         print("fetching FRN rows (state=TX) ...")
+        # The dataset carries one row PER FORM VERSION of an FRN (a Funded
+        # row often alongside its superseded Pending version), so the FRN
+        # alone is not unique and paging on it risks a page boundary landing
+        # inside a tie. (frn, status) is verified unique in the data.
         fetch(FRN_DS, FRN_COLS, "state='TX'", FRN_CSV,
-              "funding_request_number")
+              "funding_request_number, form_471_frn_status_name")
         print("fetching entity rows (physical_state=TX) ...")
         fetch(ENT_DS, ENT_COLS, "physical_state='TX'", ENT_CSV,
               "entity_number")

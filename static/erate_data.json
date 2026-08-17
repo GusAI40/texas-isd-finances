@@ -3332,27 +3332,57 @@
    ]
   },
   "015909": {
-   "committed": 792711,
-   "disbursed": 759154,
+   "committed": 1899432,
+   "disbursed": 1168930,
    "top_service": "Internal Connections",
    "years": [
     {
-     "committed": 112919,
-     "disbursed": 102187,
+     "committed": 197457,
+     "disbursed": 178181,
      "year": 2017
     },
     {
-     "committed": 105516,
-     "disbursed": 89046,
+     "committed": 161718,
+     "disbursed": 118218,
      "year": 2018
     },
     {
-     "committed": 480160,
-     "disbursed": 480160,
+     "committed": 64370,
+     "disbursed": 40111,
+     "year": 2019
+    },
+    {
+     "committed": 48697,
+     "disbursed": 48697,
+     "year": 2020
+    },
+    {
+     "committed": 533657,
+     "disbursed": 517904,
      "year": 2021
     },
     {
-     "committed": 94116,
+     "committed": 48697,
+     "disbursed": 32744,
+     "year": 2022
+    },
+    {
+     "committed": 88693,
+     "disbursed": 88693,
+     "year": 2023
+    },
+    {
+     "committed": 56621,
+     "disbursed": 56621,
+     "year": 2024
+    },
+    {
+     "committed": 460989,
+     "disbursed": 0,
+     "year": 2025
+    },
+    {
+     "committed": 238533,
      "disbursed": 87761,
      "year": 2026
     }
@@ -11820,6 +11850,53 @@
     }
    ]
   },
+  "057844": {
+   "committed": 533121,
+   "disbursed": 476863,
+   "top_service": "Data Transmission and/or Internet Access",
+   "years": [
+    {
+     "committed": 128412,
+     "disbursed": 122929,
+     "year": 2017
+    },
+    {
+     "committed": 86864,
+     "disbursed": 76957,
+     "year": 2018
+    },
+    {
+     "committed": 48868,
+     "disbursed": 42125,
+     "year": 2019
+    },
+    {
+     "committed": 39643,
+     "disbursed": 37576,
+     "year": 2022
+    },
+    {
+     "committed": 39643,
+     "disbursed": 36138,
+     "year": 2023
+    },
+    {
+     "committed": 125431,
+     "disbursed": 120163,
+     "year": 2024
+    },
+    {
+     "committed": 42660,
+     "disbursed": 39175,
+     "year": 2025
+    },
+    {
+     "committed": 21600,
+     "disbursed": 1800,
+     "year": 2026
+    }
+   ]
+  },
   "057845": {
    "committed": 84869,
    "disbursed": 0,
@@ -13098,6 +13175,23 @@
     },
     {
      "committed": 74705,
+     "disbursed": 0,
+     "year": 2026
+    }
+   ]
+  },
+  "061804": {
+   "committed": 160910,
+   "disbursed": 851,
+   "top_service": "Internal Connections",
+   "years": [
+    {
+     "committed": 143087,
+     "disbursed": 851,
+     "year": 2025
+    },
+    {
+     "committed": 17823,
      "disbursed": 0,
      "year": 2026
     }
@@ -47909,6 +48003,48 @@
     }
    ]
   },
+  "227817": {
+   "committed": 392416,
+   "disbursed": 300906,
+   "top_service": "Data Transmission and/or Internet Access",
+   "years": [
+    {
+     "committed": 60607,
+     "disbursed": 51803,
+     "year": 2020
+    },
+    {
+     "committed": 50340,
+     "disbursed": 44211,
+     "year": 2021
+    },
+    {
+     "committed": 52876,
+     "disbursed": 51148,
+     "year": 2022
+    },
+    {
+     "committed": 52978,
+     "disbursed": 51244,
+     "year": 2023
+    },
+    {
+     "committed": 67459,
+     "disbursed": 51250,
+     "year": 2024
+    },
+    {
+     "committed": 77736,
+     "disbursed": 51250,
+     "year": 2025
+    },
+    {
+     "committed": 30420,
+     "disbursed": 0,
+     "year": 2026
+    }
+   ]
+  },
   "227820": {
    "committed": 9577351,
    "disbursed": 7120678,
@@ -48076,6 +48212,28 @@
     {
      "committed": 169976,
      "disbursed": 114214,
+     "year": 2026
+    }
+   ]
+  },
+  "227826": {
+   "committed": 65712,
+   "disbursed": 60989,
+   "top_service": "Internal Connections",
+   "years": [
+    {
+     "committed": 43690,
+     "disbursed": 43690,
+     "year": 2017
+    },
+    {
+     "committed": 17522,
+     "disbursed": 17299,
+     "year": 2025
+    },
+    {
+     "committed": 4500,
+     "disbursed": 0,
      "year": 2026
     }
    ]
@@ -51829,6 +51987,43 @@
     }
    ]
   },
+  "244905": {
+   "committed": 183068,
+   "disbursed": 70741,
+   "top_service": "Data Transmission and/or Internet Access",
+   "years": [
+    {
+     "committed": 15734,
+     "disbursed": 0,
+     "year": 2017
+    },
+    {
+     "committed": 14809,
+     "disbursed": 6510,
+     "year": 2019
+    },
+    {
+     "committed": 48041,
+     "disbursed": 9576,
+     "year": 2020
+    },
+    {
+     "committed": 32885,
+     "disbursed": 32763,
+     "year": 2021
+    },
+    {
+     "committed": 31651,
+     "disbursed": 20286,
+     "year": 2022
+    },
+    {
+     "committed": 39948,
+     "disbursed": 1606,
+     "year": 2026
+    }
+   ]
+  },
   "245901": {
    "committed": 159452,
    "disbursed": 74380,
@@ -53867,7 +54062,7 @@
  "meta": {
   "as_of": "2026-08-17",
   "first_year": 2017,
-  "funded_only": "Sums cover FRNs with status 'Funded' ONLY. A Pending or Cancelled row's funding_commitment_request is the amount the applicant ASKED for, not a commitment \u2014 summing every status inflates a funding year by hundreds of millions of dollars of requests that were never granted.",
+  "funded_only": "Sums cover FRNs with status 'Funded' ONLY. The dataset carries one row per FORM VERSION, so most funded requests also have a superseded Pending row whose funding_commitment_request is the amount ASKED, not granted \u2014 summing every status double-counts those and adds never-granted requests, inflating a funding year by hundreds of millions. No FRN carries two Funded rows (verified at ingest).",
   "last_year": 2026,
   "limits": [
    "E-Rate discounts are mostly paid by USAC straight to vendors, so this money buys a district connectivity without appearing as district spending in TEA's books \u2014 it is not comparable to, and never mixed with, the PEIMS figures elsewhere on this site.",
@@ -53879,9 +54074,9 @@
   "match": {
    "conflicts_refused": 1,
    "district_bens": 1118,
-   "dollars_attributed_pct": 97.3,
-   "matched": 1072,
-   "unmatched": 45
+   "dollars_attributed_pct": 97.4,
+   "matched": 1078,
+   "unmatched": 39
   }
  },
  "texas": {
@@ -53891,12 +54086,12 @@
     "committed": 298989513
    },
    "district_bens_unresolved": {
-    "bens": 43,
-    "committed": 54191096
+    "bens": 37,
+    "committed": 51749146
    },
    "districts_attributed": {
-    "bens": 1070,
-    "committed": 1919591786
+    "bens": 1076,
+    "committed": 1922033736
    },
    "schools_and_libraries": {
     "bens": 572,
@@ -53905,23 +54100,23 @@
   },
   "service_types": [
    {
-    "committed": 1003913352,
+    "committed": 1004837855,
     "type": "Internal Connections"
    },
    {
-    "committed": 892886784,
+    "committed": 894251199,
     "type": "Data Transmission and/or Internet Access"
    },
    {
-    "committed": 12271924,
+    "committed": 12284068,
     "type": "Voice"
    },
    {
-    "committed": 7006796,
+    "committed": 7052182,
     "type": "Basic Maintenance of Internal Connections"
    },
    {
-    "committed": 3512931,
+    "committed": 3608432,
     "type": "Managed Internal Broadband Services"
    }
   ],

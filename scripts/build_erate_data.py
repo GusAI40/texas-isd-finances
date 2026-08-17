@@ -181,11 +181,14 @@ def main(argv: list[str] | None = None) -> int:
             "last_year": max(tx_years),
             "as_of": today,
             "funded_only": (
-                "Sums cover FRNs with status 'Funded' ONLY. A Pending or "
-                "Cancelled row's funding_commitment_request is the amount "
-                "the applicant ASKED for, not a commitment — summing every "
-                "status inflates a funding year by hundreds of millions of "
-                "dollars of requests that were never granted."),
+                "Sums cover FRNs with status 'Funded' ONLY. The dataset "
+                "carries one row per FORM VERSION, so most funded requests "
+                "also have a superseded Pending row whose "
+                "funding_commitment_request is the amount ASKED, not "
+                "granted — summing every status double-counts those and "
+                "adds never-granted requests, inflating a funding year by "
+                "hundreds of millions. No FRN carries two Funded rows "
+                "(verified at ingest)."),
             "match": {
                 "district_bens": len(match_rows),
                 "matched": matched,

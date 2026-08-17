@@ -117,10 +117,15 @@ def test_no_charter_network_money_lands_on_a_single_district():
                 "Responsive Education Solution")
     rows = {r["entity_name"]: r for r in csv.DictReader(MATCH_CSV.open())}
     for name in networks:
-        if name in rows:
-            assert not rows[name]["district_number"], (
-                f"{name} spans several TEA districts and must not be "
-                f"attributed to one")
+        # Presence is asserted, not assumed: EPC names are self-edited, and
+        # a renamed network silently skipping this check would leave the
+        # exact wrong-district failure it exists to block untested.
+        assert name in rows, (
+            f"{name} is no longer in the match table under that name — "
+            f"USAC renamed it; update this list so the guard keeps guarding")
+        assert not rows[name]["district_number"], (
+            f"{name} spans several TEA districts and must not be "
+            f"attributed to one")
 
 
 # ---------------------------------------------------------------- the frame

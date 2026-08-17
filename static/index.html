@@ -4009,8 +4009,23 @@ function renderErate() {
 
 function renderEconomics() {
   const e = state.econ, sec = $('econ-section');
-  if (!e) { sec.classList.add('hidden'); return; }
+  if (!e) {
+    /* No economics payload (a few districts sit outside that dataset) —
+       but the national and E-Rate cards are their own data and hiding the
+       whole section buried them. Show the section with only those cards. */
+    const hasOther = (state.national && state.national.ppcs != null)
+                  || (state.erate && (state.erate.committed != null || state.erate.absence));
+    if (!hasOther) { sec.classList.add('hidden'); return; }
+    sec.classList.remove('hidden');
+    $('econ-title').textContent = 'How ' + state.district.name + ' compares beyond Texas.';
+    $('econ-support').textContent = '';
+    ['econ-bill', 'econ-alloc', 'econ-who'].forEach(id => { const el = $(id); el.innerHTML = ''; el.hidden = true; });
+    renderNational();
+    renderErate();
+    return;
+  }
   sec.classList.remove('hidden');
+  ['econ-bill', 'econ-alloc', 'econ-who'].forEach(id => { $(id).hidden = false; });
   const nm = e.district_name || state.district.name;
   $('econ-title').textContent = 'What ' + nm + ' costs you, and what it buys.';
 

@@ -225,18 +225,20 @@ def no_national_row(name: str, is_charter: bool) -> dict:
         f"That is missing information, not a verdict.")
 
 
-def no_erate_application(name: str, first_year: int = 2017) -> dict:
-    """A district with no E-Rate record of its own is usually still
+def no_erate_application(name: str, first_year: int) -> dict:
+    """A district with no FUNDED E-Rate record of its own is usually still
     connected — many buy service through a regional consortium, whose
-    application cannot be split back to members. So this is 'no record as
-    its own applicant', never 'no federal help'."""
+    application cannot be split back to members, and some applied without
+    being funded. So this claims only what the artifact holds ('no funded
+    request'), never 'never applied' and never 'no federal help'."""
     return absence(
         "erate", DID_NOT_HAPPEN,
-        f"{name} has no E-Rate funding request on record as its own "
-        f"applicant since {first_year}. That is not the same as receiving "
-        f"no federal connectivity help: many districts buy service through "
-        f"a regional consortium, and a consortium's E-Rate money cannot be "
-        f"split back to its member districts from the public record.",
+        f"{name} has no funded E-Rate request on record as its own "
+        f"applicant since {first_year} — it may have applied without being "
+        f"funded, and it is not the same as receiving no federal "
+        f"connectivity help: many districts buy service through a regional "
+        f"consortium, and a consortium's E-Rate money cannot be split back "
+        f"to its member districts from the public record.",
         since=first_year)
 
 
