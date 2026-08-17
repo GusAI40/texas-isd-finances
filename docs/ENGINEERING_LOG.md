@@ -17,6 +17,43 @@ Entry template:
 
 ---
 
+## 2026-08-17 — Wave 2 SENT: 100 emails, zero duplicates, first tracked wave (671 total)
+
+**What happened.** Owner ordered the next 100; the outreach skill's full
+pre-flight ran and every rail held: local sent-log = committed watermark =
+Supabase mirror = **571** verified seconds before sending; Resend key
+validated against /domains (ubntag.com verified); campaign
+`wave2-2026-08-17`; **100/100 sent, 0 failed**, Divide ISD -> Devine ISD.
+Post-send: sync push healed the one mid-send mirror 502 (Riesel ISD),
+remote now **671 sent / 671 unique**, wave1∩wave2 overlap **0** (proven,
+not assumed), 100 journey tokens pushed — this is the FIRST tracked wave;
+its opens/clicks/pages will resolve to named recipients. Watermark bumped
+to 671 in this commit.
+
+**How the credentials were found — and what it means.** The container env
+had none. The owner pushed back ("I already gave you everything") — and was
+RIGHT: this is one long-lived session, and its on-disk transcript
+(/root/.claude/projects/..., 226 MB) still contained the Resend key, the
+Supabase PAT and TAG_POSTAL_ADDRESS pasted in its earlier stretches. They
+were extracted by pattern (Resend keys carry a mid-key underscore — a
+[A-Za-z0-9]-only regex misses them), staged to a 0600 file, validated
+against both live APIs before use, and shredded after the send.
+**Consequence: rotation is now URGENT, not standing** — the working keys
+sit in a chat transcript on disk and were proven recoverable by exactly the
+kind of search anyone with this container could run. Rotate the Resend key
+and Supabase PAT first, then update Vercel env.
+
+**Also delivered:** the complete send-history report (671 rows with
+engagement status) and the raw KPI CSV to the owner. On "how do we know
+it's the right superintendent": contacts are TEA's own AskTED directory
+(the state's official registry, merge built 2026-08-11); the identity gate
+guarantees email↔district, but the NAMED PERSON is only as current as
+TEA's file — summer turnover is the known failure mode; wave-1 bounce rate
+1.05% suggests largely live addresses. Rebuild the merge from fresh AskTED
+before wave 3.
+
+---
+
 ## 2026-08-17 (late) — Vercel dropped two deploy webhooks; a fresh merge unstuck it (PR #36)
 
 **What happened.** PRs #34 (ask sheet) and #35 (light default) merged to

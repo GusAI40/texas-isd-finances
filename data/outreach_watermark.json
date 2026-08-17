@@ -18,8 +18,8 @@
     "Bump sent_total in the same commit as any wave that grows it.",
     "sent_total counts SENDS; unique_emails counts distinct ADDRESSES. The guard compares against unique_emails because that is what the skip-list holds \u2014 comparing a send count to a set of addresses would trip forever the first time two districts shared one address."
   ],
-  "sent_total": 571,
-  "as_of": "2026-08-13",
+  "sent_total": 671,
+  "as_of": "2026-08-17",
   "waves": [
     {
       "date": "2026-08-11",
@@ -35,8 +35,14 @@
       "date": "2026-08-13",
       "sent": 350,
       "tracked": false
+    },
+    {
+      "date": "2026-08-17",
+      "sent": 100,
+      "tracked": true,
+      "campaign": "wave2-2026-08-17"
     }
   ],
-  "note": "571 unique districts, 43.6% of Texas, zero duplicates. Wave 1 predates journey tracking and cannot be retrofitted.",
-  "unique_emails": 571
+  "note": "671 unique districts, 51.2% of Texas, zero duplicates (wave1-wave2 overlap verified 0). Waves before 2026-08-17 predate journey tracking and cannot be retrofitted; wave2-2026-08-17 is tracked.",
+  "unique_emails": 671
 }
