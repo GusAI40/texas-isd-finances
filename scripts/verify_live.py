@@ -154,6 +154,11 @@ CHECKS: list[tuple[str, str, str, str, str]] = [
      "ppcs", "national_data.json", "districts.057905.ppcs"),
     ("national percentile (Dallas ISD)", "/district/057905/national",
      "pctile", "national_data.json", "districts.057905.pctile"),
+    # --- E-Rate: the federal money TEA's books never see ---------------------
+    ("E-Rate districts attributed", "/erate/texas",
+     "meta.match.matched", "erate_data.json", "meta.match.matched"),
+    ("E-Rate committed (Dallas ISD)", "/district/057905/erate",
+     "committed", "erate_data.json", "districts.057905.committed"),
 ]
 
 # Claims that are not numbers. A wrong publisher is exactly as damaging as a

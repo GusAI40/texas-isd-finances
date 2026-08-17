@@ -194,7 +194,7 @@ _CACHEABLE_PATHS = frozenset({
     "/district-geo",
     "/bonds/texas", "/debt/texas", "/campuses/texas", "/trends/texas",
     "/forensics/texas", "/economics/texas", "/equity/texas",
-    "/national/texas", "/takeover/houston",
+    "/national/texas", "/erate/texas", "/takeover/houston",
 })
 
 
@@ -1923,6 +1923,74 @@ async def get_district_national(district_number: str):
     why = data.get("absent", {}).get(district_number)
     return {**base,
             "absence": absences.no_national_row(name, is_charter=why == "charter")}
+
+
+_erate_cache: Optional[Dict[str, Any]] = None
+
+
+def _erate() -> Optional[Dict[str, Any]]:
+    global _erate_cache
+    if _erate_cache is None:
+        path = STATIC_DIR / "erate_data.json"
+        if not path.exists():
+            return None
+        with path.open() as fh:
+            _erate_cache = json.load(fh)
+    return _erate_cache
+
+
+@app.get("/erate/texas", tags=["Statewide"])
+async def get_texas_erate():
+    """Federal E-Rate money for school connectivity — the dollars TEA's
+    books never see.
+
+    E-Rate discounts district internet and telecom, and USAC pays most of
+    it straight to vendors, so it appears nowhere in PEIMS. Roughly a
+    quarter of a billion dollars a year flows to Texas this way; the
+    payload carries the year-by-year committed and disbursed series, the
+    applicant-type buckets (district money attributed to TEA numbers;
+    consortium money counted but deliberately never attributed to member
+    districts), and the service-type split.
+
+    Sums cover FRNs with status **Funded** only — a Pending row's
+    "commitment" is the amount asked, not granted, and summing every
+    status inflates a year by hundreds of millions. Years still inside
+    their invoicing window are flagged `invoicing_open`; their drawn
+    percentage is a floor, not a finding. Serves with no database.
+    """
+    data = _erate()
+    if data is None:
+        raise HTTPException(
+            status_code=503,
+            detail="E-Rate data not built. Run scripts/ingest_erate.py then "
+                   "scripts/build_erate_data.py")
+    return {k: v for k, v in data.items() if k != "districts"}
+
+
+@app.get("/district/{district_number}/erate", tags=["Districts"])
+async def get_district_erate(district_number: str):
+    """One district's E-Rate history as its own applicant.
+
+    Committed and disbursed by funding year, the dominant service type,
+    and the running totals. Districts with no record get an explained
+    absence — many buy connectivity through a regional consortium, whose
+    application cannot be split back to members, so 'no record' is never
+    presented as 'no federal help'.
+    """
+    data = _erate()
+    if data is None:
+        raise HTTPException(
+            status_code=503,
+            detail="E-Rate data not built. Run scripts/ingest_erate.py then "
+                   "scripts/build_erate_data.py")
+    name = _district_name(district_number)
+    base = {"district_number": district_number, "district_name": name,
+            "meta": data["meta"]}
+    rec = data["districts"].get(district_number)
+    if rec is None:
+        return {**base, "absence": absences.no_erate_application(
+            name, data["meta"]["first_year"])}
+    return {**base, **rec}
 
 
 _equity_cache: Optional[Dict[str, Any]] = None

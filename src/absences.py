@@ -225,6 +225,21 @@ def no_national_row(name: str, is_charter: bool) -> dict:
         f"That is missing information, not a verdict.")
 
 
+def no_erate_application(name: str, first_year: int = 2017) -> dict:
+    """A district with no E-Rate record of its own is usually still
+    connected — many buy service through a regional consortium, whose
+    application cannot be split back to members. So this is 'no record as
+    its own applicant', never 'no federal help'."""
+    return absence(
+        "erate", DID_NOT_HAPPEN,
+        f"{name} has no E-Rate funding request on record as its own "
+        f"applicant since {first_year}. That is not the same as receiving "
+        f"no federal connectivity help: many districts buy service through "
+        f"a regional consortium, and a consortium's E-Rate money cannot be "
+        f"split back to its member districts from the public record.",
+        since=first_year)
+
+
 def no_equity_record(name: str) -> dict:
     """115 districts, 33,362 students."""
     return absence(

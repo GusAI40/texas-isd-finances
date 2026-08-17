@@ -48,6 +48,7 @@ CHAIN = [
     ("forensic_data.json", "build_forensic_data.py", []),
     ("trend_data.json", "build_trend_data.py", []),
     ("national_data.json", "build_national_data.py", []),
+    ("erate_data.json", "build_erate_data.py", []),
 ]
 
 
