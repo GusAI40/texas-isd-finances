@@ -5179,7 +5179,7 @@ $('search').addEventListener('input', () => {
 $('csearchbtn').onclick = () => doSearch('csearch', 'cresults', selectCompare);
 $('csearch').addEventListener('keydown', e => { if (e.key === 'Enter') doSearch('csearch', 'cresults', selectCompare); });
 $('askbtn').onclick = ask;
-$('question').addEventListener('keydown', e => { if (e.key === 'Enter') ask(); });
+$('question').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.isComposing) ask(); });
 function applyThemeIcon() {
   // The icon is a single contrast mark that reads correctly in either theme,
   // so it never needs swapping — only the state and the label change. (It
@@ -5400,5 +5400,6 @@ async function nameTheModel() {
   <a href="/transparency" style="color:inherit;">How this was made, and the full terms &rarr;</a>
 </div>
 <script src="/static/track.js" defer></script>
+<script src="/static/ask.js" defer></script>
 </body>
 </html>

@@ -2116,6 +2116,17 @@ async def track_script():
                         headers={"Cache-Control": "public, max-age=3600, must-revalidate"})
 
 
+@app.get("/static/ask.js", include_in_schema=False)
+async def ask_script():
+    """The everywhere ask layer: the floating button + sheet every page loads.
+    Same one-asset, one-route policy as the stylesheet above."""
+    js = STATIC_DIR / "ask.js"
+    if not js.exists():
+        raise HTTPException(status_code=404, detail="Script not found")
+    return FileResponse(js, media_type="application/javascript",
+                        headers={"Cache-Control": "public, max-age=3600, must-revalidate"})
+
+
 @app.get("/static/tag-pipeline.png", include_in_schema=False)
 async def tag_pipeline_graphic():
     """The TAG ai intelligence-layer graphic, hot-linked by the superintendent
