@@ -29,6 +29,11 @@
      explanation of what this site is lives. */
   document.addEventListener('DOMContentLoaded', function () {
     try {
+      /* An explicit anchor beats the hero shortcut: a reader who followed
+         "Ask a question" (/#ask-section) must land on the ask box, not get
+         yanked to the district picker over the top of it. boot() clears the
+         hash early (see there), so its flag is checked too. */
+      if (location.hash || window._wantAsk) return;
       if (!document.documentElement.classList.contains('has-district')) return;
       var hero = document.getElementById('picker-section');
       if (hero) hero.scrollIntoView({ block: 'start', behavior: 'instant' });
@@ -771,6 +776,8 @@
   .finder { max-width: 30rem; }
   .finder-lab { display:block; font-size:var(--fs-micro); letter-spacing:.09em; text-transform:uppercase;
                 color:var(--muted); font-weight:700; margin-bottom:.4rem; }
+  .finder-ask { margin:.8rem 0 0; font-size:var(--fs-sm); color:var(--muted); }
+  .finder-ask a { color:var(--accent); font-weight:600; }
   .chips { display:flex; flex-wrap:wrap; gap:.4rem; margin-top:.85rem; }
   .chips button {
     font:inherit; font-size:var(--fs-xs); padding:.34rem .8rem; border-radius:var(--r-pill); cursor:pointer;
@@ -935,7 +942,7 @@
   <div class="m-in">
     <a class="m-brand" href="/"><span class="m-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
       Texas ISD<span class="m-sub">Financial Resource Guide</span></a>
-    <div class="m-tabs"><a href="/" aria-current="page">The Report</a><a href="/feed">The Feed</a><a href="/forensics">Forensic File</a><a href="/geomap">Map</a><a href="/heatmap">Heatmap</a><a href="/about">About</a><a href="/sources">Sources</a></div><details class="m-more"><summary>More</summary><div class="m-menu"><a href="/map">Seating chart</a><a href="/intel">Daily briefing</a><a href="/transparency">How this was made</a><button type="button" id="mm-tour">60-second tutorial</button><button type="button" id="mm-disclaimer">Disclaimer</button><button type="button" id="mm-print">Print this report</button></div></details>
+    <div class="m-tabs"><a href="/" aria-current="page">The Report</a><a href="/feed">The Feed</a><a href="/forensics">Forensic File</a><a href="/geomap">Map</a><a href="/heatmap">Heatmap</a><a href="/about">About</a><a href="/sources">Sources</a></div><details class="m-more"><summary>More</summary><div class="m-menu"><a href="/#ask-section">Ask a question</a><a href="/map">Seating chart</a><a href="/intel">Daily briefing</a><a href="/transparency">How this was made</a><button type="button" id="mm-tour">60-second tutorial</button><button type="button" id="mm-disclaimer">Disclaimer</button><button type="button" id="mm-print">Print this report</button></div></details>
     <button class="mast-theme" id="mast-theme" type="button" aria-label="Toggle light and dark theme">Theme</button>
   </div>
 </nav>
@@ -1004,7 +1011,30 @@
           return;
         }
         var d2 = currentD();
-        if (CARRY[u.pathname] && d2 && /^[0-9]{6}$/.test(d2)) u.searchParams.set('d', d2);
+        /* A hash link aims at a SECTION, not a view, so it never carries
+           ?d — the URL stays an honest section pointer. Same page: the
+           branch below scrolls in place, keeping the view exactly as it is
+           (statewide stays statewide; a district view keeps its district
+           and skips the reload). Cross-page it lands bare on /, where the
+           front page's NORMAL rules apply — a stored district is restored,
+           because the district follows the reader, unless the one-shot
+           home flag says otherwise. */
+        if (CARRY[u.pathname] && !u.hash && d2 && /^[0-9]{6}$/.test(d2)) u.searchParams.set('d', d2);
+        /* Hash link to THIS page: scroll in place. Without this a district
+           view (/?d=…) clicking "Ask a question" (/#ask-section) failed the
+           exact-match test below and did a FULL reload that dropped ?d —
+           losing the district for a reader who arrived by shared link. The
+           More dropdown is closed by hand: no navigation resets it. */
+        if (u.hash && u.pathname === location.pathname) {
+          var sec = document.getElementById(u.hash.slice(1));
+          if (sec) {
+            ev.preventDefault();
+            var dd = a.closest('details'); if (dd) dd.open = false;
+            var rm = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+            sec.scrollIntoView({ behavior: rm ? 'auto' : 'smooth' });
+            return;
+          }
+        }
         if (u.pathname === location.pathname && u.search === location.search) {
           ev.preventDefault();
           var re = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -1185,6 +1215,11 @@
         </div>
         <ul class="results" id="results"></ul>
         <div class="chips" id="quickpick"></div>
+        <!-- The intelligence layer's front door. The full ask box lives far
+             down the page; without this line the landing offered no visible
+             way in (owner directive 2026-08-17: statewide + every page). -->
+        <p class="finder-ask">Or <a href="#ask-section">ask a question in plain English</a> —
+          an AI answers from the official numbers.</p>
       </div>
     </div>
     </div>
@@ -1517,33 +1552,39 @@
       <div class="cite" id="turnaround-cite"></div>
     </section>
 
-    <hr class="rule">
-    <section id="ask-section">
-      <div class="eyebrow">Ask anything <button class="explain" data-explain="ask" aria-label="What does this mean?" title="What does this mean?">?</button></div>
-      <h2 class="action">Plain English works here</h2>
-      <p class="support">"How did our debt service change since 2020?" — an AI turns it into a database query
-        against the same read-only data. Limited to 10 questions a minute.</p>
-      <div class="row">
-        <input type="text" id="question" maxlength="500" placeholder="Type a question about any Texas district…" aria-label="Ask a question">
-        <button class="primary" id="askbtn">Ask</button>
-      </div>
-      <div class="answer" id="answer"></div>
-      <!-- The model name is filled in from /health at load. It was hardcoded as
-           "OpenAI (gpt-4o-mini)" and stayed that way for nine days after the
-           service moved to DeepSeek — a disclosure sentence that named the
-           wrong company, on the one page whose whole argument is that its
-           claims can be checked. The service already knows the answer, so the
-           page asks it instead of repeating it. -->
-      <div class="cite">Answers by <span id="ask-model">the configured AI model</span> via LangChain,
-        run as a read-only role over the
-        two public views — nothing else is reachable. Built by
-        <a href="https://ubntag.com" target="_blank" rel="noopener">TAG ai</a>.
-        Double-check important figures against
-        <a href="https://tea.texas.gov/finance-and-grants/state-funding/state-funding-reports-and-data/peims-financial-data-downloads" target="_blank" rel="noopener">official TEA releases</a>.
-        We keep the questions asked here — on their own, with nothing that identifies you — to see what
-        people need (<a href="/about#privacy">what we collect</a>). Please don't type personal details.</div>
-    </section>
   </div>
+
+  <hr class="rule">
+  <!-- The intelligence layer is deliberately OUTSIDE #dash: it answers
+       questions about ANY Texas district, so gating it behind picking one hid
+       it from the statewide landing entirely — the owner could not find it
+       (2026-08-17). It renders on the landing, on district views, and every
+       page's More menu links here. -->
+  <section id="ask-section">
+    <div class="eyebrow">Ask anything <button class="explain" data-explain="ask" aria-label="What does this mean?" title="What does this mean?">?</button></div>
+    <h2 class="action">Plain English works here</h2>
+    <p class="support">"How did our debt service change since 2020?" — an AI turns it into a database query
+      against the same read-only data. Limited to 10 questions a minute.</p>
+    <div class="row">
+      <input type="text" id="question" maxlength="500" placeholder="Type a question about any Texas district…" aria-label="Ask a question">
+      <button class="primary" id="askbtn">Ask</button>
+    </div>
+    <div class="answer" id="answer"></div>
+    <!-- The model name is filled in from /health at load. It was hardcoded as
+         "OpenAI (gpt-4o-mini)" and stayed that way for nine days after the
+         service moved to DeepSeek — a disclosure sentence that named the
+         wrong company, on the one page whose whole argument is that its
+         claims can be checked. The service already knows the answer, so the
+         page asks it instead of repeating it. -->
+    <div class="cite">Answers by <span id="ask-model">the configured AI model</span> via LangChain,
+      run as a read-only role over the
+      two public views — nothing else is reachable. Built by
+      <a href="https://ubntag.com" target="_blank" rel="noopener">TAG ai</a>.
+      Double-check important figures against
+      <a href="https://tea.texas.gov/finance-and-grants/state-funding/state-funding-reports-and-data/peims-financial-data-downloads" target="_blank" rel="noopener">official TEA releases</a>.
+      We keep the questions asked here — on their own, with nothing that identifies you — to see what
+      people need (<a href="/about#privacy">what we collect</a>). Please don't type personal details.</div>
+  </section>
 
   <hr class="rule">
   <section id="statewide-section">
@@ -5267,6 +5308,27 @@ async function nameTheModel() {
 }
 
 (async function boot() {
+  // The re-anchor at the bottom must not fight the reader: any scroll or
+  // keypress during the async loads marks the viewport as theirs.
+  ['wheel', 'touchstart', 'keydown'].forEach(evName =>
+    addEventListener(evName, () => { window._userMoved = true; },
+                     { once: true, passive: true }));
+  // #ask-section arrival: the browser has already done its parse-time anchor
+  // jump. The hash is captured and CLEARED here, before any await, so the
+  // URL stays a clean pointer and OUR guarded re-anchor at the bottom is the
+  // only scroll this code performs. Measured honestly: Chromium still
+  // re-asserts its own anchor during a sub-second settle window regardless
+  // of the cleared hash or synthesized user gestures — that window ends at
+  // load, after which a reader's scroll sticks (verified in a driven
+  // browser). _wantAsk also tells the head's picker-scroll to stand down.
+  let wantAsk = false;
+  try {
+    wantAsk = location.hash === '#ask-section';
+    if (wantAsk) {
+      window._wantAsk = true;
+      history.replaceState(null, '', location.pathname + location.search);
+    }
+  } catch (e) {}
   const savedLens = localStorage.getItem('tisd_lens');
   if (savedLens) {
     state.lens = savedLens;
@@ -5303,6 +5365,19 @@ async function nameTheModel() {
     await loadDashboard();
   }
   await statewide;
+  // Arriving from another page's "Ask a question" link: the browser anchors
+  // before the async sections above render and push the layout down, which
+  // strands the reader mid-page. Re-anchor once everything that moves the
+  // ask box has landed — but never yank a reader who has already scrolled
+  // or started typing while the fetches ran; their intent wins. The hash is
+  // then CLEARED: Chromium retries its own fragment scroll at load
+  // completion, which re-yanked the reader even after our guard declined to
+  // (caught in a driven browser — the flag was set and the jump happened
+  // anyway, because it was never ours).
+  if (wantAsk && !window._userMoved) {
+    const el = document.getElementById('ask-section');
+    if (el) el.scrollIntoView();
+  }
 })();
 </script>
 <!-- Vercel Web Analytics: aggregate page counts only. No cookies, no

@@ -17,6 +17,31 @@ Entry template:
 
 ---
 
+## 2026-08-17 (later) — Phone masthead fixed (PR #32): the tab strip was a 56px porthole
+
+**What changed.** Owner reported the header "very difficult to select options
+from" with a see-visually-don't-guess instruction. Measured on emulated
+iPhone 13 against production: the flexible `.m-tabs` strip was squeezed to a
+**56px window over 588px of tabs** — brand, More and Theme kept the first row
+and primary navigation got the leftovers (532px hidden; the 2026-08-12 scroll
+shadows only *hinted* at it). Fix in shared `design.css` (all 10 pages at
+once): below 720px the strip wraps to a full-width second row bleeding to the
+viewport edges; brand + More + Theme share the top row; desktop unchanged.
+`design.css?v=5` on every page. Tests lock the media query
+(`test_the_phone_masthead_gives_the_tab_strip_its_own_row`) and the
+one-version-everywhere rule. Verified on production post-deploy: strip window
+390px, tap navigates, verify_live green.
+
+**Also answered (no code):** the news feed is internet-wide, not TEA-only —
+`isd_intel.py` pulls Google News RSS with per-district queries, tiers sources
+(1=official domains, 2=named Texas newsrooms, 3=discovery), rule-based, and
+only confidently district-resolved stories reach the public feed. The ask box
+lives inside `#dash` (district dashboard), so it is invisible on the statewide
+landing — surfacing it there or in the More menu is offered to the owner but
+NOT shipped (navigation is frozen without an owner ask).
+
+---
+
 ## 2026-08-17 (late night) — Data-mart forensic audit: the source proven byte-for-byte, and the General-Fund gap named
 
 **What changed.** No code — an audit, on the owner's directive, delivered as a

@@ -393,3 +393,51 @@ def test_every_page_asks_for_the_same_design_css_version():
             versions[page.name] = m.group(1)
     assert versions, "no page links a versioned design.css"
     assert len(set(versions.values())) == 1, f"version drift: {versions}"
+
+
+# --- the intelligence layer is global, not district-gated --------------------
+
+def test_the_ask_box_is_outside_the_district_dashboard():
+    """The ask box answers questions about ANY Texas district, but it lived
+    inside #dash — the container hidden until a district is picked — so the
+    statewide landing had no visible intelligence layer at all and the owner
+    could not find it. The ancestor walk (not a grep: position is the claim)
+    must never show #dash above it again."""
+    import re
+    s = (STATIC / "index.html").read_text(encoding="utf-8")
+    i = s.find('<section id="ask-section">')
+    assert i != -1, "the ask section is gone"
+    stack = []
+    for m in re.finditer(r'<(/?)(div|section|main|body|details)\b([^>]*)>', s[:i]):
+        close, tag, attrs = m.group(1), m.group(2), m.group(3)
+        if close:
+            for j in range(len(stack) - 1, -1, -1):
+                if stack[j][0] == tag:
+                    stack.pop(j)
+                    break
+        else:
+            stack.append((tag, attrs))
+    assert not any('id="dash"' in attrs for _, attrs in stack), (
+        "the ask box is back inside #dash — invisible on the statewide landing")
+
+
+def test_every_page_offers_ask_a_question_and_hash_links_stay_clean():
+    """Owner directive: the ask layer is reachable from every page. Two rules
+    travel with the link. A hash link aims at a SECTION, not a view, so it
+    never carries ?d — otherwise "Ask" from the statewide landing quietly
+    re-enters the stored district, violating home-means-home. And a same-page
+    hash click scrolls to the section, not the top."""
+    for page in sorted(STATIC.glob("*.html")):
+        html = page.read_text(encoding="utf-8")
+        if 'id="masthead"' not in html:
+            continue
+        assert '<a href="/#ask-section">Ask a question</a>' in html, (
+            f"{page.name}: the More menu no longer offers the ask layer")
+        assert "!u.hash" in html, (
+            f"{page.name}: hash links must never carry ?d")
+        assert "u.hash.slice(1)" in html, (
+            f"{page.name}: a same-page hash click must scroll to the section")
+    front = (STATIC / "index.html").read_text(encoding="utf-8")
+    assert 'class="finder-ask"' in front and 'href="#ask-section"' in front, (
+        "the landing lost its visible way into the ask layer — the full box "
+        "sits thousands of pixels down; the finder line is the front door")
