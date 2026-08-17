@@ -953,17 +953,34 @@
         }
       });
     }
-    /* Clicking the brand or the tab for the page you are already on used to
-       be a silent reload — the browser restored the scroll position, so the
-       click looked dead. Same destination now means "back to the top". */
+    /* The reader's district is resolved at CLICK time, not parse time: the
+       hrefs above were decorated once, so a district picked in-page after
+       load would have navigated to the PREVIOUS district. And clicking the
+       brand or the tab for the page you are already on used to be a silent
+       reload — the browser restored the scroll position, so the click
+       looked dead. Same destination now means "back to the top". */
+    var CARRY = { '/': 1, '/geomap': 1, '/map': 1, '/forensics': 1 };
+    function currentD() {
+      try {
+        return new URLSearchParams(location.search).get('d')
+            || (JSON.parse(localStorage.getItem('tisd_district') || 'null') || {}).num || null;
+      } catch (e) { return null; }
+    }
     document.querySelectorAll('#masthead a[href]').forEach(function (a) {
       a.addEventListener('click', function (ev) {
+        /* modified clicks (new tab, download) keep native behaviour */
+        if (ev.metaKey || ev.ctrlKey || ev.shiftKey || ev.altKey || ev.button !== 0) return;
         var u;
         try { u = new URL(a.getAttribute('href'), location.href); } catch (e) { return; }
+        var d2 = currentD();
+        if (CARRY[u.pathname] && d2 && /^[0-9]{6}$/.test(d2)) u.searchParams.set('d', d2);
         if (u.pathname === location.pathname && u.search === location.search) {
           ev.preventDefault();
           var re = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
           window.scrollTo({ top: 0, behavior: re ? 'auto' : 'smooth' });
+        } else if (u.href !== a.href) {
+          ev.preventDefault();
+          location.href = u.href;
         }
       });
     });
@@ -1993,20 +2010,20 @@ function tickerItems() {
   }
   return t;
 }
-let _tickerTimer = null, _tickerFade = null;
-function renderTicker() {
-  const items = tickerItems(), bar = $('ticker'), track = $('ticker-track');
-  // Both timers die first, on EVERY path — including the too-few-items bail
-  // below. A cleared interval with its 300ms fade still pending would write
-  // the previous district's figure back into the new district's strip.
-  clearInterval(_tickerTimer); clearTimeout(_tickerFade);
+/* ONE rotator for every strip — the figures ticker and the news ticker share
+   a contract, so they must share the code: whole items only, hover/focus
+   holds the current one, reduced motion means nothing self-updates (every
+   item renders at once in a strip the reader scrolls). Fixing the contract
+   in one strip and not the other is exactly how the three _usd formatters
+   drifted apart. Timers live on the bar element, so each strip owns its
+   pair and both die first on EVERY path — a cleared interval with its 300ms
+   fade still pending would write a stale item back into the fresh strip. */
+function rotateStrip(bar, track, items, minItems) {
+  if (!bar || !track) return;
+  clearInterval(bar._rotTimer); clearTimeout(bar._rotFade);
   track.classList.remove('swap');
-  if (items.length < 3) { bar.hidden = true; return; }
+  if (items.length < minItems) { bar.hidden = true; return; }
   bar.hidden = false;
-  // Reduced motion means no self-updating content, full stop — the old
-  // marquee froze completely, and rotating "gently" would still be motion
-  // the reader asked not to have. They get every item at once, in a strip
-  // they scroll themselves.
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
     track.classList.add('all');
     track.innerHTML = items.map(x => `<span class="tick">${x}</span>`).join('<span class="tick-sep">·</span>');
@@ -2016,48 +2033,27 @@ function renderTicker() {
   let i = 0;
   const show = () => { track.innerHTML = `<span class="tick">${items[i % items.length]}</span>`; i++; };
   show();
-  _tickerTimer = setInterval(() => {
+  bar._rotTimer = setInterval(() => {
     // Never swap the sentence out from under someone reading it. The strip is
-    // focusable, so on a touch screen a tap holds the current figure still.
+    // focusable, so on a touch screen a tap holds the current item still.
     if (bar.matches(':hover') || bar.matches(':focus-within')) return;
     track.classList.add('swap');
-    _tickerFade = setTimeout(() => { show(); track.classList.remove('swap'); }, 300);
+    bar._rotFade = setTimeout(() => { show(); track.classList.remove('swap'); }, 300);
   }, 8000);
+}
+function renderTicker() {
+  rotateStrip($('ticker'), $('ticker-track'), tickerItems(), 3);
 }
 
 /* ---- district news, front page: the Feed's newest stories ---- */
-let _newsTimer = null, _newsFade = null;
 function renderNewsTicker(briefing) {
-  const bar = $('newsticker'), track = $('news-track');
-  if (!bar || !track) return;
-  clearInterval(_newsTimer); clearTimeout(_newsFade);
-  track.classList.remove('swap');
   const finds = (briefing && briefing.top_findings) || [];
   // Headlines are external text (news sources) — escape before innerHTML.
-  const escT = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');
   const items = finds
     .filter(f => f.headline)
     .map(f => '<a href="/feed"><span class="who">' +
-      escT(f.district_name || 'Texas') + '</span><b>' + escT(f.headline) + '</b></a>');
-  if (items.length < 2) { bar.hidden = true; return; }
-  bar.hidden = false;
-  // Same rules as the figures strip: reduced motion means nothing
-  // self-updates — every headline renders at once in a strip the reader
-  // scrolls; otherwise one whole headline at a time, held under the pointer.
-  if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    track.classList.add('all');
-    track.innerHTML = items.map(x => `<span class="tick">${x}</span>`).join('<span class="tick-sep">·</span>');
-    return;
-  }
-  track.classList.remove('all');
-  let i = 0;
-  const show = () => { track.innerHTML = `<span class="tick">${items[i % items.length]}</span>`; i++; };
-  show();
-  _newsTimer = setInterval(() => {
-    if (bar.matches(':hover') || bar.matches(':focus-within')) return;
-    track.classList.add('swap');
-    _newsFade = setTimeout(() => { show(); track.classList.remove('swap'); }, 300);
-  }, 8000);
+      escText(f.district_name || 'Texas') + '</span><b>' + escText(f.headline) + '</b></a>');
+  rotateStrip($('newsticker'), $('news-track'), items, 2);
 }
 
 /* ===== What the money buys: students, teachers, results =====
@@ -3932,6 +3928,12 @@ function renderTakeover() {
   armCounters(sec);
 }
 
+/* External or artifact text must be escaped before innerHTML — one helper,
+   used by every call site, so the escape cannot drift per copy. */
+function escText(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');
+}
+
 function renderNational() {
   const n = state.national, card = $('econ-national');
   if (!card) return;
@@ -3945,8 +3947,7 @@ function renderNational() {
     : '';
   const head = '<h4>Against the whole country ' + xb('national') + '</h4>';
   if (n.absence) {
-    const safe = String(n.absence.sentence).replace(/&/g, '&amp;').replace(/</g, '&lt;');
-    card.innerHTML = head + '<div class="econ-sub">' + safe + txLine + '</div>';
+    card.innerHTML = head + '<div class="econ-sub">' + escText(n.absence.sentence) + txLine + '</div>';
     card.hidden = false; return;
   }
   const pool = n.national && n.national.districts_in_pool;
@@ -4991,7 +4992,11 @@ async function loadStatewide() {
     let [tx, txEcon, news] = await Promise.all([
       api('/dollar/texas').catch(() => null),
       api('/economics/texas').catch(() => null),
-      api('/briefing').catch(() => null)]);
+      // The committed briefing snapshot, not /briefing: the strip must not
+      // add a database round trip to every front-page visit for content
+      // that changes once a day — and this way it still renders when the
+      // database is paused. /feed keeps serving the live version.
+      fetch('/static/isd_briefing.json').then(r => r.ok ? r.json() : null).catch(() => null)]);
     renderNewsTicker(news);
     // The statewide dollar is the headline of the page. Left null it renders
     // "$—", which reads as broken rather than as a snapshot.

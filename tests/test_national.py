@@ -96,7 +96,10 @@ def test_the_district_percentile_rederives_from_the_census_file():
     art = _art()
     assert art["national"]["districts_in_pool"] == len(pool)
     below = sum(1 for p in pool if p < dallas)
-    assert art["districts"]["057905"]["pctile"] == round(100 * below / len(pool))
+    # floor, not round: "more per student than X%" must be TRUE, and floor is
+    # the largest X for which it is (round overstates half the time and can
+    # reach the logically-false 100 at the top of the pool).
+    assert art["districts"]["057905"]["pctile"] == int(100 * below / len(pool))
     assert art["districts"]["057905"]["ppcs"] == int(dallas)
     pool.sort()
     mid = len(pool) // 2
@@ -123,16 +126,26 @@ def test_the_bridge_is_keyed_by_number_not_name():
 # ------------------------------------------------------------- the accounting
 
 def test_the_coverage_accounting_balances():
-    """Rows in must equal rows resolved plus rows named as unresolved, and the
-    econ-layer absences must be counted, not implied."""
+    """Rows in must equal rows resolved plus rows named as unresolved, and
+    every district absent from the layer must have a recorded REASON — a
+    closed charter answered 'missing information' instead of 'cannot exist'
+    is the wrong-reason failure the absences module exists to prevent."""
     art = _art()
     c = art["meta"]["coverage"]
     assert c["tx_resolved_to_tea"] + len(c["tx_unresolved"]) == c["tx_finance_rows"]
     assert c["tx_resolved_to_tea"] == len(art["districts"])
     assert c["econ_covered"] + c["econ_absent"] == c["econ_districts"]
-    assert len(art["absent"]) == c["econ_absent"]
+    # The absence map spans the whole crosswalk (closed charters included),
+    # so every econ-layer absence must be a subset of it with a reason.
+    econ = set(json.loads(
+        (STATIC / "economics_data.json").read_text())["districts"].keys())
+    econ_absent = econ - set(art["districts"])
+    assert len(econ_absent) == c["econ_absent"]
+    assert econ_absent <= set(art["absent"])
     assert c["econ_absent_charters"] == sum(
-        1 for v in art["absent"].values() if v == "charter")
+        1 for d in econ_absent if art["absent"][d] == "charter")
+    # No district is both present and absent.
+    assert not set(art["absent"]) & set(art["districts"])
 
 
 def test_the_limits_say_what_this_number_is_not():
@@ -185,6 +198,10 @@ def test_the_statewide_endpoint_serves_meta_and_states_only():
 
 
 def test_a_charter_gets_a_not_applicable_absence_not_a_blank():
+    """Including a CLOSED charter, which lives in the crosswalk but not the
+    econ layer — the first cut of the absence map only covered econ
+    districts, so closed charters got 'missing information' instead of
+    'cannot exist'."""
     from fastapi.testclient import TestClient
 
     from src.api import app
@@ -196,3 +213,6 @@ def test_a_charter_gets_a_not_applicable_absence_not_a_blank():
         body = c.get(f"/district/{charter}/national").json()
         assert body["absence"]["kind"] == "not_applicable"
         assert "government" in body["absence"]["sentence"]
+        assert body["district_name"], "the absence response must name the district"
+        closed = c.get("/district/014802/national").json()   # closed charter
+        assert closed["absence"]["kind"] == "not_applicable"

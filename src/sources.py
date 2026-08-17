@@ -196,7 +196,7 @@ SOURCES: dict[str, dict] = {
                            "school-finances/tables/2024/"
                            "secondary-education-finance/",
         "proves_it": ["elsec24t.xlsx", "school-finances"],
-        "covers": "fiscal 2024, all 14,077 U.S. public school systems",
+        "covers": "fiscal 2024, every U.S. public school system",
         "authoritative_for": "national per-district revenue, spending, and "
                              "per-pupil current spending on one federal ruler",
         "local_file": "data/census_f33_2024.xlsx",
@@ -243,8 +243,9 @@ SOURCES: dict[str, dict] = {
                 "arithmetic (Dallas is 4816230, not 48+057905); this "
                 "directory is the only published bridge. Keyed by number, so "
                 "the eleven Texas district names shared by two districts "
-                "each cannot cross-match. All 1,048 Texas F-33 rows resolve "
-                "through it.",
+                "each cannot cross-match. Every Texas F-33 row resolves "
+                "through it, and the build refuses to write the artifact if "
+                "the accounting does not balance.",
     },
     "census_tiger": {
         "title": "TIGER/Line Unified School Districts, Texas",
@@ -468,11 +469,11 @@ MEASURES: list[dict] = [
         "source": "census_f33",
         "columns": ["PPCSTOT", "ENROLL", "NCESID"],
         "method": "The Census's own per-pupil current spending figure, placed "
-                  "among the 9,294 U.S. districts with 500+ students. The "
-                  "percentile is the share of ranked districts spending "
-                  "strictly less. Never mixed with TEA figures: different "
-                  "fiscal year (2024) and a narrower ruler (no construction, "
-                  "no debt).",
+                  "among the U.S. districts with 500+ students (the pool size "
+                  "travels in the artifact, never in prose). The percentile "
+                  "is the share of ranked districts spending strictly less. "
+                  "Never mixed with TEA figures: different fiscal year (2024) "
+                  "and a narrower ruler (no construction, no debt).",
         "shown_on": ["/"],
         "api": "/district/{n}/national",
         "test": "tests/test_national.py::"
@@ -500,7 +501,8 @@ MEASURES: list[dict] = [
         "method": "NCES ids are not derivable from TEA numbers by arithmetic, "
                   "so every join goes through the CCD directory's ST_LEAID "
                   "column, keyed by number — shared district names cannot "
-                  "cross-match. All 1,048 Texas F-33 rows resolve.",
+                  "cross-match. Every Texas F-33 row resolves, or the build "
+                  "refuses to write the artifact.",
         "shown_on": ["/"],
         "api": "/district/{n}/national",
         "test": "tests/test_national.py::"

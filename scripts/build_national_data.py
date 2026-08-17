@@ -50,6 +50,7 @@ import bisect
 import csv
 import hashlib
 import json
+import re
 import statistics
 import sys
 from pathlib import Path
@@ -174,9 +175,12 @@ def main(argv: list[str] | None = None) -> int:
 
     wb = openpyxl.load_workbook(F33, read_only=True)
     info_rows = list(wb["File Information"].iter_rows(values_only=True))
+    # Only an actual date qualifies — a title cell like "2024 Annual Survey…"
+    # ordered first would otherwise publish "2024 Annua" as the release date.
+    date_re = re.compile(r"^20\d{2}-\d{2}-\d{2}")
     released = next(
-        (str(c)[:10] for row in info_rows for c in row
-         if c is not None and str(c).startswith("20")), None)
+        (m.group() for row in info_rows for c in row
+         if c is not None and (m := date_re.match(str(c)))), None)
     assert released, "File Information sheet no longer carries a release date"
 
     ws = wb["elsec24t"]
@@ -198,7 +202,11 @@ def main(argv: list[str] | None = None) -> int:
     assert str(year) == "24", f"YRDATA is {year!r}, not fiscal 2024 — wrong file?"
 
     def pctile(pp: float) -> int:
-        return round(100 * bisect.bisect_left(pool, pp) / len(pool))
+        # floor, not round: the page says "more per student than X% of ranked
+        # districts", and floor is the largest X for which that sentence is
+        # TRUE (round would overstate half the time, and could reach the
+        # logically-false 100 for the top of the pool).
+        return int(100 * bisect.bisect_left(pool, pp) / len(pool))
 
     # Texas rows -> TEA numbers. Accounting is hard: every row is resolved or
     # named in the artifact as unresolved; no silent drops.
@@ -233,10 +241,14 @@ def main(argv: list[str] | None = None) -> int:
     xw = {r["district_number"]: r for r in csv.DictReader(CROSSWALK.open())}
     # Baked into the artifact so the API can say WHY a district is absent
     # (charter: cannot exist; other: not found) without a runtime crosswalk.
+    # Over the WHOLE crosswalk, not just the econ layer: a closed charter is
+    # every bit as much "cannot exist in a survey of governments" as an open
+    # one, and answering it "missing information" would be the wrong reason.
     absent_map = {
-        d: ("charter" if xw.get(d, {}).get("is_charter") == "True" else "no_row")
-        for d in sorted(absent)}
-    absent_charters = sum(1 for v in absent_map.values() if v == "charter")
+        d: ("charter" if r.get("is_charter") == "True" else "no_row")
+        for d, r in sorted(xw.items()) if d not in districts}
+    absent_charters = sum(
+        1 for d in absent if absent_map.get(d) == "charter")
 
     tx_ranked = [districts[d]["ppcs"] for d in covered
                  if "pctile" in districts[d]]

@@ -21,7 +21,7 @@
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://txisd.dev/sources">
 <meta property="og:title" content="Where every number comes from — Texas ISD Financial Resource Guide">
-<meta property="og:description" content="Thirteen public sources, nineteen published measures, each tied to its exact column and the test that re-derives it from the state's own file. No login, no records request.">
+<meta property="og:description" content="Every public source and every published measure, each tied to its exact column and the test that re-derives it from the state's own file. No login, no records request.">
 <title>Where every number comes from — Texas ISD Financial Resource Guide</title>
 <!-- design-system:start -->
 <link rel="stylesheet" href="/static/design.css?v=4">
@@ -170,17 +170,34 @@
         }
       });
     }
-    /* Clicking the brand or the tab for the page you are already on used to
-       be a silent reload — the browser restored the scroll position, so the
-       click looked dead. Same destination now means "back to the top". */
+    /* The reader's district is resolved at CLICK time, not parse time: the
+       hrefs above were decorated once, so a district picked in-page after
+       load would have navigated to the PREVIOUS district. And clicking the
+       brand or the tab for the page you are already on used to be a silent
+       reload — the browser restored the scroll position, so the click
+       looked dead. Same destination now means "back to the top". */
+    var CARRY = { '/': 1, '/geomap': 1, '/map': 1, '/forensics': 1 };
+    function currentD() {
+      try {
+        return new URLSearchParams(location.search).get('d')
+            || (JSON.parse(localStorage.getItem('tisd_district') || 'null') || {}).num || null;
+      } catch (e) { return null; }
+    }
     document.querySelectorAll('#masthead a[href]').forEach(function (a) {
       a.addEventListener('click', function (ev) {
+        /* modified clicks (new tab, download) keep native behaviour */
+        if (ev.metaKey || ev.ctrlKey || ev.shiftKey || ev.altKey || ev.button !== 0) return;
         var u;
         try { u = new URL(a.getAttribute('href'), location.href); } catch (e) { return; }
+        var d2 = currentD();
+        if (CARRY[u.pathname] && d2 && /^[0-9]{6}$/.test(d2)) u.searchParams.set('d', d2);
         if (u.pathname === location.pathname && u.search === location.search) {
           ev.preventDefault();
           var re = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
           window.scrollTo({ top: 0, behavior: re ? 'auto' : 'smooth' });
+        } else if (u.href !== a.href) {
+          ev.preventDefault();
+          location.href = u.href;
         }
       });
     });
@@ -276,7 +293,7 @@
 </article>
 <article class="src" id="src-census_f33">
   <h3>Annual Survey of School System Finances (F-33), district file, fiscal 2024</h3>
-  <p class="pub">US Census Bureau (public domain) &middot; fiscal 2024, all 14,077 U.S. public school systems</p>
+  <p class="pub">US Census Bureau (public domain) &middot; fiscal 2024, every U.S. public school system</p>
   <p>national per-district revenue, spending, and per-pupil current spending on one federal ruler.</p>
   <p><a class="dl" href="https://www2.census.gov/programs-surveys/school-finances/tables/2024/secondary-education-finance/elsec24t.xlsx" rel="noopener">Download the original
      <svg class="ico" aria-hidden="true"><use href="#i-external"/></svg></a></p>
@@ -296,7 +313,7 @@
   <p>the Census-to-TEA join: ST_LEAID (&#x27;TX-057905&#x27;) to NCES LEAID (4816230).</p>
   <p><a class="dl" href="https://nces.ed.gov/ccd/Data/zip/ccd_lea_029_2425_w_1a_073025.zip" rel="noopener">Download the original
      <svg class="ico" aria-hidden="true"><use href="#i-external"/></svg></a></p>
-  <p class="warn">The NCES district id is NOT derivable from the TEA number by arithmetic (Dallas is 4816230, not 48+057905); this directory is the only published bridge. Keyed by number, so the eleven Texas district names shared by two districts each cannot cross-match. All 1,048 Texas F-33 rows resolve through it.</p>
+  <p class="warn">The NCES district id is NOT derivable from the TEA number by arithmetic (Dallas is 4816230, not 48+057905); this directory is the only published bridge. Keyed by number, so the eleven Texas district names shared by two districts each cannot cross-match. Every Texas F-33 row resolves through it, and the build refuses to write the artifact if the accounting does not balance.</p>
 </article>
 <article class="src" id="src-bls_cpi">
   <h3>CPI-U, annual average</h3>
@@ -423,7 +440,7 @@
   <td><b>A district against every U.S. district</b><br><span class="mono">/district/{n}/national</span></td>
   <td><a href="#src-census_f33">Annual Survey of School System Finances (F-33), district file, fiscal 2024</a></td>
   <td class="mono cols">PPCSTOT<br>ENROLL<br>NCESID</td>
-  <td>The Census&#x27;s own per-pupil current spending figure, placed among the 9,294 U.S. districts with 500+ students. The percentile is the share of ranked districts spending strictly less. Never mixed with TEA figures: different fiscal year (2024) and a narrower ruler (no construction, no debt).</td>
+  <td>The Census&#x27;s own per-pupil current spending figure, placed among the U.S. districts with 500+ students (the pool size travels in the artifact, never in prose). The percentile is the share of ranked districts spending strictly less. Never mixed with TEA figures: different fiscal year (2024) and a narrower ruler (no construction, no debt).</td>
   <td class="mono">test_the_district_percentile_rederives_from_the_census_file</td>
 </tr>
 <tr>
@@ -437,7 +454,7 @@
   <td><b>The Census-to-TEA district join</b><br><span class="mono">/district/{n}/national</span></td>
   <td><a href="#src-ccd_lea_directory">CCD Local Education Agency Directory, SY 2024-25 (v.1a)</a></td>
   <td class="mono cols">LEAID<br>ST_LEAID<br>FIPST</td>
-  <td>NCES ids are not derivable from TEA numbers by arithmetic, so every join goes through the CCD directory&#x27;s ST_LEAID column, keyed by number &mdash; shared district names cannot cross-match. All 1,048 Texas F-33 rows resolve.</td>
+  <td>NCES ids are not derivable from TEA numbers by arithmetic, so every join goes through the CCD directory&#x27;s ST_LEAID column, keyed by number &mdash; shared district names cannot cross-match. Every Texas F-33 row resolves, or the build refuses to write the artifact.</td>
   <td class="mono">test_the_bridge_is_keyed_by_number_not_name</td>
 </tr>
 <tr>

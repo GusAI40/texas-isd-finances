@@ -88,14 +88,20 @@ def test_news_headlines_are_escaped_before_they_touch_innerhtml():
     assert "replace(/&/g, '&amp;').replace(/</g, '&lt;')" in INDEX
 
 
-def test_the_news_ticker_honours_reduced_motion():
-    """Same contract as the figures strip: reduced motion means nothing
-    self-updates — the reader gets every headline at once in a strip they
-    scroll themselves."""
-    start = INDEX.find("function renderNewsTicker")
-    body = INDEX[start:start + 2200]
+def test_both_strips_share_one_rotator_and_it_honours_reduced_motion():
+    """The figures strip and the news strip share a contract, so they must
+    share the code — fixing the reduced-motion rule in one and not the other
+    is how the three _usd formatters drifted apart. One rotator, two
+    callers, and the reduced-motion branch lives only in it."""
+    start = INDEX.find("function rotateStrip")
+    assert start != -1, "the shared rotator is gone"
+    body = INDEX[start:start + 1800]
     assert "prefers-reduced-motion" in body
     assert "classList.add('all')" in body
+    assert INDEX.count("rotateStrip(") >= 3      # definition + both callers
+    assert INDEX.count("bar.matches(':hover')") == 1, (
+        "a second strip rotator exists outside rotateStrip — the "
+        "duplication is back")
 
 
 # ---------------------------------------------------------------- the borders

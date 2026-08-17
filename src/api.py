@@ -1864,14 +1864,17 @@ async def get_texas_national():
     """Texas against the other 49 states, on the federal government's ruler.
 
     Everything else on this site compares Texas districts to Texas. This is
-    the missing axis: NCES's per-pupil current expenditure places **Texas
-    44th of 51** (50 states + DC) at $13,642 per student in average daily
-    attendance, fiscal 2024 — and the ranking barely moves if the divisor is
-    fall membership instead (45th), so the denominator is not the story.
+    the missing axis: NCES's per-pupil current expenditure ranks the 50
+    states and DC, and the payload carries Texas's rank, the dollar figure,
+    and the numerator and denominator behind it — plus the same ranking
+    recomputed by fall membership instead of average daily attendance, so a
+    reader can see the denominator choice does not drive the story. The
+    figures live in the payload, never in this text, so a fiscal-year
+    refresh cannot leave stale numbers here (that has happened before).
 
     District-level: Census F-33 per-pupil current spending for every Texas
-    independent school district, each with its percentile among the 9,294
-    U.S. districts with 500+ students. Current spending is the Census's own
+    independent school district, each with its percentile among the U.S.
+    districts with 500+ students. Current spending is the Census's own
     figure and EXCLUDES construction, land and debt — it is deliberately not
     comparable to the all-in per-student total elsewhere on this site, and
     the two are never mixed.
@@ -1894,10 +1897,11 @@ async def get_district_national(district_number: str):
     """One district against every other district in the country.
 
     The Census's own per-pupil current spending figure for this district and
-    its percentile among the 9,294 U.S. districts with 500+ students, plus
-    the statewide rank for context. Districts under 500 students show the
-    figure but no percentile — the site-wide rule, because per-student
-    figures in tiny districts move on a single hire.
+    its percentile among the U.S. districts with 500+ students (the pool
+    size travels in the payload), plus the statewide rank for context.
+    Districts under 500 students show the figure but no percentile — the
+    site-wide rule, because per-student figures in tiny districts move on a
+    single hire.
 
     Charters return an explained absence: the Census surveys governments,
     so a charter has no row anywhere in the country, which is different
@@ -1908,13 +1912,14 @@ async def get_district_national(district_number: str):
         raise HTTPException(
             status_code=503,
             detail="National data not built. Run scripts/build_national_data.py")
-    base = {"district_number": district_number, "meta": data["meta"],
+    name = _district_name(district_number)
+    base = {"district_number": district_number, "district_name": name,
+            "meta": data["meta"],
             "states": {"texas": data["states"]["texas"]},
             "national": data["national"]}
     rec = data["districts"].get(district_number)
     if rec is not None:
         return {**base, **rec}
-    name = _district_name(district_number)
     why = data.get("absent", {}).get(district_number)
     return {**base,
             "absence": absences.no_national_row(name, is_charter=why == "charter")}

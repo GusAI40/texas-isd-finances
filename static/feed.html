@@ -192,17 +192,34 @@
         }
       });
     }
-    /* Clicking the brand or the tab for the page you are already on used to
-       be a silent reload — the browser restored the scroll position, so the
-       click looked dead. Same destination now means "back to the top". */
+    /* The reader's district is resolved at CLICK time, not parse time: the
+       hrefs above were decorated once, so a district picked in-page after
+       load would have navigated to the PREVIOUS district. And clicking the
+       brand or the tab for the page you are already on used to be a silent
+       reload — the browser restored the scroll position, so the click
+       looked dead. Same destination now means "back to the top". */
+    var CARRY = { '/': 1, '/geomap': 1, '/map': 1, '/forensics': 1 };
+    function currentD() {
+      try {
+        return new URLSearchParams(location.search).get('d')
+            || (JSON.parse(localStorage.getItem('tisd_district') || 'null') || {}).num || null;
+      } catch (e) { return null; }
+    }
     document.querySelectorAll('#masthead a[href]').forEach(function (a) {
       a.addEventListener('click', function (ev) {
+        /* modified clicks (new tab, download) keep native behaviour */
+        if (ev.metaKey || ev.ctrlKey || ev.shiftKey || ev.altKey || ev.button !== 0) return;
         var u;
         try { u = new URL(a.getAttribute('href'), location.href); } catch (e) { return; }
+        var d2 = currentD();
+        if (CARRY[u.pathname] && d2 && /^[0-9]{6}$/.test(d2)) u.searchParams.set('d', d2);
         if (u.pathname === location.pathname && u.search === location.search) {
           ev.preventDefault();
           var re = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
           window.scrollTo({ top: 0, behavior: re ? 'auto' : 'smooth' });
+        } else if (u.href !== a.href) {
+          ev.preventDefault();
+          location.href = u.href;
         }
       });
     });
