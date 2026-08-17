@@ -516,6 +516,57 @@ def district_campuses(args: dict) -> tuple[str, dict]:
     return "\n".join(lines), {**rec, "limits": data["meta"].get("limits", [])}
 
 
+def district_national(args: dict) -> tuple[str, dict]:
+    num = _resolve(args.get("district_number"))
+    data = _need(_api()._national, "national")
+    tx = data["states"]["texas"]
+    nat = data["national"]
+    fy = data["meta"]["fiscal_year"]
+    rec = data["districts"].get(num)
+    if rec is None:
+        why = data.get("absent", {}).get(num)
+        if why == "charter":
+            raise ToolError(
+                f"District {num} is a charter school, and the Census Bureau's "
+                f"school finance survey covers governments — charter schools "
+                f"are not independent governments, so no charter anywhere in "
+                f"the country has a row. A national ranking cannot exist for "
+                f"it. That is an absence by construction, not missing data.")
+        raise ToolError(
+            f"The Census F-33 fiscal {fy} file carries no row that resolves "
+            f"to district {num}. That is missing information, not a verdict.")
+    name = _title(_api()._district_name(num))
+    lines = [
+        f"{name} ({num}) spent {_usd(rec['ppcs'])} per student in Census "
+        f"current spending, fiscal {fy}."]
+    if rec.get("pctile") is not None:
+        lines.append(
+            f"That is more per student than {rec['pctile']}% of the "
+            f"{nat['districts_in_pool']:,} U.S. districts with 500+ students "
+            f"(the middle one spends {_usd(nat['median_ppcs'])}).")
+    else:
+        lines.append(
+            "It is shown but not ranked: under 500 students, per-student "
+            "figures swing on a single hire — the same rule used across the "
+            "site.")
+    lines.append(
+        f"Texas as a whole ranks {tx['rank']} of {tx['of']} — the 50 states "
+        f"and DC — at {_usd(tx['ppe'])} per student in average daily "
+        f"attendance (NPEFS fiscal {fy}). Dividing by fall membership "
+        f"instead moves Texas only to "
+        f"{data['states']['denominator_check']['rank_by_membership']}, so "
+        f"the denominator choice is not the story.")
+    lines.append(
+        "Current spending is the Census's own figure and EXCLUDES "
+        "construction, land and debt — it is smaller than, and never mixed "
+        "with, the TEA all-funds figures other tools here report. Census "
+        f"fiscal {fy} is one year behind the TEA fiscal data.")
+    return "\n".join(lines), {
+        "district_number": num, **rec,
+        "states": {"texas": tx}, "national": nat,
+        "limits": data["meta"].get("limits", [])}
+
+
 def texas_overview(args: dict) -> tuple[str, dict]:
     f = _need(_api()._forensics, "forensic")
     t = _need(_api()._trends, "trend")
@@ -751,6 +802,23 @@ TOOLS: list[dict] = [
                         "required": ["district_number"], "additionalProperties": False},
         "annotations": {"readOnlyHint": True, "openWorldHint": False},
         "handler": district_campuses,
+    },
+    {
+        "name": "district_national",
+        "title": "A district against every other U.S. district",
+        "description": ("The Census Bureau's own per-pupil current spending for "
+                        "this district and its percentile among the U.S. "
+                        "districts with 500+ students, plus where Texas ranks "
+                        "among the 50 states and DC. Census fiscal 2024, one "
+                        "year behind the TEA data, and current spending "
+                        "excludes construction and debt — never mix it with "
+                        "the all-funds figures other tools report. Charters "
+                        "have no Census row anywhere in the country, by "
+                        "construction."),
+        "inputSchema": {"type": "object", "properties": {"district_number": _DISTRICT_ARG},
+                        "required": ["district_number"], "additionalProperties": False},
+        "annotations": {"readOnlyHint": True, "openWorldHint": False},
+        "handler": district_national,
     },
     {
         "name": "texas_overview",

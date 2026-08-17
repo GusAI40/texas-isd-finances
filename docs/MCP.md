@@ -1,7 +1,7 @@
 # The MCP server
 
 `https://txisd.dev/mcp` speaks **Model Context Protocol 2026-07-28**. It gives an
-assistant ten read-only tools over Texas school district finance, built from the
+assistant eleven read-only tools over Texas school district finance, built from the
 state's own records.
 
 ## Why it exists
@@ -56,6 +56,7 @@ curl -sS https://txisd.dev/mcp \
 | `district_bonds` | Every bond proposition 1958–2026, with stated purpose and result |
 | `district_campuses` | Every rated campus in a district, worst first, against the district's own A–F rating |
 | `district_debt` | What is still owed — principal, unpaid interest, the year it clears, and any capital appreciation bonds |
+| `district_national` | The district against every U.S. district (Census F-33 current spending + percentile), and Texas's rank among the 50 states and DC |
 | `texas_overview` | Statewide totals and the six measured seventeen-year trends |
 | `compare_districts` | Two to six districts side by side |
 
