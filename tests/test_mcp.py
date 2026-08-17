@@ -270,14 +270,27 @@ def test_each_district_tool_answers_and_carries_its_limits(client, tool):
 
 def test_national_gives_a_charter_the_cannot_exist_reason(client):
     """A charter has no Census row anywhere in the country — the Census
-    surveys governments. The tool must say 'cannot exist by construction',
-    never 'missing information', including for CLOSED charters that live
-    only in the crosswalk."""
+    surveys governments. The tool must serve src/absences.py's wording (one
+    wording, two surfaces), never 'missing information', including for
+    CLOSED charters that live only in the crosswalk."""
     r = call(client, "district_national", {"district_number": "014802"}).json()["result"]
     assert r["isError"] is True
     text = r["content"][0]["text"]
-    assert "not independent governments" in text
-    assert "by construction" in text
+    assert "cannot exist" in text
+    assert "charter" in text.lower()
+    assert "missing information" not in text
+
+
+def test_national_explains_a_row_with_no_figure_instead_of_crashing(client):
+    """Twenty artifact rows resolve to a TEA number but carry only the NCES
+    id — the Census reports no positive spending for them. The first cut
+    crashed with a bare KeyError here (review-caught); it must be an
+    explained absence."""
+    r = call(client, "district_national", {"district_number": "015950"}).json()["result"]
+    assert r["isError"] is True
+    text = r["content"][0]["text"]
+    assert "KeyError" not in text
+    assert "no usable per-pupil spending figure" in text
 
 
 def test_national_quotes_the_state_rank_from_the_artifact(client):
