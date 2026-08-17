@@ -259,12 +259,51 @@ def test_find_district_warns_that_a_name_is_not_an_identifier(client):
 
 
 @pytest.mark.parametrize("tool", [
-    "district_money", "district_forensics", "district_trends", "district_bonds"])
+    "district_money", "district_forensics", "district_trends", "district_bonds",
+    "district_national"])
 def test_each_district_tool_answers_and_carries_its_limits(client, tool):
     r = call(client, tool, {"district_number": DALLAS}).json()["result"]
     assert r["isError"] is False, r["content"][0]["text"]
     assert r["structuredContent"]["limits"], f"{tool} returned no limits"
     assert "Dallas" in r["content"][0]["text"]
+
+
+def test_national_gives_a_charter_the_cannot_exist_reason(client):
+    """A charter has no Census row anywhere in the country — the Census
+    surveys governments. The tool must serve src/absences.py's wording (one
+    wording, two surfaces), never 'missing information', including for
+    CLOSED charters that live only in the crosswalk."""
+    r = call(client, "district_national", {"district_number": "014802"}).json()["result"]
+    assert r["isError"] is True
+    text = r["content"][0]["text"]
+    assert "cannot exist" in text
+    assert "charter" in text.lower()
+    assert "missing information" not in text
+
+
+def test_national_explains_a_row_with_no_figure_instead_of_crashing(client):
+    """Twenty artifact rows resolve to a TEA number but carry only the NCES
+    id — the Census reports no positive spending for them. The first cut
+    crashed with a bare KeyError here (review-caught); it must be an
+    explained absence."""
+    r = call(client, "district_national", {"district_number": "015950"}).json()["result"]
+    assert r["isError"] is True
+    text = r["content"][0]["text"]
+    assert "KeyError" not in text
+    assert "no usable per-pupil spending figure" in text
+
+
+def test_national_quotes_the_state_rank_from_the_artifact(client):
+    """The MCP instructions once claimed '4,588 bond elections' long after the
+    refresh. Every figure this tool speaks must come from the payload."""
+    import json as _json
+    from pathlib import Path
+    art = _json.loads((Path(__file__).resolve().parent.parent
+                       / "static" / "national_data.json").read_text())
+    r = call(client, "district_national", {"district_number": DALLAS}).json()["result"]
+    tx = art["states"]["texas"]
+    assert f"ranks {tx['rank']} of {tx['of']}" in r["content"][0]["text"]
+    assert r["structuredContent"]["states"]["texas"]["rank"] == tx["rank"]
 
 
 def test_a_dropped_leading_zero_is_repaired_not_rejected(client):
