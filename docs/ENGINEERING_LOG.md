@@ -17,6 +17,52 @@ Entry template:
 
 ---
 
+## 2026-08-17 (evening, later) — The ask sheet: chat over any page, words that write themselves on (PR #34)
+
+**What changed.** Owner directive: top-studio feel, seamless from any page,
+grandma-easy, skeleton effect, words arriving magically like a chat.
+`static/ask.js` (new, self-contained, own `/static/ask.js` route — the
+one-asset-one-route policy) ships on all 10 pages: a floating **Ask** pill
+opens a sheet (bottom sheet on phones, centered dialog ≥720px) with three
+tappable starter questions, a 52px composer, a chat thread (reader right on
+accent, answers left with the penny-mark avatar), shimmer skeleton under
+"Reading the official data…", then the answer **writes itself on word by
+word** — fade+blur-sharpen behind a blinking accent caret, auto-speeding so
+long answers stay under ~6s. Reduced motion gets everything instantly.
+Every "Ask a question" link (More menus, finder line) now opens the sheet
+IN PLACE via a capture-phase intercept — no navigation, `?d` untouched —
+with the `/#ask-section` href kept as the no-JS fallback.
+
+**Honesty + safety rails.** The reveal is presentation, never latency (the
+full answer has arrived before the first word shows — the code says so).
+Answers render via `textContent` only; model output can never inject
+markup (test-locked, including a scan that no server-derived string reaches
+innerHTML). Screen readers hear the complete answer ONCE via a hidden
+`aria-live` region — the animated thread is deliberately NOT live, or every
+word insertion would stutter through a reader.
+
+**Review found five, four fixed, one deliberately deferred:**
+(1) `font:600 1.05rem/1 inherit` is INVALID CSS — `inherit` cannot appear
+inside a shorthand, the whole declaration was silently dropped and the
+primary button rendered at ~13px UA default. Longhand now, and the browser
+check verifies COMPUTED style (16.8px/600), not source strings.
+(2) Hardcoded white-on-accent fails dark theme (accent flips light);
+`--accent-ink` exists for exactly this — verified computed in dark:
+rgb(13,17,23) on rgb(106,165,232). (3) The live-region stutter above.
+(4) `Enter` during IME composition submitted half a question and spent a
+model call — `!e.isComposing` guard, applied to the index box too.
+(5) DEFERRED: ask.js and index.html's ask() are now two parallel /query
+clients that have already diverged on 429 handling — the `_usd` lesson
+says consolidate; index should consume ask.js's core. Named backlog.
+
+**Verification pattern worth keeping:** Playwright `route.fulfill` with
+`time.sleep` in the handler BLOCKS the sync event loop (the skeleton probe
+hung); stub `window.fetch` inside the page with a delayed Promise instead.
+Also: mock /query for UI checks — the streaming/skeleton/error paths are
+all client-side and need no DeepSeek spend.
+
+---
+
 ## 2026-08-17 (evening) — The intelligence layer goes global (PR #33)
 
 **What changed.** Owner directive: the ask box is the intelligent layer —
