@@ -54,7 +54,7 @@ the shared resolver, with a USAC suffix normaliser ("Indep School
 District"→ISD) whose spelling fixups are RETRY-only (a blanket Fort→Ft
 broke Fort Bend while fixing Ft Sam Houston), and the prefix road gated
 on charter flags agreeing (unqualified it matched Houston Gateway
-Academy, a charter, to Houston ISD). **1,077/1,118 BENs, 97.4% of
+Academy, a charter, to Houston ISD). **1,078/1,118 BENs, 97.4% of
 district-applicant dollars.** The one conflict on record is the two
 Dawson ISDs — the entity's own code says Dawson County, its own campuses
 say Navarro — refused, never guessed. Charter networks (Harmony $23M,
