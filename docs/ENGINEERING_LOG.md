@@ -17,6 +17,50 @@ Entry template:
 
 ---
 
+## 2026-08-17 (late night) — Data-mart forensic audit: the source proven byte-for-byte, and the General-Fund gap named
+
+**What changed.** No code — an audit, on the owner's directive, delivered as a
+designed artifact (claude.ai/code/artifact/dae5a73f-8366-49b5-8e56-78ee6abef16e).
+Three durable facts belong in memory:
+
+- **The upstream TEA workbook is now hash-anchored.** The file at
+  `tea.texas.gov/data-reports/financial-reports/school-finance-reports-and-data/2009-2025-summarized-financial-data-04-08-2026.xlsx`
+  (19,430,191 bytes, sha256 `c75d5e44d23025c08495ad44a3bd04ee887a7bf48fe95d49ebe3aefdb5c2d5ce`),
+  run through our own `prepare_data.py`, reproduces
+  `data/texas_finance_clean.csv` **byte for byte** — the exact sha256
+  (`60aa0635…`) in `tests/fixtures/provenance.json`. The chain's first link
+  (TEA file → CSV), previously held only by `verify_sources`, is now proven
+  cryptographically. Record this xlsx SHA in the register when next touched.
+- **Fund semantics verified clean, with one flag.** The DATAMART sheet carries
+  parallel `gen_funds_*` and `all_funds_*` column families on the same
+  district-year row. Every published figure reads `all_funds_*` only; zero
+  `gen_funds_*` reads exist anywhere (grep-verified); no aggregate rows exist
+  (20,587 rows, all six-digit districts); operating-by-function equals
+  operating-by-object exactly, and operating+debt+capital+other equals total
+  disbursements (Dallas FY2025 verified longhand). The portal never says
+  "General Fund" and the clock says "all funds". **The flag:** "operating" on
+  the portal is ALL-governmental-funds operating (federal grants included) —
+  Dallas $1.99B vs the General Fund's $1.71B (per student: $14,210 vs
+  $12,236, total flow $23,747). A reader cannot currently see the
+  board-discretion budget. **P0 next: a General-Fund lens** — the 68 columns
+  are already hashed and imported; builder + UI + lineage + second-road work
+  only, no new source.
+- **USAC catalog verified live** (75 datasets on opendata.usac.org, all
+  Socrata): line items `hbj5-2bpj` (the C1/C2 split the card lacks), invoices
+  `jpiu-tj8h` (the real committed→disbursed funnel), Form 470 `jp7a-89nd` +
+  `39tn-hjzv`, C2 budgets `6brt-5pbv`, recipients `tuem-agyq`, supplemental
+  entity `7i5i-83qf`, discount calc `upfy-khtr`, cyber pilot `bik4-z7ge`, ECF
+  `i5j4-3rvr`. TEA's downloads page (now at `/about-tea/...` — the old
+  `/finance-and-grants/...` URL 301s) confirms detailed per-year PEIMS
+  **budget and actual** files (CSV/TXT/MDB sub-pages). Priorities and the
+  full matrix live in the artifact.
+
+**Open items.** P0 queue from the audit: General-Fund lens; E-Rate line
+items; registry-wide `retrieved_at`/upstream `file_hash`/`next_expected_release`.
+Owner list unchanged.
+
+---
+
 ## 2026-08-17 (night) — Lineage wave 2: the spending dollar and the $109.4B headline open their working
 
 **What changed.** The owner set the direction — trust and lineage over UI
