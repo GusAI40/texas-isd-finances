@@ -70,11 +70,16 @@ import pandas as pd
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import recompute_revenue  # noqa: E402 — sibling script, path set above
+import recompute_spending  # noqa: E402
 
 # Named once, so the artefact says which file the second road actually read
 # rather than describing it in prose that can drift from the code.
 RECOMPUTED_FROM = ("data/texas_finance_clean.csv + data/tea_property.csv, "
                    "re-read longhand by scripts/recompute_revenue.py")
+# The spending road reads one file fewer — its figures need no property data —
+# so it carries its own provenance string rather than borrowing revenue's.
+SPEND_RECOMPUTED_FROM = ("data/texas_finance_clean.csv, "
+                         "re-read longhand by scripts/recompute_spending.py")
 
 # CPI-U annual averages, US city average (BLS). Used to state every dollar in
 # constant 2024 terms — nominal school spending rises every year regardless.
@@ -335,9 +340,76 @@ def main() -> int:
     # loop. See scripts/recompute_revenue.py for why it exists and what its
     # agreement does and does not prove.
     redone = recompute_revenue.recompute(args.finance, args.property, int(latest))
+    redone_spend = recompute_spending.recompute(args.finance, int(latest))
     disagreements: list[str] = []
     unrecomputed: list[str] = []
     recomputed = 0
+
+    # ---------------- the statewide headline, with its working ----------------
+    # "Public schools spent $109.4 billion" is the first number on the site, and
+    # it was the last without evidence. It is a SUM, not a division — the gate
+    # reports arithmetic n/a for it — and the per-student companion divides that
+    # sum by summed enrollment over the SAME districts. The filter must match
+    # the live /dollar/texas endpoint's exactly: enrollment > 0 (already applied
+    # to `fin`) and total disbursements > 0. `fin` is not refiltered globally
+    # because every other figure in this artefact keeps the enrollment-only rule.
+    DISB = "all_funds_total_disbursements"
+    _swf = fin[(fin.year == latest) & (fin[DISB] > 0)]
+    sw_total = float(_swf[DISB].sum())
+    sw_enrol = float(_swf.fall_survey_enrollment.sum())
+    sw_districts = int(len(_swf))
+    sw_redo = recompute_spending.statewide(args.finance, int(latest))
+    statewide_lineage = {
+        "recomputed_from": SPEND_RECOMPUTED_FROM,
+        "fiscal_year": int(latest),
+        "source_id": "tea_peims",
+        "measure_id": "spend_per_student",
+        "source": "Texas Education Agency",
+        "artifact": "economics_data.json",
+        "districts": sw_districts,
+        "filter": "fall survey enrollment > 0 and total disbursements > 0",
+        "figures": {
+            "statewide_total_spend": {
+                "value": round(sw_total),
+                "numerator": round(sw_total),
+                # No denominator: a sum, so the gate's arithmetic check is n/a
+                # by design rather than a division invented to fill the field.
+                "formula": ("sum of all_funds_total_disbursements over districts "
+                            "reporting enrollment and spending"),
+                "denominator_type": "",
+                "unit": "USD",
+                "recomputed_value": round(sw_redo["total_disbursements"]),
+            },
+            "statewide_spend_per_student": {
+                "value": round(sw_total / sw_enrol),
+                "numerator": round(sw_total),
+                "denominator": round(sw_enrol),
+                "denominator_type": ("sum of fall survey enrollment over the "
+                                     "same districts"),
+                "formula": ("sum of all_funds_total_disbursements / sum of "
+                            "fall survey enrollment"),
+                "unit": "USD per student",
+                "recomputed_value": round(
+                    sw_redo["total_disbursements"] / sw_redo["enrollment"]),
+            },
+        },
+    }
+    for key, fig in statewide_lineage["figures"].items():
+        recomputed += 1
+        # These figures are sums (or a division of sums) of ~1,200 addends at
+        # $1e11 scale: pandas sums pairwise, the second road sequentially, and
+        # the two orders can legitimately differ in the last float bits. A $1
+        # gap on the rounded values at an exact .5 boundary is summation
+        # order, not a disagreement; anything larger is real and refuses the
+        # build. Per-district figures stay exact — they are single cells, not
+        # sums. (The gate's own _close() is relative and never trips on this.)
+        if abs(fig["recomputed_value"] - fig["value"]) > 1:
+            disagreements.append(f"statewide {key}: built {fig['value']}, "
+                                 f"re-derived {fig['recomputed_value']}")
+    if sw_districts != sw_redo["districts"]:
+        disagreements.append(
+            f"statewide district count: built {sw_districts}, "
+            f"re-derived {sw_redo['districts']}")
 
     districts = {}
     withheld = no_tax_jurisdiction = 0
@@ -496,6 +568,39 @@ def main() -> int:
                           "per_student": round(recapture / row.fall_survey_enrollment),
                           "share_of_local_mo": round(recapture / gross_mo, 4) if gross_mo > 0 else 0.0},
         }
+        # The spending card's evidence, on the same terms as revenue's. Only the
+        # three REAL divisions get lineage: instruction, debt service and
+        # operating each divide a published TEA column by enrollment. The card's
+        # total is COMPOSED (rounded operating + rounded debt) and "everything
+        # else" is a SUBTRACTION (operating minus instruction) — publishing a
+        # numerator and denominator for either would describe a division that
+        # never happened, the same rule that keeps federal_pct out of the
+        # revenue lineage. The template notes say so where a reader will look.
+        _sredo = redone_spend.get(num) or {}
+        entry["allocation"]["lineage"] = {
+            "denominator": round(enrol),
+            "recomputed_from": SPEND_RECOMPUTED_FROM,
+            "figures": {
+                key: {
+                    "value": val,
+                    "numerator": round(float(row[col])),
+                    **({"recomputed_value": round(_sredo[fld] / _sredo["enrollment"])}
+                       if _sredo.get("enrollment") else {}),
+                }
+                for key, fld, col, val in (
+                    ("spend_instruction_per_student", "instruction", INSTR, _instr),
+                    ("spend_debt_per_student", "debt", DEBT, _debt),
+                    ("spend_operating_per_student", "operating", TOTAL, _operating))
+            },
+        }
+        for key, fig in entry["allocation"]["lineage"]["figures"].items():
+            if "recomputed_value" not in fig:
+                unrecomputed.append(f"{num} {key}")
+                continue
+            recomputed += 1
+            if fig["recomputed_value"] != fig["value"]:
+                disagreements.append(f"{num} {key}: built {fig['value']}, "
+                                     f"re-derived {fig['recomputed_value']}")
         if num in cur.index:
             c = cur.loc[num]
             entry["own"] = {
@@ -529,33 +634,78 @@ def main() -> int:
             # legitimately disagree. A figure that will not name its denominator
             # is refused by the publication gate rather than shown.
             "lineage_templates": {
-                key: {
-                    "metric": f"revenue_{key}",
-                    "formula": f"{label} / fall survey enrollment",
-                    "denominator_type": "fall survey enrollment",
-                    "unit": "USD per student",
-                    "rounding": 0.5,
-                    "fiscal_year": int(latest),
-                    "source_id": "tea_peims",
-                    "measure_id": "revenue_mix",
-                    "source": "Texas Education Agency",
-                    "source_note": ("local is GROSS property tax collections; TEA "
-                                    "reports M&O revenue net of recapture, which "
-                                    "understates property-funded districts"),
-                    "artifact": "economics_data.json",
-                }
-                for key, label in (
-                    ("total_per_student", "gross local + state + federal revenue"),
-                    ("local_per_student",
-                     "gross local M&O tax + I&S tax + other local revenue"),
-                    ("state_per_student", "state revenue"),
-                    ("federal_per_student", "federal revenue"),
-                )
+                **{
+                    key: {
+                        "metric": f"revenue_{key}",
+                        "formula": f"{label} / fall survey enrollment",
+                        "denominator_type": "fall survey enrollment",
+                        "unit": "USD per student",
+                        "rounding": 0.5,
+                        "fiscal_year": int(latest),
+                        "source_id": "tea_peims",
+                        "measure_id": "revenue_mix",
+                        "source": "Texas Education Agency",
+                        "source_note": ("local is GROSS property tax collections; "
+                                        "TEA reports M&O revenue net of recapture, "
+                                        "which understates property-funded "
+                                        "districts"),
+                        "artifact": "economics_data.json",
+                    }
+                    for key, label in (
+                        ("total_per_student", "gross local + state + federal revenue"),
+                        ("local_per_student",
+                         "gross local M&O tax + I&S tax + other local revenue"),
+                        ("state_per_student", "state revenue"),
+                        ("federal_per_student", "federal revenue"),
+                    )
+                },
+                # The spending card. Only its three real divisions appear here:
+                # the card's TOTAL is composed from the rounded operating and
+                # debt figures, and its "everything else" is operating minus
+                # instruction — a template for either would describe a division
+                # that never happened (the federal_pct rule, applied again).
+                **{
+                    key: {
+                        "metric": key,
+                        "formula": f"{label} / fall survey enrollment",
+                        "denominator_type": "fall survey enrollment",
+                        "unit": "USD per student",
+                        "rounding": 0.5,
+                        "fiscal_year": int(latest),
+                        "source_id": "tea_peims",
+                        "measure_id": measure,
+                        "source": "Texas Education Agency",
+                        "source_note": note,
+                        "artifact": "economics_data.json",
+                    }
+                    for key, label, measure, note in (
+                        ("spend_instruction_per_student",
+                         "instruction spending (TEA functions 11-95)",
+                         "instruction_share",
+                         "instruction is TEA function codes 11-95, which include "
+                         "classroom transfers"),
+                        ("spend_debt_per_student",
+                         "total debt service expenditure",
+                         "debt_per_student",
+                         "debt service sits OUTSIDE TEA's operating total; the "
+                         "card's total is operating + debt, composed, never "
+                         "subtracted"),
+                        ("spend_operating_per_student",
+                         "total operating expenditure by function",
+                         "spend_per_student",
+                         "excludes debt service and capital construction by "
+                         "TEA's own definition of operating"),
+                    )
+                },
             },
+            # The statewide headline's own evidence — the first number on the
+            # site, so it must not be the last without any. Lives in meta, not
+            # under any district, because it belongs to none of them.
+            "lineage_statewide": statewide_lineage,
             # A check that ran and found nothing must not look like a check that
             # never ran. This is that distinction, recorded in the artefact.
             "lineage_recomputation": {
-                "road": RECOMPUTED_FROM,
+                "road": RECOMPUTED_FROM + "; " + SPEND_RECOMPUTED_FROM,
                 "figures_checked": recomputed,
                 "disagreements": len(disagreements),
                 "not_recomputed": len(unrecomputed),
@@ -608,15 +758,15 @@ def main() -> int:
     # decides what to do about it — that is the whole reason the second road
     # exists, and a warning nobody is watching is not a gate.
     if disagreements:
-        print(f"REFUSING TO WRITE {args.out}: {len(disagreements)} revenue "
-              f"figures disagree with their re-derivation from TEA's own file.",
+        print(f"REFUSING TO WRITE {args.out}: {len(disagreements)} figures "
+              f"disagree with their re-derivation from TEA's own file.",
               file=sys.stderr)
         for line in disagreements[:20]:
             print(f"  {line}", file=sys.stderr)
         if len(disagreements) > 20:
             print(f"  ... and {len(disagreements) - 20} more", file=sys.stderr)
-        print("  Fix the builder or scripts/recompute_revenue.py — do not "
-              "silence this.", file=sys.stderr)
+        print("  Fix the builder or scripts/recompute_revenue.py / "
+              "recompute_spending.py — do not silence this.", file=sys.stderr)
         return 1
 
     args.out.parent.mkdir(parents=True, exist_ok=True)

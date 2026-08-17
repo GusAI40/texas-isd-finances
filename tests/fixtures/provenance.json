@@ -19,7 +19,8 @@
    "state_revenue": "all_funds_state_revenue",
    "local_mo_tax": "all_funds_local_tax_revenue_from_m_o",
    "payroll": "all_funds_total_payroll_expenditures",
-   "enrollment": "fall_survey_enrollment"
+   "enrollment": "fall_survey_enrollment",
+   "total_disbursements": "all_funds_total_disbursements"
   },
   "note": "Statewide sums per year, straight from the source CSV. The provenance tests re-derive every published headline from this, so the guarantee holds in CI where the 18 MB source is not available."
  },
@@ -39,6 +40,7 @@
    "local_mo_tax": 15931463478.0,
    "payroll": 32454503613.0,
    "enrollment": 4727467.0,
+   "total_disbursements": 56696905004.0,
    "districts_in_operating_deficit": 313,
    "students_in_operating_deficit": 2786928.0
   },
@@ -57,6 +59,7 @@
    "local_mo_tax": 16505341290.0,
    "payroll": 33859168948.0,
    "enrollment": 4824231.0,
+   "total_disbursements": 57660853227.0,
    "districts_in_operating_deficit": 309,
    "students_in_operating_deficit": 2054330.0
   },
@@ -75,6 +78,7 @@
    "local_mo_tax": 16387134964.0,
    "payroll": 34273319784.0,
    "enrollment": 4910606.0,
+   "total_disbursements": 56590892149.0,
    "districts_in_operating_deficit": 238,
    "students_in_operating_deficit": 1565169.0
   },
@@ -93,6 +97,7 @@
    "local_mo_tax": 16565209852.0,
    "payroll": 32618169217.0,
    "enrollment": 4977923.0,
+   "total_disbursements": 54551148835.0,
    "districts_in_operating_deficit": 207,
    "students_in_operating_deficit": 898918.0
   },
@@ -111,6 +116,7 @@
    "local_mo_tax": 17508536438.0,
    "payroll": 33341192206.0,
    "enrollment": 5057960.0,
+   "total_disbursements": 55262639047.0,
    "districts_in_operating_deficit": 306,
    "students_in_operating_deficit": 1792185.0
   },
@@ -129,6 +135,7 @@
    "local_mo_tax": 18635894849.0,
    "payroll": 35038636363.0,
    "enrollment": 5134694.0,
+   "total_disbursements": 58696662427.0,
    "districts_in_operating_deficit": 303,
    "students_in_operating_deficit": 1485300.0
   },
@@ -147,6 +154,7 @@
    "local_mo_tax": 19918899148.0,
    "payroll": 37012433868.0,
    "enrollment": 5210148.0,
+   "total_disbursements": 63439246212.0,
    "districts_in_operating_deficit": 318,
    "students_in_operating_deficit": 1823063.0
   },
@@ -165,6 +173,7 @@
    "local_mo_tax": 20723551710.0,
    "payroll": 38867391480.0,
    "enrollment": 5281243.0,
+   "total_disbursements": 67446632178.0,
    "districts_in_operating_deficit": 311,
    "students_in_operating_deficit": 1679951.0
   },
@@ -183,6 +192,7 @@
    "local_mo_tax": 21825061261.0,
    "payroll": 39998124482.0,
    "enrollment": 5341009.0,
+   "total_disbursements": 70724921244.0,
    "districts_in_operating_deficit": 324,
    "students_in_operating_deficit": 2249403.0
   },
@@ -201,6 +211,7 @@
    "local_mo_tax": 23311618526.0,
    "payroll": 41575937660.0,
    "enrollment": 5384847.0,
+   "total_disbursements": 72948709980.0,
    "districts_in_operating_deficit": 253,
    "students_in_operating_deficit": 2090642.0
   },
@@ -219,6 +230,7 @@
    "local_mo_tax": 24943497732.0,
    "payroll": 42536152378.0,
    "enrollment": 5416161.0,
+   "total_disbursements": 75511710690.0,
    "districts_in_operating_deficit": 179,
    "students_in_operating_deficit": 1203423.0
   },
@@ -237,6 +249,7 @@
    "local_mo_tax": 25533913274.0,
    "payroll": 45632220765.0,
    "enrollment": 5478880.0,
+   "total_disbursements": 81343414583.0,
    "districts_in_operating_deficit": 212,
    "students_in_operating_deficit": 1732462.0
   },
@@ -255,6 +268,7 @@
    "local_mo_tax": 26132322677.0,
    "payroll": 47335582606.0,
    "enrollment": 5358831.0,
+   "total_disbursements": 84194851330.0,
    "districts_in_operating_deficit": 198,
    "students_in_operating_deficit": 2013167.0
   },
@@ -273,6 +287,7 @@
    "local_mo_tax": 26795122749.0,
    "payroll": 50301683879.0,
    "enrollment": 5402912.0,
+   "total_disbursements": 89711751589.0,
    "districts_in_operating_deficit": 179,
    "students_in_operating_deficit": 1213650.0
   },
@@ -291,6 +306,7 @@
    "local_mo_tax": 28691872133.0,
    "payroll": 53061122304.0,
    "enrollment": 5503301.0,
+   "total_disbursements": 98870180389.0,
    "districts_in_operating_deficit": 258,
    "students_in_operating_deficit": 1788867.0
   },
@@ -309,6 +325,7 @@
    "local_mo_tax": 25115673157.0,
    "payroll": 55579370977.0,
    "enrollment": 5516711.0,
+   "total_disbursements": 104379535245.0,
    "districts_in_operating_deficit": 418,
    "students_in_operating_deficit": 2957869.0
   },
@@ -327,6 +344,7 @@
    "local_mo_tax": 26403388349.0,
    "payroll": 56101897157.0,
    "enrollment": 5528915.0,
+   "total_disbursements": 109448637486.0,
    "districts_in_operating_deficit": 534,
    "students_in_operating_deficit": 3740955.0
   }

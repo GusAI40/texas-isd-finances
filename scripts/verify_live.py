@@ -142,6 +142,15 @@ CHECKS: list[tuple[str, str, str, str, str]] = [
     ("lineage value (Dallas ISD)", "/district/057905/lineage/total_per_student",
      "value", "economics_data.json",
      "districts.057905.revenue.lineage.figures.total_per_student.value"),
+    ("spending lineage value (Dallas ISD)",
+     "/district/057905/lineage/spend_debt_per_student",
+     "value", "economics_data.json",
+     "districts.057905.allocation.lineage.figures.spend_debt_per_student.value"),
+    # The first number on the site — the money clock's total — served with the
+    # exact sum the artefact carries, not a paraphrase of it.
+    ("statewide headline lineage", "/lineage/texas/statewide_total_spend",
+     "value", "economics_data.json",
+     "meta.lineage_statewide.figures.statewide_total_spend.value"),
     # --- the national layer: Texas against the other 49 ----------------------
     ("Texas state rank in per-pupil spending", "/national/texas",
      "states.texas.rank", "national_data.json", "states.texas.rank"),
@@ -185,6 +194,12 @@ TEXT_CHECKS: list[tuple[str, str, Callable[[Any], Any], str]] = [
      "/district/057905/lineage/total_per_student",
      lambda body: "economics_data.json" not in json.loads(body).get("recomputed_from", ""),
      "the recomputation must not derive from the artefact it validates"),
+    ("the statewide headline passes the gate as a sum",
+     "/lineage/texas/statewide_total_spend",
+     lambda body: (json.loads(body)["gate"]["verdict"] == "VERIFIED"
+                   and json.loads(body)["gate"]["checks"]["arithmetic"] == "n/a"),
+     "the $109.4B total is a sum: VERIFIED, with arithmetic honestly n/a "
+     "rather than wearing a division it never did"),
 ]
 
 _ctx = ssl.create_default_context()
@@ -266,6 +281,36 @@ def check_caching(base: str) -> tuple[str, str]:
     if bad:
         return "DRIFT", "big files are not coming from the cache: " + "; ".join(bad)
     return "ok", "big files served from the cache"
+
+
+def check_headline_twin(base: str, arts: dict[str, Any]) -> tuple[str, str]:
+    """The money clock's total comes from the live DATABASE (/dollar/texas);
+    its lineage panel serves the committed ARTEFACT's sum. Same column, and
+    they must agree — the divergence window is a TEA import reaching Supabase
+    before economics_data.json is rebuilt, in which case the panel would
+    certify a different number than the one it claims to explain, wearing a
+    VERIFIED badge the whole time. Nothing else looks at both sides.
+
+    SKIPs when the DB endpoint is unavailable: a paused database is reported
+    by /health and the monitor, and this check is about agreement, not uptime.
+    """
+    lin = (((arts.get("economics_data.json") or {}).get("meta") or {})
+           .get("lineage_statewide") or {})
+    want = ((lin.get("figures") or {}).get("statewide_total_spend") or {}).get("value")
+    if want is None:
+        return "SKIP", "no statewide lineage in the artefact"
+    body, err = get(base + "/dollar/texas")
+    if err:
+        return "SKIP", f"/dollar/texas unavailable ({err}) — DB state is /health's job"
+    live = body.get("total_spend") if isinstance(body, dict) else None
+    if live is None:
+        return "SKIP", "/dollar/texas has no total_spend field"
+    if not same(float(live), float(want)):
+        return "DRIFT", (f"the clock's DB total {float(live):,.0f} != the lineage "
+                         f"artefact's {float(want):,.0f} — a TEA import has outrun "
+                         "the artefact rebuild; rebuild economics_data.json before "
+                         "the panel certifies a different number than it explains")
+    return "ok", "the clock's DB total matches its lineage artefact"
 
 
 def check_query(base: str) -> tuple[bool, str]:
@@ -390,6 +435,16 @@ def main() -> int:
         rows.append({"check": label, "endpoint": ep, "state": state, "error": err})
         print(f"{'  ok  ' if state == 'ok' else ' DRIFT' if state == 'DRIFT' else ' ---- '}"
               f"  {label:44}")
+
+    tstate, twhy = check_headline_twin(base, arts)
+    rows.append({"check": "clock DB total matches its lineage artefact",
+                 "endpoint": "/dollar/texas", "state": tstate,
+                 "error": None if tstate == "ok" else twhy})
+    tmark = {"ok": "  ok  ", "DRIFT": " DRIFT", "SKIP": " ---- "}[tstate]
+    print(f"{tmark}  {'clock DB total matches its lineage artefact':44}"
+          f"{'' if tstate == 'ok' else '  ' + twhy}")
+    if tstate == "DRIFT":
+        drift.append(("statewide headline twin", "DB and artefact agree", twhy))
 
     cstate, why = check_caching(base)
     rows.append({"check": "big files served from the cache",

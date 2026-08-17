@@ -2766,17 +2766,25 @@ async def get_metric_lineage(district_number: str, metric: str):
         raise HTTPException(status_code=404,
                             detail="District not in the economics dataset")
     meta = econ.get("meta") or {}
-    lin = (rec.get("revenue") or {}).get("lineage") or {}
+    # Two cards carry evidence now — revenue and the spending allocation — and
+    # each publishes its own denominator and recomputation road, so the lookup
+    # picks whichever card actually holds this metric rather than merging them.
+    rev_lin = (rec.get("revenue") or {}).get("lineage") or {}
+    alloc_lin = (rec.get("allocation") or {}).get("lineage") or {}
+    lin = alloc_lin if metric in (alloc_lin.get("figures") or {}) else rev_lin
     figures = lin.get("figures") or {}
     templates = meta.get("lineage_templates") or {}
     if metric not in figures or metric not in templates:
+        published = sorted((set(rev_lin.get("figures") or {})
+                            | set(alloc_lin.get("figures") or {}))
+                           & set(templates))
         raise HTTPException(
             status_code=404,
             detail=(f"No lineage published for {metric!r}. Figures without "
                     "emitted evidence are not yet clickable — the builder must "
                     "emit the numerator and denominator, they cannot be "
                     "recovered from a rounded result. Published for this "
-                    f"district: {sorted(set(figures) & set(templates))}"))
+                    f"district: {published}"))
     # Constants come from the one template; only the numbers are per district.
     raw = {**templates[metric], **figures[metric],
            "denominator": lin.get("denominator")}
@@ -2798,29 +2806,64 @@ async def get_metric_lineage(district_number: str, metric: str):
         recomputed_value=raw.get("recomputed_value"),
         recomputed_from=lin.get("recomputed_from", "") if "recomputed_value" in raw else "",
     )
-    # Everything below comes from the source register, never from the artefact
-    # being described. A source that is unknown to the register leaves these
-    # None, and None renders as "unchecked" — never as "fine".
-    src = sources.SOURCES.get(raw.get("source_id", ""), {})
-    ev.source_url = src.get("url", "")
-    measure = next((m for m in sources.MEASURES
-                    if m["id"] == raw.get("measure_id")), None)
-    if measure:
-        ev.independent_test = measure.get("test", "")
-    try:
-        ev.fresh, ev.aim_ok = sources.freshness_and_aim(raw.get("source_id", ""))
-        # How old the freshness CLAIM is, which is not how old the data is. The
-        # daily watchdog asks the publishers and turns red, but nothing writes
-        # its answer back here, so "nothing newer recorded" is only as good as
-        # the date somebody last edited the record.
-        if ev.fresh is not None and sources.recorded_on():
-            ev.notes.append(
-                f"Freshness is as recorded on {sources.recorded_on()}: no newer "
-                "release from this publisher had been written down. A daily check "
-                "asks the publishers, but it does not update this record by itself.")
-    except Exception:                     # noqa: BLE001 — unknown, never assumed ok
-        ev.fresh, ev.aim_ok = None, None
+    # Everything the register knows — URL, CI test, freshness, aim — is wired
+    # by the one shared helper, never from the artefact being described.
+    lineage.wire_sources(ev, raw.get("source_id", ""), raw.get("measure_id"),
+                         sources)
 
+    return JSONResponse(ev.to_dict(),
+                        headers={"Cache-Control": "public, max-age=600"})
+
+
+@app.get("/lineage/texas/{metric}", tags=["Statewide"])
+async def get_statewide_lineage(metric: str):
+    """The working behind the statewide headline itself.
+
+    "Public schools spent $109.4 billion" is the first number on the site, and
+    for a long time it was the only major one a reader could not open up. This
+    returns its evidence on the same contract as the district figures: the sum,
+    which districts were summed and under what filter, the fiscal year, the
+    publisher — and the verdict of the same publication gate, fed by an
+    independent longhand re-read of TEA's own CSV
+    (scripts/recompute_spending.py, standard-library csv, nothing shared with
+    the builder).
+
+    The total is a SUM, not a division, so the gate reports arithmetic "n/a"
+    for it rather than inventing a denominator; the per-student companion
+    divides that sum by summed enrollment over the SAME districts and names
+    that denominator in full.
+    """
+    econ = _economics()
+    if econ is None:
+        raise HTTPException(
+            status_code=503,
+            detail="Economics data not built. Run scripts/build_economics_data.py")
+    meta = econ.get("meta") or {}
+    lin = meta.get("lineage_statewide") or {}
+    figures = lin.get("figures") or {}
+    if metric not in figures:
+        raise HTTPException(
+            status_code=404,
+            detail=(f"No statewide lineage published for {metric!r}. "
+                    f"Published: {sorted(figures)}"))
+    raw = figures[metric]
+    ev = lineage.Evidence(
+        metric=metric, value=raw["value"],
+        numerator=raw.get("numerator"), denominator=raw.get("denominator"),
+        denominator_type=raw.get("denominator_type", ""),
+        formula=raw.get("formula", ""), unit=raw.get("unit", ""),
+        rounding=raw.get("rounding", 0.5),
+        fiscal_year=lin.get("fiscal_year"),
+        source=lin.get("source", ""), artifact=lin.get("artifact", ""),
+        source_vintage=str(meta.get("year", "")),
+        notes=[f"Summed over {lin.get('districts'):,} districts; "
+               f"filter: {lin.get('filter')}."] if lin.get("districts") else [],
+        recomputed_value=raw.get("recomputed_value"),
+        recomputed_from=lin.get("recomputed_from", "")
+        if "recomputed_value" in raw else "",
+    )
+    lineage.wire_sources(ev, lin.get("source_id", ""), lin.get("measure_id"),
+                         sources)
     return JSONResponse(ev.to_dict(),
                         headers={"Cache-Control": "public, max-age=600"})
 

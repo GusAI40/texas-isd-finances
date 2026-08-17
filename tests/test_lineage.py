@@ -201,9 +201,10 @@ def test_every_source_the_lineage_can_cite_is_in_both_registers():
 
 # ----------------------------------------- the second road must stay a second road
 
-def test_the_recomputation_shares_no_code_with_the_builder():
-    """If this ever imports pandas or the builder, it stops being independent
-    evidence and becomes a second copy of the same mistake.
+@pytest.mark.parametrize("script", ["recompute_revenue.py", "recompute_spending.py"])
+def test_the_recomputation_shares_no_code_with_the_builder(script):
+    """If either second road ever imports pandas or the builder, it stops being
+    independent evidence and becomes a second copy of the same mistake.
 
     The imports are read from the parsed syntax tree, not grepped out of the
     text. A first draft of this test searched the file for the strings and
@@ -212,16 +213,17 @@ def test_the_recomputation_shares_no_code_with_the_builder():
     this file exists to catch.
     """
     import ast
-    tree = ast.parse((ROOT / "scripts" / "recompute_revenue.py").read_text())
+    tree = ast.parse((ROOT / "scripts" / script).read_text())
     imported = set()
     for node in ast.walk(tree):
         if isinstance(node, ast.Import):
             imported.update(a.name.split(".")[0] for a in node.names)
         elif isinstance(node, ast.ImportFrom) and node.module:
             imported.add(node.module.split(".")[0])
-    banned = {"pandas", "numpy", "build_economics_data", "src"}
+    banned = {"pandas", "numpy", "build_economics_data", "src",
+              "recompute_revenue", "recompute_spending"} - {script[:-3]}
     assert not (imported & banned), (
-        f"recompute_revenue.py imports {imported & banned} — its whole value is "
+        f"{script} imports {imported & banned} — its whole value is "
         "arriving at the answer by a different road")
 
 
@@ -234,6 +236,30 @@ def test_the_second_road_reaches_the_published_figure_for_dallas():
     per_student = round(row["total"] / row["enrollment"])
     published = json.loads(ECON.read_text())["districts"][DALLAS]
     assert per_student == published["revenue"]["total_per_student"]
+
+
+@pytest.mark.skipif(not (ROOT / "data" / "texas_finance_clean.csv").exists(),
+                    reason="source CSV is not committed (18 MB)")
+def test_the_spending_second_road_reaches_the_published_figures():
+    """Dallas's card figures and the front page's statewide headline, each
+    re-derived by the standard-library road and compared to what shipped."""
+    import recompute_spending
+    econ = json.loads(ECON.read_text())
+    row = recompute_spending.recompute()[DALLAS]
+    alloc = econ["districts"][DALLAS]["allocation"]
+    for fld, key in (("instruction", "instruction_per_student"),
+                     ("debt", "debt_per_student"),
+                     ("operating", "operating_per_student")):
+        assert round(row[fld] / row["enrollment"]) == alloc[key], key
+    sw = recompute_spending.statewide()
+    figs = econ["meta"]["lineage_statewide"]["figures"]
+    # <= 1: sequential vs pairwise float summation over ~1,200 addends at
+    # $1e11 can land a rounded dollar apart at an exact .5 boundary. Anything
+    # beyond that is a real disagreement and must fail.
+    assert abs(round(sw["total_disbursements"])
+               - figs["statewide_total_spend"]["value"]) <= 1
+    assert abs(round(sw["total_disbursements"] / sw["enrollment"])
+               - figs["statewide_spend_per_student"]["value"]) <= 1
 
 
 # ------------------------------------------------------------- the artefact
@@ -274,6 +300,42 @@ class TestPublishedArtifact:
         figures = econ["districts"][DALLAS]["revenue"]["lineage"]["figures"]
         assert not any(k.endswith("_pct") for k in figures)
 
+    def test_every_district_carries_spending_evidence_too(self, econ):
+        missing = [n for n, d in econ["districts"].items()
+                   if not ((d.get("allocation") or {}).get("lineage")
+                           or {}).get("figures")]
+        assert not missing, (
+            f"{len(missing)} districts publish an allocation with no evidence")
+
+    def test_composed_and_subtracted_figures_get_no_division_lineage(self, econ):
+        """The card's total is rounded operating + rounded debt, and "everything
+        else" is operating minus instruction. A numerator-over-denominator record
+        for either would describe a division that never happened — the same rule
+        that keeps federal_pct plain."""
+        figures = econ["districts"][DALLAS]["allocation"]["lineage"]["figures"]
+        assert set(figures) == {"spend_instruction_per_student",
+                                "spend_debt_per_student",
+                                "spend_operating_per_student"}
+        templates = econ["meta"]["lineage_templates"]
+        assert "spend_total_per_student" not in templates
+        assert "other_operating_per_student" not in templates
+
+    def test_the_statewide_headline_carries_its_own_evidence(self, econ):
+        """The $109.4B figure was the first number on the site and the last
+        without any working. Its recomputation road must be the spending
+        script, never the artefact it lives in."""
+        lin = econ["meta"]["lineage_statewide"]
+        assert "recompute_spending" in lin["recomputed_from"]
+        assert "economics_data.json" not in lin["recomputed_from"]
+        figs = lin["figures"]
+        total = figs["statewide_total_spend"]
+        # <= 1: summation-order float noise on a $1e11 sum, see the builder.
+        assert abs(total["recomputed_value"] - total["value"]) <= 1
+        assert "denominator" not in total or total.get("denominator") is None
+        ps = figs["statewide_spend_per_student"]
+        assert abs(ps["recomputed_value"] - ps["value"]) <= 1
+        assert "enrollment" in ps["denominator_type"]
+
 
 # ---------------------------------------------------------------- the route
 
@@ -300,10 +362,43 @@ class TestLineageEndpoint:
             assert r.status_code == 200, metric
             assert r.json()["gate"]["verdict"] == lineage.VERIFIED, metric
 
+    def test_the_three_spending_divisions_are_clickable(self, client):
+        for metric in ("spend_instruction_per_student", "spend_debt_per_student",
+                       "spend_operating_per_student"):
+            r = client.get(f"/district/{DALLAS}/lineage/{metric}")
+            assert r.status_code == 200, metric
+            body = r.json()
+            assert body["gate"]["verdict"] == lineage.VERIFIED, metric
+            assert body["value"] == round(body["numerator"] / body["denominator"])
+
+    def test_the_statewide_headline_is_clickable_and_a_sum_is_not_a_division(self, client):
+        """The total is a SUM — the gate must say arithmetic n/a rather than
+        wear a division it never did; the per-student companion IS a division
+        and must name which enrollment it divided by."""
+        r = client.get("/lineage/texas/statewide_total_spend")
+        assert r.status_code == 200
+        body = r.json()
+        assert body["gate"]["verdict"] == lineage.VERIFIED
+        assert body["gate"]["checks"]["arithmetic"] == "n/a"
+        assert body["denominator"] is None
+        r2 = client.get("/lineage/texas/statewide_spend_per_student")
+        assert r2.status_code == 200
+        b2 = r2.json()
+        assert b2["gate"]["verdict"] == lineage.VERIFIED
+        assert b2["value"] == round(b2["numerator"] / b2["denominator"])
+        assert "enrollment" in b2["denominator_type"]
+
+    def test_an_unknown_statewide_metric_404s_and_lists_what_there_is(self, client):
+        r = client.get("/lineage/texas/made_up")
+        assert r.status_code == 404
+        assert "statewide_total_spend" in r.json()["detail"]
+
     def test_a_metric_with_no_evidence_404s_and_lists_what_there_is(self, client):
         r = client.get(f"/district/{DALLAS}/lineage/made_up")
         assert r.status_code == 404
-        assert "total_per_student" in r.json()["detail"]
+        detail = r.json()["detail"]
+        assert "total_per_student" in detail
+        assert "spend_debt_per_student" in detail
 
     def test_an_unknown_district_404s(self, client):
         r = client.get("/district/999999/lineage/total_per_student")
@@ -340,6 +435,16 @@ class TestLineageOverMCP:
             "the tool must say the two roads share an upstream file, so a mistake "
             "made before either of them would be reproduced by both")
 
+    def test_the_tool_opens_a_spending_figure_too(self):
+        from src import mcp_tools
+        r = mcp_tools.call_tool("district_lineage",
+                                {"district_number": DALLAS,
+                                 "metric": "spend_debt_per_student"})
+        sc = r["structuredContent"]
+        assert sc["gate"]["verdict"] == lineage.VERIFIED
+        assert sc["value"] == round(sc["numerator"] / sc["denominator"])
+        assert "spend_debt_per_student" in sc["available_metrics"]
+
     def test_asking_for_a_figure_with_no_working_says_what_there_is(self):
         from src import mcp_tools
         r = mcp_tools.call_tool("district_lineage",
@@ -375,3 +480,19 @@ def test_the_number_on_the_page_is_actually_clickable():
         assert f"v-{verdict}" in page, (
             f"{verdict} has no style, so it would render unlabelled — the point "
             "is that a reader sees the bad verdicts too")
+
+
+def test_the_statewide_headline_and_the_spending_card_are_clickable():
+    """Wave 2 of the same affordance: the money clock's total, the statewide
+    per-student figure, and the allocation card's two real divisions all carry
+    lineage buttons, and the page knows statewide metrics resolve against
+    /lineage/texas rather than a district path."""
+    page = (ROOT / "static" / "index.html").read_text()
+    assert "statewide_total_spend" in page, "the clock's total is not clickable"
+    assert "statewide_spend_per_student" in page
+    assert "spend_instruction_per_student" in page
+    assert "spend_debt_per_student" in page
+    assert "spend_operating_per_student" in page
+    assert "'/lineage/texas/'" in page, (
+        "statewide metrics have no district — the page must call the "
+        "statewide endpoint for them")

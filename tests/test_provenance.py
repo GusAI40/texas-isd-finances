@@ -290,6 +290,31 @@ def test_district_and_student_counts_agree(fx, forensic):
     assert abs(y["enrollment"] - students) / y["enrollment"] < 0.001
 
 
+def test_the_front_page_headline_recomputes_from_the_fixture(fx, econ):
+    """"Public schools spent $109.4 billion" — the first number on the site,
+    anchored to the SHA-hashed fixture so the guarantee holds in CI.
+
+    The fixture sums over districts reporting enrollment; the published
+    lineage additionally requires disbursements > 0. For every year on record
+    those two filters admit the same districts, so the sums are asserted EQUAL
+    — if a future TEA release ever ships a reporting district with zero
+    disbursements, this fires and a human decides which filter the headline
+    should state, rather than the difference shipping silently.
+    """
+    lin = econ["meta"]["lineage_statewide"]
+    y = fx["years"][lin["fiscal_year"]]
+    figs = lin["figures"]
+    # <= 1: the fixture and the builder both use pandas but sum different row
+    # partitions (fillna vs a filtered frame), and pairwise float summation at
+    # $1e11 can land a rounded dollar apart. Larger than that is a real
+    # disagreement between the fixture and the published headline.
+    assert abs(round(y["total_disbursements"])
+               - figs["statewide_total_spend"]["value"]) <= 1
+    assert y["districts"] == lin["districts"]
+    assert abs(round(y["total_disbursements"] / y["enrollment"])
+               - figs["statewide_spend_per_student"]["value"]) <= 1
+
+
 # --- the last link ----------------------------------------------------------
 
 def test_the_committed_artifacts_match_a_fresh_build():

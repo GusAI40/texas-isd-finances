@@ -237,3 +237,40 @@ def gate(ev: Evidence) -> dict[str, Any]:
 def refuse(metric: str, because: str, **kw) -> Evidence:
     """A published refusal. Louder than a blank and more honest than a guess."""
     return Evidence(metric=metric, value=None, refused_because=because, **kw)
+
+
+def wire_sources(ev: Evidence, source_id: str, measure_id, sources) -> Evidence:
+    """Fill the register-derived fields — source URL, the CI test behind the
+    measure, freshness and aim — in ONE place.
+
+    Three call sites assemble Evidence (the district endpoint, the statewide
+    endpoint, the MCP tool), and by the time the third appeared the first two
+    had already drifted in their freshness-note wording. The gate contract
+    must not live in three hand-synchronised copies, so they all hand their
+    Evidence to this.
+
+    `sources` is the src.sources module, passed in rather than imported, so
+    this file keeps no imports of its own and the callers keep their lazy
+    import style. Everything set here comes from the register, never from the
+    artefact being described: a source unknown to the register leaves
+    fresh/aim None, and None renders as "unchecked" — never as "fine".
+    """
+    ev.source_url = (sources.SOURCES.get(source_id or "") or {}).get("url", "")
+    measure = next((m for m in sources.MEASURES if m["id"] == measure_id), None)
+    if measure:
+        ev.independent_test = measure.get("test", "")
+    try:
+        ev.fresh, ev.aim_ok = sources.freshness_and_aim(source_id or "")
+        # How old the freshness CLAIM is, which is not how old the data is.
+        # The daily watchdog asks the publishers and turns red, but nothing
+        # writes its answer back here, so "nothing newer recorded" is only as
+        # good as the date somebody last edited the record.
+        if ev.fresh is not None and sources.recorded_on():
+            ev.notes.append(
+                f"Freshness is as recorded on {sources.recorded_on()}: no newer "
+                "release from this publisher had been written down. A daily "
+                "check asks the publishers, but it does not update this record "
+                "by itself.")
+    except Exception:                     # noqa: BLE001 — unknown, never assumed ok
+        ev.fresh, ev.aim_ok = None, None
+    return ev
