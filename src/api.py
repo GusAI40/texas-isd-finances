@@ -2930,7 +2930,16 @@ async def get_briefing(request: Request):
     Reads from the isd_briefings table when a database is configured, and falls
     back to a committed snapshot (static/isd_briefing.json) so the page works
     with no database at all — the same Tier-1 principle as the rest of the site.
+
+    Carries an hour of shared cache: the front page's news strip reads this on
+    every visit, the content changes once a day via cron, and without the
+    header every front-page view was one database round trip. An hour of
+    possible staleness on a daily product is the right trade. Same guard as
+    the cache middleware: a locked site must never prime a shared cache one
+    authorised reader could fill for everyone else.
     """
+    hdrs = ({} if site_gate.gate_password() else
+            {"Cache-Control": "public, s-maxage=3600, stale-while-revalidate=600"})
     pool = request.app.state.db_pool
     if pool is not None:
         try:
@@ -2938,12 +2947,13 @@ async def get_briefing(request: Request):
                 row = await conn.fetchrow(
                     "SELECT payload FROM public.isd_briefings ORDER BY run_date DESC LIMIT 1")
                 if row:
-                    return json.loads(row["payload"])
+                    return Response(content=row["payload"],
+                                    media_type="application/json", headers=hdrs)
         except Exception as exc:  # table missing or DB down → fall through to file
             print(f"WARNING: briefing table unavailable, using snapshot: {exc}")
     snap = STATIC_DIR / "isd_briefing.json"
     if snap.exists():
-        return FileResponse(snap, media_type="application/json")
+        return FileResponse(snap, media_type="application/json", headers=hdrs)
     raise HTTPException(status_code=404,
                         detail="No briefing yet. Run the daily research (see docs/ISD_INTELLIGENCE.md).")
 

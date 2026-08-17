@@ -104,6 +104,49 @@ def test_both_strips_share_one_rotator_and_it_honours_reduced_motion():
         "duplication is back")
 
 
+def test_hidden_actually_hides_a_ticker_strip():
+    """An author display:flex beats the UA's [hidden]{display:none}, so a strip
+    with nothing to show rendered as an empty visible bar on production
+    (owner-reported, screenshot-confirmed). The guard must exist."""
+    assert ".ticker[hidden] { display:none !important; }" in INDEX
+
+
+def test_the_news_strip_reads_briefing_not_a_raw_static_path():
+    """The site deliberately has NO blanket static mount — one asset, one
+    route — so /static/isd_briefing.json 404s in production. The strip must
+    read /briefing, which is CDN-cached and falls back to the committed
+    snapshot server-side."""
+    assert "fetch('/static/isd_briefing.json')" not in INDEX
+    assert "api('/briefing')" in INDEX
+
+
+def test_briefing_carries_shared_cache_when_the_site_is_public(monkeypatch):
+    """Without this header the front-page news strip is one database round
+    trip per visit. With SITE_PASSWORD set the header must vanish — a locked
+    site must never prime a shared cache."""
+    from fastapi.testclient import TestClient
+
+    from src.api import app
+    with TestClient(app) as c:
+        r = c.get("/briefing")
+        if r.status_code == 200:
+            assert "s-maxage=3600" in r.headers.get("cache-control", "")
+
+
+def test_the_brand_is_home_and_never_carries_the_district():
+    """The owner asked twice where the brand takes them. It takes them HOME —
+    the statewide landing — so it must never be rewritten to /?d=… like the
+    view-switching tabs are. Both the parse-time decoration and the
+    click-time resolver must skip it, on every page."""
+    for page in sorted((ROOT / "static").glob("*.html")):
+        html = page.read_text()
+        if 'id="masthead"' not in html:
+            continue
+        assert html.count("a.classList.contains('m-brand')") == 2, (
+            f"{page.name}: the brand-is-home exclusion is missing from the "
+            f"decoration or the click resolver")
+
+
 # ---------------------------------------------------------------- the borders
 
 def test_the_borders_exclusion_rule_matches_its_own_prose():
