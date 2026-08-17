@@ -69,6 +69,7 @@ EXPECTED_HOSTS = {
     "Texas Education Agency with the Texas Comptroller":
         ("tea.texas.gov", "comptroller.texas.gov"),
     "US Census Bureau (public domain)": ("census.gov", "www2.census.gov"),
+    "National Center for Education Statistics": ("nces.ed.gov",),
     "US Bureau of Labor Statistics": ("bls.gov", "www.bls.gov"),
     "Texas Bond Review Board": ("data.texas.gov", "brb.texas.gov"),
 }

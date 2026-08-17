@@ -194,7 +194,7 @@ _CACHEABLE_PATHS = frozenset({
     "/district-geo",
     "/bonds/texas", "/debt/texas", "/campuses/texas", "/trends/texas",
     "/forensics/texas", "/economics/texas", "/equity/texas",
-    "/takeover/houston",
+    "/national/texas", "/takeover/houston",
 })
 
 
@@ -1843,6 +1843,81 @@ async def get_texas_trends():
         raise HTTPException(status_code=503,
                             detail="Trend data not built. Run scripts/build_trend_data.py")
     return {k: v for k, v in data.items() if k != "districts"}
+
+
+_national_cache: Optional[Dict[str, Any]] = None
+
+
+def _national() -> Optional[Dict[str, Any]]:
+    global _national_cache
+    if _national_cache is None:
+        path = STATIC_DIR / "national_data.json"
+        if not path.exists():
+            return None
+        with path.open() as fh:
+            _national_cache = json.load(fh)
+    return _national_cache
+
+
+@app.get("/national/texas", tags=["Statewide"])
+async def get_texas_national():
+    """Texas against the other 49 states, on the federal government's ruler.
+
+    Everything else on this site compares Texas districts to Texas. This is
+    the missing axis: NCES's per-pupil current expenditure places **Texas
+    44th of 51** (50 states + DC) at $13,642 per student in average daily
+    attendance, fiscal 2024 — and the ranking barely moves if the divisor is
+    fall membership instead (45th), so the denominator is not the story.
+
+    District-level: Census F-33 per-pupil current spending for every Texas
+    independent school district, each with its percentile among the 9,294
+    U.S. districts with 500+ students. Current spending is the Census's own
+    figure and EXCLUDES construction, land and debt — it is deliberately not
+    comparable to the all-in per-student total elsewhere on this site, and
+    the two are never mixed.
+
+    Census fiscal 2024, one year behind the TEA fiscal 2025 data here.
+    Texas charters have no F-33 row (the Census surveys governments), so
+    they carry an explained absence instead of a percentile. Serves with no
+    database.
+    """
+    data = _national()
+    if data is None:
+        raise HTTPException(
+            status_code=503,
+            detail="National data not built. Run scripts/build_national_data.py")
+    return {k: v for k, v in data.items() if k not in ("districts", "absent")}
+
+
+@app.get("/district/{district_number}/national", tags=["Districts"])
+async def get_district_national(district_number: str):
+    """One district against every other district in the country.
+
+    The Census's own per-pupil current spending figure for this district and
+    its percentile among the 9,294 U.S. districts with 500+ students, plus
+    the statewide rank for context. Districts under 500 students show the
+    figure but no percentile — the site-wide rule, because per-student
+    figures in tiny districts move on a single hire.
+
+    Charters return an explained absence: the Census surveys governments,
+    so a charter has no row anywhere in the country, which is different
+    from being unranked.
+    """
+    data = _national()
+    if data is None:
+        raise HTTPException(
+            status_code=503,
+            detail="National data not built. Run scripts/build_national_data.py")
+    base = {"district_number": district_number, "meta": data["meta"],
+            "states": {"texas": data["states"]["texas"]},
+            "national": data["national"]}
+    rec = data["districts"].get(district_number)
+    if rec is not None:
+        return {**base, **rec}
+    name = _district_name(district_number)
+    why = data.get("absent", {}).get(district_number)
+    return {**base,
+            "absence": absences.no_national_row(name, is_charter=why == "charter")}
 
 
 _equity_cache: Optional[Dict[str, Any]] = None

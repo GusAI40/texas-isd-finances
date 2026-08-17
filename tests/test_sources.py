@@ -140,6 +140,16 @@ def test_the_sources_page_serves_and_is_reachable(client):
     assert analytics.countable_path("/sources") == "/sources"
 
 
+def test_the_counts_in_the_eyebrow_are_the_registers_counts(client):
+    """'Seven public sources' sat on the page while the register grew to ten —
+    a prose gloss of a computable number, the same failure as 'fewer than
+    half'. The eyebrow now uses digits so this test can hold it to the
+    register."""
+    page = client.get("/sources").text
+    assert f"{len(S.SOURCES)} public sources" in page
+    assert f"{len(S.MEASURES)} published measures" in page
+
+
 def test_the_page_and_the_api_cannot_disagree(client):
     """Both are generated from the same register. If the page were hand-written
     it would drift, and a reader and a machine would get different answers."""

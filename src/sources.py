@@ -183,6 +183,69 @@ SOURCES: dict[str, dict] = {
                 "paper, and special obligations not needing Attorney General "
                 "approval, per the Board's scope note.",
     },
+    "census_f33": {
+        "title": "Annual Survey of School System Finances (F-33), district "
+                 "file, fiscal 2024",
+        "publisher": "US Census Bureau (public domain)",
+        "url": "https://www2.census.gov/programs-surveys/school-finances/"
+               "tables/2024/secondary-education-finance/elsec24t.xlsx",
+        # The xlsx is a zip whose compressed members cannot carry a literal
+        # product name, so the proof reads the Census's own directory listing,
+        # which names the file it serves.
+        "attribution_url": "https://www2.census.gov/programs-surveys/"
+                           "school-finances/tables/2024/"
+                           "secondary-education-finance/",
+        "proves_it": ["elsec24t.xlsx", "school-finances"],
+        "covers": "fiscal 2024, all 14,077 U.S. public school systems",
+        "authoritative_for": "national per-district revenue, spending, and "
+                             "per-pupil current spending on one federal ruler",
+        "local_file": "data/census_f33_2024.xlsx",
+        "ingested_by": "scripts/build_national_data.py",
+        "note": "Current spending is the Census's own concept: it excludes "
+                "construction, land, debt, and spending for students outside "
+                "a district's fall membership, so it is deliberately never "
+                "mixed with the TEA all-funds figures on this site. Dollars "
+                "in the file are thousands; per-pupil columns are whole "
+                "dollars. Fiscal 2024, one year behind the TEA data here.",
+    },
+    "nces_npefs": {
+        "title": "National Public Education Financial Survey (NPEFS), state "
+                 "file, fiscal 2024",
+        "publisher": "National Center for Education Statistics",
+        "url": "https://nces.ed.gov/ccd/Data/txt/stfis24_1a.txt",
+        # A tab-delimited file that carries its own column names in the first
+        # line — PPE15 is the published per-pupil figure the ranking uses.
+        "proves_it": ["SURVYEAR", "PPE15"],
+        "covers": "fiscal 2024, the 50 states, DC and 5 territories",
+        "authoritative_for": "state-level per-pupil current expenditure and "
+                             "the Texas state ranking",
+        "local_file": "data/npefs_state_2024.txt",
+        "ingested_by": "scripts/build_national_data.py",
+        "note": "PPE15 divides current expenditure (NCE13) by average daily "
+                "attendance (ADA) — an identity the build asserts for every "
+                "state. Territories are excluded from the ranking; the "
+                "artifact says so.",
+    },
+    "ccd_lea_directory": {
+        "title": "CCD Local Education Agency Directory, SY 2024-25 (v.1a)",
+        "publisher": "National Center for Education Statistics",
+        "url": "https://nces.ed.gov/ccd/Data/zip/"
+               "ccd_lea_029_2425_w_1a_073025.zip",
+        # Like the TIGER zip: the archive names its member in the local file
+        # header at the very front, so a ranged read proves the product.
+        "proves_it": ["PK", "ccd_lea_029_2425_w_1a_073025.csv"],
+        "covers": "SY 2024-25, every U.S. local education agency",
+        "authoritative_for": "the Census-to-TEA join: ST_LEAID ('TX-057905') "
+                             "to NCES LEAID (4816230)",
+        "local_file": "data/ccd_lea_directory_2425.csv",
+        "ingested_by": "scripts/build_national_data.py",
+        "note": "The NCES district id is NOT derivable from the TEA number by "
+                "arithmetic (Dallas is 4816230, not 48+057905); this "
+                "directory is the only published bridge. Keyed by number, so "
+                "the eleven Texas district names shared by two districts "
+                "each cannot cross-match. All 1,048 Texas F-33 rows resolve "
+                "through it.",
+    },
     "census_tiger": {
         "title": "TIGER/Line Unified School Districts, Texas",
         "publisher": "US Census Bureau (public domain)",
@@ -398,6 +461,50 @@ MEASURES: list[dict] = [
         "shown_on": ["/geomap"],
         "api": "/district-geo",
         "test": "tests/test_static_pages.py",
+    },
+    {
+        "id": "national_percentile",
+        "label": "A district against every U.S. district",
+        "source": "census_f33",
+        "columns": ["PPCSTOT", "ENROLL", "NCESID"],
+        "method": "The Census's own per-pupil current spending figure, placed "
+                  "among the 9,294 U.S. districts with 500+ students. The "
+                  "percentile is the share of ranked districts spending "
+                  "strictly less. Never mixed with TEA figures: different "
+                  "fiscal year (2024) and a narrower ruler (no construction, "
+                  "no debt).",
+        "shown_on": ["/"],
+        "api": "/district/{n}/national",
+        "test": "tests/test_national.py::"
+                "test_the_district_percentile_rederives_from_the_census_file",
+    },
+    {
+        "id": "texas_state_rank",
+        "label": "Texas among the 50 states and DC",
+        "source": "nces_npefs",
+        "columns": ["PPE15", "NCE13", "ADA", "FIPS"],
+        "method": "States ranked by NCES's published per-pupil current "
+                  "expenditure, which is current expenditure divided by "
+                  "average daily attendance — an identity asserted for every "
+                  "state at build time. Territories excluded, and said so.",
+        "shown_on": ["/"],
+        "api": "/national/texas",
+        "test": "tests/test_national.py::"
+                "test_the_state_rank_rederives_from_the_committed_npefs_file",
+    },
+    {
+        "id": "census_tea_bridge",
+        "label": "The Census-to-TEA district join",
+        "source": "ccd_lea_directory",
+        "columns": ["LEAID", "ST_LEAID", "FIPST"],
+        "method": "NCES ids are not derivable from TEA numbers by arithmetic, "
+                  "so every join goes through the CCD directory's ST_LEAID "
+                  "column, keyed by number — shared district names cannot "
+                  "cross-match. All 1,048 Texas F-33 rows resolve.",
+        "shown_on": ["/"],
+        "api": "/district/{n}/national",
+        "test": "tests/test_national.py::"
+                "test_the_bridge_is_keyed_by_number_not_name",
     },
     {
         "id": "constant_dollars",

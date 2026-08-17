@@ -113,6 +113,36 @@ def test_prototype_url_never_appears():
         assert "texas-isd-finances.vercel.app" not in page.read_text(encoding="utf-8")
 
 
+def test_the_more_menu_is_not_inside_the_scrolling_tab_strip():
+    """The dropdown lived inside .m-tabs, whose overflow-x:auto CLIPS an
+    absolutely-positioned child — the menu opened underneath the page and
+    every item was unreachable, which read as a dead link (reported by the
+    owner, confirmed by elementFromPoint in a driven browser). The details
+    element must be a SIBLING of the tab strip, never a child."""
+    for page in PAGES:
+        html = page.read_text(encoding="utf-8")
+        if 'class="m-more"' not in html:
+            continue
+        tabs_start = html.find('class="m-tabs"')
+        tabs_end = html.find("</div>", tabs_start)
+        more = html.find('<details class="m-more">')
+        assert more > tabs_end > tabs_start > -1, (
+            f"{page.name}: the More dropdown is back inside the m-tabs "
+            f"overflow container, where the container clips it")
+
+
+def test_clicking_the_tab_for_the_current_page_scrolls_to_top():
+    """A same-destination masthead click used to be a silent reload — the
+    browser restored the scroll position, so the brand and the active tab
+    looked dead. Every page's masthead script must carry the intercept."""
+    for page in PAGES:
+        html = page.read_text(encoding="utf-8")
+        if 'id="masthead"' not in html:
+            continue
+        assert "u.pathname === location.pathname && u.search === location.search" in html, (
+            f"{page.name}: the same-destination scroll-to-top intercept is gone")
+
+
 def test_every_page_carries_the_same_masthead():
     """Singularity: one identical header on every page — brand, the seven
     primary destinations, and a theme toggle — so no reader is ever more

@@ -262,7 +262,7 @@
   <div class="m-in">
     <a class="m-brand" href="/"><span class="m-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
       Texas ISD<span class="m-sub">Financial Resource Guide</span></a>
-    <div class="m-tabs"><a href="/">The Report</a><a href="/feed">The Feed</a><a href="/forensics" aria-current="page">Forensic File</a><a href="/geomap">Map</a><a href="/heatmap">Heatmap</a><a href="/about">About</a><a href="/sources">Sources</a><details class="m-more"><summary>More</summary><div class="m-menu"><a href="/map">Seating chart</a><a href="/intel">Daily briefing</a><a href="/transparency">How this was made</a></div></details></div>
+    <div class="m-tabs"><a href="/">The Report</a><a href="/feed">The Feed</a><a href="/forensics" aria-current="page">Forensic File</a><a href="/geomap">Map</a><a href="/heatmap">Heatmap</a><a href="/about">About</a><a href="/sources">Sources</a></div><details class="m-more"><summary>More</summary><div class="m-menu"><a href="/map">Seating chart</a><a href="/intel">Daily briefing</a><a href="/transparency">How this was made</a></div></details>
     <button class="mast-theme" id="mast-theme" type="button" aria-label="Toggle light and dark theme">Theme</button>
   </div>
 </nav>
@@ -295,6 +295,20 @@
         }
       });
     }
+    /* Clicking the brand or the tab for the page you are already on used to
+       be a silent reload — the browser restored the scroll position, so the
+       click looked dead. Same destination now means "back to the top". */
+    document.querySelectorAll('#masthead a[href]').forEach(function (a) {
+      a.addEventListener('click', function (ev) {
+        var u;
+        try { u = new URL(a.getAttribute('href'), location.href); } catch (e) { return; }
+        if (u.pathname === location.pathname && u.search === location.search) {
+          ev.preventDefault();
+          var re = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+          window.scrollTo({ top: 0, behavior: re ? 'auto' : 'smooth' });
+        }
+      });
+    });
   }());
 </script>
 <div class="shell">

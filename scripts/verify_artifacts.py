@@ -47,6 +47,7 @@ CHAIN = [
     ("bond_data.json", "build_bond_data.py", []),
     ("forensic_data.json", "build_forensic_data.py", []),
     ("trend_data.json", "build_trend_data.py", []),
+    ("national_data.json", "build_national_data.py", []),
 ]
 
 
@@ -114,6 +115,10 @@ def main() -> int:
                 cmd += ["--bonds", str(tmpdir / "bond_data.json"),
                         "--economics", str(tmpdir / "economics_data.json")]
             if builder == "build_trend_data.py":
+                cmd += ["--economics", str(tmpdir / "economics_data.json")]
+            if builder == "build_national_data.py":
+                # Coverage counts are measured against the economics artifact,
+                # so measure against the freshly rebuilt one, not the committed.
                 cmd += ["--economics", str(tmpdir / "economics_data.json")]
             r = subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True)
             if r.returncode:

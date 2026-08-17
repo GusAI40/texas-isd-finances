@@ -71,6 +71,33 @@ def test_the_minutes_claim_names_what_the_total_excludes():
     assert "construction excluded" in INDEX
 
 
+# ------------------------------------------------------------ the news ticker
+
+def test_the_news_ticker_rotates_whole_headlines_and_links_the_feed():
+    """The front-page news strip follows the figures strip's settled rule: one
+    WHOLE headline at a time, never a crawling marquee fragment, and the full
+    stream stays one click away on /feed."""
+    assert 'id="newsticker"' in INDEX
+    assert 'id="news-track"' in INDEX
+    assert '<a class="ticker-all" href="/feed">' in INDEX
+
+
+def test_news_headlines_are_escaped_before_they_touch_innerhtml():
+    """Headlines are external text from news sources. Unescaped, a headline
+    containing markup would execute in every reader's browser."""
+    assert "replace(/&/g, '&amp;').replace(/</g, '&lt;')" in INDEX
+
+
+def test_the_news_ticker_honours_reduced_motion():
+    """Same contract as the figures strip: reduced motion means nothing
+    self-updates — the reader gets every headline at once in a strip they
+    scroll themselves."""
+    start = INDEX.find("function renderNewsTicker")
+    body = INDEX[start:start + 2200]
+    assert "prefers-reduced-motion" in body
+    assert "classList.add('all')" in body
+
+
 # ---------------------------------------------------------------- the borders
 
 def test_the_borders_exclusion_rule_matches_its_own_prose():
