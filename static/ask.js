@@ -148,6 +148,10 @@
     '  border-radius:4px 14px 14px 14px; padding:.85rem 1rem 1rem; }',
     '.ta-lead { margin:0; font-size:1.12rem; line-height:1.45; font-weight:600;',
     '  letter-spacing:-.011em; color:var(--ink, #14171a); }',
+    /* The lead is the model's whole opening paragraph, and a four-sentence
+       paragraph at heading weight is a wall. Long leads step down; nothing is
+       split or hidden, only sized to what it is. */
+    '.ta-lead.long { font-size:1.02rem; font-weight:500; letter-spacing:0; }',
     '.ta-sec { margin:.9rem 0 0; }',
     '.ta-cards { display:grid; gap:.5rem; margin:.85rem 0 0;',
     '  grid-template-columns:repeat(auto-fit, minmax(132px, 1fr)); }',
@@ -181,6 +185,8 @@
     /* a table must scroll inside its own box; the sheet must never scroll sideways */
     '.ta-tw { margin:.7rem 0 0; overflow-x:auto; -webkit-overflow-scrolling:touch;',
     '  border:1px solid var(--rule, #e3e6e8); border-radius:10px; }',
+    '.ta-tw.tall { max-height:340px; overflow-y:auto; }',
+    '.ta-tw.tall .ta-tb th { position:sticky; top:0; z-index:1; }',
     '.ta-tb { border-collapse:collapse; width:100%; font-size:.92rem; }',
     '.ta-tb th, .ta-tb td { padding:.5rem .7rem; text-align:left; white-space:nowrap;',
     '  border-bottom:1px solid var(--rule, #e3e6e8); }',
@@ -370,6 +376,19 @@
     });
     t.appendChild(tb);
     wrapEl.appendChild(t);
+    /* A model told to keep lists short can still return two hundred rows, and
+       one long table would push everything below it — the sources, the
+       follow-ups — out of reach. The table gets its own scrollable height and
+       says how many rows it has. Nothing is dropped: truncating rows would
+       hide data, which is the one thing worse than a long table. */
+    if ((rows || []).length > 12) {
+      wrapEl.classList.add('tall');
+      var cap = el('p', 'ta-cap', rows.length.toLocaleString() + ' rows — scroll the table');
+      var holder = el('div');
+      holder.appendChild(wrapEl);
+      holder.appendChild(cap);
+      return holder;
+    }
     return wrapEl;
   }
 
@@ -462,7 +481,7 @@
         + s.figures.year + ' · ' + s.figures.note));
     }
 
-    (s.blocks || []).forEach(function (b, i) {
+    (s.blocks || []).forEach(function (b) {
       if (!b) return;
       if (b.type === 'heading') frag.appendChild(el('h3', 'ta-h', b.text || ''));
       else if (b.type === 'list') {
@@ -474,8 +493,6 @@
       } else if (b.type === 'table') {
         frag.appendChild(tableOf(b.head, b.rows, null));
       } else if (b.type === 'paragraph') {
-        /* the first paragraph is already the lead — do not print it twice */
-        if (i === 0 && s.lead && sameStart(b.runs, s.lead)) return;
         frag.appendChild(runsInto(el('p', 'ta-p'), b.runs));
       }
     });
@@ -525,16 +542,23 @@
     return frag;
   }
 
-  function sameStart(runs, leadText) {
-    var t = (runs || []).map(function (r) { return r.t; }).join('');
-    return t.slice(0, 40).trim() === String(leadText || '').slice(0, 40).trim();
-  }
+  /* Plain text for the screen reader's one-shot announcement: the components
+     mutate as they arrive, and a live region reading fragments is worse than
+     no live region.
 
-  /* Plain text for the screen reader and for the one-shot announcement: the
-     components mutate as they arrive, and a live region reading fragments is
-     worse than no live region. */
+     It announces the figures and the ranked table too. Reading only the
+     model's prose would leave a screen-reader user hearing the part of the
+     answer this project vouches for LEAST while the numbers it computed and
+     checked stayed silent. */
   function plainOf(s) {
     var parts = [s.lead || ''];
+    if (s.figures) {
+      parts.push('Filed figures for ' + (s.figures.name || 'this district')
+        + ', fiscal ' + s.figures.year + ':');
+      (s.figures.cards || []).forEach(function (c) {
+        parts.push(c.label + ' ' + c.value + '.');
+      });
+    }
     (s.blocks || []).forEach(function (b) {
       if (b.type === 'table') {
         (b.rows || []).forEach(function (r) { parts.push(r.join(', ')); });
@@ -546,6 +570,11 @@
         parts.push(b.runs.map(function (r) { return r.t; }).join(''));
       } else if (b.text) parts.push(b.text);
     });
+    if (s.comparison) {
+      parts.push(s.comparison.title + ':');
+      (s.comparison.rows || []).forEach(function (r) { parts.push(r.join(', ')); });
+      parts.push(s.comparison.basis);
+    }
     return parts.join(' ').replace(/\s+/g, ' ').trim();
   }
 
@@ -582,7 +611,10 @@
           ? 'That one stumped the system: ' + res.body.error
           : 'The question service is resting right now. Please try again in '
             + 'a little while.';
-      } else if (res.body.structured && res.body.structured.lead) {
+      /* an answer that opens with a table has no lead and is still structured */
+      } else if (res.body.structured
+                 && (res.body.structured.lead
+                     || (res.body.structured.blocks || []).length)) {
         render(bub, res.body.structured, mine);
         return;
       } else {
@@ -661,15 +693,27 @@
   function renderInto(target, s, alive, done) {
     alive = alive || function () { return true; };
     target.textContent = '';
-    var leadEl = el('p', 'ta-lead');
-    target.appendChild(leadEl);
     var rest = function () {
       if (!alive()) return;
       target.appendChild(bodyOf(s));
       if (done) done();
     };
-    if (reduce) { leadEl.textContent = s.lead; rest(); return; }
-    writeWords(leadEl, s.lead, alive, rest);
+    /* No lead means the model opened with a table or a heading rather than a
+       sentence. There is nothing to promote, and slicing raw text off the top
+       of such an answer is how `| District | Per student |` ended up as the
+       headline. Draw the body and let the answer start where it starts. */
+    if (!s.lead_runs || !s.lead_runs.length) { rest(); return; }
+    var leadEl = el('p', 'ta-lead' + (s.lead.length > 200 ? ' long' : ''));
+    target.appendChild(leadEl);
+    /* The reveal writes plain words; the bold arrives with the last one. The
+       text is identical either way, so nothing moves when it lands. */
+    var done2 = function () {
+      leadEl.textContent = '';
+      runsInto(leadEl, s.lead_runs);
+      rest();
+    };
+    if (reduce) { done2(); return; }
+    writeWords(leadEl, s.lead, alive, done2);
   }
 
   function render(bub, s, mine) {

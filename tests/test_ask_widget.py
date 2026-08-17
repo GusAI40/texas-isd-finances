@@ -185,3 +185,38 @@ def test_the_answer_lands_at_the_top_of_the_thread_not_the_bottom():
     wrong the moment the components land — it parks the reader on the sources
     and pushes the answer itself off the top of the sheet."""
     assert "thread.scrollTop = Math.max(0, msg.offsetTop - thread.offsetTop);" in JS
+
+
+def test_a_long_table_scrolls_instead_of_burying_everything_under_it():
+    """A model told to keep lists short can still return two hundred rows. One
+    long table would push the sources and the follow-ups out of reach — and
+    truncating rows would hide data, which is worse. It gets its own height and
+    says how many rows it has."""
+    assert "if ((rows || []).length > 12)" in JS
+    assert "' rows — scroll the table'" in JS
+    assert ".ta-tw.tall { max-height:340px; overflow-y:auto; }" in JS
+    assert ".ta-tw.tall .ta-tb th { position:sticky" in JS   # headers stay put
+
+
+def test_a_long_lead_steps_down_instead_of_becoming_a_wall():
+    """The lead is the model's WHOLE opening paragraph — promoting only part of
+    it silently deleted the rest — so a four-sentence paragraph at heading
+    weight is a real shape. It is sized to what it is; nothing is split."""
+    assert "s.lead.length > 200 ? ' long' : ''" in JS
+    assert ".ta-lead.long { font-size:1.02rem; font-weight:500;" in JS
+
+
+def test_the_screen_reader_hears_the_figures_and_the_ranking_too():
+    """Announcing only the model's prose left a screen-reader user hearing the
+    part of the answer this project vouches for LEAST, while the numbers it
+    computed and checked stayed silent."""
+    assert "parts.push('Filed figures for '" in JS
+    assert "parts.push(s.comparison.title + ':');" in JS
+
+
+def test_an_answer_with_no_lead_still_renders():
+    """A model that opens with a table has no lead. Slicing raw text off the
+    top of such an answer put `| District | Per student |` into the biggest
+    type on the card."""
+    assert "if (!s.lead_runs || !s.lead_runs.length) { rest(); return; }" in JS
+    assert "res.body.structured.lead" in JS and "structured.blocks || []" in JS

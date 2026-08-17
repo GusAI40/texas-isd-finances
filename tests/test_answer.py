@@ -143,16 +143,43 @@ def test_a_one_row_table_is_a_fragment_not_a_table():
     assert [b["type"] for b in got] == ["paragraph"]
 
 
-def test_the_lead_is_the_answer_not_the_preamble():
-    assert answer.lead(SAMPLE).startswith("Dallas ISD spent $23,420 per student")
-    assert "**" not in answer.lead(SAMPLE)
-    assert len(answer.lead(SAMPLE)) <= 320
+def test_the_lead_is_the_whole_opening_paragraph_and_loses_nothing():
+    """An earlier lead took the first sentence or two and asked the renderer to
+    skip block 0 if their first 40 characters matched. They always did — so a
+    single paragraph of three or four sentences, the most likely answer shape,
+    had everything after sentence two DELETED from the screen while the
+    screen-reader announcement still read it."""
+    para = ("Dallas ISD spent $17,788 per student in fiscal 2025. That is above "
+            "the state median. It enrolled 139,776 students, the largest in "
+            "Texas. Most of the gap is debt service, not teaching.")
+    built = answer.build("How much does Dallas ISD spend per student?", para)
+    assert built["lead"] == para
+    assert not built["blocks"], "the promoted paragraph must not also be a block"
+    assert built["lead"].count(".") == 4
+
+
+def test_an_answer_that_opens_with_a_table_gets_no_lead_at_all():
+    """Slicing the first chunk of raw text off such an answer put
+    `| District | Per student |` into the biggest type on the card — the exact
+    defect this module exists to remove, reintroduced above the fold."""
+    built = answer.build("Which districts spend the most?",
+                         "| District | Spend |\n|---|---|\n| A ISD | $1 |\n| B ISD | $2 |")
+    assert built["lead"] == ""
+    assert built["lead_runs"] is None
+    assert [b["type"] for b in built["blocks"]] == ["table"]
+
+
+def test_bold_reaches_the_lead_as_runs_not_asterisks():
+    built = answer.build("q", "Dallas ISD spent **$17,788 per student** in 2025.")
+    assert "**" not in built["lead"]
+    assert any(r["b"] for r in built["lead_runs"])
 
 
 def test_an_empty_answer_never_crashes_the_contract():
     built = answer.build("How many districts?", "")
     assert built["blocks"] == []
     assert built["lead"] == ""
+    assert built["lead_runs"] is None
     assert built["follow_ups"]          # still offers somewhere to go
 
 
@@ -258,8 +285,10 @@ def test_query_returns_the_structured_answer_beside_the_text(monkeypatch):
         s = body["structured"]
         assert s["kind"] == "spending"
         assert "**" not in s["lead"]
-        assert any(run["b"] for b in s["blocks"] for run in b.get("runs", []))
+        assert any(run["b"] for run in s["lead_runs"])   # bold survived as data
         assert s["follow_ups"] and s["sources"]
+        # the answer names Dallas ISD, so its filed figures belong beside it
+        assert s["figures"]["district_number"] == DALLAS
 
 
 def test_a_structuring_failure_never_loses_the_answer(monkeypatch):
@@ -312,3 +341,75 @@ def test_no_pattern_names_a_single_district():
     for _kind, needles in answer._PATTERNS:
         for n in needles:
             assert " isd" not in n, f"pattern {n!r} is hardcoded to one district"
+
+
+# --------------------------------------------------------------------------
+# whose district is this answer about
+# --------------------------------------------------------------------------
+
+@pytest.mark.skipif(not ECON.exists(), reason="economics artefact not built")
+def test_the_reader_page_never_lends_its_figures_to_another_district():
+    """The number comes from the page's URL, not the question. Attaching it
+    blindly put four large Dallas figures and a Dallas ranking table under a
+    headline about Argyle — a figure reading as support for a claim it does not
+    support."""
+    built = answer.build("How much does Argyle ISD spend per student?",
+                         "Argyle ISD spent $12,345 per student in fiscal 2025.",
+                         district_number=DALLAS)
+    assert built["figures"]["district_number"] != DALLAS
+    assert built["district"]["name"] == "Argyle ISD"
+    assert all("Argyle ISD" in f["question"] for f in built["follow_ups"])
+
+
+@pytest.mark.skipif(not ECON.exists(), reason="economics artefact not built")
+def test_a_question_naming_no_district_belongs_to_the_page_it_was_asked_on():
+    built = answer.build("how much do we spend per student", "It spent $1.",
+                         district_number=DALLAS)
+    assert built["figures"]["district_number"] == DALLAS
+
+
+@pytest.mark.skipif(not ECON.exists(), reason="economics artefact not built")
+@pytest.mark.parametrize("question,answer_text", [
+    ("Compare Plano ISD and Frisco ISD", "Plano ISD spent more than Frisco ISD."),
+    ("Which district spends the most?", "Argyle ISD, then Dallas ISD, then Katy ISD."),
+])
+def test_more_than_one_district_named_means_no_single_subject(question, answer_text):
+    """A comparison and a ranking have no one subject. Picking one would put a
+    'comparable districts' table under a statewide question."""
+    built = answer.build(question, answer_text, district_number=DALLAS)
+    assert built["figures"] is None
+    assert built["comparison"] is None
+    assert built["district"] is None
+
+
+@pytest.mark.skipif(not ECON.exists(), reason="economics artefact not built")
+def test_a_statewide_ranking_never_gets_a_peer_table():
+    assert answer.comparison("ranking", DALLAS) is None
+
+
+def test_the_builder_takes_no_district_name_from_the_caller():
+    """A `district_name` field was accepted for one revision. It let a caller
+    post {"district_number": "057905", "district_name": "Anything"} and get
+    follow-ups reading "How much does Anything spend per student?" — the name
+    is resolved from the artefact for the number, or it is not used."""
+    import inspect
+    assert "district_name" not in inspect.signature(answer.build).parameters
+
+    from src.api import NLPQueryRequest
+    assert "district_name" not in NLPQueryRequest.model_fields
+
+
+def test_markup_the_parser_does_not_keep_is_removed_not_displayed():
+    """Dropping a mark from the PARSER means the raw characters reach the
+    reader, which is the bug being fixed. Backticks are always markup; a single
+    *emphasis* loses its emphasis and keeps its words."""
+    got = answer.plain(answer.runs(
+        "using *all funds* and the `total_spend` column"))
+    assert got == "using all funds and the total_spend column"
+
+
+def test_underscores_inside_a_column_name_survive():
+    """An earlier lead stripped [*_#`] wholesale and announced
+    `all_funds_total_disbursements` as `allfundstotaldisbursements`."""
+    got = answer.plain(answer.runs("the all_funds_total_disbursements column"))
+    assert "all_funds_total_disbursements" in got

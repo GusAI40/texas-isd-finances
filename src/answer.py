@@ -78,6 +78,12 @@ def classify(question: str) -> str:
 # renderer never receives a string it is allowed to interpret as markup.
 
 _BOLD = re.compile(r"\*\*(.+?)\*\*|__(.+?)__")
+# Marks that carry no meaning we keep, and MUST NOT reach the reader as
+# punctuation. Backticks are always markup. A single `*emphasis*` loses its
+# emphasis and keeps its words. Underscores are deliberately left alone:
+# `all_funds_total_disbursements` is a column name the prompt itself shows the
+# model, and stripping it renders "allfundstotaldisbursements".
+_STRIP = re.compile(r"`+|(?<!\*)\*(?!\*)")
 _HEADING = re.compile(r"^\s{0,3}(#{1,6})\s+(.*)$")
 _BULLET = re.compile(r"^\s{0,3}[-*•]\s+(.*)$")
 _NUMBERED = re.compile(r"^\s{0,3}\d+[.)]\s+(.*)$")
@@ -102,7 +108,13 @@ def runs(text: str) -> list[dict[str, Any]]:
         pos = m.end()
     if pos < len(text):
         out.append({"t": text[pos:], "b": False})
-    return [r for r in out if r["t"]] or [{"t": text, "b": False}]
+    out = [{"t": _STRIP.sub("", r["t"]), "b": r["b"]} for r in out]
+    return [r for r in out if r["t"]] or [{"t": _STRIP.sub("", text), "b": False}]
+
+
+def plain(rs: list[dict[str, Any]]) -> str:
+    """The text of a run list, with nothing added and nothing marked up."""
+    return "".join(r["t"] for r in rs).strip()
 
 
 def _table_row(line: str) -> list[str]:
@@ -179,20 +191,31 @@ def blocks(text: str) -> list[dict[str, Any]]:
     return out
 
 
-def lead(text: str) -> str:
-    """The answer in one or two sentences, for the top of the card.
+def take_lead(bs: list[dict[str, Any]]) -> tuple[list[dict[str, Any]] | None,
+                                                 list[dict[str, Any]]]:
+    """Split the opening paragraph off as the lead. Returns (lead_runs, rest).
 
-    Readers get the conclusion first; the supporting blocks follow. The lead
-    is taken from the model's own first sentences rather than re-generated,
-    so nothing is asserted here that the model did not already say.
+    The lead is the model's WHOLE first paragraph, promoted to the top of the
+    card, and it is then removed from the blocks. Nothing is summarised and
+    nothing is dropped.
+
+    An earlier version took only the first sentence or two and asked the
+    renderer to skip block 0 if the two shared their first 40 characters. They
+    always did — so on the most likely answer shape, a single paragraph of
+    three or four sentences, everything after sentence two was DELETED from the
+    screen while the screen-reader announcement (built from the blocks) still
+    read it. Sighted and screen-reader users got different answers to the same
+    question. Promoting the whole paragraph makes the duplication impossible
+    rather than detected.
+
+    If the answer does not open with a paragraph — it starts with a table or a
+    heading — there is NO lead. Slicing the first chunk of raw text off such an
+    answer put `| District | Per student |` into the biggest type on the card,
+    which is the exact defect this module exists to remove.
     """
-    plain = re.sub(r"[*_#`]", "", (text or "").strip())
-    plain = re.sub(r"\s+", " ", plain.split("\n\n")[0]).strip()
-    parts = re.split(r"(?<=[.!?])\s+", plain)
-    out = parts[0] if parts else plain
-    if len(out) < 90 and len(parts) > 1:
-        out = f"{out} {parts[1]}"
-    return out[:320].strip()
+    if bs and bs[0].get("type") == "paragraph":
+        return bs[0]["runs"], bs[1:]
+    return None, bs
 
 
 # --- follow-ups: only questions this product can actually answer --------------
@@ -390,6 +413,61 @@ def figures(district_number: str | None) -> dict[str, Any] | None:
     }
 
 
+_SUFFIX = re.compile(r"\b(independent school district|isd|cisd|msd|school district)\b")
+
+
+def _core(name: str) -> str:
+    """A district name reduced to the part a reader actually types."""
+    s = _SUFFIX.sub(" ", (name or "").lower())
+    return re.sub(r"[^a-z0-9 ]", " ", s).strip()
+
+
+_NAME_INDEX: dict[str, str] | None = None
+
+
+def _names() -> dict[str, str]:
+    """core name -> district number, for every district in the artefact."""
+    global _NAME_INDEX
+    if _NAME_INDEX is None:
+        data = _economics() or {}
+        _NAME_INDEX = {}
+        for num, rec in (data.get("districts") or {}).items():
+            core = _core(rec.get("district_name", ""))
+            if len(core) >= 4:                 # "Ore City" yes, "Ax" no
+                _NAME_INDEX.setdefault(core, num)
+    return _NAME_INDEX
+
+
+def context_for(text: str, district_number: str | None) -> str | None:
+    """Which district is this answer actually about?
+
+    `district_number` is the page's own URL, not the question, so it is context
+    and nothing more. Attaching it blindly put four large figures and a ranked
+    table under a headline about someone else: a reader on a Dallas page asking
+    about Argyle got Argyle's sentence over Dallas's evidence.
+
+    Whichever districts the question and the answer NAME decide it:
+      * exactly one named        -> that district, even if the URL says another
+      * none named               -> the URL's district; "how much do we spend
+                                    per student" on a district page is about
+                                    that district
+      * more than one named      -> refuse. A comparison or a ranking has no
+                                    single subject, and picking one would put a
+                                    ranked table under a statewide question.
+    """
+    named = set()
+    hay = f" {_core(text)} "
+    for core, num in _names().items():
+        if f" {core} " in hay:
+            named.add(num)
+    if len(named) == 1:
+        return named.pop()
+    if named:
+        return None
+    return district_number if (_economics() or {}).get(
+        "districts", {}).get(district_number) else None
+
+
 def comparison(kind: str, district_number: str | None) -> dict[str, Any] | None:
     """A ranked comparison this system computed, for questions that ask for one.
 
@@ -400,7 +478,11 @@ def comparison(kind: str, district_number: str | None) -> dict[str, Any] | None:
     never asked to rank anything — if it writes a ranking in prose it stays
     prose, because a table implies a computation happened.
     """
-    if kind not in ("peer", "comparison", "ranking", "diagnostic", "spending"):
+    # `ranking` is deliberately absent. "Which district spends the most in
+    # Texas" is a statewide question, and heading the reader's own peers with
+    # "comparable districts getting better results" answers a question nobody
+    # asked.
+    if kind not in ("peer", "comparison", "diagnostic", "spending"):
         return None
     data = _economics()
     if not data or not district_number:
@@ -428,24 +510,27 @@ def comparison(kind: str, district_number: str | None) -> dict[str, Any] | None:
     }
 
 
-def build(question: str, answer_text: str, *, district_name: str | None = None,
+def build(question: str, answer_text: str, *,
           district_number: str | None = None) -> dict[str, Any]:
-    """The structured answer the API returns and the sheet renders."""
+    """The structured answer the API returns and the sheet renders.
+
+    The district NAME is never accepted from the caller — it is resolved from
+    the artefact for the number the page is showing, so a client cannot label
+    an answer with a district it is not displaying.
+    """
     kind = classify(question)
-    facts = figures(district_number)
-    # The client sends only the district NUMBER it already has in its URL. The
-    # name is resolved here from the artefact, so a page can never label a
-    # follow-up with a district it is not actually showing.
-    if facts and not district_name:
-        district_name = facts.get("name")
+    ctx = context_for(f"{question} {answer_text}", district_number)
+    facts = figures(ctx)
+    district_name = facts.get("name") if facts else None
+    lead_runs, rest = take_lead(blocks(answer_text))
     return {
         "kind": kind,
-        "lead": lead(answer_text),
-        "blocks": blocks(answer_text),
-        "district": {"name": district_name, "number": district_number}
-        if district_name or district_number else None,
+        "lead": plain(lead_runs) if lead_runs else "",
+        "lead_runs": lead_runs,
+        "blocks": rest,
+        "district": {"name": district_name, "number": ctx} if ctx else None,
         "figures": facts,
-        "comparison": comparison(kind, district_number),
+        "comparison": comparison(kind, ctx),
         "sources": SOURCES,
         "limitations": LIMITS,
         "follow_ups": follow_ups(kind, district_name, question),

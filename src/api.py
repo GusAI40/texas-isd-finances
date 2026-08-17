@@ -494,11 +494,16 @@ def get_pool(request: Request):
 class NLPQueryRequest(BaseModel):
     question: str = Field(..., min_length=3, max_length=500,
                           description="Natural language question about Texas school finances")
-    # Optional reading context: which district the reader is looking at. Used
-    # only to make follow-up suggestions specific ("How much does Argyle ISD
-    # spend?" rather than "…this district"). It never reaches the model's
-    # query, so it cannot steer what the data says.
-    district_name: Optional[str] = Field(default=None, max_length=120)
+    # Optional reading context: which district the reader is looking at. It
+    # never reaches the model's query, so it cannot steer what the data says,
+    # and the answer builder still refuses to attach this district's figures
+    # unless the answer is actually about it.
+    #
+    # The NUMBER only. A `district_name` field was accepted here for one
+    # revision and was a mistake: the name is resolved from the artefact for
+    # the number, and taking it from the client instead let a caller post
+    # {"district_number": "057905", "district_name": "Anything"} and get
+    # follow-ups reading "How much does Anything spend per student?".
     district_number: Optional[str] = Field(default=None, max_length=6)
 
 
@@ -853,7 +858,6 @@ async def nlp_query(request: NLPQueryRequest, http_request: Request):
         try:
             result["structured"] = answer.build(
                 request.question, result["answer"],
-                district_name=request.district_name,
                 district_number=request.district_number)
         except Exception as exc:         # noqa: BLE001 — never lose an answer
             print(f"WARNING: could not structure the answer: {exc}")

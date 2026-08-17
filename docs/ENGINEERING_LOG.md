@@ -3495,3 +3495,49 @@ while every reader saw punctuation.
 
 **Still true and still owed:** the ~20 pasted credentials need rotating, and a
 provider-side monthly dollar cap on DeepSeek. `/query` bounds CALLS, not dollars.
+
+### Pre-merge review of the same change — five real defects, two of them serious
+
+The house rule is `/code-review` BEFORE the merge, and it earned its keep again.
+A green suite and a verified browser render sat behind every one of these.
+
+1. **The lead was DELETING most of the answer.** `lead()` returned the first one
+   or two sentences of the opening paragraph; the renderer then skipped block 0
+   if the two shared their first 40 characters. They always did — so on the most
+   likely answer shape, one paragraph of three or four sentences with no blank
+   lines, **everything after sentence two never reached the screen**, while the
+   screen-reader announcement (built from the blocks) still read it. Sighted and
+   screen-reader users were getting different answers to the same question. The
+   fix is structural rather than a better comparison: the WHOLE first paragraph
+   is promoted to the lead and removed from the blocks, so duplication is
+   impossible instead of detected. Long leads step down a size; nothing splits.
+2. **A table-first answer put `| District | Per student |` in the biggest type
+   on the card** — the exact defect this module exists to remove, reintroduced
+   above the fold, because `lead()` sliced the first `\n\n` chunk whatever it
+   was. An answer that does not open with a paragraph now has NO lead.
+3. **The reader's page lent its figures to another district.** `district_number`
+   comes from the URL and nothing checked it against the question's subject, so
+   asking about Argyle while on a Dallas page produced Argyle's sentence over
+   four large Dallas figures and a Dallas ranking table. `context_for()` now
+   decides from the districts the text NAMES: exactly one → that district (even
+   if the URL says another), none → the URL's district, **more than one →
+   refuse**, because a comparison or a ranking has no single subject. `ranking`
+   was also dropped from the kinds that get a peer table at all.
+4. **Marks the parser did not keep were displayed instead of removed.** Only
+   `**bold**` was parsed, so a single `*emphasis*` and the backticks around
+   column names reached the reader as punctuation — and `lead()`'s separate
+   `[*_#`]` strip mangled `all_funds_total_disbursements` into
+   `allfundstotaldisbursements` in the headline. Backticks and single asterisks
+   are now removed in `runs()`; underscores are deliberately untouched.
+5. **`build()` preferred a client-supplied district name over the artefact**,
+   contradicting its own comment and the test named for the opposite. A caller
+   posting `{"district_number": "057905", "district_name": "Anything"}` got
+   follow-ups reading "How much does Anything spend per student?". The field is
+   gone from the request model entirely.
+
+Two lesser ones fixed in the same pass: the prompt's row cap was reworded to say
+it limits what is DISPLAYED (a bare "no more than 10 rows" sits one paragraph
+from the LIMIT rule and is how the counting regression started last time), and
+the one-shot screen-reader announcement now includes the metric cards and the
+ranked table — it had been reading the model's prose and none of what the build
+computed.
