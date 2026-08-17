@@ -93,6 +93,17 @@ upstream rename fails loudly; first_year has one home (the payload).
 follow-ups if wanted: an MCP tool, and the C2 budget dataset.
 
 **Notes:**
+- 2026-08-17 ~04:40 UTC — PR #30: the brand tap now SHOWS home. Owner
+  reported the circle a third time; reproduced on live (emulated iPhone):
+  tapping the brand navigated to `/` but boot restored the stored
+  district's story at the top, so nothing visibly changed. One-shot
+  `sessionStorage tisd_home` flag set by the brand tap on all 10 mastheads
+  (reload when already on `/` — the top of `/` can BE the district story);
+  boot + the pre-paint head script consume it once; `?d` links always win;
+  the district stays in localStorage. Live-verified post-deploy: Mansfield
+  page -> brand tap -> statewide landing. Lesson: **navigating home is not
+  showing home** — a restore-your-context feature can make the home link
+  read as dead.
 
 ---
 
