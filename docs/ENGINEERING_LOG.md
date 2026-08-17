@@ -17,6 +17,45 @@ Entry template:
 
 ---
 
+## 2026-08-17 (evening) — The intelligence layer goes global (PR #33)
+
+**What changed.** Owner directive: the ask box is the intelligent layer —
+statewide landing + reachable from any page. `#ask-section` moved OUTSIDE
+`#dash` (it was hidden until a district was picked, so the landing had no
+visible ask at all); a finder-line front door ("Or ask a question in plain
+English") sits by the district search; every masthead's More menu gained
+"Ask a question" (`/#ask-section`, all 10 pages).
+
+**Navigation semantics (extends the platform rule).** Hash links NEVER carry
+`?d` — a hash aims at a section, not a view. A hash link to the current page
+scrolls IN PLACE and closes the More dropdown: a district view keeps its
+`?d` with no reload; the statewide landing stays statewide. Cross-page, the
+link lands bare on `/` where the front page's normal restore applies (the
+district follows the reader unless the home flag is set). Boot re-anchors
+`#ask-section` after async sections settle, guarded by reader intent
+(wheel/touch/keydown once-listeners), and clears the hash early.
+
+**The pre-merge review earned its keep again — five findings in the first
+cut**: the district-view click did a FULL reload that dropped `?d`; the More
+dropdown stayed open over the in-page scroll; the head's picker-scroll
+yanked anchored arrivals to the picker; the re-anchor could hijack a reader
+who had scrolled; and a comment (about to be ×10-duplicated and test-pinned)
+described a mechanism that did not exist. All fixed, re-verified across five
+Playwright iPhone paths (a `window` probe proves the no-reload claim).
+
+**Gotchas.** (1) **Chromium re-asserts its own fragment anchor during a
+sub-second settle window** — regardless of `history.replaceState` and even
+against CDP-synthesized touch gestures. Do not fight it: the window ends at
+`load`, after which reader scrolls stick (verified). The code's comment
+claims exactly that and no more. (2) **A merge conflict got COMMITTED**:
+`git add -A` after resolving only the usual three files staged
+`tests/test_static_pages.py` with its markers in (the conflict was in a
+fourth file; the marker grep checked a hard-coded list). Caught because the
+suite was re-run before the PR merge; fixed in a follow-up commit. Lesson:
+grep the WHOLE tree for markers after every conflicted merge, not a list.
+
+---
+
 ## 2026-08-17 (later) — Phone masthead fixed (PR #32): the tab strip was a 56px porthole
 
 **What changed.** Owner reported the header "very difficult to select options
