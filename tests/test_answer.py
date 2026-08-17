@@ -286,3 +286,29 @@ def test_a_structuring_failure_never_loses_the_answer(monkeypatch):
         assert r.status_code == 200, r.text
         assert r.json()["answer"] == "1,310 districts."
         assert r.json().get("structured") is None
+
+
+# The phrasings a reader actually types, which match none of the formal words.
+# Every one of these was misclassified until it was tried.
+COLLOQUIAL = [
+    ("show me districts like Katy ISD", "peer"),
+    ("which districts are similar to Argyle ISD", "peer"),
+    ("is my district in trouble", "diagnostic"),
+    ("is anything wrong with our finances", "diagnostic"),
+    ("what is the budget of Plano ISD", "spending"),
+    ("dallas vs houston", "comparison"),
+    ("enrollment trend for Frisco", "trend"),
+]
+
+
+@pytest.mark.parametrize("question,kind", COLLOQUIAL)
+def test_plain_phrasing_still_lands_in_the_right_shape(question, kind):
+    assert answer.classify(question) == kind
+
+
+def test_no_pattern_names_a_single_district():
+    """`like argyle` sat in the peer patterns as a leftover placeholder — a
+    rule that matched exactly one district in Texas and looked like coverage."""
+    for _kind, needles in answer._PATTERNS:
+        for n in needles:
+            assert " isd" not in n, f"pattern {n!r} is hardcoded to one district"

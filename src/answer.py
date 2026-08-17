@@ -41,7 +41,12 @@ KINDS = ("peer", "comparison", "ranking", "trend", "debt", "bond",
          "enrollment", "spending", "diagnostic", "fact")
 
 _PATTERNS: list[tuple[str, tuple[str, ...]]] = [
-    ("peer", ("comparable", "similar to", "peers", "like argyle", "peer district")),
+    # "districts like" earns its place: "show me districts like Katy ISD" is the
+    # most natural way a reader asks for peers and it matches none of the
+    # formal words. ("like argyle" sat here as a leftover placeholder, which
+    # matched exactly one district in Texas.)
+    ("peer", ("comparable", "similar", "peers", "peer district",
+              "districts like", "district like")),
     ("comparison", ("compare", " vs ", "versus", "against", "difference between")),
     ("ranking", ("most", "least", "highest", "lowest", "top ", "rank", "which district")),
     ("trend", ("over time", "since", "trend", "changed", "growth", "history",
@@ -53,7 +58,8 @@ _PATTERNS: list[tuple[str, tuple[str, ...]]] = [
     # a judgement question, not a lookup, and answering it with a bare figure
     # is how a reader is left to draw the comparison themselves.
     ("diagnostic", ("too much", "overspend", "should ", "is it normal", "unusual",
-                    "why ", "problem")),
+                    "why ", "problem", "trouble", "at risk", "in danger",
+                    "healthy", "wrong with")),
     ("spending", ("spend", "spending", "per student", "budget", "expenditure", "cost")),
 ]
 
