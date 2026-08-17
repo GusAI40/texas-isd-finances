@@ -16,6 +16,7 @@ import asyncpg
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.concurrency import run_in_threadpool
+from fastapi.encoders import jsonable_encoder
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import (
     FileResponse,
@@ -30,6 +31,7 @@ from . import (
     absences,
     analytics,
     answer,
+    intel,
     lineage,
     llm_config,
     mcp_protocol,
@@ -327,6 +329,43 @@ async def _log_question(pool, question: str, ok: bool, ms: int) -> None:
         print(f"WARNING: question not logged: {exc}")
 
 
+async def _log_turn(pool, *, conversation_id: str, turn: int, question: str,
+                    answer_text: str | None, kind: str | None,
+                    district: str | None, ok: bool, ms: int,
+                    model: str | None, structured: bool,
+                    followup_label: str | None, error: str | None) -> None:
+    """The conversation, in order — question, answer, and how it went.
+
+    Separate from `_log_question` rather than replacing it, because they answer
+    different questions and have different privacy shapes. `nlp_questions` is
+    the flat, unlinkable record of what Texas asks; this is the conversation,
+    so a reader of the dashboard can see that someone asked about debt, then
+    about bonds, then about peers, and understand what they were working out.
+
+    It still carries no identity. `conversation_id` is opaque and minted by the
+    browser; the only thing that can attach a name to it is a `question` row in
+    visitor_event, which exists only for a recipient we emailed. Drop that and
+    every conversation here is anonymous again.
+    """
+    if pool is None or not conversation_id:
+        return
+    text = analytics.clean_question(question)
+    if not text:
+        return
+    try:
+        async with pool.acquire() as conn:
+            await conn.execute(
+                "INSERT INTO public.chat_turn (conversation_id, turn, question, "
+                " answer, kind, district_number, ok, ms, model, structured, "
+                " followup_label, error) "
+                "VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)",
+                conversation_id, turn, text, (answer_text or "")[:8000] or None,
+                kind, district, ok, ms, model, structured,
+                (followup_label or "")[:60] or None, (error or "")[:400] or None)
+    except Exception as exc:            # table missing, DB asleep
+        print(f"WARNING: conversation turn not recorded: {exc}")
+
+
 # ---------------------------------------------------------------------------
 # Per-recipient journey tracking. The deliberate exception to everything above:
 # see src/tracking.py for the entry condition (a minted ?rid= we mailed) and
@@ -350,7 +389,10 @@ async def _record_event(pool, *, rid: str, visitor: str, session: str,
                         district: str | None = None, dwell_ms: int | None = None,
                         ref_host: str = "", device: str = "",
                         user_agent: str | None = None,
-                        ip: str | None = None) -> None:
+                        ip: str | None = None,
+                        section: str | None = None, detail: str | None = None,
+                        conversation_id: str | None = None,
+                        event_key: str | None = None) -> None:
     """Append one row to the recipient's stream. Fails open, loudly.
 
     The rid carries a foreign key to a minted recipient, so a forged token
@@ -362,13 +404,24 @@ async def _record_event(pool, *, rid: str, visitor: str, session: str,
         return
     try:
         async with pool.acquire() as conn:
+            # ON CONFLICT DO NOTHING against the partial unique index on
+            # event_key. sendBeacon retries and a page restored from bfcache
+            # both replay events — without this, one 41-second read of the debt
+            # section is counted three times and nothing looks wrong. Rows with
+            # no key (every server-side event, which cannot be replayed) are
+            # unaffected, because the index is partial.
             await conn.execute(
                 "INSERT INTO public.visitor_event "
                 "(rid, visitor_id, session_id, event, path, district_number, "
-                " dwell_ms, referrer_host, device, user_agent, ip) "
-                "VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11::inet)",
+                " dwell_ms, referrer_host, device, user_agent, ip, "
+                " section, detail, conversation_id, event_key) "
+                "VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11::inet,$12,$13,$14,$15) "
+                "ON CONFLICT DO NOTHING",
                 rid, visitor, session, event, path, district, dwell_ms,
-                ref_host, device, (user_agent or "")[:400] or None, ip)
+                ref_host, device, (user_agent or "")[:400] or None, ip,
+                (section or "")[:60] or None, (detail or "")[:120] or None,
+                (conversation_id or "")[:64] or None,
+                (event_key or "")[:80] or None)
     except Exception as exc:            # unminted rid, table missing, DB asleep
         print(f"WARNING: journey event not recorded ({event}): {exc}")
 
@@ -505,6 +558,15 @@ class NLPQueryRequest(BaseModel):
     # {"district_number": "057905", "district_name": "Anything"} and get
     # follow-ups reading "How much does Anything spend per student?".
     district_number: Optional[str] = Field(default=None, max_length=6)
+    # Conversation grouping. Minted by the client per chat sitting so the turns
+    # of one conversation can be read back in order. It is an opaque id and
+    # carries no identity: the link to a person exists only in visitor_event,
+    # and only for a recipient we emailed.
+    conversation_id: Optional[str] = Field(default=None, max_length=64)
+    turn: Optional[int] = Field(default=None, ge=1, le=200)
+    # Which suggested follow-up produced this question, if any. This is the
+    # only way to find out whether the chips help or just decorate.
+    followup_label: Optional[str] = Field(default=None, max_length=60)
 
 
 class NLPQueryResponse(BaseModel):
@@ -583,10 +645,31 @@ async def open_pixel(rid: str, request: Request):
         "Pragma": "no-cache"})
 
 
+class SectionBeacon(BaseModel):
+    """One engaged section, or one download. Sent by static/track.js.
+
+    `key` is an idempotency key the client mints per (session, section, page).
+    sendBeacon retries and a page restored from bfcache both replay, and
+    without a key one 41-second read of the debt section is counted three
+    times with nothing looking wrong.
+    """
+    section: str = Field(..., max_length=60)
+    path: str = Field(..., max_length=120)
+    ms: int = Field(0, ge=0, le=3_600_000)
+    d: Optional[str] = Field(None, max_length=12)
+    key: Optional[str] = Field(None, max_length=80)
+    event: str = Field("section", max_length=16)
+
+
 class DwellBeacon(BaseModel):
     path: str = Field(..., max_length=120)
     ms: int = Field(..., ge=0)
     d: Optional[str] = Field(None, max_length=12)
+    # Batched section engagement rides along with the page's dwell beacon
+    # rather than opening its own request per section: a report page has a
+    # dozen sections, and twelve beacons on unload is how tracking starts
+    # costing the reader something.
+    sections: list[SectionBeacon] = Field(default_factory=list, max_length=40)
 
 
 @app.post("/e", include_in_schema=False)
@@ -604,11 +687,28 @@ async def dwell_beacon(beacon: DwellBeacon, request: Request):
     rid, visitor, session, _ = tracking.parse_cookie(
         request.cookies.get(tracking.COOKIE_NAME))
     dwell = tracking.clean_dwell(beacon.ms)
-    if rid and dwell and analytics.countable_path(beacon.path):
+    if not rid:
+        return Response(status_code=204)
+    pool = _pool_or_none(request)
+    if dwell and analytics.countable_path(beacon.path):
         await _record_event(
-            _pool_or_none(request), rid=rid, visitor=visitor, session=session,
+            pool, rid=rid, visitor=visitor, session=session,
             event="dwell", path=analytics.countable_path(beacon.path),
             district=beacon.d, dwell_ms=dwell)
+    for s in beacon.sections[:40]:
+        # A client may only assert the three things it is the only witness to.
+        # Everything else is written server-side from facts the browser cannot
+        # fake — a page it actually requested, a pixel it actually fetched, a
+        # question the engine actually answered.
+        if s.event not in tracking.CLIENT_EVENTS:
+            continue
+        path = analytics.countable_path(s.path)
+        if not path:
+            continue
+        await _record_event(
+            pool, rid=rid, visitor=visitor, session=session, event=s.event,
+            path=path, district=s.d, section=s.section,
+            dwell_ms=tracking.clean_dwell(s.ms), event_key=s.key)
     return Response(status_code=204)
 
 
@@ -861,6 +961,40 @@ async def nlp_query(request: NLPQueryRequest, http_request: Request):
                 district_number=request.district_number)
         except Exception as exc:         # noqa: BLE001 — never lose an answer
             print(f"WARNING: could not structure the answer: {exc}")
+
+    # The conversation, in order. Two writes on purpose: `chat_turn` is the
+    # anonymous content record, and the `question` event below is the only
+    # thing that can attach a person to it — and it is written ONLY when the
+    # browser is carrying the httpOnly token from an email we sent. An
+    # anonymous visitor's conversation stays anonymous, exactly as the site
+    # says it does.
+    elapsed = int((time.monotonic() - started) * 1000)
+    pool = _pool_or_none(http_request)
+    if request.conversation_id:
+        await _log_turn(
+            pool, conversation_id=request.conversation_id,
+            turn=request.turn or 1, question=request.question,
+            answer_text=result.get("answer"),
+            kind=(result.get("structured") or {}).get("kind")
+            or answer.classify(request.question),
+            district=request.district_number, ok=bool(result.get("success")),
+            ms=elapsed, model=llm_config.resolve_llm_config().model,
+            structured=bool(result.get("structured")),
+            followup_label=request.followup_label, error=result.get("error"))
+
+        rid, visitor, session, _ = tracking.parse_cookie(
+            http_request.cookies.get(tracking.COOKIE_NAME))
+        if rid:
+            await _record_event(
+                pool, rid=rid, visitor=visitor, session=session,
+                event="question", district=request.district_number,
+                conversation_id=request.conversation_id,
+                # The TOPIC travels, never the question text. What a named
+                # superintendent typed belongs in the anonymous content table;
+                # what the dashboard needs beside their name is that they asked
+                # about debt.
+                detail=(result.get("structured") or {}).get("kind"),
+                event_key=f"q:{request.conversation_id}:{request.turn or 1}")
     return NLPQueryResponse(**result)
 
 
@@ -2731,6 +2865,185 @@ def _ops_ok(request: Request) -> bool:
         return secrets.compare_digest(got.encode("utf-8"), want.encode("utf-8"))
     except Exception:  # noqa: BLE001 — a bad token must never be a 500
         return False
+
+
+@app.get("/ops/intel", include_in_schema=False)
+async def ops_intel_page(request: Request):
+    """The intelligence dashboard. Same 404-not-403 gate as every /ops route.
+
+    Every figure behind this page is a named superintendent's behaviour, so it
+    is not merely unlinked — it is token-gated, noindex, no-store, and
+    deliberately NOT behind SITE_PASSWORD, which would take the public portal
+    private to protect a private page.
+    """
+    if not _ops_ok(request):
+        raise HTTPException(status_code=404, detail="Not found")
+    page = STATIC_DIR / "opsintel.html"
+    if page.exists():
+        return FileResponse(page, headers={
+            "X-Robots-Tag": "noindex, nofollow",
+            "Cache-Control": "no-store"})
+    raise HTTPException(status_code=404, detail="Not found")
+
+
+@app.get("/ops/intel-data", include_in_schema=False)
+async def ops_intel_data(request: Request, days: int = Query(7, ge=1, le=365)):
+    """Everything the dashboard draws, in one payload.
+
+    One request rather than eight: the queries are small, they share a
+    connection, and a dashboard that fires a request per panel spends its first
+    second showing eight spinners.
+
+    The whole payload describes ONLY people we emailed. `meta.population` says
+    so in the payload rather than in a caption someone can crop, because the
+    denominator is the single most misreadable thing here: wave 1's 571 sends
+    predate journey tracking and can never be retrofitted, so a rate computed
+    against 671 mailed would be wrong by a factor of six.
+    """
+    if not _ops_ok(request):
+        raise HTTPException(status_code=404, detail="Not found")
+    pool = _pool_or_none(request)
+    if pool is None:
+        return JSONResponse({"error": "database unavailable",
+                             "meta": {"lineage": intel.LINEAGE}}, status_code=503)
+
+    async def rows(sql, *args):
+        try:
+            async with pool.acquire() as conn:
+                return [dict(r) for r in await conn.fetch(sql, *args)]
+        except Exception as exc:            # noqa: BLE001 — a panel, not the page
+            print(f"WARNING: intel query failed: {exc}")
+            return []
+
+    people = await rows(intel.PEOPLE_SQL)
+    scored = []
+    for r in people:
+        s = intel.score(intel.facts_from_row(r))
+        scored.append({
+            "rid": r["rid"], "email": r["email"],
+            "district_number": r["district_number"], "campaign": r["campaign"],
+            "sessions": int(r.get("sessions") or 0),
+            "pageviews": int(r.get("pageviews") or 0),
+            "questions": int(r.get("questions") or 0),
+            "sections": int(r.get("distinct_sections") or 0),
+            "dwell_ms": int(r.get("total_dwell_ms") or 0),
+            "last_seen_at": r.get("last_seen_at"),
+            "clicked_at": r.get("first_click_at"),
+            "replied_at": r.get("replied_at"),
+            **s,
+        })
+    scored.sort(key=lambda x: (x["score"], x["dwell_ms"]), reverse=True)
+
+    tracked = len(people)
+    clicked = sum(1 for r in people if r.get("first_click_at"))
+    opened = sum(1 for r in people if r.get("first_open_at"))
+    engaged = sum(1 for r in people if int(r.get("total_dwell_ms") or 0) >= 30_000)
+    asked = sum(1 for r in people if int(r.get("questions") or 0) > 0)
+    replied = sum(1 for r in people if r.get("replied_at"))
+
+    quality_rows = await rows(intel.ANSWER_QUALITY_SQL, days)
+    quality = quality_rows[0] if quality_rows else {}
+    kinds = await rows(intel.TOP_QUESTIONS_SQL, days)
+    sections = await rows(intel.TOP_SECTIONS_SQL, days)
+
+    # Accounts. The district IS the account here — there is no separate company
+    # record, and inventing one would be a second identity to keep in step.
+    accounts: dict[str, dict] = {}
+    for r in scored:
+        a = accounts.setdefault(r["district_number"], {
+            "district_number": r["district_number"], "people": 0, "score": 0,
+            "questions": 0, "sessions": 0, "last_seen_at": None})
+        a["people"] += 1
+        a["score"] += r["score"]
+        a["questions"] += r["questions"]
+        a["sessions"] += r["sessions"]
+        if r["last_seen_at"] and (a["last_seen_at"] is None
+                                  or r["last_seen_at"] > a["last_seen_at"]):
+            a["last_seen_at"] = r["last_seen_at"]
+    econ = _economics() or {}
+    for num, a in accounts.items():
+        rec = (econ.get("districts") or {}).get(num) or {}
+        a["name"] = rec.get("district_name") or num
+    top_accounts = sorted(accounts.values(), key=lambda a: a["score"], reverse=True)
+
+    return JSONResponse(jsonable_encoder({
+        "meta": {
+            "days": days,
+            "population": {
+                "tracked": tracked,
+                "note": ("Every figure here describes people we emailed and "
+                         "who can be tracked. Wave 1 (571 sends, 2026-08-11 to "
+                         "08-13) predates journey tracking and can never be "
+                         "retrofitted — its links are already delivered."),
+            },
+            "open_caveat": intel.OPEN_CAVEAT,
+            # Two populations, named rather than implied. The funnel, the
+            # people and the accounts are recipients; the question panels are
+            # everyone, because an anonymous question is still someone telling
+            # us what a page failed to explain.
+            "populations": {
+                "funnel": intel.POPULATION_RECIPIENTS,
+                "people": intel.POPULATION_RECIPIENTS,
+                "accounts": intel.POPULATION_RECIPIENTS,
+                "sections": intel.POPULATION_RECIPIENTS,
+                "question_kinds": intel.POPULATION_EVERYONE,
+                "recent_questions": intel.POPULATION_EVERYONE,
+                "answer_quality": intel.POPULATION_EVERYONE,
+            },
+            "lineage": intel.LINEAGE,
+            "weights": [{"key": k, "label": lb, "weight": w}
+                        for k, lb, w in intel.WEIGHTS],
+            "power": intel.power(tracked, replied),
+        },
+        "funnel": [
+            {"key": k, "label": lb, "count": v} for (k, lb), v in zip(
+                intel.FUNNEL_STAGES,
+                [tracked, opened, clicked, engaged, asked, replied])],
+        "people": scored[:100],
+        "accounts": top_accounts[:20],
+        "sections": sections,
+        "question_kinds": kinds,
+        "recent_questions": await rows(intel.RECENT_QUESTIONS_SQL, days),
+        "activity": await rows(intel.ACTIVITY_SQL, days),
+        "answer_quality": quality,
+        "opportunities": intel.opportunities(kinds, sections, quality),
+    }), headers={"X-Robots-Tag": "noindex, nofollow",
+                 "Cache-Control": "no-store"})
+
+
+@app.get("/ops/intel-journey", include_in_schema=False)
+async def ops_intel_journey(request: Request, rid: str = Query(..., max_length=64)):
+    """One person's complete timeline, in order — the strongest view here."""
+    if not _ops_ok(request):
+        raise HTTPException(status_code=404, detail="Not found")
+    token = tracking.valid_token(rid)
+    if not token:
+        raise HTTPException(status_code=404, detail="Not found")
+    pool = _pool_or_none(request)
+    if pool is None:
+        raise HTTPException(status_code=503, detail="database unavailable")
+    async with pool.acquire() as conn:
+        who = await conn.fetchrow(
+            "SELECT email, district_number, campaign, sent_at "
+            "FROM public.outreach_recipient WHERE rid = $1", token)
+        if who is None:
+            raise HTTPException(status_code=404, detail="Not found")
+        events = [dict(r) for r in await conn.fetch(intel.TIMELINE_SQL, token)]
+        # The questions this person asked, pulled through the conversation ids
+        # in their own event stream. `chat_turn` is never queried by identity,
+        # because it does not have one.
+        convos = [e["conversation_id"] for e in events if e.get("conversation_id")]
+        turns = []
+        if convos:
+            turns = [dict(r) for r in await conn.fetch(
+                "SELECT conversation_id, turn, asked_at, question, kind, ok, ms, "
+                "followup_label FROM public.chat_turn "
+                "WHERE conversation_id = ANY($1::text[]) ORDER BY asked_at",
+                list(set(convos)))]
+    return JSONResponse(jsonable_encoder({
+        "person": dict(who), "events": events, "turns": turns,
+    }), headers={"X-Robots-Tag": "noindex, nofollow",
+                 "Cache-Control": "no-store"})
 
 
 @app.get("/ops/outreach", include_in_schema=False)

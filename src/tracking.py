@@ -27,6 +27,7 @@ Two things this module does NOT do, on purpose:
 """
 from __future__ import annotations
 
+import ipaddress
 import re
 import secrets
 import time
@@ -48,7 +49,18 @@ _TOKEN_RE = re.compile(r"\A[A-Za-z0-9_-]{8,64}\Z")
 # tab left open over lunch, not reading, and would poison the dwell average.
 MAX_DWELL_MS = 30 * 60 * 1000
 
-EVENTS = frozenset({"email_open", "click", "pageview", "dwell", "question", "return"})
+# Must stay in step with the CHECK constraint on visitor_event (see
+# src/migrations.py). This set is the app-side gate; the constraint is the
+# database's. Two fences, because a typo'd event name that passes the first one
+# should fail loudly at the second rather than accumulate a category nobody
+# queries.
+EVENTS = frozenset({"email_open", "click", "pageview", "dwell", "question",
+                    "return", "section", "followup", "download", "reply"})
+
+# What a client is allowed to assert. The rest are written server-side from
+# facts the browser cannot fake: a page it actually requested, a pixel it
+# actually fetched, a question the engine actually answered.
+CLIENT_EVENTS = frozenset({"section", "download", "followup"})
 
 
 def new_rid() -> str:
@@ -154,9 +166,27 @@ def resume_or_start(
 
 def client_ip(forwarded_for: str | None, fallback: str | None) -> str | None:
     """The client address from Vercel's X-Forwarded-For, which is a chain —
-    the left-most entry is the real client, the rest are proxies."""
+    the left-most entry is the real client, the rest are proxies.
+
+    Anything that is not actually an address returns None rather than being
+    passed through. The column is `inet`, so a hostname reaches asyncpg and
+    raises — and because every tracking write fails open, the result is that
+    the ENTIRE event is silently dropped over a field nobody reads. Losing a
+    superintendent's click to protect an IP address we do not use is the wrong
+    trade in both directions. Found by running the real flow against real
+    Postgres: the harness sends a hostname and every click, page view and
+    email open vanished with only a warning in a log nobody was reading.
+    """
+    candidate = None
     if forwarded_for:
         first = forwarded_for.split(",")[0].strip()
         if first:
-            return first
-    return fallback or None
+            candidate = first
+    candidate = candidate or fallback or None
+    if not candidate:
+        return None
+    try:
+        ipaddress.ip_address(candidate)
+    except ValueError:
+        return None
+    return candidate

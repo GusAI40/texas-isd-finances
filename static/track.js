@@ -39,16 +39,93 @@
     }
   }
 
+  /* ---- section engagement -------------------------------------------------
+     Page views say someone arrived. They do not say what they read. Sections
+     mark themselves with data-section, and a section counts as ENGAGED only
+     when it has been at least half on screen for four seconds — scrolling past
+     something is not reading it, and an event per scroll pixel would be a
+     stream nobody could aggregate.
+
+     Time accrues only while the tab is VISIBLE, for the same reason the page
+     dwell does: a tab behind another window is not a superintendent reading
+     their deficit page, it is an untidy desktop. */
+  var SECTION_MIN_MS = 4000;
+  var VISIBLE_FRACTION = 0.5;
+  var sections = {};                        // slug -> {ms, since, sent}
+  var sessionMark = String(Date.now()) + "-" + Math.floor(Math.random() * 1e6);
+
+  function bumpSections() {
+    var now = Date.now();
+    for (var k in sections) {
+      var s = sections[k];
+      if (s.since) { s.ms += now - s.since; s.since = now; }
+    }
+  }
+
+  function pauseSections() {
+    var now = Date.now();
+    for (var k in sections) {
+      var s = sections[k];
+      if (s.since) { s.ms += now - s.since; s.since = 0; }
+    }
+  }
+
+  function watchSections() {
+    if (!window.IntersectionObserver) return;   // no observer, no section data
+    var obs = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        var slug = e.target.getAttribute("data-section");
+        if (!slug) return;
+        var s = sections[slug] || (sections[slug] = { ms: 0, since: 0, sent: 0 });
+        if (e.isIntersecting && document.visibilityState === "visible") {
+          if (!s.since) s.since = Date.now();
+        } else if (s.since) {
+          s.ms += Date.now() - s.since;
+          s.since = 0;
+        }
+      });
+    }, { threshold: VISIBLE_FRACTION });
+    document.querySelectorAll("[data-section]").forEach(function (el) {
+      obs.observe(el);
+    });
+  }
+
+  /* Only what has newly accrued past the threshold, and only the increment —
+     `sent` is the high-water mark already reported, so a section read for 41s
+     and flushed three times reports 41s once, not 123s. The key makes a
+     replayed beacon a no-op at the database as well. */
+  function pendingSections() {
+    bumpSections();
+    var out = [];
+    for (var k in sections) {
+      var s = sections[k];
+      if (s.ms >= SECTION_MIN_MS && s.ms > s.sent) {
+        out.push({
+          event: "section",
+          section: k,
+          path: location.pathname,
+          ms: s.ms,
+          d: district(),
+          key: sessionMark + ":" + k + ":" + location.pathname + ":" + s.ms
+        });
+        s.sent = s.ms;
+      }
+    }
+    return out;
+  }
+
   function send(final) {
     accumulate();
-    if (visibleMs < 1000) return;          // a bounce is not a read
+    var secs = pendingSections();
+    if (visibleMs < 1000 && !secs.length) return;   // a bounce is not a read
     if (final && sent) return;
     sent = final;
 
     var body = JSON.stringify({
       path: location.pathname,
       ms: visibleMs,
-      d: district()
+      d: district(),
+      sections: secs
     });
     visibleMs = 0;                          // never double-count a flushed span
 
@@ -70,11 +147,19 @@
 
   document.addEventListener("visibilitychange", function () {
     if (document.visibilityState === "hidden") {
+      pauseSections();
       send(false);                          // flush, but the page may come back
-    } else if (!since) {
-      since = Date.now();
+    } else {
+      if (!since) since = Date.now();
+      bumpSections();
     }
   });
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", watchSections);
+  } else {
+    watchSections();
+  }
 
   // pagehide is the reliable end-of-life event on mobile Safari, where
   // beforeunload often never fires at all.

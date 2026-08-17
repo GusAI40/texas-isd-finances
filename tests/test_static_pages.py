@@ -23,7 +23,10 @@ from scripts.check_static_js import STATIC, check_page, inline_scripts  # noqa: 
 # pattern, so adding a private page is a deliberate edit to this list and can
 # never happen by accident. Their JavaScript is still parsed below, because a
 # syntax error breaks a private page exactly as badly as a public one.
-PRIVATE_PAGES = {"opsmap.html"}
+# Excluded from the PUBLIC design-system checks by name — they carry no
+# masthead and are not part of the portal — but they stay in ALL_PAGES, so a
+# syntax error still fails the build. A private page breaks just as badly.
+PRIVATE_PAGES = {"opsmap.html", "opsintel.html"}
 
 ALL_PAGES = sorted(STATIC.glob("*.html"))
 PAGES = [p for p in ALL_PAGES if p.name not in PRIVATE_PAGES]
@@ -405,8 +408,12 @@ def test_the_ask_box_is_outside_the_district_dashboard():
     must never show #dash above it again."""
     import re
     s = (STATIC / "index.html").read_text(encoding="utf-8")
-    i = s.find('<section id="ask-section">')
-    assert i != -1, "the ask section is gone"
+    # Matched by id, not by the whole tag: the sections carry a data-section
+    # attribute for engagement tracking now, and a test that pins the exact
+    # opening tag fails on an attribute that has nothing to do with position.
+    m0 = re.search(r'<section id="ask-section"[^>]*>', s)
+    assert m0, "the ask section is gone"
+    i = m0.start()
     stack = []
     for m in re.finditer(r'<(/?)(div|section|main|body|details)\b([^>]*)>', s[:i]):
         close, tag, attrs = m.group(1), m.group(2), m.group(3)
