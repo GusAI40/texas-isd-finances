@@ -70,7 +70,21 @@ code.claude.com and run the send from a session that has them.
    (AskTED contacts are public TEA data; expect ~1,019 rows). Spot-check that
    insights in a few rows name the ROW'S OWN district — the identity gate
    (`verify_targets()`) enforces this at send time, but a broken merge should
-   be caught here, not there.
+   be caught here, not there. Two rules learned 2026-08-17:
+   - **The Socrata AskTED dataset (`hzek-udky`) is a stale mirror.** Check
+     `rowsUpdatedAt` on `data.texas.gov/api/views/hzek-udky.json` before
+     calling any pull "fresh" — on 2026-08-17 it was still the May 12
+     snapshot, missing the entire summer superintendent-turnover season. The
+     live directory is askted.tea.texas.gov (blocked from this container's
+     network; its export needs a human download or another network). A
+     "fresh pull" from a stale mirror is the freshness-check-watching-the-
+     wrong-page failure all over again.
+   - **After any roster refresh, dedupe by DISTRICT, not only email.** The
+     skip-list keys on addresses; a district whose superintendent changed
+     gets a NEW address and would sail past it — re-mailing a district that
+     was already contacted, just to a different person. The sent log carries
+     `district_number`: exclude those districts from the wave unless the
+     owner explicitly wants to re-introduce to new superintendents.
 4. **Dry run** — costs nothing, sends nothing, and is the real review:
    ```bash
    python scripts/send_outreach.py --limit <N> --campaign wave<K>-<YYYY-MM-DD> --previews 3
