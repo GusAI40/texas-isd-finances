@@ -220,6 +220,16 @@ FROM public.chat_turn
 WHERE asked_at > now() - ($1::int * interval '1 day')
 """
 
+FEEDBACK_SQL = """
+SELECT f.submitted_at, f.message, f.page, f.district_number, f.helpful,
+       (f.contact IS NOT NULL) AS left_contact,
+       (f.rid IS NOT NULL)     AS from_a_recipient
+FROM public.site_feedback f
+WHERE f.submitted_at > now() - ($1::int * interval '1 day')
+ORDER BY f.submitted_at DESC
+LIMIT 50
+"""
+
 ACTIVITY_SQL = """
 SELECT e.occurred_at, e.event, e.path, e.section, e.detail,
        e.district_number, e.dwell_ms, r.district_number AS home_district
@@ -267,7 +277,8 @@ def power(people: int, conversions: int) -> dict[str, Any]:
 
 def opportunities(question_kinds: list[dict[str, Any]],
                   sections: list[dict[str, Any]],
-                  quality: dict[str, Any]) -> list[dict[str, Any]]:
+                  quality: dict[str, Any],
+                  feedback: list[dict[str, Any]] | None = None) -> list[dict[str, Any]]:
     """What to fix next, each with the evidence that produced it.
 
     Every item is a counted fact against a stated threshold — no model, no LLM
@@ -276,6 +287,19 @@ def opportunities(question_kinds: list[dict[str, Any]],
     believing it.
     """
     out: list[dict[str, Any]] = []
+
+    # Feedback first, always. Telemetry says what people DID; a note says what
+    # they came for and did not find, which is the half no amount of event
+    # counting recovers. Someone who typed a paragraph outranks a threshold.
+    for f in (feedback or [])[:3]:
+        out.append({
+            "priority": "high",
+            "finding": "Someone wrote in: " + str(f.get("message", ""))[:160],
+            "evidence": "site_feedback — volunteered, not observed",
+            "recommendation": "Read it in full below. A person who took the "
+                              "trouble to write is describing a gap the event "
+                              "stream cannot show you.",
+        })
 
     failures = int(quality.get("failures") or 0)
     turns = int(quality.get("turns") or 0)
@@ -336,4 +360,7 @@ LINEAGE: dict[str, str] = {
     "conversations": "chat_turn grouped by conversation_id",
     "replied": "visitor_event event='reply' — written by the mailbox reader",
     "score": "src/intel.py WEIGHTS, applied to counted behaviour",
+    "feedback": "site_feedback — typed into the beta box by a visitor, the "
+                "only text on this dashboard that was volunteered rather than "
+                "observed",
 }

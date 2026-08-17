@@ -176,3 +176,46 @@ BEGIN
         END IF;
     END LOOP;
 END $$;
+
+-- ---------------------------------------------------------------------------
+-- 5. Feedback (added with the beta marker).
+-- ---------------------------------------------------------------------------
+-- The telemetry above says what people DID. It cannot say what they came for
+-- and did not find, and that is the more useful half. This is the only place
+-- on the site where a visitor tells us something in their own words, and it is
+-- deliberately the only place where an anonymous visitor's text is stored at
+-- all — because they typed it into a box marked "tell us", which is consent in
+-- a way that a page view never is.
+
+CREATE TABLE IF NOT EXISTS public.site_feedback (
+    id              bigserial PRIMARY KEY,
+    submitted_at    timestamptz NOT NULL DEFAULT now(),
+    message         text        NOT NULL,
+    page            text,                      -- route they were on
+    district_number text,                      -- district in context, if any
+    contact         text,                      -- ONLY if they volunteered it
+    rid             text,                      -- set only for a mailed recipient
+    helpful         boolean                    -- the one-tap answer, if given
+);
+
+CREATE INDEX IF NOT EXISTS site_feedback_time_idx
+    ON public.site_feedback (submitted_at DESC);
+
+COMMENT ON TABLE public.site_feedback IS
+    'What visitors typed into the feedback box. Volunteered text, not '
+    'telemetry: nothing here is collected by observation. `contact` is null '
+    'unless the person chose to give it, and is never required.';
+
+ALTER TABLE public.site_feedback ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.site_feedback FROM PUBLIC;
+
+DO $$
+DECLARE
+    r text;
+BEGIN
+    FOREACH r IN ARRAY ARRAY['anon', 'authenticated', 'nlp_reader'] LOOP
+        IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = r) THEN
+            EXECUTE format('REVOKE ALL ON public.site_feedback FROM %I', r);
+        END IF;
+    END LOOP;
+END $$;

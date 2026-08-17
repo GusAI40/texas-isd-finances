@@ -218,6 +218,23 @@ REVOKE ALL ON public.experiment_exposure  FROM PUBLIC;
 REVOKE ALL ON public.v_conversation       FROM PUBLIC;
 REVOKE ALL ON public.v_section_engagement FROM PUBLIC;
 
+CREATE TABLE IF NOT EXISTS public.site_feedback (
+    id              bigserial PRIMARY KEY,
+    submitted_at    timestamptz NOT NULL DEFAULT now(),
+    message         text        NOT NULL,
+    page            text,
+    district_number text,
+    contact         text,
+    rid             text,
+    helpful         boolean
+);
+
+CREATE INDEX IF NOT EXISTS site_feedback_time_idx
+    ON public.site_feedback (submitted_at DESC);
+
+ALTER TABLE public.site_feedback ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.site_feedback FROM PUBLIC;
+
 DO $$
 DECLARE
     r text;
@@ -226,6 +243,7 @@ BEGIN
         IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = r) THEN
             EXECUTE format(
                 'REVOKE ALL ON public.chat_turn, public.experiment_exposure, '
+                'public.site_feedback, '
                 'public.v_conversation, public.v_section_engagement FROM %I', r);
         END IF;
     END LOOP;
@@ -233,7 +251,10 @@ END $$;
 """
 
 # The object whose absence means the intelligence layer has not been applied.
-INTEL_SENTINEL = "public.chat_turn"
+# Moved from chat_turn when site_feedback was added: the sentinel has to be
+# the object created LAST, or a database that already ran an earlier version
+# takes the fast path forever and never gets the new table.
+INTEL_SENTINEL = "public.site_feedback"
 
 
 # `CREATE TABLE IF NOT EXISTS` is NOT race-safe: concurrent creators fail with a

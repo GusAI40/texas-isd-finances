@@ -207,6 +207,46 @@
     '.ta-foot { margin:.75rem 0 0; font-size:.78rem; line-height:1.55; color:var(--faint, #8b95a1); }',
     '.ta-foot a { color:inherit; }',
     '.ta-foot + .ta-foot { margin-top:.3rem; }',
+    /* ---- beta chip + feedback ---- */
+    '.m-beta { display:inline-block; margin-left:.45rem; padding:.1rem .4rem;',
+    '  border-radius:5px; border:1px solid var(--rule, #e3e6e8); cursor:pointer;',
+    '  font:inherit; font-size:.62rem; font-weight:700; letter-spacing:.07em;',
+    '  text-transform:uppercase; vertical-align:middle;',
+    '  background:var(--accent, #1a56a8); color:var(--accent-ink, #fff); }',
+    '.m-beta:hover { filter:brightness(1.12); }',
+    '.m-beta:focus-visible { outline:3px solid var(--ink, #14171a); outline-offset:2px; }',
+    '.tf-wrap { position:fixed; inset:0; z-index:210; display:none; }',
+    '.tf-wrap.open { display:block; }',
+    '.tf-back { position:absolute; inset:0; background:rgba(10,12,14,.45); }',
+    '.tf-box { position:absolute; left:50%; bottom:0; transform:translateX(-50%);',
+    '  width:min(560px, 100%); max-height:92vh; overflow:auto;',
+    '  background:var(--bg, #fff); color:var(--ink, #14171a);',
+    '  border:1px solid var(--rule, #e3e6e8); border-radius:16px 16px 0 0;',
+    '  padding:1.15rem 1.25rem calc(1.25rem + env(safe-area-inset-bottom, 0px));',
+    '  font:16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }',
+    '@media (min-width: 720px) { .tf-box { bottom:auto; top:50%;',
+    '  transform:translate(-50%,-50%); border-radius:16px; } }',
+    '.tf-box h2 { margin:0 0 .3rem; font-size:1.15rem; letter-spacing:-.01em; }',
+    '.tf-box p { margin:.35rem 0 0; font-size:.92rem; color:var(--muted, #5a6572); }',
+    '.tf-box textarea { width:100%; margin-top:.8rem; min-height:110px; padding:.7rem .85rem;',
+    '  font:inherit; font-size:1rem; border-radius:12px; resize:vertical;',
+    '  border:1.5px solid var(--rule, #cfd4d8); background:var(--bg, #fff);',
+    '  color:var(--ink, #14171a); }',
+    '.tf-box input { width:100%; margin-top:.6rem; min-height:48px; padding:.6rem .85rem;',
+    '  font:inherit; font-size:1rem; border-radius:12px;',
+    '  border:1.5px solid var(--rule, #cfd4d8); background:var(--bg, #fff);',
+    '  color:var(--ink, #14171a); }',
+    '.tf-box textarea:focus, .tf-box input:focus { outline:none;',
+    '  border-color:var(--accent, #1a56a8); }',
+    '.tf-row { display:flex; gap:.6rem; margin-top:.9rem; align-items:center; }',
+    '.tf-row button { min-height:48px; padding:.6rem 1.2rem; font:inherit;',
+    '  font-weight:600; border-radius:12px; border:none; cursor:pointer;',
+    '  background:var(--accent, #1a56a8); color:var(--accent-ink, #fff); }',
+    '.tf-row button.ghost { background:none; color:var(--muted, #5a6572);',
+    '  border:1px solid var(--rule, #e3e6e8); }',
+    '.tf-row button[disabled] { opacity:.55; cursor:default; }',
+    '.tf-fine { margin-top:.85rem; font-size:.78rem; line-height:1.5;',
+    '  color:var(--faint, #8b95a1); }',
     '.ta-sr { position:absolute; width:1px; height:1px; overflow:hidden;',
     '  clip:rect(0 0 0 0); clip-path:inset(50%); white-space:nowrap; }',
   '@media print { .ta-fab, .ta-wrap { display:none !important; } }',
@@ -780,6 +820,137 @@
     build();
   }
 
+  /* ---- beta feedback -------------------------------------------------------
+     The telemetry on this site can say what a visitor DID. It cannot say what
+     they came for and did not find, and that is the more useful half. This is
+     the only place an anonymous visitor's words are stored, and the only place
+     where storing them is obviously right: they typed into a box marked "tell
+     us", which is consent in a way a page view never is.
+
+     It lives in this file rather than its own because ask.js is already on all
+     ten pages and already owns a sheet and a style block. A second widget
+     would be a second thing to keep in step. */
+  var fbWrap, fbText, fbContact, fbSend, fbLast;
+
+  function feedbackUI() {
+    if (fbWrap) return fbWrap;
+    build();                                  // guarantees the style block
+    fbWrap = h('<div class="tf-wrap" role="dialog" aria-modal="true"'
+      + ' aria-labelledby="tf-title" hidden>'
+      + '<div class="tf-back"></div><div class="tf-box">'
+      + '<h2 id="tf-title">This site is in beta</h2>'
+      + '<p>Every figure here comes from the state&rsquo;s own filings, and we are '
+      + 'still learning which of them people actually need. Tell us what you '
+      + 'came looking for &mdash; especially if you did not find it.</p>'
+      + '<textarea aria-label="Your feedback" maxlength="2000"'
+      + ' placeholder="What were you trying to find out?"></textarea>'
+      + '<input type="text" maxlength="160" aria-label="Email, optional"'
+      + ' placeholder="Email &mdash; optional, only if you want a reply">'
+      + '<div class="tf-row"><button type="button" class="tf-send">Send</button>'
+      + '<button type="button" class="ghost tf-close">Close</button></div>'
+      + '<p class="tf-fine">We store what you write, the page you were on, and '
+      + 'an email only if you choose to give one. Nothing else, and nothing '
+      + 'that identifies you otherwise '
+      + '(<a href="/about#privacy">what we collect</a>).</p>'
+      + '</div></div>');
+    document.body.appendChild(fbWrap);
+    fbText = fbWrap.querySelector('textarea');
+    fbContact = fbWrap.querySelector('input');
+    fbSend = fbWrap.querySelector('.tf-send');
+    fbWrap.querySelector('.tf-close').addEventListener('click', closeFeedback);
+    fbWrap.querySelector('.tf-back').addEventListener('click', closeFeedback);
+    fbSend.addEventListener('click', sendFeedback);
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && fbWrap.classList.contains('open')) closeFeedback();
+    });
+    return fbWrap;
+  }
+
+  function openFeedback() {
+    feedbackUI();
+    fbLast = document.activeElement;
+    fbWrap.hidden = false;
+    requestAnimationFrame(function () { fbWrap.classList.add('open'); });
+    setTimeout(function () { fbText.focus(); }, reduce ? 0 : 120);
+  }
+
+  function closeFeedback() {
+    if (!fbWrap) return;
+    fbWrap.classList.remove('open');
+    fbWrap.hidden = true;
+    if (fbLast && fbLast.focus) fbLast.focus();
+  }
+
+  function sendFeedback() {
+    var msg = (fbText.value || '').trim();
+    if (msg.length < 3) { fbText.focus(); return; }
+    fbSend.disabled = true;
+    fbSend.textContent = 'Sending…';
+    fetch('/feedback', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: msg,
+        page: location.pathname,
+        district_number: districtNumber(),
+        contact: (fbContact.value || '').trim() || null,
+      }),
+    }).then(thanks).catch(thanks);            /* a lost note must not scold */
+  }
+
+  /* The same ending either way. Someone who took the trouble to write should
+     never be shown an error for their trouble — if the note did not land that
+     is our problem, and it is logged on the server rather than put in front of
+     them. */
+  function thanks() {
+    var box = fbWrap.querySelector('.tf-box');
+    box.textContent = '';
+    box.appendChild(el('h2', null, 'Thank you — that genuinely helps'));
+    box.appendChild(el('p', null,
+      'Beta feedback goes straight onto the list of what to fix next, '
+      + 'alongside what the site can measure on its own.'));
+    var row = el('div', 'tf-row');
+    var b = el('button', null, 'Close');
+    b.type = 'button';
+    b.addEventListener('click', closeFeedback);
+    row.appendChild(b);
+    box.appendChild(row);
+    setTimeout(closeFeedback, 3200);
+  }
+
+  /* The Beta chip IS the invitation — one affordance, not a label beside a
+     link nobody presses. Added to the masthead of whatever page is showing. */
+  function markBeta() {
+    var brand = document.querySelector('#masthead .m-brand');
+    if (!brand || document.querySelector('.m-beta')) return;
+    var chip = el('button', 'm-beta', 'Beta');
+    chip.type = 'button';
+    chip.title = 'This site is in beta — tell us what is missing';
+    chip.setAttribute('aria-haspopup', 'dialog');
+    chip.addEventListener('click', function (e) {
+      e.preventDefault();
+      e.stopPropagation();                    /* the brand is a link home */
+      openFeedback();
+    });
+    brand.parentNode.insertBefore(chip, brand.nextSibling);
+  }
+
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest && e.target.closest('a[href="#feedback"]');
+    if (!a) return;
+    e.preventDefault();
+    e.stopPropagation();
+    var dd = a.closest('details');
+    if (dd) dd.open = false;
+    openFeedback();
+  }, true);
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', markBeta);
+  } else {
+    markBeta();
+  }
+
   /* `render` is the whole point of exporting anything: the landing page has
      its own inline answer box, and before this it had its own copy of the
      answer renderer too. Two renderers means one of them is always the older
@@ -792,5 +963,6 @@
       build();
       renderInto(target, structured, alive, null);
     },
+    feedback: openFeedback,
   };
 }());
