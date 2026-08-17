@@ -3541,3 +3541,38 @@ from the LIMIT rule and is how the counting regression started last time), and
 the one-shot screen-reader announcement now includes the metric cards and the
 ranked table — it had been reading the model's prose and none of what the build
 computed.
+
+### Deployed and verified against production, with the live model
+
+PR #41 merged; Vercel built on merge. `verify_live.py --with-query` is green on
+all 37 checks including the new one — a deployment that answers correctly but
+ships no `structured` field now fails, because the text check alone would stay
+green while every reader saw punctuation.
+
+**The first real question hit the exact failure the review had predicted.**
+Asked live, DeepSeek answered:
+
+    **Dallas ISD spent $23,746.00 per student in fiscal 2025**, on total
+    spending of $3.32 billion across 139,776 students. Per-student spending has
+    climbed steadily, from $10,628 in fiscal 2009 to … outpacing enrollment
+    growth.
+
+One paragraph, leading with `**bold**`. Before this change the reader saw the
+literal asterisks; before the review fix they would ALSO have lost everything
+after sentence two. The live payload now returns the whole paragraph as the
+lead with the bold as runs, `blocks: []` (nothing is left over, which is
+correct), the four filed figures, the five-row matched comparison, and three
+follow-ups. Rendered through the read proxy against the PRODUCTION page and the
+PRODUCTION ask.js — only the network response was stubbed, and that response
+came from production — at 1280×950 and 390×844: four sentences on screen, bold
+in the lead, zero raw marks, horizontal overflow 0, no page errors.
+
+Note for the next session: `scratchpad/liveproxy.py` is a READ proxy. It
+returns 501 on POST, so `/query` cannot be driven through it end to end in a
+browser. Curl the live endpoint for the payload, then stub that exact payload
+into the page — the renderer is the only thing the browser needs to prove.
+
+Known limits, stated rather than papered over: follow-ups are template-driven
+per question kind, so they are always answerable but never surprising; metric
+cards are fixed to spending, so a debt or bond question gets spending cards or
+none.
