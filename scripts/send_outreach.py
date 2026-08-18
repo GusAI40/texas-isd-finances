@@ -57,6 +57,7 @@ import hashlib
 import html
 import json
 import os
+import shutil
 import ssl
 import sys
 import time
@@ -396,6 +397,79 @@ def skiplist_shrank(resolved: int) -> str:
         f"passing --ignore-watermark.")
 
 
+def _short(path: Path) -> str:
+    """Repo-relative when it is inside the repo, absolute otherwise. A progress
+    line must never be the thing that raises."""
+    try:
+        return str(path.relative_to(ROOT))
+    except ValueError:
+        return str(path)
+
+
+def select_targets(rows: list[dict], limit: int) -> tuple[list[dict], dict]:
+    """The wave, exactly as the send would compute it, plus a report of how it
+    got there.
+
+    This exists as one function because the dry run used to preview
+    ``rows[:previews]`` — the HEAD OF THE MERGE FILE — while the send mailed a
+    filtered list. The two disagreed from the first wave onward, so the review
+    step showed districts that had already been contacted months earlier and
+    would never be mailed again. That is not a near miss with a duplicate send
+    (the send filters correctly, and the watermark stands behind it); it is
+    worse in a quieter way: it made the ONE step the runbook calls "the real
+    review" a review of the wrong emails. Both paths now call this.
+    """
+    sent, optout = load_sent(), load_optout()
+    suppressed = load_suppressed()
+    todo = [r for r in rows if r["email"] not in sent
+            and r["email"].lower() not in optout
+            and _digest(r["email"]) not in suppressed]
+    eligible = len(todo)
+    if limit:
+        todo = todo[:limit]
+    # Every count below is scoped to THIS merge file, because a report that
+    # mixes "671 addresses we have ever mailed" with "11 rows here are dead"
+    # cannot be added up by the person reading it — and a selection report
+    # whose numbers do not reconcile is a report nobody checks. The three
+    # reasons can overlap (a dead address can also be in the skip-list), so
+    # `excluded` is their UNION and is the only figure that subtracts.
+    return todo, {
+        "in_merge": len(rows),
+        "already_sent": sum(1 for r in rows if r["email"] in sent),
+        "opted_out": sum(1 for r in rows if r["email"].lower() in optout),
+        "dead": sum(1 for r in rows if _digest(r["email"]) in suppressed),
+        "excluded": len(rows) - eligible,
+        "eligible": eligible,
+        "skiplist": len(sent),
+        "remote": bool(os.environ.get("SUPABASE_PAT", "").strip()),
+    }
+
+
+def describe_selection(todo: list[dict], report: dict) -> str:
+    """The selection, in the terms the runbook asks to see before a send: how
+    many, from what, and which district is first and last — so the owner can
+    confirm the choice is deterministic rather than a sample."""
+    source = ("local + Supabase mirror" if report["remote"]
+              else "LOCAL ONLY — SUPABASE_PAT unset")
+    lines = [
+        f"  in the merge file          : {report['in_merge']:,}",
+        f"    already contacted        : {report['already_sent']:,}"
+        f"   (skip-list holds {report['skiplist']:,} addresses; {source})",
+        f"    opted out                : {report['opted_out']:,}",
+        f"    known-dead address       : {report['dead']:,}",
+        f"  excluded (any of the above): {report['excluded']:,}",
+        f"  eligible, never contacted  : {report['eligible']:,}",
+        f"  WOULD SEND                 : {len(todo):,}",
+    ]
+    if todo:
+        first, last = todo[0], todo[-1]
+        lines += [
+            f"    first : {first['district_number']} {first['district_name']}",
+            f"    last  : {last['district_number']} {last['district_name']}",
+        ]
+    return "\n".join(lines)
+
+
 def load_sent() -> set[str]:
     """Everyone already emailed: local CSV ∪ the Supabase mirror. Remote
     wins by union — an address in either place is never emailed again."""
@@ -560,15 +634,63 @@ def main() -> int:
 
     # ---- dry run (default): render previews, send nothing -------------------
     if not args.test and not args.send:
-        PREVIEW_DIR.mkdir(parents=True, exist_ok=True)
-        for row in rows[:args.previews]:
-            body, text = render_email(row, postal or "[postal address — set "
-                                      "TAG_POSTAL_ADDRESS]", unsubscribe)
-            stem = PREVIEW_DIR / row["district_number"]
-            stem.with_suffix(".html").write_text(body)
-            stem.with_suffix(".txt").write_text(text)
-        print(f"dry run: wrote {min(args.previews, len(rows))} previews to "
-              f"{PREVIEW_DIR.relative_to(ROOT)}/ — nothing sent.")
+        # The skip-list is what makes this a review rather than a rendering.
+        # If it cannot be resolved, the wave shown would be WRONG — larger than
+        # the truth, in the direction that re-emails people — so say so and
+        # stop, rather than writing previews that look authoritative.
+        try:
+            todo, report = select_targets(rows, args.limit)
+        except RuntimeError as ex:
+            print(f"cannot show the wave: {ex}", file=sys.stderr)
+            print("\nNo previews written. A dry run that cannot resolve the "
+                  "skip-list would show more districts than are really "
+                  "eligible. To render the email copy alone, with no "
+                  "selection, unset SUPABASE_PAT and re-run.", file=sys.stderr)
+            return 1
+        print("dry run — this is the wave the same flags would SEND:")
+        print(describe_selection(todo, report))
+        refusal = skiplist_shrank(report["skiplist"])
+        if refusal and not args.ignore_watermark:
+            print("\nWARNING — a real send would REFUSE this selection:")
+            print(refusal)
+        elif refusal:
+            # Saying "a send would refuse" under --ignore-watermark would be
+            # false in the one direction that matters: it makes the bypass look
+            # inert, so the next person passes it again believing it does
+            # nothing. The send honours the flag; say what it will really do.
+            print("\nWARNING — the watermark guard would normally REFUSE this "
+                  "selection, and --ignore-watermark WOULD OVERRIDE IT:")
+            print(refusal)
+
+        # Previews are keyed by district number, so last wave's files must not
+        # linger in the directory the runbook says to read — that is the same
+        # reviewed-the-wrong-emails failure, moved onto disk. But clearing
+        # first means an exception mid-render leaves the reviewer with nothing.
+        # So build the whole wave into a temporary directory and swap it in;
+        # a failure anywhere before the swap leaves the old previews intact.
+        #
+        # `--previews 0` is a real request — show me the selection, not the
+        # emails — and so is a wave of zero districts. Both must still clear,
+        # or the directory keeps asserting a wave that is not this one.
+        if args.previews:
+            staging = PREVIEW_DIR.with_name(PREVIEW_DIR.name + ".staging")
+            if staging.exists():
+                shutil.rmtree(staging)
+            staging.mkdir(parents=True)
+            for row in todo[:args.previews]:
+                body, text = render_email(row, postal or "[postal address — "
+                                          "set TAG_POSTAL_ADDRESS]", unsubscribe)
+                stem = staging / row["district_number"]
+                stem.with_suffix(".html").write_text(body)
+                stem.with_suffix(".txt").write_text(text)
+            if PREVIEW_DIR.exists():
+                shutil.rmtree(PREVIEW_DIR)
+            staging.rename(PREVIEW_DIR)
+        elif PREVIEW_DIR.exists():
+            shutil.rmtree(PREVIEW_DIR)
+        print(f"\nwrote {min(args.previews, len(todo))} previews to "
+              f"{_short(PREVIEW_DIR)}/ — from the list above, not "
+              f"the top of the merge file — nothing sent.")
         print("next: --test you@you.com for a real-inbox look, then "
               "--send --confirm GO")
         return 0
@@ -586,7 +708,34 @@ def main() -> int:
             if missing:
                 print(f"not in the merge file: {sorted(missing)}")
         else:
-            sample = rows[:args.limit or 2]
+            # The head of the merge file is NOT the wave. --test is the
+            # real-inbox half of the same review the dry run does on disk, so
+            # it must show the same districts; sampling rows[:2] meant the
+            # owner checked an email for a district contacted months ago.
+            # (--only stays unfiltered on purpose: naming a district is an
+            # explicit request to see that one, including an already-mailed
+            # one.) A failure to resolve the skip-list falls back to the head
+            # rather than aborting — nothing here reaches a superintendent, so
+            # a partial list costs a less representative sample, not a send.
+            try:
+                sample, rep = select_targets(rows, args.limit or 2)
+            except RuntimeError as ex:
+                print(f"WARNING: could not resolve the skip-list ({ex}) — "
+                      f"sampling the merge file instead, so these may be "
+                      f"districts already contacted.")
+                sample, rep = rows[:args.limit or 2], None
+            # A skip-list that resolves EMPTY does not raise — it is the
+            # supported offline mode — so the sample above would silently be
+            # the head of the merge file, which is where the already-contacted
+            # districts are. Nothing here reaches a superintendent, so this
+            # warns rather than refusing; but it must not stay quiet, or the
+            # owner approves the wave having inspected the wrong email.
+            if rep is not None and skiplist_shrank(rep["skiplist"]):
+                print(f"WARNING: the skip-list resolved to only "
+                      f"{rep['skiplist']} addresses against a watermark of "
+                      f"{watermark_floor()} — these samples may be districts "
+                      f"already contacted. A real send would refuse until the "
+                      f"state is recovered.")
         for row in sample:
             body, text = render_email(row, postal or "[postal address — set "
                                       "TAG_POSTAL_ADDRESS]", unsubscribe)
@@ -622,7 +771,7 @@ def main() -> int:
     print(f"target identity verified: all {len(rows):,} rows deep-link to "
           f"their own district and every sentence names it")
 
-    sent, optout = load_sent(), load_optout()
+    todo, report = select_targets(rows, args.limit)
 
     # The skip-list can only ever GROW: nobody un-receives an email. So a
     # skip-list smaller than the committed watermark does not mean fewer people
@@ -632,22 +781,13 @@ def main() -> int:
     # SUPABASE_PAT is unset. A fresh clone with neither therefore resolves a
     # skip-list of zero and would cheerfully re-email all 571 superintendents
     # already contacted. Refuse instead, and say exactly how to recover.
-    refusal = skiplist_shrank(len(sent))
+    refusal = skiplist_shrank(report["skiplist"])
     if refusal and not args.ignore_watermark:
         print(refusal)
         return 1
 
-    suppressed = load_suppressed()
-    dead = [r for r in rows if _digest(r["email"]) in suppressed]
-    todo = [r for r in rows if r["email"] not in sent
-            and r["email"].lower() not in optout
-            and _digest(r["email"]) not in suppressed]
-    skipped = len(rows) - len(todo)
-    if args.limit:
-        todo = todo[:args.limit]
-    print(f"{len(rows)} districts in merge · {skipped} already sent/opted "
-          f"out/undeliverable ({len(dead)} known-dead addresses) "
-          f"· sending {len(todo)} now")
+    print("sending this wave:")
+    print(describe_selection(todo, report))
 
     ok = fail = 0
     for i, row in enumerate(todo, 1):
@@ -673,7 +813,7 @@ def main() -> int:
         time.sleep(1.1)
 
     print(f"\ndone: {ok} sent, {fail} failed. Log: "
-          f"{SENT_LOG.relative_to(ROOT)} (re-runs skip everyone already sent)")
+          f"{_short(SENT_LOG)} (re-runs skip everyone already sent)")
     return 0 if fail == 0 else 1
 
 

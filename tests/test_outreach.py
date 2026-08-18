@@ -9,6 +9,8 @@ is a pure function of a row, so the tests hand it rows.
 import sys
 from pathlib import Path
 
+import pytest
+
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
@@ -223,3 +225,314 @@ def test_the_suppression_list_is_committed_and_blocks_by_hash():
     assert load_suppressed() == set(entries)
     # digest is over the canonicalised address, so case cannot dodge the block
     assert _digest("A@B.Com ") == _digest("a@b.com")
+
+
+# --- the dry run must review the wave that would actually be sent -------------
+
+def _rows(*nums):
+    return [{"district_number": n, "district_name": f"District {n}",
+             "email": f"super@{n}.org"} for n in nums]
+
+
+def test_the_dry_run_previews_the_real_targets_not_the_top_of_the_file(monkeypatch):
+    """The dry run IS the review step the runbook names, and it used to render
+    ``rows[:previews]`` — the head of the merge file — while the send mailed a
+    filtered list. From wave 2 onward those disagreed completely: the previews
+    showed districts contacted months earlier that would never be mailed again.
+    The send was never at risk (it filters, and the watermark stands behind
+    it); what was broken is that the review reviewed the wrong emails, which is
+    how a bad wave gets approved by someone doing everything right.
+    """
+    from scripts import send_outreach as so
+
+    rows = _rows("001902", "001903", "163902", "163903")
+    monkeypatch.setattr(so, "load_sent", lambda: {"super@001902.org",
+                                                  "super@001903.org"})
+    monkeypatch.setattr(so, "load_optout", lambda: set())
+    monkeypatch.setattr(so, "load_suppressed", lambda: set())
+
+    todo, report = so.select_targets(rows, limit=0)
+    assert [r["district_number"] for r in todo] == ["163902", "163903"], (
+        "an already-contacted district reached the review list")
+    assert report["eligible"] == 2 and report["excluded"] == 2
+
+
+def test_the_selection_is_reported_so_the_owner_can_see_it_is_deterministic(monkeypatch):
+    """Counts alone cannot show WHICH 200. First and last district make the
+    selection checkable by eye against a re-run."""
+    from scripts import send_outreach as so
+
+    monkeypatch.setattr(so, "load_sent", lambda: set())
+    monkeypatch.setattr(so, "load_optout", lambda: set())
+    monkeypatch.setattr(so, "load_suppressed", lambda: set())
+
+    rows = _rows("001902", "163902", "220901")
+    todo, report = so.select_targets(rows, limit=2)
+    text = so.describe_selection(todo, report)
+    assert "WOULD SEND                 : 2" in text
+    assert "first : 001902" in text and "last  : 163902" in text
+    assert "eligible, never contacted  : 3" in text, (
+        "the limit must not be reported as the eligible pool")
+
+
+def test_the_exclusion_counts_reconcile_even_when_the_reasons_overlap(monkeypatch):
+    """The three reasons are not disjoint — in the real state file every
+    opt-out and every dead address is ALSO in the skip-list, because you only
+    bounce or unsubscribe after being mailed. So `excluded` must be their
+    UNION; summing them would over-count and the printed figures would not
+    subtract to the eligible pool. A fixture with empty sets passes for any
+    definition, including the wrong one, so this one overlaps deliberately.
+    """
+    from scripts import send_outreach as so
+
+    rows = _rows("001902", "001903", "163902")
+    # 001902 is all three at once; 001903 is only opted out; 163902 is clean
+    monkeypatch.setattr(so, "load_sent", lambda: {"super@001902.org"})
+    monkeypatch.setattr(so, "load_optout",
+                        lambda: {"super@001902.org", "super@001903.org"})
+    monkeypatch.setattr(so, "load_suppressed",
+                        lambda: {so._digest("super@001902.org")})
+
+    todo, report = so.select_targets(rows, limit=0)
+    assert (report["already_sent"], report["opted_out"], report["dead"]) == (1, 2, 1)
+    # 2, not 4: summing the three reasons would count 001902 three times.
+    # (in_merge - excluded == eligible is true by construction, so it is not
+    # asserted here — it would pass for a wrong `eligible` too.)
+    assert report["excluded"] == 2, "overlapping reasons were double-counted"
+    assert report["eligible"] == 1
+    assert [r["district_number"] for r in todo] == ["163902"]
+    assert "excluded (any of the above): 2" in so.describe_selection(todo, report)
+
+
+def test_a_local_only_skip_list_says_so_where_the_owner_will_read_it(monkeypatch):
+    """_remote_emails() returns an EMPTY set when SUPABASE_PAT is unset —
+    supported offline mode, not an error — so the skip-list can be silently
+    partial. The line that shows the number must show its provenance."""
+    from scripts import send_outreach as so
+
+    monkeypatch.setattr(so, "load_sent", lambda: {"super@001902.org"})
+    monkeypatch.setattr(so, "load_optout", lambda: set())
+    monkeypatch.setattr(so, "load_suppressed", lambda: set())
+
+    monkeypatch.delenv("SUPABASE_PAT", raising=False)
+    _, report = so.select_targets(_rows("001902", "163902"), limit=0)
+    assert "LOCAL ONLY" in so.describe_selection([], report)
+
+    monkeypatch.setenv("SUPABASE_PAT", "sbp_test")
+    _, report = so.select_targets(_rows("001902", "163902"), limit=0)
+    assert "Supabase mirror" in so.describe_selection([], report)
+
+
+def _dry_run(monkeypatch, tmp_path, rows, sent=(), extra_argv=()):
+    """Run the real dry-run path of main() against a temporary merge file."""
+    import csv as _csv
+
+    from scripts import send_outreach as so
+
+    merge = tmp_path / "merge.csv"
+    with merge.open("w", newline="") as fh:
+        w = _csv.DictWriter(fh, fieldnames=list(rows[0]))
+        w.writeheader()
+        w.writerows(rows)
+    monkeypatch.setattr(so, "MERGE", merge)
+    monkeypatch.setattr(so, "PREVIEW_DIR", tmp_path / "preview")
+    if sent is not None:                 # None: leave load_sent as the caller set it
+        monkeypatch.setattr(so, "load_sent", lambda: set(sent))
+    monkeypatch.setattr(so, "load_optout", lambda: set())
+    monkeypatch.setattr(so, "load_suppressed", lambda: set())
+    monkeypatch.setattr(sys, "argv", ["send_outreach.py", *extra_argv])
+    return so.main(), tmp_path / "preview"
+
+
+def _full_row(num, name):
+    r = dict(ROW)
+    r.update(district_number=num, district_name=name,
+             email=f"super@{num}.org",
+             deep_link=f"https://txisd.dev/?d={num}",
+             subject=f"Every number Texas publishes about {name}",
+             hook=f"{name} spent money.", insight_bonds=f"{name} bonds.",
+             insight_debt=f"{name} debt.", insight_trend=f"{name} trend.")
+    return r
+
+
+def test_the_dry_run_warns_when_a_send_would_refuse_the_selection(
+        monkeypatch, tmp_path, capsys):
+    """A dry run cannot refuse — it sends nothing — but showing a wave the
+    watermark guard would reject, without saying so, invites the owner to
+    approve a send that then dies at the rail. This runs the real path."""
+    rows = [_full_row("163902", "D'Hanis ISD"), _full_row("163903", "Natalia ISD")]
+    code, _ = _dry_run(monkeypatch, tmp_path, rows, sent=[],
+                       extra_argv=["--previews", "0"])
+    out = capsys.readouterr().out
+    assert code == 0
+    # the committed watermark is non-zero, so a skip-list of zero must warn
+    assert "a real send would REFUSE" in out
+    assert "refusing:" in out
+
+
+def test_the_dry_run_renders_the_selected_districts_and_clears_stale_ones(
+        monkeypatch, tmp_path, capsys):
+    """Previews are keyed by district number, so last wave's files would
+    otherwise sit in the directory the runbook says to read — the same
+    reviewed-the-wrong-emails failure, moved onto disk."""
+    rows = [_full_row("163902", "D'Hanis ISD"), _full_row("163903", "Natalia ISD")]
+    _dry_run(monkeypatch, tmp_path, rows, sent=["super@163902.org"],
+             extra_argv=["--previews", "5"])
+    pv = tmp_path / "preview"
+    stale = pv / "001902.html"
+    stale.write_text("last wave")
+    # a second run must leave only the current wave behind
+    _dry_run(monkeypatch, tmp_path, rows, sent=["super@163902.org"],
+             extra_argv=["--previews", "5"])
+    assert not stale.exists(), "a previous wave's preview survived"
+    assert {p.stem for p in pv.glob("*.html")} == {"163903"}, (
+        "the previews are not the districts that would be sent")
+
+
+def test_the_dry_run_does_not_call_a_bypassed_guard_a_refusal(
+        monkeypatch, tmp_path, capsys):
+    """--ignore-watermark makes the send proceed. A dry run that still says
+    "a real send would REFUSE" is wrong in the one direction that matters: it
+    makes the bypass look inert, so the next person passes it again believing
+    it does nothing."""
+    rows = [_full_row("163902", "D'Hanis ISD")]
+    _dry_run(monkeypatch, tmp_path, rows, sent=[],
+             extra_argv=["--previews", "0", "--ignore-watermark"])
+    out = capsys.readouterr().out
+    assert "WOULD OVERRIDE IT" in out
+    assert "a real send would REFUSE" not in out
+
+
+def test_the_preview_directory_always_reflects_the_last_dry_run(monkeypatch, tmp_path):
+    """Two bad outcomes were possible and they are not equally bad. Leaving the
+    reviewer with NOTHING is a nuisance; leaving them the PREVIOUS wave's
+    emails, in the directory the runbook tells them to open, is the
+    reviewed-the-wrong-emails failure itself. So the directory always reflects
+    the last dry run — including when that run had nothing to show.
+    """
+    rows = [_full_row("163902", "D'Hanis ISD")]
+    pv = tmp_path / "preview"
+    _dry_run(monkeypatch, tmp_path, rows, sent=[], extra_argv=["--previews", "1"])
+    assert (pv / "163902.html").exists()
+
+    # asked for the selection only — the stale email must not survive
+    _dry_run(monkeypatch, tmp_path, rows, sent=[], extra_argv=["--previews", "0"])
+    assert not (pv / "163902.html").exists()
+
+    # a wave of zero districts must not leave the last wave standing either
+    _dry_run(monkeypatch, tmp_path, rows, sent=[], extra_argv=["--previews", "3"])
+    assert (pv / "163902.html").exists()
+    _dry_run(monkeypatch, tmp_path, rows, sent=["super@163902.org"],
+             extra_argv=["--previews", "3"])
+    assert list(pv.glob("*.html")) == [], (
+        "an empty wave left the previous wave's previews on disk")
+
+
+def test_a_failed_render_leaves_the_previous_previews_intact(monkeypatch, tmp_path):
+    """The clear and the write are not one operation, so the wave is rendered
+    into a staging directory and swapped in. A crash before the swap must not
+    cost the reviewer what they already had."""
+    from scripts import send_outreach as so
+
+    rows = [_full_row("163902", "D'Hanis ISD")]
+    pv = tmp_path / "preview"
+    _dry_run(monkeypatch, tmp_path, rows, sent=[], extra_argv=["--previews", "1"])
+    assert (pv / "163902.html").exists()
+
+    def boom(*a, **k):
+        raise ValueError("template blew up")
+
+    monkeypatch.setattr(so, "render_email", boom)
+    with pytest.raises(ValueError):
+        _dry_run(monkeypatch, tmp_path, rows, sent=[], extra_argv=["--previews", "1"])
+    assert (pv / "163902.html").exists(), (
+        "a failed render destroyed the previews it could not replace")
+
+
+def _test_send(monkeypatch, tmp_path, rows, sent=(), extra_argv=()):
+    """Drive the --test path with the Resend call stubbed, returning the rows
+    that would really have been rendered into a message."""
+    import csv as _csv
+
+    from scripts import send_outreach as so
+
+    merge = tmp_path / "merge.csv"
+    with merge.open("w", newline="") as fh:
+        w = _csv.DictWriter(fh, fieldnames=list(rows[0]))
+        w.writeheader()
+        w.writerows(rows)
+    seen = []
+    monkeypatch.setattr(so, "MERGE", merge)
+    monkeypatch.setattr(so, "load_sent", lambda: set(sent))
+    monkeypatch.setattr(so, "load_optout", lambda: set())
+    monkeypatch.setattr(so, "load_suppressed", lambda: set())
+    monkeypatch.setattr(so, "_req",
+                        lambda path, key, payload: seen.append(payload) or {"id": "x"})
+    monkeypatch.setattr(so.time, "sleep", lambda *_: None)
+    monkeypatch.setenv("RESEND_API_KEY", "re_test")
+    monkeypatch.setattr(sys, "argv",
+                        ["send_outreach.py", "--test", "owner@example.com",
+                         *extra_argv])
+    so.main()
+    return seen
+
+
+def test_the_real_inbox_check_samples_the_wave_not_the_merge_file(
+        monkeypatch, tmp_path):
+    """--test is the other half of the same review. Sampling rows[:2] meant the
+    owner inspected an email for a district contacted months ago — the same
+    defect the dry run had, in the channel that actually reaches an inbox."""
+    rows = [_full_row("001902", "Cayuga ISD"), _full_row("163902", "D'Hanis ISD"),
+            _full_row("163903", "Natalia ISD")]
+    seen = _test_send(monkeypatch, tmp_path, rows,
+                      sent=["super@001902.org"], extra_argv=["--limit", "2"])
+    subjects = " ".join(p["subject"] for p in seen)
+    assert "Cayuga" not in subjects, (
+        "an already-contacted district was put in front of the owner")
+    assert "D'Hanis" in subjects and "Natalia" in subjects
+
+
+def test_naming_a_district_still_shows_it_even_if_already_contacted(
+        monkeypatch, tmp_path):
+    """--only is an explicit request to see one district's email. Filtering it
+    the way the wave is filtered would make it impossible to re-check a message
+    that has already gone out — which is exactly when you want to look."""
+    rows = [_full_row("001902", "Cayuga ISD"), _full_row("163902", "D'Hanis ISD")]
+    seen = _test_send(monkeypatch, tmp_path, rows, sent=["super@001902.org"],
+                      extra_argv=["--only", "001902"])
+    assert len(seen) == 1 and "Cayuga" in seen[0]["subject"]
+
+
+def test_an_empty_skiplist_warns_before_the_owner_trusts_the_sample(
+        monkeypatch, tmp_path, capsys):
+    """A skip-list that resolves EMPTY does not raise — offline is supported —
+    so --test would quietly sample the head of the merge file, which is where
+    the already-contacted districts live. It must say so."""
+    rows = [_full_row("001902", "Cayuga ISD"), _full_row("163902", "D'Hanis ISD")]
+    _test_send(monkeypatch, tmp_path, rows, sent=[], extra_argv=["--limit", "1"])
+    out = capsys.readouterr().out
+    assert "may be districts already contacted" in out
+    assert "would refuse until the state is recovered" in out
+
+
+def test_a_dry_run_that_cannot_resolve_the_skiplist_refuses_to_preview(
+        monkeypatch, tmp_path, capsys):
+    """_remote_emails() RAISES when Supabase is set but unreachable, precisely
+    so a partial skip-list never passes as a whole one. The dry run must not
+    turn that into previews: the wave it would show is larger than the truth,
+    in the direction that re-emails people."""
+    from scripts import send_outreach as so
+
+    def boom():
+        raise RuntimeError("could not read public.outreach_sent from Supabase")
+
+    monkeypatch.setattr(so, "load_sent", boom)
+    code, pv = _dry_run(monkeypatch, tmp_path,
+                        [_full_row("163902", "D'Hanis ISD")], sent=None,
+                        extra_argv=["--previews", "3"])
+    err = capsys.readouterr().err
+    assert code == 1, "a dry run with an unresolvable skip-list must not pass"
+    assert "cannot show the wave" in err
+    assert "No previews written" in err
+    assert not pv.exists() or not list(pv.glob("*.html")), (
+        "previews were written from a skip-list that could not be resolved")

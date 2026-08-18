@@ -210,7 +210,27 @@ def test_send_refuses_when_the_skiplist_shrank():
     assert mod.skiplist_shrank(floor + 9) == ""   # grown since: fine
     assert mod.skiplist_shrank(floor - 1) != ""   # one short: refuse
 
-    # and the refusal must come before anything is sent
+    # and the refusal must come before anything is sent. The skip-list size is
+    # read off the selection report rather than a local variable, so that the
+    # dry run and the send can compute the wave the same way — but the ORDER is
+    # the guarantee: refuse, then loop.
     src = sp.read_text()
-    assert src.index("skiplist_shrank(len(sent))") < \
-        src.index("for i, row in enumerate(todo, 1)")
+    # The dry run calls skiplist_shrank too, but only to WARN — it sends
+    # nothing, so matching that call would let the send's own rail be deleted
+    # with the suite still green. Look for the guard INSIDE the send path:
+    # between the real-send marker and the loop that hands messages to Resend.
+    send_path = src[src.index("# ---- the real send"):
+                    src.index("for i, row in enumerate(todo, 1)")]
+    # Anchored to the guard's own block: searching for "return 1" anywhere
+    # after the call passes on any LATER rail's return, so the guard could be
+    # reduced to a print and the suite would stay green. Matched as a shape
+    # rather than sliced at the first blank line, so a cosmetic newline or an
+    # added comment cannot fail the build.
+    import re as _re
+    assert _re.search(
+        r"skiplist_shrank\([^)]*\)\s*\n"
+        r"\s*if refusal and not args\.ignore_watermark:\s*\n"
+        r"(?:\s*(?:#.*)?\n|\s*print\(.*\n)*"
+        r"\s*return 1\b", send_path), (
+        "the send's watermark guard must ABORT — a fresh container with no "
+        "state could otherwise re-email every superintendent already contacted")
