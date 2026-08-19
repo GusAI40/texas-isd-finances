@@ -48,6 +48,14 @@ sql/
 # file outside src//static//api/ needs a re-include AND a test.
 # It must come after BOTH `data/*` and `*.csv`, or those re-exclude it.
 !data/district_crosswalk.csv
+#
+# src/outreach_runner.py reads these two committed files at request time:
+# the watermark is the re-send floor, the suppression list the dead-address
+# block. Both are hashes/counts, never contact data. Same rule as the
+# crosswalk re-include above: anything src/ opens outside src//static//api/
+# needs a re-include AND tests/test_vercelignore.py enforces it.
+!data/outreach_watermark.json
+!data/outreach_suppression.json
 *.ipynb
 Dockerfile
 render.yaml

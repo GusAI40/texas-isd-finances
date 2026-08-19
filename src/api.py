@@ -38,6 +38,7 @@ from . import (
     mcp_tools,
     migrations,
     outreach_map,
+    outreach_runner,
     scanner,
     site_gate,
     sources,
@@ -3124,6 +3125,117 @@ async def ops_outreach_data(request: Request):
     payload = await outreach_map.build(request.app.state.db_pool, mailing)
     return JSONResponse(payload, headers={"Cache-Control": "no-store",
                                           "X-Robots-Tag": "noindex, nofollow"})
+
+
+
+# --- the server-side outreach machine ----------------------------------------
+# Where the send pipeline lives now, because Vercel's env store is the one
+# credential home in this system that has survived every container loss
+# (2026-08-19 root cause). Three surfaces, all invisible in the schema and
+# all answering 404 to a wrong or missing token, like /ops:
+#   POST /api/outreach/enqueue      state a wave (sends nothing)
+#   GET  /api/cron/outreach-drain   send one batch (cron daily, or kicked)
+#   GET  /api/outreach/status       the queue at a glance
+# The admin token is OUTREACH_TOKEN — its own secret, deliberately NOT
+# OPS_TOKEN: the ops token has already transited a chat transcript, and a
+# token that can trigger mass email to named officials must never share fate
+# with one that is merely embarrassing to leak.
+
+def _outreach_ok(request: Request) -> bool:
+    want = os.getenv("OUTREACH_TOKEN", "").strip()
+    if not want:
+        return False
+    got = (request.query_params.get("token")
+           or request.headers.get("x-outreach-token") or "")
+    try:
+        return secrets.compare_digest(got.encode("utf-8"),
+                                      want.encode("utf-8"))
+    except Exception:  # noqa: BLE001 — a bad token must never be a 500
+        return False
+
+
+class EnqueueRequest(BaseModel):
+    limit: int = Field(default=0, ge=0, le=2000)
+    campaign: str = Field(min_length=2, max_length=64)
+    confirm: str = ""
+
+
+@app.post("/api/outreach/enqueue", include_in_schema=False)
+async def outreach_enqueue(body: EnqueueRequest, request: Request):
+    if not _outreach_ok(request):
+        raise HTTPException(status_code=404, detail="Not found")
+    if body.confirm not in ("GO", "PREVIEW"):
+        return JSONResponse({"refused": "confirm must be the literal word GO "
+                                        "(or PREVIEW for the selection with "
+                                        "no writes) — enqueue states a real "
+                                        "wave"},
+                            status_code=400)
+    pool = _pool_or_none(request)
+    if pool is None:
+        return JSONResponse({"error": "database unavailable"}, status_code=503)
+    code, payload = await outreach_runner.enqueue(
+        pool, body.limit, body.campaign.strip(),
+        write=body.confirm == "GO")
+    return JSONResponse(payload, status_code=code,
+                        headers={"Cache-Control": "no-store"})
+
+
+@app.get("/api/cron/outreach-drain", include_in_schema=False)
+async def cron_outreach_drain(request: Request):
+    """One batch off the queue. Vercel Cron fires this daily with the
+    CRON_SECRET bearer; a human or agent kicks it with the outreach token to
+    move faster. Either credential suffices — the drain can only ever send
+    what enqueue already authorised."""
+    # Compare BYTES inside try, exactly like _ops_ok: compare_digest raises
+    # TypeError on a non-ASCII str, and an unhandled exception here answers
+    # 500 — telling anyone who tries `Bearer café` that this hidden route
+    # exists, which defeats answering 404 in the first place.
+    secret = os.getenv("CRON_SECRET") or ""
+    provided = request.headers.get("authorization") or ""
+    try:
+        cron_ok = bool(secret) and secrets.compare_digest(
+            provided.encode("utf-8"), f"Bearer {secret}".encode("utf-8"))
+    except Exception:  # noqa: BLE001 — a bad token must never be a 500
+        cron_ok = False
+    if not (cron_ok or _outreach_ok(request)):
+        raise HTTPException(status_code=404, detail="Not found")
+    pool = _pool_or_none(request)
+    if pool is None:
+        return JSONResponse({"error": "database unavailable"}, status_code=503)
+    # monotonic, NOT time.time(): _record_cron_run computes the elapsed time
+    # against time.monotonic(), and a wall-clock start produces a negative
+    # ~1.7e12 ms duration that overflows the integer column — the run row
+    # then silently fails to write and the watchdog reads a permanent gap.
+    started = time.monotonic()
+    try:
+        code, payload = await outreach_runner.drain(pool)
+    except Exception as exc:  # noqa: BLE001 — the run row is the whole point
+        await _record_cron_run(pool, "outreach-drain", started, "error", 0,
+                               str(exc)[:300])
+        raise
+    await _record_cron_run(
+        pool, "outreach-drain", started,
+        "skipped" if payload.get("status") in ("unarmed", "empty") else
+        ("ok" if code == 200 else "error"),
+        int(payload.get("sent") or 0),
+        payload.get("status") or (payload.get("error") or "")[:200] or None)
+    return JSONResponse(payload, status_code=code,
+                        headers={"Cache-Control": "no-store"})
+
+
+@app.get("/api/outreach/status", include_in_schema=False)
+async def outreach_status(request: Request):
+    if not _outreach_ok(request):
+        raise HTTPException(status_code=404, detail="Not found")
+    pool = _pool_or_none(request)
+    if pool is None:
+        return JSONResponse({"error": "database unavailable"}, status_code=503)
+    # jsonable_encoder: stale_sending rows carry datetimes, and a bare
+    # JSONResponse would 500 on them — precisely when a drain has died and
+    # the operator most needs this page.
+    return JSONResponse(jsonable_encoder(await outreach_runner.status(pool)),
+                        headers={"Cache-Control": "no-store",
+                                 "X-Robots-Tag": "noindex, nofollow"})
 
 
 @app.get("/district/{district_number}/lineage/{metric}", tags=["Districts"])

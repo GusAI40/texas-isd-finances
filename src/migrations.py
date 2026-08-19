@@ -317,6 +317,106 @@ END $$;
 # takes the fast path forever and never gets the new table.
 INTEL_SENTINEL = "public.site_feedback"
 
+# The server-side outreach runner (src/outreach_runner.py). Root cause of the
+# 2026-08-19 outage: the mailing list and send pipeline lived in disposable
+# containers fed by keys pasted into chat, and died with the container. The
+# durable home for the pipeline is the deployed site (Vercel holds its keys
+# in platform config — the one credential store in this system that has
+# survived every container loss), so the mailing list and the send queue live
+# in the same database as everything else the site owns.
+#
+# outreach_contact IS contact data — named public officials' addresses plus
+# the per-district message fields. Same lockdown as visitor_event: RLS on, no
+# grants, nlp_reader explicitly revoked. Writes arrive via the Management API
+# (scripts/sync_outreach_contacts.py) or the app's own DDL-capable pool.
+#
+# outreach_queue is the wave: enqueue states WHO (after every skip-list), the
+# daily drain sends a batch and records each delivery in outreach_sent /
+# outreach_recipient exactly as the laptop script did. UNIQUE(email) makes a
+# double-enqueue structurally impossible, matching the one-touch doctrine —
+# an address is queued at most once, ever.
+OUTREACH_DDL = """
+-- outreach_sent and outreach_optout were born in sql/create_outreach_state.sql,
+-- hand-applied. The runner reads AND writes both, so a fresh database must
+-- get them without a hand step — the whole doctrine of this module. Shapes
+-- mirror that file exactly; IF NOT EXISTS makes this a no-op on production,
+-- which already has them.
+CREATE TABLE IF NOT EXISTS public.outreach_sent (
+    email           text PRIMARY KEY,
+    district_number text,
+    message_id      text,
+    sent_at         timestamptz
+);
+
+CREATE TABLE IF NOT EXISTS public.outreach_optout (
+    email    text PRIMARY KEY,
+    noted_at timestamptz DEFAULT now()
+);
+
+ALTER TABLE public.outreach_sent   ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.outreach_optout ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.outreach_sent   FROM PUBLIC;
+REVOKE ALL ON public.outreach_optout FROM PUBLIC;
+
+CREATE TABLE IF NOT EXISTS public.outreach_contact (
+    district_number text PRIMARY KEY,
+    district_name   text NOT NULL,
+    email           text NOT NULL,
+    greeting        text NOT NULL DEFAULT 'Superintendent',
+    subject         text NOT NULL,
+    deep_link       text NOT NULL,
+    hook            text NOT NULL DEFAULT '',
+    insight_bonds   text NOT NULL DEFAULT '',
+    insight_debt    text NOT NULL DEFAULT '',
+    insight_trend   text NOT NULL DEFAULT '',
+    updated_at      timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS outreach_contact_email_idx
+    ON public.outreach_contact (email);
+
+CREATE TABLE IF NOT EXISTS public.outreach_queue (
+    id              bigserial PRIMARY KEY,
+    district_number text        NOT NULL,
+    email           text        NOT NULL UNIQUE,
+    campaign        text        NOT NULL,
+    status          text        NOT NULL DEFAULT 'queued'
+        CHECK (status IN ('queued', 'sending', 'sent', 'error')),
+    detail          text,
+    enqueued_at     timestamptz NOT NULL DEFAULT now(),
+    claimed_at      timestamptz,
+    sent_at         timestamptz
+);
+
+CREATE INDEX IF NOT EXISTS outreach_queue_status_idx
+    ON public.outreach_queue (status, district_number);
+
+ALTER TABLE public.outreach_contact ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.outreach_queue   ENABLE ROW LEVEL SECURITY;
+
+REVOKE ALL ON public.outreach_contact FROM PUBLIC;
+REVOKE ALL ON public.outreach_queue   FROM PUBLIC;
+
+DO $$
+DECLARE
+    r text;
+BEGIN
+    FOREACH r IN ARRAY ARRAY['anon', 'authenticated', 'nlp_reader'] LOOP
+        IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = r) THEN
+            EXECUTE format(
+                'REVOKE ALL ON public.outreach_contact, '
+                'public.outreach_queue, public.outreach_sent, '
+                'public.outreach_optout FROM %I', r);
+        END IF;
+    END LOOP;
+END $$;
+"""
+
+# Created LAST in OUTREACH_DDL, for the same reason INTEL_SENTINEL moved to
+# site_feedback: the sentinel must be the newest object or old databases take
+# the fast path forever.
+OUTREACH_SENTINEL = "public.outreach_queue"
+
 
 # `CREATE TABLE IF NOT EXISTS` is NOT race-safe: concurrent creators fail with a
 # duplicate key on pg_type rather than one of them yielding. On a serverless
@@ -350,7 +450,9 @@ async def ensure_schema(pool) -> str:
                 "SELECT to_regclass($1)", SENTINEL) is not None
             have_intel = await conn.fetchval(
                 "SELECT to_regclass($1)", INTEL_SENTINEL) is not None
-            if have_tracking and have_intel:
+            have_outreach = await conn.fetchval(
+                "SELECT to_regclass($1)", OUTREACH_SENTINEL) is not None
+            if have_tracking and have_intel and have_outreach:
                 if await _journey_view_current(conn):
                     return "ok: tracking schema already present"
                 # The tables exist but the view body predates the session
@@ -380,6 +482,9 @@ async def ensure_schema(pool) -> str:
                 if await conn.fetchval(
                         "SELECT to_regclass($1)", INTEL_SENTINEL) is None:
                     await conn.execute(INTEL_DDL)
+                if await conn.fetchval(
+                        "SELECT to_regclass($1)", OUTREACH_SENTINEL) is None:
+                    await conn.execute(OUTREACH_DDL)
                 # The view refresh must ALSO run here, not only on the fast
                 # path: a database with the tracking sentinel but not the
                 # intel one takes this branch, skips VISITOR_TRACKING_DDL
@@ -388,7 +493,7 @@ async def ensure_schema(pool) -> str:
                 if not await _journey_view_current(conn):
                     await conn.execute(JOURNEY_VIEW_DDL)
 
-            for name in (SENTINEL, INTEL_SENTINEL):
+            for name in (SENTINEL, INTEL_SENTINEL, OUTREACH_SENTINEL):
                 if await conn.fetchval("SELECT to_regclass($1)", name) is None:
                     return f"ERROR: ran the DDL but {name} is still missing"
             # Deliberately reports STATE, not authorship. Several workers can
@@ -409,7 +514,8 @@ async def ensure_schema(pool) -> str:
             async with pool.acquire() as conn:
                 if (all(await conn.fetchval(
                             "SELECT to_regclass($1)", n) is not None
-                        for n in (SENTINEL, INTEL_SENTINEL))
+                        for n in (SENTINEL, INTEL_SENTINEL,
+                                  OUTREACH_SENTINEL))
                         and await _journey_view_current(conn)):
                     return "ok: tracking schema present (raced another worker)"
         except Exception:                                 # noqa: BLE001
