@@ -51,6 +51,41 @@ def test_sync_pull_refuses_to_shrink_the_local_record():
     assert "refusing to pull" in SYNC
 
 
+def test_push_honors_a_monkeypatched_module_constant_not_only_its_kwarg(
+        monkeypatch, tmp_path):
+    """push()'s sent_log/recipients/optout default via a None sentinel
+    resolved INSIDE the function, not a value baked into the signature at
+    def-time — a `Path = SENT_LOG` default would capture the object that
+    existed when the module loaded and never see a later
+    ``monkeypatch.setattr(sync_outreach_state, "SENT_LOG", ...)``, which is
+    exactly the idiom this test suite already uses elsewhere (e.g.
+    tests/test_outreach_state.py's own `local_state` fixture patches
+    send_outreach's SENT_LOG the same way). pull() already calls
+    _local_optouts() with no argument at all, so this is not hypothetical."""
+    from scripts import sync_outreach_state as sos
+
+    fake_optout = tmp_path / "optout.txt"
+    fake_optout.write_text("nobody@example.com\n")
+    monkeypatch.setattr(sos, "OPTOUT", fake_optout)
+    monkeypatch.setattr(sos, "SENT_LOG", tmp_path / "missing_sent.csv")
+    monkeypatch.setattr(sos, "RECIPIENTS", tmp_path / "missing_recipients.csv")
+
+    assert sos._local_optouts() == {"nobody@example.com"}
+
+    calls = []
+
+    def fake_run_sql(q, pat):
+        calls.append(q)
+        return [{"sent": 0, "optout": 1}]        # the final reconciliation SELECT
+
+    monkeypatch.setattr(sos, "run_sql", fake_run_sql)
+    rc = sos.push("sbp_fake")
+    assert rc == 0
+    assert any("nobody@example.com" in c for c in calls), (
+        "push() read the real repo's data/outreach_optout.txt instead of "
+        "the monkeypatched module constant")
+
+
 def test_send_outreach_still_imports_and_keeps_its_surface():
     """The durability layer was additive — every pre-existing entry point
     survives."""
@@ -210,7 +245,27 @@ def test_send_refuses_when_the_skiplist_shrank():
     assert mod.skiplist_shrank(floor + 9) == ""   # grown since: fine
     assert mod.skiplist_shrank(floor - 1) != ""   # one short: refuse
 
-    # and the refusal must come before anything is sent
+    # and the refusal must come before anything is sent. The skip-list size is
+    # read off the selection report rather than a local variable, so that the
+    # dry run and the send can compute the wave the same way — but the ORDER is
+    # the guarantee: refuse, then loop.
     src = sp.read_text()
-    assert src.index("skiplist_shrank(len(sent))") < \
-        src.index("for i, row in enumerate(todo, 1)")
+    # The dry run calls skiplist_shrank too, but only to WARN — it sends
+    # nothing, so matching that call would let the send's own rail be deleted
+    # with the suite still green. Look for the guard INSIDE the send path:
+    # between the real-send marker and the loop that hands messages to Resend.
+    send_path = src[src.index("# ---- the real send"):
+                    src.index("for i, row in enumerate(todo, 1)")]
+    # Anchored to the guard's own block: searching for "return 1" anywhere
+    # after the call passes on any LATER rail's return, so the guard could be
+    # reduced to a print and the suite would stay green. Matched as a shape
+    # rather than sliced at the first blank line, so a cosmetic newline or an
+    # added comment cannot fail the build.
+    import re as _re
+    assert _re.search(
+        r"skiplist_shrank\([^)]*\)\s*\n"
+        r"\s*if refusal and not args\.ignore_watermark:\s*\n"
+        r"(?:\s*(?:#.*)?\n|\s*print\(.*\n)*"
+        r"\s*return 1\b", send_path), (
+        "the send's watermark guard must ABORT — a fresh container with no "
+        "state could otherwise re-email every superintendent already contacted")

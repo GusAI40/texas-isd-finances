@@ -100,7 +100,17 @@ SELECT
     count(*)           FILTER (WHERE e.event = 'email_open')  AS opens,
     min(e.occurred_at) FILTER (WHERE e.event = 'click')       AS first_click_at,
     count(*)           FILTER (WHERE e.event = 'pageview')    AS pageviews,
-    count(DISTINCT e.session_id)                              AS sessions,
+    -- A session only counts if a browser RENDERED something: a whitelist,
+    -- because every server-side kind fabricates session ids — the pixel
+    -- mints one per fetch, the reply ingest writes 'reply-<message_id>',
+    -- and a cookieless scanner detonating the tracked link twice mints two
+    -- "visits" without loading a page. Mirrors intel.BROWSER_SESSION_EVENTS
+    -- (test-pinned). ensure_schema() re-applies this view on existing
+    -- databases when the deployed definition is stale — the sentinel
+    -- fast-path alone would never re-run it.
+    count(DISTINCT e.session_id) FILTER (WHERE e.event IN
+        ('pageview', 'dwell', 'section', 'return',
+         'question', 'followup', 'download'))                 AS sessions,
     count(DISTINCT e.path) FILTER (WHERE e.event = 'pageview') AS distinct_pages,
     coalesce(sum(e.dwell_ms) FILTER (WHERE e.event = 'dwell'), 0) AS total_dwell_ms,
     max(e.occurred_at)                                        AS last_seen_at

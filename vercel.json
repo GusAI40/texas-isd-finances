@@ -4,6 +4,10 @@
     {
       "path": "/api/cron/isd-intelligence",
       "schedule": "0 11 * * *"
+    },
+    {
+      "path": "/api/cron/outreach-drain",
+      "schedule": "30 14 * * *"
     }
   ],
   "redirects": [
@@ -18,5 +22,10 @@
       "destination": "https://txisd.dev/$1",
       "permanent": true
     }
-  ]
+  ],
+  "functions": {
+    "api/index.py": {
+      "maxDuration": 60
+    }
+  }
 }

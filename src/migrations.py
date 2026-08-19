@@ -87,7 +87,9 @@ SELECT
     count(*)           FILTER (WHERE e.event = 'email_open')  AS opens,
     min(e.occurred_at) FILTER (WHERE e.event = 'click')       AS first_click_at,
     count(*)           FILTER (WHERE e.event = 'pageview')    AS pageviews,
-    count(DISTINCT e.session_id)                              AS sessions,
+    count(DISTINCT e.session_id) FILTER (WHERE e.event IN
+        ('pageview', 'dwell', 'section', 'return',
+         'question', 'followup', 'download'))                 AS sessions,
     count(DISTINCT e.path) FILTER (WHERE e.event = 'pageview') AS distinct_pages,
     coalesce(sum(e.dwell_ms) FILTER (WHERE e.event = 'dwell'), 0) AS total_dwell_ms,
     max(e.occurred_at)                                        AS last_seen_at
@@ -118,6 +120,65 @@ BEGIN
 END $$;
 """
 
+# The journey view alone, sliced out of the block above so the two can never
+# drift. It exists because the view's BODY changed after the sentinel-gated
+# DDL first ran (2026-08-19: sessions became a whitelist over
+# browser-rendered events — see intel.BROWSER_SESSION_EVENTS), and a sentinel
+# gate only answers "does the object exist", never "is it current" — the
+# INTEL_SENTINEL lesson, in view form. ensure_schema() re-applies this, under
+# the same advisory lock, on any database whose deployed view predates the
+# fix. The slice ends at the statement's own terminator; if the view text
+# ever grows an interior semicolon the truncation produces invalid SQL, so
+# the boundary is asserted here at import rather than discovered in a failed
+# cold-start refresh.
+_VIEW_START = VISITOR_TRACKING_DDL.index("CREATE OR REPLACE VIEW")
+_VIEW_SQL = VISITOR_TRACKING_DDL[
+    _VIEW_START:VISITOR_TRACKING_DDL.index(";", _VIEW_START) + 1]
+if not _VIEW_SQL.rstrip().endswith("r.sent_at;"):    # not assert: -O strips it
+    raise RuntimeError(
+        "JOURNEY_VIEW_DDL slice no longer captures the whole view statement — "
+        "an interior semicolon crept into the view text")
+
+# The lockdown rides along, because the refresh path can also RECREATE the
+# view after a drop: CREATE OR REPLACE on an existing view preserves its
+# privileges, but a fresh CREATE on Supabase inherits default grants to
+# anon/authenticated — and the view reads its base tables with owner rights,
+# bypassing their RLS. Re-running these on an existing view is a no-op.
+JOURNEY_VIEW_DDL = _VIEW_SQL + """
+
+REVOKE ALL ON public.v_recipient_journey FROM PUBLIC;
+DO $$
+DECLARE
+    r text;
+BEGIN
+    FOREACH r IN ARRAY ARRAY['anon', 'authenticated', 'nlp_reader'] LOOP
+        IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = r) THEN
+            EXECUTE format(
+                'REVOKE ALL ON public.v_recipient_journey FROM %I', r);
+        END IF;
+    END LOOP;
+END $$;
+"""
+
+
+async def _journey_view_current(conn) -> bool:
+    """Is the deployed view the corrected definition?
+
+    Views carry no version, so currency is read off the definition itself.
+    The marker is 'followup': it appears in the corrected body's session
+    whitelist (Postgres deparses the IN to `= ANY (ARRAY[...])`, keeping
+    every member) and in NO earlier version of the view, whose only filters
+    were email_open/click/pageview/dwell. The marker must stay a member of
+    intel.BROWSER_SESSION_EVENTS or every cold start re-applies the view
+    forever — pinned by test. If the view is missing or unreadable the
+    answer is "not current", which routes to the idempotent re-apply.
+    """
+    try:
+        body = await conn.fetchval(
+            "SELECT pg_get_viewdef('public.v_recipient_journey'::regclass)")
+    except Exception:  # noqa: BLE001 — absent view == stale view
+        return False
+    return bool(body) and "followup" in body
 
 
 # The intelligence layer. Mirrors sql/create_intel.sql — same drift test.
@@ -256,6 +317,106 @@ END $$;
 # takes the fast path forever and never gets the new table.
 INTEL_SENTINEL = "public.site_feedback"
 
+# The server-side outreach runner (src/outreach_runner.py). Root cause of the
+# 2026-08-19 outage: the mailing list and send pipeline lived in disposable
+# containers fed by keys pasted into chat, and died with the container. The
+# durable home for the pipeline is the deployed site (Vercel holds its keys
+# in platform config — the one credential store in this system that has
+# survived every container loss), so the mailing list and the send queue live
+# in the same database as everything else the site owns.
+#
+# outreach_contact IS contact data — named public officials' addresses plus
+# the per-district message fields. Same lockdown as visitor_event: RLS on, no
+# grants, nlp_reader explicitly revoked. Writes arrive via the Management API
+# (scripts/sync_outreach_contacts.py) or the app's own DDL-capable pool.
+#
+# outreach_queue is the wave: enqueue states WHO (after every skip-list), the
+# daily drain sends a batch and records each delivery in outreach_sent /
+# outreach_recipient exactly as the laptop script did. UNIQUE(email) makes a
+# double-enqueue structurally impossible, matching the one-touch doctrine —
+# an address is queued at most once, ever.
+OUTREACH_DDL = """
+-- outreach_sent and outreach_optout were born in sql/create_outreach_state.sql,
+-- hand-applied. The runner reads AND writes both, so a fresh database must
+-- get them without a hand step — the whole doctrine of this module. Shapes
+-- mirror that file exactly; IF NOT EXISTS makes this a no-op on production,
+-- which already has them.
+CREATE TABLE IF NOT EXISTS public.outreach_sent (
+    email           text PRIMARY KEY,
+    district_number text,
+    message_id      text,
+    sent_at         timestamptz
+);
+
+CREATE TABLE IF NOT EXISTS public.outreach_optout (
+    email    text PRIMARY KEY,
+    noted_at timestamptz DEFAULT now()
+);
+
+ALTER TABLE public.outreach_sent   ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.outreach_optout ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.outreach_sent   FROM PUBLIC;
+REVOKE ALL ON public.outreach_optout FROM PUBLIC;
+
+CREATE TABLE IF NOT EXISTS public.outreach_contact (
+    district_number text PRIMARY KEY,
+    district_name   text NOT NULL,
+    email           text NOT NULL,
+    greeting        text NOT NULL DEFAULT 'Superintendent',
+    subject         text NOT NULL,
+    deep_link       text NOT NULL,
+    hook            text NOT NULL DEFAULT '',
+    insight_bonds   text NOT NULL DEFAULT '',
+    insight_debt    text NOT NULL DEFAULT '',
+    insight_trend   text NOT NULL DEFAULT '',
+    updated_at      timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS outreach_contact_email_idx
+    ON public.outreach_contact (email);
+
+CREATE TABLE IF NOT EXISTS public.outreach_queue (
+    id              bigserial PRIMARY KEY,
+    district_number text        NOT NULL,
+    email           text        NOT NULL UNIQUE,
+    campaign        text        NOT NULL,
+    status          text        NOT NULL DEFAULT 'queued'
+        CHECK (status IN ('queued', 'sending', 'sent', 'error')),
+    detail          text,
+    enqueued_at     timestamptz NOT NULL DEFAULT now(),
+    claimed_at      timestamptz,
+    sent_at         timestamptz
+);
+
+CREATE INDEX IF NOT EXISTS outreach_queue_status_idx
+    ON public.outreach_queue (status, district_number);
+
+ALTER TABLE public.outreach_contact ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.outreach_queue   ENABLE ROW LEVEL SECURITY;
+
+REVOKE ALL ON public.outreach_contact FROM PUBLIC;
+REVOKE ALL ON public.outreach_queue   FROM PUBLIC;
+
+DO $$
+DECLARE
+    r text;
+BEGIN
+    FOREACH r IN ARRAY ARRAY['anon', 'authenticated', 'nlp_reader'] LOOP
+        IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = r) THEN
+            EXECUTE format(
+                'REVOKE ALL ON public.outreach_contact, '
+                'public.outreach_queue, public.outreach_sent, '
+                'public.outreach_optout FROM %I', r);
+        END IF;
+    END LOOP;
+END $$;
+"""
+
+# Created LAST in OUTREACH_DDL, for the same reason INTEL_SENTINEL moved to
+# site_feedback: the sentinel must be the newest object or old databases take
+# the fast path forever.
+OUTREACH_SENTINEL = "public.outreach_queue"
+
 
 # `CREATE TABLE IF NOT EXISTS` is NOT race-safe: concurrent creators fail with a
 # duplicate key on pg_type rather than one of them yielding. On a serverless
@@ -289,8 +450,20 @@ async def ensure_schema(pool) -> str:
                 "SELECT to_regclass($1)", SENTINEL) is not None
             have_intel = await conn.fetchval(
                 "SELECT to_regclass($1)", INTEL_SENTINEL) is not None
-            if have_tracking and have_intel:
-                return "ok: tracking schema already present"
+            have_outreach = await conn.fetchval(
+                "SELECT to_regclass($1)", OUTREACH_SENTINEL) is not None
+            if have_tracking and have_intel and have_outreach:
+                if await _journey_view_current(conn):
+                    return "ok: tracking schema already present"
+                # The tables exist but the view body predates the session
+                # fix. CREATE OR REPLACE VIEW is idempotent; the lock stops
+                # two cold-starting workers replacing it concurrently
+                # (which raises "tuple concurrently updated").
+                async with conn.transaction():
+                    await conn.execute(
+                        "SELECT pg_advisory_xact_lock($1)", _LOCK_KEY)
+                    await conn.execute(JOURNEY_VIEW_DDL)
+                return "ok: refreshed v_recipient_journey to current definition"
 
             async with conn.transaction():
                 await conn.execute("SELECT pg_advisory_xact_lock($1)", _LOCK_KEY)
@@ -309,8 +482,18 @@ async def ensure_schema(pool) -> str:
                 if await conn.fetchval(
                         "SELECT to_regclass($1)", INTEL_SENTINEL) is None:
                     await conn.execute(INTEL_DDL)
+                if await conn.fetchval(
+                        "SELECT to_regclass($1)", OUTREACH_SENTINEL) is None:
+                    await conn.execute(OUTREACH_DDL)
+                # The view refresh must ALSO run here, not only on the fast
+                # path: a database with the tracking sentinel but not the
+                # intel one takes this branch, skips VISITOR_TRACKING_DDL
+                # (sentinel present), and would otherwise boot with the
+                # stale view until some later cold start.
+                if not await _journey_view_current(conn):
+                    await conn.execute(JOURNEY_VIEW_DDL)
 
-            for name in (SENTINEL, INTEL_SENTINEL):
+            for name in (SENTINEL, INTEL_SENTINEL, OUTREACH_SENTINEL):
                 if await conn.fetchval("SELECT to_regclass($1)", name) is None:
                     return f"ERROR: ran the DDL but {name} is still missing"
             # Deliberately reports STATE, not authorship. Several workers can
@@ -321,11 +504,19 @@ async def ensure_schema(pool) -> str:
     except Exception as exc:                              # noqa: BLE001
         # A lost race is not a failure. Only report an error if the schema is
         # genuinely absent afterwards — otherwise a harmless collision would
-        # fill the logs with alarms on every deploy.
+        # fill the logs with alarms on every deploy. The view's currency is
+        # part of that check: a failed view refresh (wrong owner, pooler
+        # killed the DDL) used to land here, find both table sentinels, and
+        # report "ok" on every cold start while the view stayed stale — a
+        # failed migration looking identical to a working one, from the
+        # module built to prevent exactly that.
         try:
             async with pool.acquire() as conn:
-                if all(await conn.fetchval("SELECT to_regclass($1)", n) is not None
-                       for n in (SENTINEL, INTEL_SENTINEL)):
+                if (all(await conn.fetchval(
+                            "SELECT to_regclass($1)", n) is not None
+                        for n in (SENTINEL, INTEL_SENTINEL,
+                                  OUTREACH_SENTINEL))
+                        and await _journey_view_current(conn)):
                     return "ok: tracking schema present (raced another worker)"
         except Exception:                                 # noqa: BLE001
             pass

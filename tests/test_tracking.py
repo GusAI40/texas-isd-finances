@@ -140,11 +140,27 @@ def test_the_beacon_is_inert_without_the_server_flag():
 
 def test_the_tracked_email_says_so():
     """Both halves of the message must carry the disclosure when a token is
-    attached — and neither may carry it when one is not."""
-    src = _text("scripts/send_outreach.py")
+    attached — and neither may carry it when one is not. The renderer lives
+    in src/outreach_email.py (deployed code) since 2026-08-19; the laptop
+    script imports the same object, so one file carries the disclosure for
+    both send paths — checked behaviourally too, not just by source, so the
+    guarantee follows the renderer wherever it moves next."""
+    src = _text("src/outreach_email.py")
     assert "carries a code unique to you" in src
     assert src.count("carries a code unique to you") == 2   # html + text
     assert 'if rid else ""' in src
+
+    from src.outreach_email import render_email
+    row = {"district_name": "Argyle ISD", "greeting": "Dr. Carpenter",
+           "deep_link": "https://txisd.dev/?d=061910", "hook": "h",
+           "insight_bonds": "b", "insight_debt": "", "insight_trend": ""}
+    tracked_html, tracked_text = render_email(row, "1 Main St", "mailto:u",
+                                              rid="rid-test")
+    plain_html, plain_text = render_email(row, "1 Main St", "mailto:u")
+    for part in (tracked_html, tracked_text):
+        assert "code unique to you" in part
+    for part in (plain_html, plain_text):
+        assert "code unique to you" not in part
 
 
 def test_the_privacy_page_admits_that_questions_are_grouped():

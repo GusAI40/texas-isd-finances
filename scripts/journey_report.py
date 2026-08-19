@@ -106,16 +106,33 @@ def _classify_sql(campaign_filter: str) -> str:
         GROUP BY r.rid"""
 
 
+# The view's `sessions` column is only correct on databases whose view
+# carries the 2026-08-19 fix — the pixel, the reply ingest and a cookieless
+# scanner's link fetch all mint session ids no browser held, and production's
+# view is re-applied lazily on the app's next cold start, not when this
+# script runs. So every session count here is computed from visitor_event
+# directly, over the SAME whitelist the dashboard query uses (one constant,
+# intel.BROWSER_SESSION_EVENTS), and is right against either view version.
+from src import intel  # noqa: E402  (needs the sys.path insert above)
+
+SITE_SESSIONS_SQL = f"""
+    SELECT rid, count(DISTINCT session_id)
+               {intel.SESSION_FILTER_SQL} AS site_sessions
+    FROM public.visitor_event GROUP BY rid"""
+
+
 def funnel(pat: str, campaign: str | None) -> None:
-    where = f"WHERE campaign = {_q(campaign)}" if campaign else ""
+    where = f"WHERE j.campaign = {_q(campaign)}" if campaign else ""
     rows = sql(f"""
         SELECT count(*) AS sent,
-               count(*) FILTER (WHERE opens      > 0) AS opened,
-               count(*) FILTER (WHERE first_click_at IS NOT NULL) AS clicked,
-               count(*) FILTER (WHERE sessions   > 1) AS returned,
-               coalesce(sum(pageviews), 0)            AS pageviews,
-               coalesce(sum(total_dwell_ms), 0)       AS dwell
-        FROM public.v_recipient_journey {where}""", pat)
+               count(*) FILTER (WHERE j.opens > 0) AS opened,
+               count(*) FILTER (WHERE j.first_click_at IS NOT NULL) AS clicked,
+               count(*) FILTER (WHERE coalesce(s.site_sessions, 0) > 1)
+                                                      AS returned,
+               coalesce(sum(j.pageviews), 0)          AS pageviews,
+               coalesce(sum(j.total_dwell_ms), 0)     AS dwell
+        FROM public.v_recipient_journey j
+        LEFT JOIN ({SITE_SESSIONS_SQL}) s ON s.rid = j.rid {where}""", pat)
     if not rows:
         print("no recipients recorded yet")
         return
@@ -173,18 +190,20 @@ def funnel(pat: str, campaign: str | None) -> None:
 def roster(pat: str, campaign: str | None, limit: int) -> list[dict]:
     """The engaged, most-engaged first. Recipients with no page view at all are
     excluded: this is a follow-up worklist, not a mailing list."""
-    clauses = ["pageviews > 0"]
+    clauses = ["j.pageviews > 0"]
     if campaign:
-        clauses.append(f"campaign = {_q(campaign)}")
+        clauses.append(f"j.campaign = {_q(campaign)}")
     where = " AND ".join(clauses)
     return sql(f"""
-        SELECT email, district_number, opens, pageviews, sessions,
-               distinct_pages, total_dwell_ms,
-               to_char(first_click_at, 'MM-DD HH24:MI') AS clicked_at,
-               to_char(last_seen_at,   'MM-DD HH24:MI') AS last_seen
-        FROM public.v_recipient_journey
+        SELECT j.email, j.district_number, j.opens, j.pageviews,
+               coalesce(s.site_sessions, 0) AS sessions,
+               j.distinct_pages, j.total_dwell_ms,
+               to_char(j.first_click_at, 'MM-DD HH24:MI') AS clicked_at,
+               to_char(j.last_seen_at,   'MM-DD HH24:MI') AS last_seen
+        FROM public.v_recipient_journey j
+        LEFT JOIN ({SITE_SESSIONS_SQL}) s ON s.rid = j.rid
         WHERE {where}
-        ORDER BY total_dwell_ms DESC NULLS LAST, pageviews DESC
+        ORDER BY j.total_dwell_ms DESC NULLS LAST, j.pageviews DESC
         LIMIT {int(limit)}""", pat)
 
 

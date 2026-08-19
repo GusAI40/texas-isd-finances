@@ -54,9 +54,9 @@ from __future__ import annotations
 import argparse
 import csv
 import hashlib
-import html
 import json
 import os
+import shutil
 import ssl
 import sys
 import time
@@ -65,10 +65,16 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
+from scripts import sync_outreach_state  # noqa: E402
 from src import format as fmt  # noqa: E402
 from src import tracking  # noqa: E402
 
-SITE = "https://txisd.dev"
+# The renderer and Resend client moved to deployed code (src/outreach_email)
+# so the SITE can send without a container; this script keeps working and
+# renders byte-identical messages because it imports the same objects.
+from src.outreach_email import SITE, domain_verified, render_email  # noqa: E402,F401  (re-exported names)
+from src.outreach_email import resend_request as _req  # noqa: E402
+
 MERGE = ROOT / "data/outreach_merge.csv"
 SENT_LOG = ROOT / "data/outreach_sent.csv"
 WATERMARK = ROOT / "data" / "outreach_watermark.json"
@@ -78,183 +84,6 @@ WATERMARK = ROOT / "data" / "outreach_watermark.json"
 RECIPIENTS = ROOT / "data/outreach_recipients.csv"
 OPTOUT = ROOT / "data/outreach_optout.txt"
 PREVIEW_DIR = ROOT / "data/outreach_preview"
-API = "https://api.resend.com"
-
-BLUE = "#2f4bd7"
-INK = "#111318"
-MUT = "#5a5f6b"
-
-
-def render_email(row: dict, postal: str, unsubscribe: str,
-                 rid: str = "", site: str = SITE) -> tuple[str, str]:
-    """(html, text) for one district. Inline styles only — email clients strip
-    <style> blocks. The three insights come from the merge file, which built
-    them from the same artefacts the site serves: frame honesty travels.
-
-    When `rid` is supplied the message carries this recipient's journey token:
-    the link gets `&rid=…` so their click and everything after it is
-    attributable, and an open pixel is appended. Without a rid the email is
-    byte-identical to the untracked version, which is what --test sends.
-    """
-    e = html.escape
-    name = row["district_name"]
-    insights = [row[k] for k in ("insight_bonds", "insight_debt",
-                                 "insight_trend") if row.get(k)]
-    # The tracked link and the open pixel. Both are empty-safe: with no rid the
-    # link is exactly what wave 1 sent, and the pixel is an empty string.
-    link = f"{row['deep_link']}&src=email" + (f"&rid={rid}" if rid else "")
-    pixel = (f'<img src="{site}/px/{rid}.gif" width="1" height="1" alt="" '
-             f'style="display:block;border:0;" />') if rid else ""
-    disclose = (f'This email carries a code unique to you, so we can see '
-                f'whether it was opened and whether the report was useful. If '
-                f'you&rsquo;d rather we didn&rsquo;t, don&rsquo;t click the '
-                f'link &mdash; or reply and we&rsquo;ll delete the record. '
-                f'<a href="{site}/about#privacy" style="color:{MUT};">'
-                f'What we collect</a>.<br>') if rid else ""
-    bullets = "".join(
-        f'<tr><td style="padding:0 0 14px 0;vertical-align:top;width:18px;'
-        f'color:{BLUE};font-weight:700;">&#8250;</td>'
-        f'<td style="padding:0 0 14px 8px;color:{INK};font-size:15px;'
-        f'line-height:1.55;">{e(s)}</td></tr>' for s in insights)
-
-    body = f"""<!DOCTYPE html>
-<html><body style="margin:0;padding:0;background:#f4f4f2;">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f2;">
-<tr><td align="center" style="padding:32px 16px;">
-<table role="presentation" width="600" cellpadding="0" cellspacing="0"
-       style="max-width:600px;background:#ffffff;border:1px solid #e4e4e0;">
-  <tr><td style="padding:36px 40px 0;font-family:Georgia,'Times New Roman',serif;">
-    <div style="font-size:12px;letter-spacing:2px;color:{MUT};font-family:Arial,sans-serif;">
-      TAG AI &middot; TEXAS ISD FINANCIAL RESOURCE GUIDE</div>
-    <h1 style="font-size:26px;line-height:1.3;color:{INK};margin:14px 0 0;">
-      We built {e(name)}&rsquo;s report. It&rsquo;s yours.</h1>
-  </td></tr>
-  <tr><td style="padding:20px 40px 0;font-family:Arial,Helvetica,sans-serif;">
-    <p style="font-size:15px;line-height:1.6;color:{INK};margin:0 0 16px;">
-      Dear {e(row['greeting'])},</p>
-    <p style="font-size:15px;line-height:1.6;color:{INK};margin:0 0 16px;">
-      Congratulations on the start of the new school year. This week,
-      campuses across Texas open their doors &mdash; we know it&rsquo;s the
-      busiest week on your calendar, and we wish {e(name)}&rsquo;s students,
-      teachers and staff a great 2026&ndash;27.</p>
-    <p style="font-size:15px;line-height:1.6;color:{INK};margin:0 0 16px;">
-      We&rsquo;re writing because we built something for you, and this felt
-      like the right week to hand it over. Texas publishes every number about
-      {e(name)} &mdash; finances, results, bonds, debt, boundaries &mdash; but
-      across ten different state files that never talk to each other, which
-      means the people your numbers describe can rarely see the whole
-      picture. We believe transparency shouldn&rsquo;t take a records
-      request. So we connected the files. This isn&rsquo;t a pitch;
-      it&rsquo;s a gift: your district&rsquo;s complete public record,
-      synthesized, on one page. A few things it already shows:</p>
-    <table role="presentation" cellpadding="0" cellspacing="0" style="margin:6px 0 8px;">{bullets}</table>
-    <p style="font-size:13px;line-height:1.5;color:{MUT};margin:0 0 22px;">
-      {e(row['hook'])}</p>
-    <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 26px;"><tr>
-      <td style="background:{BLUE};border-radius:4px;">
-        <a href="{e(link)}"
-           style="display:inline-block;padding:13px 26px;color:#ffffff;
-                  font-family:Arial,sans-serif;font-size:15px;font-weight:bold;
-                  text-decoration:none;">See {e(name)}&rsquo;s full report &rarr;</a>
-      </td></tr></table>
-  </td></tr>
-  <tr><td style="padding:0 40px;"><hr style="border:none;border-top:1px solid #e4e4e0;margin:0;"></td></tr>
-  <tr><td style="padding:22px 40px 0;font-family:Arial,Helvetica,sans-serif;">
-    <p style="font-size:14px;line-height:1.6;color:{INK};margin:0 0 12px;">
-      <b>Who we are.</b> TAG ai works at the intelligence layer of data: we
-      don&rsquo;t replace the systems you already have, we connect them and
-      make them answer questions. This portal is our proof &mdash; 6.6 million
-      public data points on all 1,310 districts, every figure linked to the
-      state file it came from, and it refuses to guess.</p>
-    <img src="{SITE}/static/tag-pipeline.png" width="520"
-         alt="TAG ai: ten official state sources in, one intelligence layer,
-              plain-English answers out"
-         style="width:100%;max-width:520px;height:auto;margin:6px 0 16px;border:1px solid #e4e4e0;">
-    <p style="font-size:14px;line-height:1.6;color:{INK};margin:0 0 22px;">
-      If you&rsquo;d like a 20-minute walkthrough of {e(name)}&rsquo;s page
-      &mdash; or to talk about what the same intelligence layer could do on
-      your district&rsquo;s own data &mdash; just reply to this email. And if
-      any figure looks wrong, tell us: we publish corrections with credit.</p>
-    <p style="font-size:14px;line-height:1.7;color:{INK};margin:0 0 28px;">
-      <b>Gus Sanchez</b><br>
-      TAG ai<br>
-      <a href="tel:+19092686875" style="color:{INK};text-decoration:none;">909-268-6875</a><br>
-      <a href="mailto:gus@ubntag.com" style="color:{INK};">gus@ubntag.com</a></p>
-  </td></tr>
-  <tr><td style="padding:18px 40px 26px;background:#fafaf8;border-top:1px solid #e4e4e0;
-               font-family:Arial,sans-serif;font-size:11.5px;line-height:1.6;color:{MUT};">
-    All figures are derived from public records published by the State of
-    Texas (TEA, Bond Review Board, Comptroller); sources and methods:
-    <a href="{SITE}/sources" style="color:{MUT};">{SITE.replace('https://','')}/sources</a>.
-    Your address comes from TEA&rsquo;s public district directory (AskTED).<br>
-    Artificial intelligence was used in the preparation of this report and this
-    email, orchestrated across our entire system. Figures carry a margin of
-    error and are provided &ldquo;as&nbsp;is&rdquo; without warranty; verify
-    independently before acting &mdash; use is at your own risk.
-    <a href="{SITE}/transparency" style="color:{MUT};">How this was made, and
-    the full terms</a>.<br>
-    {disclose}This is a commercial message from TAG ai &middot; {e(postal)}<br>
-    Don&rsquo;t want to hear from us? <a href="{e(unsubscribe)}"
-    style="color:{MUT};">Unsubscribe</a> and we won&rsquo;t write again.
-  </td></tr>
-</table>
-</td></tr></table>{pixel}</body></html>"""
-
-    text = (f"Dear {row['greeting']},\n\n"
-            f"Congratulations on the start of the new school year — we wish "
-            f"{name}'s students, teachers and staff a great 2026–27.\n\n"
-            f"We're writing because we built something for you, and this felt "
-            f"like the right week to hand it over. Texas publishes every "
-            f"number about {name} — but across ten state files that never "
-            f"talk to each other, so the people the numbers describe can "
-            f"rarely see the whole picture. We believe transparency "
-            f"shouldn't take a records request. So we connected the files. "
-            f"Your district's complete public record, on one page:\n\n"
-            + "".join(f"  • {s}\n" for s in insights) +
-            f"\n{row['hook']}\n\n"
-            f"See {name}'s full report: {link}\n\n"
-            f"Who we are: TAG ai works at the intelligence layer of data — we "
-            f"connect the systems you already have and make them answer "
-            f"questions. Reply to this email for a 20-minute walkthrough, or "
-            f"to talk about your own data. If any figure looks wrong, tell "
-            f"us — we publish corrections with credit.\n\n"
-            f"Gus Sanchez\n"
-            f"TAG ai\n"
-            f"909-268-6875\n"
-            f"gus@ubntag.com\n\n"
-            f"Sources and methods: {SITE}/sources\n"
-            f"AI disclosure: artificial intelligence was used in the "
-            f"preparation of this report and this email, orchestrated across "
-            f"our entire system. Figures carry a margin of error and are "
-            f"provided as-is without warranty; verify independently before "
-            f"acting — use is at your own risk. How this was made and full "
-            f"terms: {SITE}/transparency\n"
-            + (f"This email carries a code unique to you, so we can see "
-               f"whether it was opened and whether the report was useful. If "
-               f"you'd rather we didn't, don't click the link — or reply and "
-               f"we'll delete the record. {SITE}/about#privacy\n"
-               if rid else "") +
-            f"This is a commercial message from TAG ai · {postal}\n"
-            f"Unsubscribe: {unsubscribe}\n")
-    return body, text
-
-
-def _req(path: str, key: str, payload: dict | None = None) -> dict:
-    data = json.dumps(payload).encode() if payload is not None else None
-    # The User-Agent matters: api.resend.com sits behind Cloudflare, which
-    # 403s Python's default urllib UA ("error 1010") while the same request
-    # from curl succeeds. Same trap as the Supabase Management API — the 403
-    # is NOT an auth failure, do not chase the key.
-    r = urllib.request.Request(
-        f"{API}{path}", data=data, method="POST" if data else "GET",
-        headers={"Authorization": f"Bearer {key}",
-                 "Content-Type": "application/json",
-                 "User-Agent": "txisd-outreach/1.0 (+https://txisd.dev)"})
-    with urllib.request.urlopen(r, timeout=30,
-                                context=ssl.create_default_context()) as resp:
-        return json.load(resp)
-
-
 def verify_targets(rows: list[dict]) -> list[str]:
     """THE critical property: every superintendent gets THEIR report, not
     someone else's. Returns a list of violations; the caller refuses to send
@@ -293,17 +122,6 @@ def verify_targets(rows: list[dict]) -> list[str]:
         if name not in row["subject"]:
             problems.append(f"{num} {name}: subject lacks the district name")
     return problems
-
-
-def domain_verified(key: str, from_addr: str) -> bool:
-    """Refuse a mass send from an unverified domain — Resend would accept the
-    call and every message would land in spam or bounce."""
-    domain = from_addr.split("@")[-1].rstrip(">").strip()
-    got = _req("/domains", key)
-    for d in got.get("data", []):
-        if d.get("name") == domain and d.get("status") == "verified":
-            return True
-    return False
 
 
 SB_REF = os.getenv("SUPABASE_PROJECT_REF", "zwhvabkvrexphlskubog")
@@ -394,6 +212,77 @@ def skiplist_shrank(resolved: int) -> str:
         f"    3. re-run this command\n"
         f"  If the watermark itself is wrong, fix it in a commit rather than "
         f"passing --ignore-watermark.")
+
+
+# Same helper as sync_outreach_state._short (same repo root, same job) —
+# reused rather than redefined, so a change to the rule can't diverge between
+# the two files the way this project's money/name formatters once did (see
+# src/format.py's own docstring for that history).
+_short = sync_outreach_state._short
+
+
+def select_targets(rows: list[dict], limit: int) -> tuple[list[dict], dict]:
+    """The wave, exactly as the send would compute it, plus a report of how it
+    got there.
+
+    This exists as one function because the dry run used to preview
+    ``rows[:previews]`` — the HEAD OF THE MERGE FILE — while the send mailed a
+    filtered list. The two disagreed from the first wave onward, so the review
+    step showed districts that had already been contacted months earlier and
+    would never be mailed again. That is not a near miss with a duplicate send
+    (the send filters correctly, and the watermark stands behind it); it is
+    worse in a quieter way: it made the ONE step the runbook calls "the real
+    review" a review of the wrong emails. Both paths now call this.
+    """
+    sent, optout = load_sent(), load_optout()
+    suppressed = load_suppressed()
+    todo = [r for r in rows if r["email"] not in sent
+            and r["email"].lower() not in optout
+            and _digest(r["email"]) not in suppressed]
+    eligible = len(todo)
+    if limit:
+        todo = todo[:limit]
+    # Every count below is scoped to THIS merge file, because a report that
+    # mixes "671 addresses we have ever mailed" with "11 rows here are dead"
+    # cannot be added up by the person reading it — and a selection report
+    # whose numbers do not reconcile is a report nobody checks. The three
+    # reasons can overlap (a dead address can also be in the skip-list), so
+    # `excluded` is their UNION and is the only figure that subtracts.
+    return todo, {
+        "in_merge": len(rows),
+        "already_sent": sum(1 for r in rows if r["email"] in sent),
+        "opted_out": sum(1 for r in rows if r["email"].lower() in optout),
+        "dead": sum(1 for r in rows if _digest(r["email"]) in suppressed),
+        "excluded": len(rows) - eligible,
+        "eligible": eligible,
+        "skiplist": len(sent),
+        "remote": bool(os.environ.get("SUPABASE_PAT", "").strip()),
+    }
+
+
+def describe_selection(todo: list[dict], report: dict) -> str:
+    """The selection, in the terms the runbook asks to see before a send: how
+    many, from what, and which district is first and last — so the owner can
+    confirm the choice is deterministic rather than a sample."""
+    source = ("local + Supabase mirror" if report["remote"]
+              else "LOCAL ONLY — SUPABASE_PAT unset")
+    lines = [
+        f"  in the merge file          : {report['in_merge']:,}",
+        f"    already contacted        : {report['already_sent']:,}"
+        f"   (skip-list holds {report['skiplist']:,} addresses; {source})",
+        f"    opted out                : {report['opted_out']:,}",
+        f"    known-dead address       : {report['dead']:,}",
+        f"  excluded (any of the above): {report['excluded']:,}",
+        f"  eligible, never contacted  : {report['eligible']:,}",
+        f"  WOULD SEND                 : {len(todo):,}",
+    ]
+    if todo:
+        first, last = todo[0], todo[-1]
+        lines += [
+            f"    first : {first['district_number']} {first['district_name']}",
+            f"    last  : {last['district_number']} {last['district_name']}",
+        ]
+    return "\n".join(lines)
 
 
 def load_sent() -> set[str]:
@@ -560,15 +449,63 @@ def main() -> int:
 
     # ---- dry run (default): render previews, send nothing -------------------
     if not args.test and not args.send:
-        PREVIEW_DIR.mkdir(parents=True, exist_ok=True)
-        for row in rows[:args.previews]:
-            body, text = render_email(row, postal or "[postal address — set "
-                                      "TAG_POSTAL_ADDRESS]", unsubscribe)
-            stem = PREVIEW_DIR / row["district_number"]
-            stem.with_suffix(".html").write_text(body)
-            stem.with_suffix(".txt").write_text(text)
-        print(f"dry run: wrote {min(args.previews, len(rows))} previews to "
-              f"{PREVIEW_DIR.relative_to(ROOT)}/ — nothing sent.")
+        # The skip-list is what makes this a review rather than a rendering.
+        # If it cannot be resolved, the wave shown would be WRONG — larger than
+        # the truth, in the direction that re-emails people — so say so and
+        # stop, rather than writing previews that look authoritative.
+        try:
+            todo, report = select_targets(rows, args.limit)
+        except RuntimeError as ex:
+            print(f"cannot show the wave: {ex}", file=sys.stderr)
+            print("\nNo previews written. A dry run that cannot resolve the "
+                  "skip-list would show more districts than are really "
+                  "eligible. To render the email copy alone, with no "
+                  "selection, unset SUPABASE_PAT and re-run.", file=sys.stderr)
+            return 1
+        print("dry run — this is the wave the same flags would SEND:")
+        print(describe_selection(todo, report))
+        refusal = skiplist_shrank(report["skiplist"])
+        if refusal and not args.ignore_watermark:
+            print("\nWARNING — a real send would REFUSE this selection:")
+            print(refusal)
+        elif refusal:
+            # Saying "a send would refuse" under --ignore-watermark would be
+            # false in the one direction that matters: it makes the bypass look
+            # inert, so the next person passes it again believing it does
+            # nothing. The send honours the flag; say what it will really do.
+            print("\nWARNING — the watermark guard would normally REFUSE this "
+                  "selection, and --ignore-watermark WOULD OVERRIDE IT:")
+            print(refusal)
+
+        # Previews are keyed by district number, so last wave's files must not
+        # linger in the directory the runbook says to read — that is the same
+        # reviewed-the-wrong-emails failure, moved onto disk. But clearing
+        # first means an exception mid-render leaves the reviewer with nothing.
+        # So build the whole wave into a temporary directory and swap it in;
+        # a failure anywhere before the swap leaves the old previews intact.
+        #
+        # `--previews 0` is a real request — show me the selection, not the
+        # emails — and so is a wave of zero districts. Both must still clear,
+        # or the directory keeps asserting a wave that is not this one.
+        if args.previews:
+            staging = PREVIEW_DIR.with_name(PREVIEW_DIR.name + ".staging")
+            if staging.exists():
+                shutil.rmtree(staging)
+            staging.mkdir(parents=True)
+            for row in todo[:args.previews]:
+                body, text = render_email(row, postal or "[postal address — "
+                                          "set TAG_POSTAL_ADDRESS]", unsubscribe)
+                stem = staging / row["district_number"]
+                stem.with_suffix(".html").write_text(body)
+                stem.with_suffix(".txt").write_text(text)
+            if PREVIEW_DIR.exists():
+                shutil.rmtree(PREVIEW_DIR)
+            staging.rename(PREVIEW_DIR)
+        elif PREVIEW_DIR.exists():
+            shutil.rmtree(PREVIEW_DIR)
+        print(f"\nwrote {min(args.previews, len(todo))} previews to "
+              f"{_short(PREVIEW_DIR)}/ — from the list above, not "
+              f"the top of the merge file — nothing sent.")
         print("next: --test you@you.com for a real-inbox look, then "
               "--send --confirm GO")
         return 0
@@ -586,7 +523,34 @@ def main() -> int:
             if missing:
                 print(f"not in the merge file: {sorted(missing)}")
         else:
-            sample = rows[:args.limit or 2]
+            # The head of the merge file is NOT the wave. --test is the
+            # real-inbox half of the same review the dry run does on disk, so
+            # it must show the same districts; sampling rows[:2] meant the
+            # owner checked an email for a district contacted months ago.
+            # (--only stays unfiltered on purpose: naming a district is an
+            # explicit request to see that one, including an already-mailed
+            # one.) A failure to resolve the skip-list falls back to the head
+            # rather than aborting — nothing here reaches a superintendent, so
+            # a partial list costs a less representative sample, not a send.
+            try:
+                sample, rep = select_targets(rows, args.limit or 2)
+            except RuntimeError as ex:
+                print(f"WARNING: could not resolve the skip-list ({ex}) — "
+                      f"sampling the merge file instead, so these may be "
+                      f"districts already contacted.")
+                sample, rep = rows[:args.limit or 2], None
+            # A skip-list that resolves EMPTY does not raise — it is the
+            # supported offline mode — so the sample above would silently be
+            # the head of the merge file, which is where the already-contacted
+            # districts are. Nothing here reaches a superintendent, so this
+            # warns rather than refusing; but it must not stay quiet, or the
+            # owner approves the wave having inspected the wrong email.
+            if rep is not None and skiplist_shrank(rep["skiplist"]):
+                print(f"WARNING: the skip-list resolved to only "
+                      f"{rep['skiplist']} addresses against a watermark of "
+                      f"{watermark_floor()} — these samples may be districts "
+                      f"already contacted. A real send would refuse until the "
+                      f"state is recovered.")
         for row in sample:
             body, text = render_email(row, postal or "[postal address — set "
                                       "TAG_POSTAL_ADDRESS]", unsubscribe)
@@ -622,7 +586,7 @@ def main() -> int:
     print(f"target identity verified: all {len(rows):,} rows deep-link to "
           f"their own district and every sentence names it")
 
-    sent, optout = load_sent(), load_optout()
+    todo, report = select_targets(rows, args.limit)
 
     # The skip-list can only ever GROW: nobody un-receives an email. So a
     # skip-list smaller than the committed watermark does not mean fewer people
@@ -632,48 +596,89 @@ def main() -> int:
     # SUPABASE_PAT is unset. A fresh clone with neither therefore resolves a
     # skip-list of zero and would cheerfully re-email all 571 superintendents
     # already contacted. Refuse instead, and say exactly how to recover.
-    refusal = skiplist_shrank(len(sent))
+    refusal = skiplist_shrank(report["skiplist"])
     if refusal and not args.ignore_watermark:
         print(refusal)
         return 1
 
-    suppressed = load_suppressed()
-    dead = [r for r in rows if _digest(r["email"]) in suppressed]
-    todo = [r for r in rows if r["email"] not in sent
-            and r["email"].lower() not in optout
-            and _digest(r["email"]) not in suppressed]
-    skipped = len(rows) - len(todo)
-    if args.limit:
-        todo = todo[:args.limit]
-    print(f"{len(rows)} districts in merge · {skipped} already sent/opted "
-          f"out/undeliverable ({len(dead)} known-dead addresses) "
-          f"· sending {len(todo)} now")
+    print("sending this wave:")
+    print(describe_selection(todo, report))
 
     ok = fail = 0
-    for i, row in enumerate(todo, 1):
-        rid = tracking.new_rid()
-        body, text = render_email(row, postal, unsubscribe, rid=rid)
-        try:
-            payload = {
-                "from": from_addr, "to": [row["email"]],
-                "reply_to": os.environ.get("RESEND_REPLY_TO", from_addr),
-                "subject": row["subject"], "html": body, "text": text,
-                "headers": {"List-Unsubscribe": f"<{unsubscribe}>"}}
-            if bcc_addr:
-                payload["bcc"] = [bcc_addr]
-            got = _req("/emails", key, payload)
-            log_sent(row, got.get("id", ""))
-            log_recipient(row, rid, got.get("id", ""), campaign)
-            ok += 1
-            print(f"  [{i}/{len(todo)}] {row['district_name']:<32} "
-                  f"{row['email']}")
-        except Exception as ex:  # noqa: BLE001 — a bounce must not kill the run
-            fail += 1
-            print(f"  [{i}/{len(todo)}] FAILED {row['email']}: {ex}")
-        time.sleep(1.1)
+    reconcile_failed = False
+    try:
+        for i, row in enumerate(todo, 1):
+            rid = tracking.new_rid()
+            body, text = render_email(row, postal, unsubscribe, rid=rid)
+            try:
+                payload = {
+                    "from": from_addr, "to": [row["email"]],
+                    "reply_to": os.environ.get("RESEND_REPLY_TO", from_addr),
+                    "subject": row["subject"], "html": body, "text": text,
+                    "headers": {"List-Unsubscribe": f"<{unsubscribe}>"}}
+                if bcc_addr:
+                    payload["bcc"] = [bcc_addr]
+                got = _req("/emails", key, payload)
+                log_sent(row, got.get("id", ""))
+                log_recipient(row, rid, got.get("id", ""), campaign)
+                ok += 1
+                print(f"  [{i}/{len(todo)}] {row['district_name']:<32} "
+                      f"{row['email']}")
+            except Exception as ex:  # noqa: BLE001 — a bounce must not kill the run
+                fail += 1
+                print(f"  [{i}/{len(todo)}] FAILED {row['email']}: {ex}")
+            time.sleep(1.1)
+    finally:
+        # This is the manual-recovery step the audit called out: a crash here
+        # used to mean the ONLY durable record was whatever log_sent() managed
+        # to mirror per-message, and a human had to notice and run
+        # sync_outreach_state.py by hand — which has already happened at least
+        # once. Reconciling here makes that automatic instead of remembered.
+        # It still cannot help against a hard container kill (SIGKILL, an OOM
+        # kill) that never lets Python run a finally block at all — that risk
+        # is why every message is ALSO mirrored individually in log_sent(),
+        # not only here at the end.
+        pat = os.environ.get("SUPABASE_PAT", "").strip()
+        if pat:
+            print("\nreconciling local state with the durable mirror...")
+            try:
+                # Pass THIS module's own SENT_LOG/RECIPIENTS/OPTOUT explicitly
+                # — sync_outreach_state.py has its own copies of those same
+                # constants, independent of these. They agree today only
+                # because nothing enforces it; reading this module's own
+                # (possibly monkeypatched-in-tests, or future --out-directed)
+                # paths is what keeps this reconciling the files THIS run
+                # actually wrote, not whatever sync_outreach_state.py's
+                # defaults happen to point at.
+                reconcile_failed = sync_outreach_state.push(
+                    pat, sent_log=SENT_LOG, recipients=RECIPIENTS,
+                    optout=OPTOUT) != 0
+            except Exception as ex:  # noqa: BLE001 — report, don't mask the send's own result
+                reconcile_failed = True
+                print(f"  RECONCILE FAILED: {ex}", file=sys.stderr)
+            if reconcile_failed:
+                print("  STATE MAY NOT SURVIVE CONTAINER LOSS. Before this "
+                      "container is discarded, run:\n"
+                      "    python scripts/sync_outreach_state.py",
+                      file=sys.stderr)
+        else:
+            print("\nSUPABASE_PAT was not set for this run — every send above "
+                  "exists ONLY in local, gitignored files. Before this "
+                  "container is discarded, run:\n"
+                  "    export SUPABASE_PAT=...\n"
+                  "    python scripts/sync_outreach_state.py", file=sys.stderr)
 
     print(f"\ndone: {ok} sent, {fail} failed. Log: "
-          f"{SENT_LOG.relative_to(ROOT)} (re-runs skip everyone already sent)")
+          f"{_short(SENT_LOG)} (re-runs skip everyone already sent)")
+    # Durability outranks a per-message bounce: a failed send is visible in
+    # this line and was likely already a suppression/opt-out/bounce the next
+    # run will route around on its own, while state that failed to reconcile
+    # is exactly the failure mode that has already re-required a human to
+    # notice and recover BY HAND — so it gets its own code (3) even when sends
+    # also failed (1), rather than one silently swallowing the other. Both
+    # facts are still in the line above regardless of which code wins.
+    if reconcile_failed:
+        return 3
     return 0 if fail == 0 else 1
 
 

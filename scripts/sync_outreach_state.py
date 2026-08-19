@@ -59,12 +59,40 @@ def q(s: str) -> str:
     return "'" + s.replace("'", "''") + "'"
 
 
+def _short(path: Path) -> str:
+    """Repo-relative when the path is inside the repo, absolute otherwise —
+    a progress line must never be the thing that raises, and a caller can
+    legitimately pass a path outside ROOT (send_outreach.py does, in tests)."""
+    try:
+        return str(path.relative_to(ROOT))
+    except ValueError:
+        return str(path)
+
+
 # --------------------------------------------------------------------------
 # push: local files → tables (idempotent, additive only)
 
-def push(pat: str) -> int:
-    if SENT_LOG.exists():
-        rows = list(csv.DictReader(SENT_LOG.open()))
+def push(pat: str, *, sent_log: Path | None = None, recipients: Path | None = None,
+         optout: Path | None = None) -> int:
+    """Push local send state up to the durable mirror.
+
+    The three paths default to this module's OWN files (the CLI usage:
+    ``python scripts/sync_outreach_state.py``) — resolved at CALL time via a
+    None sentinel, not baked into the signature, so the usual monkeypatch
+    idiom (``monkeypatch.setattr(sync_outreach_state, "SENT_LOG", ...)``)
+    still works for a caller that omits the keyword. send_outreach.py's own
+    real-send loop calls this directly from its `finally` block to reconcile
+    state automatically on exit — and it must reconcile the files IT wrote,
+    which under a monkeypatched SENT_LOG/RECIPIENTS in a test (or a future
+    --out flag) are not this module's own constants. Accepting them as
+    parameters, rather than reading this module's globals unconditionally, is
+    what keeps that call honest about which files it is actually syncing.
+    """
+    sent_log = SENT_LOG if sent_log is None else sent_log
+    recipients = RECIPIENTS if recipients is None else recipients
+    optout = OPTOUT if optout is None else optout
+    if sent_log.exists():
+        rows = list(csv.DictReader(sent_log.open()))
         if rows:
             values = ",".join(
                 f"({q(r['email'])},{q(r['district_number'])},"
@@ -73,8 +101,7 @@ def push(pat: str) -> int:
             run_sql("INSERT INTO public.outreach_sent "
                     "(email, district_number, message_id, sent_at) "
                     f"VALUES {values} ON CONFLICT (email) DO NOTHING", pat)
-        print(f"pushed {len(rows)} sent rows from "
-              f"{SENT_LOG.relative_to(ROOT)}")
+        print(f"pushed {len(rows)} sent rows from {_short(sent_log)}")
     else:
         rows = []
         print("no local sent log — nothing to push there")
@@ -84,8 +111,8 @@ def push(pat: str) -> int:
     # database silently drops every click that presents it. A wave sent with
     # SUPABASE_PAT unset is recoverable ONLY by pushing this file — and only
     # for recipients who have not clicked yet, so push it the same day.
-    if RECIPIENTS.exists():
-        recips = list(csv.DictReader(RECIPIENTS.open()))
+    if recipients.exists():
+        recips = list(csv.DictReader(recipients.open()))
         if recips:
             values = ",".join(
                 f"({q(r['rid'])},{q(r['email'])},{q(r['district_number'])},"
@@ -94,17 +121,16 @@ def push(pat: str) -> int:
             run_sql("INSERT INTO public.outreach_recipient "
                     "(rid, email, district_number, campaign, message_id, sent_at) "
                     f"VALUES {values} ON CONFLICT (rid) DO NOTHING", pat)
-        print(f"pushed {len(recips)} journey tokens from "
-              f"{RECIPIENTS.relative_to(ROOT)}")
+        print(f"pushed {len(recips)} journey tokens from {_short(recipients)}")
     else:
         print("no local journey tokens — nothing to push there")
 
-    optouts = _local_optouts()
+    optouts = _local_optouts(optout)
     if optouts:
         values = ",".join(f"({q(e)})" for e in sorted(optouts))
         run_sql("INSERT INTO public.outreach_optout (email) "
                 f"VALUES {values} ON CONFLICT (email) DO NOTHING", pat)
-        print(f"pushed {len(optouts)} opt-outs from {OPTOUT.relative_to(ROOT)}")
+        print(f"pushed {len(optouts)} opt-outs from {_short(optout)}")
     else:
         print("no local opt-outs — nothing to push there")
 
@@ -120,10 +146,11 @@ def push(pat: str) -> int:
     return 0
 
 
-def _local_optouts() -> set[str]:
-    if not OPTOUT.exists():
+def _local_optouts(optout: Path | None = None) -> set[str]:
+    optout = OPTOUT if optout is None else optout
+    if not optout.exists():
         return set()
-    return {ln.strip().lower() for ln in OPTOUT.read_text().splitlines()
+    return {ln.strip().lower() for ln in optout.read_text().splitlines()
             if ln.strip() and not ln.startswith("#")}
 
 

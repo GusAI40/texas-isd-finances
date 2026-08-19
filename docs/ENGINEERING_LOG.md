@@ -17,6 +17,111 @@ Entry template:
 
 ---
 
+## 2026-08-19 — Root cause found; the outreach machine moves to where the keys live
+
+**What happened.** Owner: "we sent 500+ emails, everything was logged, now
+nothing works — find the root cause." Traced from inception through git and
+this log. **Root cause: credentials were never installed in any durable
+store along the machine chain — they lived in chat messages.** Every working
+send session got keys pasted into that session; the 08-17 wave literally
+recovered them by regexing this session's own on-disk transcript ("the
+container env had none" — logged that day). The long-lived container was
+reclaimed between 08-18 22:07 and 08-19 12:43, taking the gitignored merge
+CSV/sent log and every env var with it. Nothing durable was lost — Supabase
+still holds all 671 sent rows, Resend the history, production stayed healthy
+— only ACCESS died, and access was never durable. The watermark guard then
+refused (skip-list 0 < floor 671): "nothing works" was the safety system
+working. Owner chose the fix: put the secrets in Vercel and align the whole
+pipeline with the deployed site.
+
+**Shipped (branch `claude/audit-public-launch-ocd7ra`, four commits):**
+1. `578190a` — **/ops/outreach-data had 500'd in production since 08-14**:
+   src/outreach_map.py reads data/district_crosswalk.csv at request time and
+   .vercelignore excluded it (data/ + *.csv). Third instance of the
+   .vercelignore-silent-third-environment shape, so the fix is a general
+   guard: tests/test_vercelignore.py scans src/ for repo-relative reads and
+   evaluates the rules with REAL gitignore semantics via `git check-ignore`
+   in a throwaway repo — `data/` + `!data/file` looks right and is inert
+   (gitignore cannot re-include through an excluded parent), which
+   string-presence tests cannot see. data/* (not data/) + re-include.
+2. `8e6b17d` — **KPI forensic fixes** (owner's audit + mine converged):
+   sessions became a WHITELIST over browser-rendered events
+   (intel.BROWSER_SESSION_EVENTS, one constant, all four query surfaces
+   test-pinned) because three server-side kinds fabricate session ids — the
+   pixel (one per fetch), the reply ingest ('reply-<id>'), and a cookieless
+   scanner's click; funnel "Read something properly" = 3+ sections on
+   screen (returns the score's own section_depth factor), because dwell-only
+   counted a 4-district appliance cluster (clicks 1.1s apart at 03:47 UTC,
+   Limestone+McLennan counties) as readers — honest count: 2 of 100.
+   **ensure_schema now re-applies a stale v_recipient_journey** via
+   pg_get_viewdef marker ('followup'), fast path + slow path + never "ok"
+   from the raced fallback — a sentinel answers "does it exist", never "is
+   it current", and the fixed view would otherwise never reach production.
+3. `0a150cd` — **the server-side outreach machine** (the root-cause fix):
+   outreach_contact (mailing list as a table; scripts/sync_outreach_contacts
+   .py pushes the merge CSV up) + outreach_queue, self-applied with
+   outreach_sent/optout so a fresh DB needs zero hand steps, RLS + revokes
+   incl. nlp_reader. Renderer + Resend client moved VERBATIM to
+   src/outreach_email.py; laptop script imports the same objects. Endpoints
+   (hidden, 404-not-403): POST /api/outreach/enqueue (OUTREACH_TOKEN +
+   literal GO; confirm=PREVIEW returns the exact selection, zero writes),
+   GET /api/cron/outreach-drain (CRON_SECRET bearer or token; Vercel Cron
+   daily 14:30 UTC, batch 15 @1.1s, kickable by hand), GET
+   /api/outreach/status. vercel.json: second cron + functions maxDuration
+   60 (Hobby cap: 2 crons — now at it).
+4. Earlier same branch: send-durability auto-reconcile + dry-run-previews-
+   the-real-wave fixes (d11f931, 57b0cef — see 08-18/19 sessions).
+
+**Why the design is shaped this way.** Every per-recipient rail is re-held
+at SEND time, not only enqueue — the queue sits for days while the contact
+table/opt-outs/suppression move: opt-out and suppression re-checked per
+message, identity gate re-run on the row actually rendered, a changed
+address quarantines. One touch per DISTRICT is a WHERE clause (a roster
+refresh gives a district a new address that sails past an address-only
+skip-list). Failure discipline: before the first /emails call, every
+failure RELEASES the claim (provably unsent — incl. wall-clock budget 40s +
+Resend timeout 15s < maxDuration 60); after Resend accepts, nothing may
+read as anything but sent ('sent; log write failed', never 'error' — an
+operator retrying a delivered "error" re-emails a named official). A
+timeout is NOT provably unsent → quarantined, never released.
+
+**Gotchas (each cost a review round):** JOURNEY_VIEW_DDL must carry the
+view's REVOKEs (a re-CREATE after a drop inherits Supabase default grants —
+anon could read reading-behaviour); the viewdef marker must be a member of
+the CURRENT whitelist or every cold start re-applies forever; time.time()
+as `started` for _record_cron_run overflows the integer column (monotonic
+diff) and the run row silently never writes; compare_digest on non-ASCII
+str 500s and reveals hidden routes (encode both sides in try); JSONResponse
+without jsonable_encoder 500s on datetimes exactly when a drain has died.
+
+**Three review rounds, 21 findings, all fixed and regression-pinned.
+1024 tests passing.** KPI forensic artifact (private):
+https://claude.ai/code/artifact/bd47ce9d-6989-4ec9-807f-5e9cd57f5a31
+
+**Open items:**
+- 🔴 OWNER, the fix that ends the pattern: in Vercel → texas-isd-finances →
+  Settings → Environment Variables add **RESEND_API_KEY** (rotate first —
+  one was pasted into chat 08-19 and is burned), **TAG_POSTAL_ADDRESS**,
+  **OUTREACH_TOKEN** (new random string, never pasted anywhere). Optional:
+  SUPABASE_PAT is NOT needed by the runner (app pool writes directly).
+- 🔴 Merge the branch to master — nothing above is live until Vercel builds
+  it. Then verify: /health tracking_schema, /api/cron/runs shows
+  outreach-drain, status endpoint answers with the token.
+- 🔴 One-time after merge: rebuild data/outreach_merge.csv (needs the TEA
+  finance CSV) and run scripts/sync_outreach_contacts.py with a PAT to
+  populate outreach_contact (1,019 rows). Until then enqueue answers
+  "nobody eligible".
+- 🔴 Rotate the ~20 pasted credentials (unchanged, now including the 08-19
+  Resend key); GH Actions secrets for replies.yml/outreach-kpi.yml still
+  unset (reply stage still unmeasured).
+- Wave arithmetic unchanged: 671 sent of 1,019, 348 remaining.
+- 🟡 Production still has the stale v_recipient_journey until merge; intel
+  dashboard is already correct against either version.
+
+**Notes:**
+
+---
+
 ## 2026-08-17 — The KPIs were mostly robots: wave 2's 14% click is really 8%
 
 **What happened.** Owner asked "how accurate are the KPIs?" — the right
