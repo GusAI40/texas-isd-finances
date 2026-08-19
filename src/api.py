@@ -3099,6 +3099,22 @@ async def ops_intel_journey(request: Request, rid: str = Query(..., max_length=6
                  "Cache-Control": "no-store"})
 
 
+@app.get("/report/first-671", include_in_schema=False)
+async def report_first_671():
+    """The outreach campaign's results, in plain language — a handout.
+
+    Shared by link (meetings, follow-ups), so it is public but UNLISTED: no
+    masthead, linked from no page, absent from the sitemap, and noindexed at
+    both the header and meta level. It names no district and no person —
+    the same line the private ops map holds — so the link circulating
+    further than intended costs nothing but candour about our own numbers.
+    """
+    page = STATIC_DIR / "report_first671.html"
+    if page.exists():
+        return FileResponse(page, headers={"X-Robots-Tag": "noindex, nofollow"})
+    raise HTTPException(status_code=404, detail="Not found")
+
+
 @app.get("/ops/outreach", include_in_schema=False)
 async def ops_outreach_page(request: Request):
     """Where the outreach landed. Token-gated; see src/outreach_map.py."""

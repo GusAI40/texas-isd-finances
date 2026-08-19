@@ -26,7 +26,11 @@ from scripts.check_static_js import STATIC, check_page, inline_scripts  # noqa: 
 # Excluded from the PUBLIC design-system checks by name — they carry no
 # masthead and are not part of the portal — but they stay in ALL_PAGES, so a
 # syntax error still fails the build. A private page breaks just as badly.
-PRIVATE_PAGES = {"opsmap.html", "opsintel.html"}
+# report_first671.html is public-by-link but deliberately OUTSIDE the portal:
+# a standalone handout with no masthead, no scripts and system fonts, served
+# noindexed at /report/first-671. It sits with the private pages here because
+# this set means "not part of the portal design system", not "secret".
+PRIVATE_PAGES = {"opsmap.html", "opsintel.html", "report_first671.html"}
 
 ALL_PAGES = sorted(STATIC.glob("*.html"))
 PAGES = [p for p in ALL_PAGES if p.name not in PRIVATE_PAGES]
