@@ -194,7 +194,8 @@
     var tiles = el("div", "grid tiles");
     tiles.appendChild(tile(n(f.clicked), "Clicked through",
       f.sent ? Math.round(f.clicked / f.sent * 100) + "% of tracked" : ""));
-    tiles.appendChild(tile(n(f.engaged), "Read something properly", "30s+ on a page"));
+    tiles.appendChild(tile(n(f.engaged), "Read something properly",
+      "3+ sections on screen — dwell alone counted appliances"));
     tiles.appendChild(tile(n(f.asked), "Asked the assistant", ""));
     tiles.appendChild(tile(n((d.answer_quality || {}).conversations),
       "Conversations", n((d.answer_quality || {}).turns)

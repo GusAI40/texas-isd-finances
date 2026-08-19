@@ -34,6 +34,25 @@ from __future__ import annotations
 
 from typing import Any
 
+# --- what counts as a visit --------------------------------------------------
+# Session counting is a WHITELIST over the events only a rendering browser
+# emits. Three server-side kinds carry session ids no browser ever held:
+# 'email_open' (the pixel mints a fresh id per fetch), 'reply' (the IMAP
+# ingest writes 'reply-<message_id>'), and — subtler — 'click', which is
+# written at redirect time, so a cookieless mail scanner detonating the same
+# link twice mints two sessions without ever rendering a page. A blacklist
+# was tried first and each of those had to be discovered one forensic at a
+# time; a whitelist means the NEXT fabricated kind (a bounce ingest, say) is
+# excluded by default rather than by whoever remembers this list exists.
+# Python-built queries derive their SQL from this tuple; the two view DDL
+# copies are plain SQL and are pinned to it by test instead.
+BROWSER_SESSION_EVENTS = ("pageview", "dwell", "section", "return",
+                          "question", "followup", "download")
+SESSION_FILTER_SQL = ("FILTER (WHERE event IN ("
+                      + ", ".join(f"'{e}'" for e in BROWSER_SESSION_EVENTS)
+                      + "))")
+
+
 # --- the engagement score ---------------------------------------------------
 # Deterministic, documented, and shown factor by factor wherever it appears.
 # It is an ENGAGEMENT score, never a prediction: nothing here has been fitted
@@ -105,6 +124,34 @@ def facts_from_row(r: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def engaged(r: dict[str, Any]) -> bool:
+    """Did a person actually read the report? The funnel's fourth stage.
+
+    This was `total_dwell_ms >= 30_000` and nothing else, which measures how
+    long a tab was open — a contest mail-security appliances win. On the
+    2026-08-19 forensic the dwell-only definition counted 12 recipients as
+    having "read something properly": four were one appliance cluster in
+    Central Texas (four districts "clicking" 1.1s apart at 03:47 UTC, dwell
+    71–116s, page never scrolled) and eight more never had a single section
+    on screen. Two had actually read.
+
+    Sections are the one signal here that resists imitation: an
+    IntersectionObserver records a section only after 4 seconds at 50%
+    visibility in a focused tab, and reaching three of them requires
+    scrolling with intent. So the bar is the same one the score's
+    section_depth factor uses — literally: this returns that factor, so the
+    two cannot drift apart by one threshold being edited without the other.
+    Dwell is deliberately NOT a fallback: adding it back as an OR would
+    re-admit exactly the appliances this exists to exclude.
+
+    The cost, stated: someone who read one section for three minutes, or
+    read with JavaScript blocked, is not counted. This stage is a floor,
+    not a census — the miscount it prevents (a mail filter reported as a
+    reading superintendent) misleads; the one it accepts undercounts.
+    """
+    return bool(facts_from_row(r)["section_depth"])
+
+
 # --- the funnel -------------------------------------------------------------
 # One conversion, three signals. A reply is the only real outcome this product
 # has; return visits, downloads and deep chat engagement are intent signals.
@@ -141,9 +188,10 @@ OPEN_CAVEAT = ("Opens are a pixel load. Mail-security appliances fetch it with "
 # Kept here rather than in api.py so the shapes can be read in one place, and
 # so a test can assert what each one counts.
 
-PEOPLE_SQL = """
+PEOPLE_SQL = f"""
 SELECT r.rid, r.email, r.district_number, r.campaign, r.sent_at,
-       j.first_open_at, j.first_click_at, j.pageviews, j.sessions,
+       j.first_open_at, j.first_click_at, j.pageviews,
+       coalesce(x.site_sessions, 0)      AS sessions,
        j.distinct_pages, j.total_dwell_ms, j.last_seen_at,
        coalesce(x.returns, 0)            AS returns,
        coalesce(x.questions, 0)          AS questions,
@@ -155,6 +203,9 @@ FROM public.outreach_recipient r
 JOIN public.v_recipient_journey j ON j.rid = r.rid
 LEFT JOIN (
     SELECT rid,
+           count(DISTINCT session_id)
+               {SESSION_FILTER_SQL}
+                                                      AS site_sessions,
            count(*) FILTER (WHERE event = 'return')   AS returns,
            count(*) FILTER (WHERE event = 'question') AS questions,
            count(*) FILTER (WHERE event = 'download') AS downloads,
@@ -165,6 +216,17 @@ LEFT JOIN (
     GROUP BY rid
 ) x ON x.rid = r.rid
 """
+# `sessions` is computed HERE, not taken from v_recipient_journey, and the
+# whitelist above is the whole point: unfiltered, the pixel awarded a
+# "session" per fetch, a reply counted as a visit that never happened, and a
+# cookieless scanner detonating the link read as a returning visitor.
+# A scanner that rendered the email twice made a recipient look like a
+# returning visitor — 28 of the 36 "multiple-session" recipients on the
+# 2026-08-19 forensic had never loaded a page at all — and multi_session
+# feeds the engagement score. The view definition is fixed too, but the
+# schema self-applies only on a missing sentinel, so a deployed query that
+# depends on the view being re-created would silently stay wrong in
+# production. This query is correct against either version of the view.
 
 TIMELINE_SQL = """
 SELECT e.occurred_at, e.event, e.path, e.section, e.detail,
@@ -354,7 +416,13 @@ LINEAGE: dict[str, str] = {
     "people": "outreach_recipient — one row per mailed token, written at send",
     "clicked": "visitor_event event='click' — the ?rid= token arriving on the site",
     "opened": "visitor_event event='email_open' — /px/{rid}.gif fetched (unreliable)",
-    "sessions": "v_recipient_journey.sessions — distinct session_id per recipient",
+    "sessions": "visitor_event — distinct session_id over browser-rendered "
+                "events only (see BROWSER_SESSION_EVENTS); the pixel, the "
+                "reply ingest and a cookieless scanner's click all mint "
+                "session ids that were never a visit",
+    "engaged": "distinct sections >= 3 — the one signal a mail-security "
+               "appliance following links does not produce; dwell alone "
+               "counted four appliances as readers",
     "sections": "visitor_event event='section' — IntersectionObserver, 4s minimum",
     "questions": "chat_turn — one row per question asked of /query",
     "conversations": "chat_turn grouped by conversation_id",

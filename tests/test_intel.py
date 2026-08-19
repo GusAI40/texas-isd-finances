@@ -308,3 +308,123 @@ def test_the_sentinel_is_the_object_created_last():
     assert migrations.INTEL_SENTINEL == "public.site_feedback"
     ddl = migrations.INTEL_DDL
     assert ddl.index("public.chat_turn") < ddl.index("public.site_feedback")
+
+
+# --- the 2026-08-19 forensic: appliances must not read as readers -------------
+
+def test_engaged_means_sections_read_never_dwell_alone():
+    """The funnel's fourth stage counted 12 "readers"; four were one
+    mail-security appliance cluster (four districts clicking 1.1s apart at
+    03:47 UTC with 71-116s of headless dwell) and eight never had a single
+    section on screen. Dwell measures how long a tab was open; sections
+    require 4s at 50% visibility in a focused tab, three times over."""
+    appliance = {"total_dwell_ms": 116_298, "distinct_sections": 1}
+    parked_tab = {"total_dwell_ms": 60_007, "distinct_sections": 0}
+    reader = {"total_dwell_ms": 60_001, "distinct_sections": 4}
+    fast_reader = {"total_dwell_ms": 12_000, "distinct_sections": 3}
+    assert not intel.engaged(appliance), "an appliance profile counted as reading"
+    assert not intel.engaged(parked_tab), "an unscrolled tab counted as reading"
+    assert intel.engaged(reader)
+    assert intel.engaged(fast_reader), "sections are the bar — dwell is not a gate"
+    assert intel.engaged({}) is False
+
+
+def test_engaged_agrees_with_the_scores_own_definition_of_reading():
+    """One notion of "read the report" across the dashboard: the funnel stage
+    and the score's section_depth factor must fire on the same behaviour, or
+    the funnel says 4 while the people table says 2."""
+    for sections in (0, 1, 2, 3, 4, 10):
+        row = {"distinct_sections": sections}
+        assert intel.engaged(row) == intel.facts_from_row(row)["section_depth"]
+
+
+def test_sessions_only_count_browser_rendered_events():
+    """Session counting is a whitelist for a reason discovered one forensic
+    at a time: the pixel mints a session id per fetch, the reply ingest
+    writes 'reply-<message_id>', and a cookieless scanner detonating the
+    tracked link twice mints two "visits" without rendering a page — each
+    inflated multi_session and the score. Every Python-built query derives
+    its filter from ONE constant; the two plain-SQL view copies are pinned
+    to it here, normalised for whitespace so formatting cannot fake drift."""
+    for kind in ("email_open", "click", "reply"):
+        assert kind not in intel.BROWSER_SESSION_EVENTS, (
+            f"{kind} carries session ids no browser held")
+    assert intel.SESSION_FILTER_SQL in intel.PEOPLE_SQL
+    assert "j.sessions" not in intel.PEOPLE_SQL, (
+        "PEOPLE_SQL is back on the view's session count, which is only "
+        "correct once the deployed view carries the 2026-08-19 fix")
+
+    from pathlib import Path
+    root = Path(__file__).resolve().parent.parent
+    members = ", ".join(f"'{e}'" for e in intel.BROWSER_SESSION_EVENTS)
+    view_fragment = f"count(DISTINCT e.session_id) FILTER (WHERE e.event IN ({members}))"
+    for name, text in [
+        ("sql/create_visitor_tracking.sql",
+         (root / "sql" / "create_visitor_tracking.sql").read_text()),
+        ("migrations.VISITOR_TRACKING_DDL", migrations.VISITOR_TRACKING_DDL),
+    ]:
+        flat = " ".join(text.split())
+        assert view_fragment in flat, (
+            f"{name}: the view's session whitelist drifted from "
+            f"intel.BROWSER_SESSION_EVENTS")
+
+    # the offline report derives from the same constant at runtime
+    import scripts.journey_report as jr
+    assert intel.SESSION_FILTER_SQL in jr.SITE_SESSIONS_SQL
+    jr_text = (root / "scripts" / "journey_report.py").read_text()
+    assert ", sessions," not in jr_text, (
+        "journey_report selects the view's raw sessions column again")
+
+
+def test_the_view_fix_actually_reaches_an_existing_database():
+    """A sentinel gate answers "does the object exist", never "is it
+    current" — so a changed view body behind an existing sentinel is a
+    silent no-op on exactly the databases that already run (the
+    INTEL_SENTINEL lesson). ensure_schema must detect the stale view and
+    re-apply it, on the fast path AND the slow path, and a failure to do so
+    must never be reported as ok."""
+    import inspect
+
+    # the refresh DDL is the create-time view verbatim, plus the lockdown —
+    # a fresh CREATE after a drop would otherwise inherit Supabase default
+    # grants and expose named officials' reading behaviour to anon
+    assert migrations.JOURNEY_VIEW_DDL.startswith("CREATE OR REPLACE VIEW")
+    view_part = migrations.JOURNEY_VIEW_DDL[
+        :migrations.JOURNEY_VIEW_DDL.index(";") + 1]
+    assert view_part in migrations.VISITOR_TRACKING_DDL, (
+        "the refresh DDL drifted from the create-time DDL")
+    assert view_part.rstrip().endswith("r.sent_at;"), (
+        "the slice truncated inside the view statement")
+    assert ("REVOKE ALL ON public.v_recipient_journey FROM PUBLIC"
+            in migrations.JOURNEY_VIEW_DDL)
+    assert "'anon', 'authenticated', 'nlp_reader'" in migrations.JOURNEY_VIEW_DDL
+
+    # the staleness marker must be a whitelist member that appears in the
+    # deployed body, or every cold start re-applies the view forever
+    cur = inspect.getsource(migrations._journey_view_current)
+    assert '"followup" in body' in cur
+    assert "followup" in intel.BROWSER_SESSION_EVENTS
+    assert "'followup'" in migrations.JOURNEY_VIEW_DDL
+
+    src = inspect.getsource(migrations.ensure_schema)
+    assert src.count("_journey_view_current") >= 3, (
+        "the view-currency check must guard the fast path, the slow path "
+        "AND the raced-another-worker fallback — a failed refresh that "
+        "lands in the fallback would otherwise report ok forever")
+    assert src.count("JOURNEY_VIEW_DDL") >= 2, (
+        "the corrected view is no longer applied on both boot paths")
+
+
+def test_the_funnel_stage_is_computed_by_the_guarded_definition():
+    """intel.engaged() is revert-guarded above, but the funnel is built in
+    src/api.py — if that call site quietly goes back to the dwell-only
+    expression, every test here stays green while the appliances rejoin the
+    funnel. So the call site itself is pinned."""
+    from pathlib import Path
+    api = (Path(__file__).resolve().parent.parent / "src" / "api.py").read_text()
+    assert "engaged = sum(1 for r in people if intel.engaged(r))" in api
+    dwell_only = 'engaged = sum(1 for r in people if int(r.get("total_dwell_ms"'
+    assert dwell_only not in api, "the dwell-only funnel stage is back"
+
+
+

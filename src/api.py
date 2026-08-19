@@ -2986,7 +2986,7 @@ async def ops_intel_data(request: Request, days: int = Query(7, ge=1, le=365)):
     tracked = len(people)
     clicked = sum(1 for r in people if r.get("first_click_at"))
     opened = sum(1 for r in people if r.get("first_open_at"))
-    engaged = sum(1 for r in people if int(r.get("total_dwell_ms") or 0) >= 30_000)
+    engaged = sum(1 for r in people if intel.engaged(r))
     asked = sum(1 for r in people if int(r.get("questions") or 0) > 0)
     replied = sum(1 for r in people if r.get("replied_at"))
 
