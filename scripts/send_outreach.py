@@ -66,6 +66,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
+from scripts import sync_outreach_state  # noqa: E402
 from src import format as fmt  # noqa: E402
 from src import tracking  # noqa: E402
 
@@ -397,13 +398,11 @@ def skiplist_shrank(resolved: int) -> str:
         f"passing --ignore-watermark.")
 
 
-def _short(path: Path) -> str:
-    """Repo-relative when it is inside the repo, absolute otherwise. A progress
-    line must never be the thing that raises."""
-    try:
-        return str(path.relative_to(ROOT))
-    except ValueError:
-        return str(path)
+# Same helper as sync_outreach_state._short (same repo root, same job) —
+# reused rather than redefined, so a change to the rule can't diverge between
+# the two files the way this project's money/name formatters once did (see
+# src/format.py's own docstring for that history).
+_short = sync_outreach_state._short
 
 
 def select_targets(rows: list[dict], limit: int) -> tuple[list[dict], dict]:
@@ -790,30 +789,80 @@ def main() -> int:
     print(describe_selection(todo, report))
 
     ok = fail = 0
-    for i, row in enumerate(todo, 1):
-        rid = tracking.new_rid()
-        body, text = render_email(row, postal, unsubscribe, rid=rid)
-        try:
-            payload = {
-                "from": from_addr, "to": [row["email"]],
-                "reply_to": os.environ.get("RESEND_REPLY_TO", from_addr),
-                "subject": row["subject"], "html": body, "text": text,
-                "headers": {"List-Unsubscribe": f"<{unsubscribe}>"}}
-            if bcc_addr:
-                payload["bcc"] = [bcc_addr]
-            got = _req("/emails", key, payload)
-            log_sent(row, got.get("id", ""))
-            log_recipient(row, rid, got.get("id", ""), campaign)
-            ok += 1
-            print(f"  [{i}/{len(todo)}] {row['district_name']:<32} "
-                  f"{row['email']}")
-        except Exception as ex:  # noqa: BLE001 — a bounce must not kill the run
-            fail += 1
-            print(f"  [{i}/{len(todo)}] FAILED {row['email']}: {ex}")
-        time.sleep(1.1)
+    reconcile_failed = False
+    try:
+        for i, row in enumerate(todo, 1):
+            rid = tracking.new_rid()
+            body, text = render_email(row, postal, unsubscribe, rid=rid)
+            try:
+                payload = {
+                    "from": from_addr, "to": [row["email"]],
+                    "reply_to": os.environ.get("RESEND_REPLY_TO", from_addr),
+                    "subject": row["subject"], "html": body, "text": text,
+                    "headers": {"List-Unsubscribe": f"<{unsubscribe}>"}}
+                if bcc_addr:
+                    payload["bcc"] = [bcc_addr]
+                got = _req("/emails", key, payload)
+                log_sent(row, got.get("id", ""))
+                log_recipient(row, rid, got.get("id", ""), campaign)
+                ok += 1
+                print(f"  [{i}/{len(todo)}] {row['district_name']:<32} "
+                      f"{row['email']}")
+            except Exception as ex:  # noqa: BLE001 — a bounce must not kill the run
+                fail += 1
+                print(f"  [{i}/{len(todo)}] FAILED {row['email']}: {ex}")
+            time.sleep(1.1)
+    finally:
+        # This is the manual-recovery step the audit called out: a crash here
+        # used to mean the ONLY durable record was whatever log_sent() managed
+        # to mirror per-message, and a human had to notice and run
+        # sync_outreach_state.py by hand — which has already happened at least
+        # once. Reconciling here makes that automatic instead of remembered.
+        # It still cannot help against a hard container kill (SIGKILL, an OOM
+        # kill) that never lets Python run a finally block at all — that risk
+        # is why every message is ALSO mirrored individually in log_sent(),
+        # not only here at the end.
+        pat = os.environ.get("SUPABASE_PAT", "").strip()
+        if pat:
+            print("\nreconciling local state with the durable mirror...")
+            try:
+                # Pass THIS module's own SENT_LOG/RECIPIENTS/OPTOUT explicitly
+                # — sync_outreach_state.py has its own copies of those same
+                # constants, independent of these. They agree today only
+                # because nothing enforces it; reading this module's own
+                # (possibly monkeypatched-in-tests, or future --out-directed)
+                # paths is what keeps this reconciling the files THIS run
+                # actually wrote, not whatever sync_outreach_state.py's
+                # defaults happen to point at.
+                reconcile_failed = sync_outreach_state.push(
+                    pat, sent_log=SENT_LOG, recipients=RECIPIENTS,
+                    optout=OPTOUT) != 0
+            except Exception as ex:  # noqa: BLE001 — report, don't mask the send's own result
+                reconcile_failed = True
+                print(f"  RECONCILE FAILED: {ex}", file=sys.stderr)
+            if reconcile_failed:
+                print("  STATE MAY NOT SURVIVE CONTAINER LOSS. Before this "
+                      "container is discarded, run:\n"
+                      "    python scripts/sync_outreach_state.py",
+                      file=sys.stderr)
+        else:
+            print("\nSUPABASE_PAT was not set for this run — every send above "
+                  "exists ONLY in local, gitignored files. Before this "
+                  "container is discarded, run:\n"
+                  "    export SUPABASE_PAT=...\n"
+                  "    python scripts/sync_outreach_state.py", file=sys.stderr)
 
     print(f"\ndone: {ok} sent, {fail} failed. Log: "
           f"{_short(SENT_LOG)} (re-runs skip everyone already sent)")
+    # Durability outranks a per-message bounce: a failed send is visible in
+    # this line and was likely already a suppression/opt-out/bounce the next
+    # run will route around on its own, while state that failed to reconcile
+    # is exactly the failure mode that has already re-required a human to
+    # notice and recover BY HAND — so it gets its own code (3) even when sends
+    # also failed (1), rather than one silently swallowing the other. Both
+    # facts are still in the line above regardless of which code wins.
+    if reconcile_failed:
+        return 3
     return 0 if fail == 0 else 1
 
 

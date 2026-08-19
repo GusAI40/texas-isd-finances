@@ -51,6 +51,41 @@ def test_sync_pull_refuses_to_shrink_the_local_record():
     assert "refusing to pull" in SYNC
 
 
+def test_push_honors_a_monkeypatched_module_constant_not_only_its_kwarg(
+        monkeypatch, tmp_path):
+    """push()'s sent_log/recipients/optout default via a None sentinel
+    resolved INSIDE the function, not a value baked into the signature at
+    def-time — a `Path = SENT_LOG` default would capture the object that
+    existed when the module loaded and never see a later
+    ``monkeypatch.setattr(sync_outreach_state, "SENT_LOG", ...)``, which is
+    exactly the idiom this test suite already uses elsewhere (e.g.
+    tests/test_outreach_state.py's own `local_state` fixture patches
+    send_outreach's SENT_LOG the same way). pull() already calls
+    _local_optouts() with no argument at all, so this is not hypothetical."""
+    from scripts import sync_outreach_state as sos
+
+    fake_optout = tmp_path / "optout.txt"
+    fake_optout.write_text("nobody@example.com\n")
+    monkeypatch.setattr(sos, "OPTOUT", fake_optout)
+    monkeypatch.setattr(sos, "SENT_LOG", tmp_path / "missing_sent.csv")
+    monkeypatch.setattr(sos, "RECIPIENTS", tmp_path / "missing_recipients.csv")
+
+    assert sos._local_optouts() == {"nobody@example.com"}
+
+    calls = []
+
+    def fake_run_sql(q, pat):
+        calls.append(q)
+        return [{"sent": 0, "optout": 1}]        # the final reconciliation SELECT
+
+    monkeypatch.setattr(sos, "run_sql", fake_run_sql)
+    rc = sos.push("sbp_fake")
+    assert rc == 0
+    assert any("nobody@example.com" in c for c in calls), (
+        "push() read the real repo's data/outreach_optout.txt instead of "
+        "the monkeypatched module constant")
+
+
 def test_send_outreach_still_imports_and_keeps_its_surface():
     """The durability layer was additive — every pre-existing entry point
     survives."""
