@@ -7,7 +7,11 @@
 # time (src/api.py). Excluding all of scripts/ makes that ImportError in
 # production and the feed can never refresh past its committed snapshot. So ship
 # the package marker + that one module, and nothing else from scripts/.
-data/
+# data/* not data/ — gitignore semantics (which .vercelignore follows) cannot
+# re-include a file whose PARENT DIRECTORY is excluded, so `data/` plus
+# `!data/district_crosswalk.csv` would silently keep excluding it. Same shape
+# as the scripts/* rule below, for the same reason.
+data/*
 docs/
 #
 # ⚠️ src/sources.py reads scripts/freshness_vintages.json at request time, to
@@ -34,6 +38,16 @@ sql/
 !static/tag_pipeline.png
 # Per-district social cards (built by scripts/build_share_cards.py).
 !static/share/*.png
+#
+# ⚠️ src/outreach_map.py reads data/district_crosswalk.csv at request time, to
+# name each district on the private outreach map. Without it /ops/outreach-data
+# raised FileNotFoundError and answered 500 — in production only, from the day
+# it shipped, while every test stayed green because the repo checkout HAS the
+# file. This is the third time this exact shape has bitten (scripts/isd_intel,
+# scripts/freshness_vintages.json, now this): anything under src/ that opens a
+# file outside src//static//api/ needs a re-include AND a test.
+# It must come after BOTH `data/*` and `*.csv`, or those re-exclude it.
+!data/district_crosswalk.csv
 *.ipynb
 Dockerfile
 render.yaml
