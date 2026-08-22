@@ -97,6 +97,12 @@ docker run -p 8000:8000 \
 
 ### Option C — Vercel (the current production deployment)
 
+The current production path is Vercel's Git integration from `master`.
+`.github/workflows/deploy.yml` and the manual CLI commands below are a
+replacement/operator path only: disconnect Git integration before enabling
+that workflow or using a CLI deploy as the authoritative path. Never let both
+race for the production alias.
+
 `vercel.json` and `api/index.py` are included; Vercel's Python runtime
 auto-detects the ASGI `app` (Python 3.12 by default). Python bundles are
 capped at **500 MB uncompressed** and include all project files by default
@@ -198,11 +204,11 @@ change and never enters git history.
 - Point the API at a **read-only** database role where possible
   (`SUPABASE_READONLY_URL` pattern in `env_template.txt`); the NLP agent can
   only see the two public views either way.
-- `/query` calls a paid OpenAI API. `QUERY_GLOBAL_LIMIT` and
+- `/query` calls the configured paid LLM API. `QUERY_GLOBAL_LIMIT` and
   `QUERY_DAILY_LIMIT` are counted in `public.nlp_usage`, so they hold across
   every serverless instance rather than per-process — but they cap the number
-  of CALLS, not dollars. Set a monthly usage limit on the OpenAI account too;
-  that is the only control that can price a call.
+  of CALLS, not dollars. Configure a provider-side spend limit or prepaid
+  balance too; application call counters cannot price a call.
 - Never commit `.env`; both `.gitignore` and this repo's history are clean.
 
 ## 5. Verify the launch

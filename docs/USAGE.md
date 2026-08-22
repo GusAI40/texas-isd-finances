@@ -3,11 +3,15 @@
 Written for someone who has just cloned it. Start at the tier you need — each
 one adds credentials, and you can stop at any of them.
 
+> **Scope note (2026-08-22):** the endpoint table below is a core-route guide,
+> not an exhaustive count. The application has expanded substantially; use the
+> live `/docs` OpenAPI page or the generated schema for the maintained contract.
+
 | Tier | What you need | What you get |
 |---|---|---|
-| **1 — Read it** | nothing | The whole report: portal, both maps, and every district's outcomes, economics, bonds, equity and the Houston takeover analysis |
+| **1 — Read it** | nothing | The core report: portal, both maps, and district outcomes, economics, bonds, equity and the Houston takeover analysis |
 | **2 — Live finance data** | a Supabase database | Per-year budgets, peers, anomalies, spending trend, statewide medians |
-| **3 — Ask questions** | an OpenAI key | The plain-English question box at `/query` |
+| **3 — Ask questions** | a DeepSeek or OpenAI key | The plain-English question box at `/query` |
 
 ---
 
@@ -18,10 +22,10 @@ pip install -r requirements.txt
 uvicorn src.api:app --reload --port 8000
 ```
 
-Open <http://localhost:8000/>. That is not a degraded mode — 20 of the 32
-endpoints are served from committed JSON in `static/` and never touch a
-database. The finance layer is the only thing missing, and the page says so
-rather than breaking.
+Open <http://localhost:8000/>. That is not a demo mode: the core report is
+served from committed JSON in `static/` and never touches a database.
+Database-backed finance features and the model-backed question box remain
+unavailable, and the pages say so rather than breaking.
 
 Also worth opening: `/geomap` (real district boundaries), `/map` (the
 similarity "seating chart"), and `/docs` (interactive OpenAPI).
@@ -57,7 +61,10 @@ deploy target egresses over IPv4. Serverless wants transaction mode, port
 
 ## Tier 3 — add natural-language questions
 
-Set `OPENAI_API_KEY`, and set `NLP_DB_URL` **as well**:
+Set `DEEPSEEK_API_KEY` or `OPENAI_API_KEY`, and set `NLP_DB_URL` **as well**.
+Set `NLP_PROVIDER=deepseek|openai` to choose explicitly; when it is unset,
+`src/llm_config.py` selects DeepSeek if `DEEPSEEK_API_KEY` exists and otherwise
+selects OpenAI:
 
 ```bash
 python scripts/apply_nlp_role.py        # needs SUPABASE_PAT + VERCEL_TOKEN
@@ -69,7 +76,7 @@ every instance — `QUERY_GLOBAL_LIMIT` per minute and `QUERY_DAILY_LIMIT` per
 day. Without it the API falls back to per-process counters, which on
 serverless is not a ceiling: the platform starts as many instances as traffic
 demands, so each one enforces its own separate limit. It caps calls, not
-dollars, so set a monthly usage limit on the OpenAI account as well.
+dollars, so configure a provider-side spend limit or prepaid balance as well.
 
 This matters more than it looks. `/query` hands a visitor's question to a
 language model that writes its own SQL. Limiting the tables the agent is
@@ -170,10 +177,10 @@ production outage:
   path to the app — the old `/(.*) → /api/index` rule made FastAPI receive
   `/api/index` for every request and 404 the entire site while the build
   still reported READY.
-- **Production is deployed from a working tree by the CLI, not built from
-  `master`.** So `master` can be far behind what is live, and a Vercel
-  *redeploy* reuses the old deployment's code — it cannot pick up a code
-  change. Ship with a fresh `vercel deploy --prod --scope tag-ai-projects`.
+- **Production currently deploys from `master` through Vercel's Git
+  integration.** The CLI workflow is an inert replacement: disconnect Git
+  integration before enabling its secrets, never run both. A Vercel
+  *redeploy* reuses the old deployment's code and cannot pick up a new commit.
 
 ## Where to read next
 
