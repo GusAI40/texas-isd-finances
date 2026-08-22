@@ -143,13 +143,16 @@ external tiles are blocked in the build sandbox, so confirm it in a browser once
 
 ## Deploying it
 
-1. Apply `sql/create_isd_intel.sql` to Supabase (creates the two tables).
+1. The application startup normally applies the intelligence schema through
+   `src/migrations.py`. Use `sql/create_isd_intel.sql` only as a manual recovery
+   path after verifying the production target.
 2. Set `CRON_SECRET` in the Vercel project — Vercel auto-injects it as the
    cron's bearer token. Generate a strong one (`openssl rand -base64 32`).
 3. `vercel.json` already declares the schedule (`0 11 * * *` = 11:00 UTC ≈
    5–6am Central). **Note:** Vercel Hobby allows only once-daily crons; this
-   project's Pro team is fine. And production deploys from a working tree, not
-   `master`, so the cron only exists after a fresh `vercel deploy --prod`.
+   project's Pro team is fine. Production deploys from `master` through
+   Vercel's Git integration, so a schedule change exists only after the
+   matching Git deployment passes strict revision and health verification.
 4. For the heatmap, set `MAPBOX_TOKEN` to your **public** `pk.` token.
 5. Optional: tune `ISD_PRIORITY_DISTRICTS`, `ISD_MAX_QUERIES`, `ISD_LLM_EXTRACT`.
 

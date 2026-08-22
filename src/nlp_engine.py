@@ -1,30 +1,558 @@
-"""
-NLP Query Engine: natural language to SQL over the public finance views.
+"""Natural-language queries over the two public finance views.
 
-Uses LangChain 1.x `create_agent` (the supported agent API) with the SQL
-toolkit. Note: `langchain-community` (home of SQLDatabase/SQLDatabaseToolkit)
-was sunset in June 2026; it still works but is no longer actively maintained.
-Track https://github.com/langchain-ai/langchain-community/issues/674 for the
-migration path to standalone integration packages.
+LangChain's current SQL-agent guide builds application-owned tools with
+``langchain.tools.tool``. That is the supported replacement for the archived
+``langchain-community`` SQL toolkit: this module owns its SQLAlchemy adapter,
+relation allowlist, read-only validator, schema tool, query tool, and checker.
 
-The model provider is resolved in src/llm_config.py. DeepSeek and OpenAI are
-both reachable through `ChatOpenAI` because DeepSeek implements the OpenAI
-request format, including the tool-calling protocol this agent depends on —
+The model provider is resolved in :mod:`src.llm_config`. DeepSeek and OpenAI
+are both reachable through ``ChatOpenAI`` because DeepSeek implements the
+OpenAI request format, including the tool-calling protocol this agent needs;
 only the base URL and model name change.
 """
 import os
-from typing import Any, Dict, Optional
+import re
+from typing import Any, Dict, Iterable, Optional, Sequence
 
 from dotenv import load_dotenv
 from langchain.agents import create_agent
-from langchain_community.agent_toolkits import SQLDatabaseToolkit
-from langchain_community.utilities import SQLDatabase
+from langchain.tools import tool
 from langchain_openai import ChatOpenAI
+from sqlalchemy import create_engine, inspect, text
+from sqlalchemy.engine import Engine
+from sqlglot import ErrorLevel, exp, parse
+from sqlglot.errors import OptimizeError, ParseError
+from sqlglot.optimizer.scope import build_scope
 
 from .llm_config import resolve_llm_config
 from .sample_queries import SAMPLE_QUERIES
 
 load_dotenv()
+
+NLP_RELATIONS = ("v_finance_summary", "v_anomaly_flags")
+TOOL_ROW_LIMIT = 100
+
+
+class SQLPolicyError(ValueError):
+    """A controlled validation message that is safe to return to the agent."""
+
+
+# A prompt is not a security boundary. The production nlp_reader role remains
+# the decisive authorization control; the lexical denylist gives early,
+# readable errors before the exact AST allowlist below makes the execution
+# decision.
+_WRITE_KEYWORDS = re.compile(
+    r"\b(?:alter|analyze|call|cluster|comment|copy|create|deallocate|delete|"
+    r"discard|do|drop|execute|grant|insert|listen|load|lock|merge|notify|"
+    r"prepare|refresh|reindex|reset|revoke|security|set|truncate|unlisten|"
+    r"update|vacuum|into)\b",
+    re.IGNORECASE,
+)
+
+# SQL SELECTs can still mutate server-session state through functions such as
+# pg_advisory_lock(), set_config(), pg_notify(), and pg_sleep(). PostgreSQL's
+# read-only transaction flag does not make those harmless, especially behind
+# a transaction pooler where session state may reach another request. Parse
+# every statement and allow only the exact syntax and pure functions finance
+# questions need. Unlisted syntax fails closed, so TableSample, custom
+# operators, anonymous/qualified functions, UDTFs, locking, INTO, and future
+# SQLGlot nodes cannot become new execution surfaces silently. An upgrade of
+# SQLGlot is therefore a reviewed security change.
+_ALLOWED_SELECT_NODE_TYPES = frozenset(
+    {
+        # Query shape.
+        exp.Select,
+        exp.Union,
+        exp.Intersect,
+        exp.Except,
+        exp.Subquery,
+        exp.With,
+        exp.CTE,
+        exp.From,
+        exp.Join,
+        exp.Where,
+        exp.Group,
+        exp.Having,
+        exp.Order,
+        exp.Ordered,
+        exp.Limit,
+        exp.Offset,
+        exp.Distinct,
+        exp.Window,
+        exp.WindowSpec,
+        exp.Filter,
+        exp.WithinGroup,
+        # Sources and scalar values.
+        exp.Table,
+        exp.TableAlias,
+        exp.Column,
+        exp.Identifier,
+        exp.Star,
+        exp.Alias,
+        exp.Literal,
+        exp.Boolean,
+        exp.Null,
+        exp.Tuple,
+        exp.DataType,
+        exp.DataTypeParam,
+        exp.Var,
+        exp.Kwarg,
+        exp.Paren,
+        # Arithmetic, predicates, and conditionals.
+        exp.Add,
+        exp.Sub,
+        exp.Mul,
+        exp.Div,
+        exp.Mod,
+        exp.Neg,
+        exp.And,
+        exp.Or,
+        exp.Not,
+        exp.EQ,
+        exp.NEQ,
+        exp.GT,
+        exp.GTE,
+        exp.LT,
+        exp.LTE,
+        exp.Is,
+        exp.Between,
+        exp.In,
+        exp.Exists,
+        exp.Like,
+        exp.ILike,
+        exp.Case,
+        exp.If,
+        # Reviewed pure PostgreSQL built-ins. These are concrete parser nodes;
+        # exp.Anonymous is intentionally absent.
+        exp.Abs,
+        exp.ArrayAgg,
+        exp.Avg,
+        exp.Cast,
+        exp.Ceil,
+        exp.Coalesce,
+        exp.Concat,
+        exp.Count,
+        exp.CumeDist,
+        exp.CurrentDate,
+        exp.CurrentTimestamp,
+        exp.DenseRank,
+        exp.Exp,
+        exp.Extract,
+        exp.FirstValue,
+        exp.Floor,
+        exp.Greatest,
+        exp.GroupConcat,
+        exp.Lag,
+        exp.LastValue,
+        exp.Lead,
+        exp.Least,
+        exp.Length,
+        exp.Ln,
+        exp.Log,
+        exp.LogicalAnd,
+        exp.LogicalOr,
+        exp.Lower,
+        exp.MakeInterval,
+        exp.Max,
+        exp.Min,
+        exp.Ntile,
+        exp.Nullif,
+        exp.PercentileCont,
+        exp.PercentRank,
+        exp.Pow,
+        exp.Rank,
+        exp.Replace,
+        exp.Round,
+        exp.RowNumber,
+        exp.Sign,
+        exp.Sqrt,
+        exp.Stddev,
+        exp.StddevPop,
+        exp.StddevSamp,
+        exp.Substring,
+        exp.Sum,
+        exp.TimeToStr,
+        exp.TimestampTrunc,
+        exp.Trim,
+        exp.Upper,
+        exp.Variance,
+        exp.VariancePop,
+    }
+)
+
+
+def _sql_code_only(sql: str) -> str:
+    """Mask strings, quoted identifiers, and comments before validation.
+
+    The returned text preserves newlines and punctuation in executable SQL,
+    while replacing non-code regions with spaces. PostgreSQL dollar-quoted
+    strings and nested block comments are handled as well as ordinary SQL
+    quotes/comments. This is deliberately a validator, not a SQL parser; the
+    database read-only role is still the final authorization boundary.
+    """
+
+    chars = list(sql)
+    masked = list(sql)
+    i = 0
+    length = len(chars)
+
+    def blank(start: int, end: int) -> None:
+        for pos in range(start, end):
+            if masked[pos] not in "\r\n":
+                masked[pos] = " "
+
+    while i < length:
+        if sql.startswith("--", i):
+            end = sql.find("\n", i + 2)
+            end = length if end == -1 else end
+            blank(i, end)
+            i = end
+            continue
+
+        if sql.startswith("/*", i):
+            start = i
+            i += 2
+            depth = 1
+            while i < length and depth:
+                if sql.startswith("/*", i):
+                    depth += 1
+                    i += 2
+                elif sql.startswith("*/", i):
+                    depth -= 1
+                    i += 2
+                else:
+                    i += 1
+            if depth:
+                raise SQLPolicyError("unterminated SQL block comment")
+            blank(start, i)
+            continue
+
+        if chars[i] in ("'", '"'):
+            quote = chars[i]
+            start = i
+            i += 1
+            while i < length:
+                if chars[i] == quote:
+                    if i + 1 < length and chars[i + 1] == quote:
+                        i += 2
+                        continue
+                    i += 1
+                    break
+                i += 1
+            else:
+                raise SQLPolicyError("unterminated SQL quoted value")
+            blank(start, i)
+            continue
+
+        if chars[i] == "$":
+            tag_match = re.match(r"\$(?:[A-Za-z_][A-Za-z0-9_]*)?\$", sql[i:])
+            if tag_match:
+                tag = tag_match.group(0)
+                start = i
+                i += len(tag)
+                end = sql.find(tag, i)
+                if end == -1:
+                    raise SQLPolicyError("unterminated SQL dollar-quoted value")
+                i = end + len(tag)
+                blank(start, i)
+                continue
+
+        i += 1
+
+    return "".join(masked)
+
+
+def _assert_select_only(sql: str, *, qualify_relations: bool = False) -> str:
+    """Return one parsed, policy-safe SELECT (non-recursive CTEs allowed).
+
+    Keyword filtering catches obvious writes with useful errors. The SQLGlot
+    AST is the security boundary: it identifies actual source relations,
+    functions, locking/INTO nodes, and nested statements rather than treating
+    underscores, comments, aliases, or CTEs as trustworthy syntax.
+    """
+
+    if not isinstance(sql, str) or not sql.strip():
+        raise SQLPolicyError("query must be a non-empty SQL string")
+
+    code = _sql_code_only(sql).strip()
+    if not re.match(r"^(?:select|with)\b", code, re.IGNORECASE):
+        raise SQLPolicyError("only SELECT statements are allowed")
+
+    match = _WRITE_KEYWORDS.search(code)
+    if match:
+        raise SQLPolicyError(
+            f"read-only query rejected keyword: {match.group(0).upper()}")
+
+    try:
+        statements = parse(sql, read="postgres", error_level=ErrorLevel.RAISE)
+    except ParseError as exc:
+        raise SQLPolicyError("query is not valid PostgreSQL SELECT syntax") from exc
+    if len(statements) != 1 or statements[0] is None:
+        raise SQLPolicyError("only one SQL statement is allowed")
+    tree = statements[0]
+    if not isinstance(tree, (exp.Select, exp.Union, exp.Intersect, exp.Except)):
+        raise SQLPolicyError("only SELECT statements are allowed")
+    if any(with_.args.get("recursive") for with_ in tree.find_all(exp.With)):
+        raise SQLPolicyError("recursive CTEs are not allowed")
+    if any(
+        data_type.this == exp.DataType.Type.USERDEFINED
+        for data_type in tree.find_all(exp.DataType)
+    ):
+        raise SQLPolicyError("user-defined SQL types are not allowed")
+
+    for node in tree.walk():
+        if type(node) not in _ALLOWED_SELECT_NODE_TYPES:
+            if isinstance(node, exp.Func):
+                name = node.name or node.sql_name() or "anonymous"
+                raise SQLPolicyError(f"SQL function {name.upper()} is not allowed")
+            raise SQLPolicyError(
+                f"SQL expression {type(node).__name__} is not allowed")
+
+    try:
+        root_scope = build_scope(tree)
+        if root_scope is None:
+            raise SQLPolicyError("query has no analyzable SELECT scope")
+        sources = [
+            source
+            for scope in root_scope.traverse()
+            for _alias, (_node, source) in scope.selected_sources.items()
+            if isinstance(source, exp.Table)
+        ]
+    except OptimizeError as exc:
+        raise SQLPolicyError("query sources could not be safely resolved") from exc
+
+    allowed = set(NLP_RELATIONS)
+    for source in sources:
+        name = source.name.lower()
+        database = source.db.lower()
+        catalog = source.catalog.lower()
+        if (
+            not name
+            or name not in allowed
+            or catalog
+            or database not in ("", "public")
+        ):
+            shown = ".".join(part for part in (catalog, database, name) if part)
+            raise SQLPolicyError(
+                f"relation {shown or '<table function>'} is not allowed")
+        if qualify_relations:
+            # Execution sets search_path to pg_catalog only so an unqualified
+            # function cannot resolve to a side-effectful helper in public.
+            # Qualify the two reviewed views after validation instead.
+            source.set("catalog", None)
+            source.set("db", exp.to_identifier("public"))
+            source.set("this", exp.to_identifier(name))
+
+    return tree.sql(dialect="postgres") if qualify_relations else sql
+
+
+def _truncate(value: Any, max_length: int = 300) -> Any:
+    if isinstance(value, str) and len(value) > max_length:
+        return value[: max_length - 3] + "..."
+    return value
+
+
+class FinanceSQLDatabase:
+    """Small SQLAlchemy adapter restricted to the finance agent's two views."""
+
+    def __init__(
+        self,
+        engine: Engine,
+        include_relations: Sequence[str] = NLP_RELATIONS,
+    ) -> None:
+        self._engine = engine
+        self._inspector = inspect(engine)
+        self._schema = "public" if engine.dialect.name == "postgresql" else None
+        available = self._available_relations()
+        requested = set(include_relations)
+        missing = requested - available
+        if missing:
+            raise ValueError(f"include_relations {missing} not found in database")
+        self._relations = tuple(sorted(requested))
+
+    @classmethod
+    def from_uri(
+        cls,
+        database_uri: str,
+        include_relations: Sequence[str] = NLP_RELATIONS,
+    ) -> "FinanceSQLDatabase":
+        return cls(create_engine(database_uri), include_relations=include_relations)
+
+    @property
+    def dialect(self) -> str:
+        return self._engine.dialect.name
+
+    def _available_relations(self) -> set[str]:
+        names: set[str] = set()
+        for method_name in (
+            "get_table_names",
+            "get_view_names",
+            "get_materialized_view_names",
+        ):
+            method = getattr(self._inspector, method_name, None)
+            if method is None:
+                continue
+            try:
+                names.update(method(schema=self._schema) if self._schema else method())
+            except NotImplementedError:
+                continue
+        return names
+
+    def get_usable_table_names(self) -> list[str]:
+        """Keep the legacy method name because the SQL tool vocabulary uses it."""
+
+        return list(self._relations)
+
+    def _quoted_relation(self, relation: str) -> str:
+        if relation not in self._relations:
+            raise SQLPolicyError(
+                f"table_names {{{relation!r}}} not found in database")
+        quote = self._engine.dialect.identifier_preparer.quote_identifier
+        relation_name = quote(relation)
+        return f"{quote(self._schema)}.{relation_name}" if self._schema else relation_name
+
+    def _execute(self, query: str) -> tuple[list[str], list[tuple[Any, ...]]]:
+        query = _assert_select_only(
+            query,
+            qualify_relations=self.dialect == "postgresql",
+        )
+        with self._engine.connect() as connection:
+            with connection.begin():
+                # The nlp_reader role defaults every transaction to read-only.
+                # Reassert it per transaction on Postgres as defense in depth
+                # if a caller injects an accidentally privileged explicit URL.
+                if self.dialect == "postgresql":
+                    connection.exec_driver_sql("SET TRANSACTION READ ONLY")
+                    connection.exec_driver_sql("SET LOCAL search_path TO pg_catalog")
+                    connection.exec_driver_sql("SET LOCAL statement_timeout = '20s'")
+                result = connection.execute(text(query))
+                columns = list(result.keys())
+                rows = [
+                    tuple(_truncate(value) for value in row)
+                    for row in result.fetchmany(TOOL_ROW_LIMIT + 1)
+                ]
+        return columns, rows
+
+    def run(self, query: str) -> str:
+        """Execute a validated read and match the former toolkit's result shape."""
+
+        _columns, rows = self._execute(query)
+        truncated = len(rows) > TOOL_ROW_LIMIT
+        visible_rows = rows[:TOOL_ROW_LIMIT]
+        output = str(visible_rows) if visible_rows else ""
+        if truncated:
+            output += (
+                "\nResult truncated after 100 rows. Use COUNT() for a total or "
+                "narrow the listing query."
+            )
+        return output
+
+    def get_table_info(self, table_names: Optional[Iterable[str]] = None) -> str:
+        """Return column metadata and three sample rows for allowed relations."""
+
+        names = list(table_names) if table_names is not None else list(self._relations)
+        missing = set(names) - set(self._relations)
+        if missing:
+            raise SQLPolicyError(f"table_names {missing} not found in database")
+
+        sections = []
+        for relation in names:
+            quoted = self._quoted_relation(relation)
+            columns = self._inspector.get_columns(relation, schema=self._schema)
+            definitions = ",\n".join(
+                f"    {self._engine.dialect.identifier_preparer.quote_identifier(column['name'])} "
+                f"{column['type']}"
+                for column in columns
+            )
+            schema = f"RELATION {quoted} (\n{definitions}\n)"
+            sample_columns, rows = self._execute(f"SELECT * FROM {quoted} LIMIT 3")
+            sample = [f"/*\n3 rows from {relation}:\n" + "\t".join(sample_columns)]
+            sample.extend("\t".join(str(value) for value in row) for row in rows)
+            sample.append("*/")
+            sections.append(schema + "\n\n" + "\n".join(sample))
+        return "\n\n".join(sections)
+
+
+def _message_text(message: Any) -> str:
+    """Normalize LangChain message content without assuming one provider shape."""
+
+    value = getattr(message, "text", None)
+    if isinstance(value, str) and value:
+        return value.strip()
+    content = getattr(message, "content", message)
+    if isinstance(content, str):
+        return content.strip()
+    if isinstance(content, list):
+        chunks = []
+        for item in content:
+            if isinstance(item, str):
+                chunks.append(item)
+            elif isinstance(item, dict) and isinstance(item.get("text"), str):
+                chunks.append(item["text"])
+        return "\n".join(chunks).strip()
+    # Unknown SDK objects can include request metadata in their repr. Treat an
+    # unrecognized shape as empty instead of serializing it into a public answer.
+    return ""
+
+
+def build_sql_tools(db: FinanceSQLDatabase, llm: Any) -> list[Any]:
+    """Build the four tools in LangChain's current SQL-agent guide."""
+
+    @tool
+    def sql_db_list_tables() -> str:
+        """Input is empty; output is the comma-separated list of available relations."""
+
+        return ", ".join(db.get_usable_table_names())
+
+    @tool
+    def sql_db_schema(table_names: str) -> str:
+        """Return schema and sample rows for a comma-separated list of available relations."""
+
+        try:
+            return db.get_table_info(name.strip() for name in table_names.split(","))
+        except SQLPolicyError as exc:
+            return f"Error: {exc}"
+        except Exception as exc:
+            print("SQL schema lookup failed "
+                  f"({type(exc).__name__}); no exception detail logged")
+            return "Error: schema lookup failed"
+
+    @tool
+    def sql_db_query(query: str) -> str:
+        """Execute one SELECT query; return rows or an error that the agent can correct."""
+
+        try:
+            return db.run(query)
+        except SQLPolicyError as exc:
+            return f"Error: {exc}"
+        except Exception as exc:
+            print("SQL query execution failed "
+                  f"({type(exc).__name__}); no exception detail logged")
+            return "Error: query execution failed"
+
+    @tool
+    def sql_db_query_checker(query: str) -> str:
+        """Double-check a query before executing it with sql_db_query."""
+
+        trigger_prompt = f"""{query}
+Double check the {db.dialect} query above for common mistakes, including:
+- Using NOT IN with NULL values
+- Using UNION when UNION ALL should have been used
+- Using BETWEEN for exclusive ranges
+- Data type mismatch in predicates
+- Properly quoting identifiers
+- Using the correct number of arguments for functions
+- Casting to the correct data type
+- Using the proper columns for joins
+
+If there are any of the above mistakes, rewrite the query. If there are no mistakes, just reproduce the original query.
+
+Output the final SQL query only.
+
+SQL Query:"""
+        return _message_text(llm.invoke(trigger_prompt))
+
+    return [sql_db_list_tables, sql_db_schema, sql_db_query, sql_db_query_checker]
 
 SYSTEM_PROMPT = """You are a helpful assistant that converts natural language questions
 about Texas school district finances into SQL queries.
@@ -102,25 +630,21 @@ class TexasFinanceNLPEngine:
         self,
         db_url: Optional[str] = None,
         llm: Optional[Any] = None,
-        db: Optional[SQLDatabase] = None,
+        db: Optional[FinanceSQLDatabase] = None,
     ):
         if db is None:
             # NLP_DB_URL is the least-privilege role from sql/create_nlp_role.sql:
             # SELECT on the two public views, read-only transactions, nothing
-            # else. Prefer it. SUPABASE_DB_URL is the owner connection and is
-            # only a fallback so the feature still works before the role is
-            # provisioned — `include_tables` below limits what the agent is told
-            # about, not what the database will let it run.
-            db_url = db_url or os.getenv("NLP_DB_URL") or os.getenv("SUPABASE_DB_URL")
+            # else. Do not fall back to SUPABASE_DB_URL: relation discovery is
+            # not authorization, and model-authored SQL must fail closed rather
+            # than run as the database owner.
+            db_url = db_url or os.getenv("NLP_DB_URL")
             if not db_url:
-                raise ValueError(
-                    "Neither NLP_DB_URL nor SUPABASE_DB_URL found in environment"
-                )
+                raise ValueError("NLP_DB_URL not found in environment")
             # Connect to the two public read-only views only (least privilege)
-            db = SQLDatabase.from_uri(
+            db = FinanceSQLDatabase.from_uri(
                 db_url,
-                include_tables=["v_finance_summary", "v_anomaly_flags"],
-                view_support=True,
+                include_relations=NLP_RELATIONS,
             )
         cfg = resolve_llm_config()
         if llm is None and not cfg.configured:
@@ -145,10 +669,10 @@ class TexasFinanceNLPEngine:
             llm = ChatOpenAI(**kwargs)
         self.llm = llm
 
-        toolkit = SQLDatabaseToolkit(db=self.db, llm=self.llm)
+        self.tools = build_sql_tools(self.db, self.llm)
         self.agent = create_agent(
             self.llm,
-            toolkit.get_tools(),
+            self.tools,
             system_prompt=SYSTEM_PROMPT,
         )
 
@@ -169,7 +693,7 @@ class TexasFinanceNLPEngine:
                 config={"recursion_limit": 15},
             )
             messages = result.get("messages", [])
-            output = messages[-1].content if messages else "No result returned"
+            output = _message_text(messages[-1]) if messages else "No result returned"
 
             return {
                 "success": True,
@@ -177,10 +701,15 @@ class TexasFinanceNLPEngine:
                 "question": question,
             }
 
-        except Exception as e:
+        except Exception as exc:
+            # Model/provider exceptions can echo request metadata, endpoint
+            # credentials, or generated SQL. /query is public and its error is
+            # also stored in chat_turn, so never return raw exception text.
+            print("NLP query failed "
+                  f"({type(exc).__name__}); no exception detail logged")
             return {
                 "success": False,
-                "error": str(e),
+                "error": "The question could not be answered. Please try again.",
                 "question": question,
             }
 

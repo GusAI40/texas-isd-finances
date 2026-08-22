@@ -49,6 +49,60 @@ def test_health_degraded_without_db(client):
     else:
         raise AssertionError(f"/health does not name a provider: {body['llm']!r}")
     assert "sk-" not in body["llm"]
+    assert isinstance(body["revision"], str) and body["revision"]
+    assert "sk-" not in body["revision"]
+
+
+def test_health_exposes_only_a_well_formed_public_revision(client, monkeypatch):
+    monkeypatch.setenv("VERCEL_GIT_COMMIT_SHA", "not-a-sha-or-public-marker")
+    assert client.get("/health").json()["revision"] == "local"
+
+    sha = "a" * 40
+    monkeypatch.setenv("VERCEL_GIT_COMMIT_SHA", sha)
+    assert client.get("/health").json()["revision"] == sha
+
+
+def test_health_redacts_schema_and_database_exception_text(client, monkeypatch):
+    from src import api as api_mod
+
+    sentinel = "postgresql://owner:password@db.example/recipient@example.org"
+    saved_pool = getattr(api_mod.app.state, "db_pool", None)
+    saved_schema = getattr(api_mod.app.state, "schema_status", "unknown")
+    try:
+        monkeypatch.setattr(api_mod.app.state, "db_pool", None, raising=False)
+        monkeypatch.setattr(
+            api_mod.app.state,
+            "schema_status",
+            f"ERROR: migration failed ({sentinel})",
+            raising=False,
+        )
+        body = client.get("/health").json()
+        assert body["tracking_schema"] == "unavailable"
+        assert sentinel not in str(body)
+
+        class BrokenConn:
+            async def fetchval(self, _sql):
+                raise RuntimeError(sentinel)
+
+            async def __aenter__(self):
+                return self
+
+            async def __aexit__(self, *args):
+                return False
+
+        class BrokenPool:
+            def acquire(self):
+                return BrokenConn()
+
+        monkeypatch.setattr(
+            api_mod.app.state, "db_pool", BrokenPool(), raising=False)
+        response = client.get("/health")
+        assert response.status_code == 503
+        assert response.json()["detail"] == "Database connection failed"
+        assert sentinel not in response.text
+    finally:
+        api_mod.app.state.db_pool = saved_pool
+        api_mod.app.state.schema_status = saved_schema
 
 
 @pytest.mark.parametrize("path", [
@@ -78,6 +132,57 @@ def test_query_returns_503_without_credentials(client):
 def test_query_validates_question_length(client):
     assert client.post("/query", json={"question": ""}).status_code == 422
     assert client.post("/query", json={"question": "x" * 501}).status_code == 422
+
+
+def test_query_redacts_an_engine_failure_before_response(client, monkeypatch):
+    from src import api as api_mod
+
+    sentinel = "recipient@example.org?token=sk-private"
+
+    class UnsafeEngine:
+        def query(self, question):
+            return {"success": False, "question": question, "error": sentinel}
+
+    api_mod._rate_buckets.clear()
+    monkeypatch.setattr(api_mod, "get_nlp_engine", lambda: UnsafeEngine())
+    response = client.post(
+        "/query",
+        headers={"x-forwarded-for": "203.0.113.211"},
+        json={"question": "Compare district spending"},
+    )
+    assert response.status_code == 200
+    assert response.json()["error"] == (
+        "The question could not be answered. Please try again."
+    )
+    assert sentinel not in response.text
+
+
+def test_chat_turn_stores_a_controlled_failure_code_not_exception_text():
+    import asyncio
+
+    from src import api as api_mod
+
+    sentinel = "recipient@example.org postgres://owner:pw@db sk-private"
+    pool = _RecordingPool()
+    asyncio.run(api_mod._log_turn(
+        pool,
+        conversation_id="conversation-test",
+        turn=1,
+        question="Compare district spending",
+        answer_text=None,
+        kind="comparison",
+        district=None,
+        ok=False,
+        ms=1,
+        model="test-model",
+        structured=False,
+        followup_label=None,
+        error=sentinel,
+    ))
+    writes = [args for sql, args in pool.store["executed"]
+              if "public.chat_turn" in sql]
+    assert writes and writes[0][-1] == "query_failed"
+    assert sentinel not in str(writes)
 
 
 def test_sample_queries(client):
@@ -875,7 +980,8 @@ def test_a_cron_run_that_raises_is_still_recorded(client, monkeypatch):
     runs = [args for sql, args in pool.store["executed"] if "cron_runs" in sql]
     assert runs, "a failed run left no trace — the original bug"
     assert runs[0][3] == "error"
-    assert "feed exploded" in (runs[0][5] or "")
+    assert runs[0][5] == "failed"
+    assert "feed exploded" not in str(runs[0])
 
 
 def test_vercel_json_still_has_no_rewrites():
@@ -926,6 +1032,8 @@ def test_mapbox_token_served_from_env(client, monkeypatch):
     assert client.get("/mapbox-token").json() == {"token": ""}
     monkeypatch.setenv("MAPBOX_TOKEN", "pk.test")
     assert client.get("/mapbox-token").json() == {"token": "pk.test"}
+    monkeypatch.setenv("MAPBOX_TOKEN", "sk.secret-must-stay-server-side")
+    assert client.get("/mapbox-token").json() == {"token": ""}
 
 
 def test_secret_mapbox_key_is_not_in_the_repo():

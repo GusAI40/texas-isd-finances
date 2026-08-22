@@ -17,6 +17,86 @@ Entry template:
 
 ---
 
+## 2026-08-22 — Forensic hardening makes silent and mutable failure visible
+
+**What changed.** The repository-side hardening now monitors both configured
+Vercel crons by explicit job name, treats an empty outreach queue as healthy
+but an unarmed drain as failure, and gives the reply-ingest and outreach-KPI
+workflows explicit `NOT CONFIGURED` warnings and run summaries. Manual runs
+remain readiness probes; scheduled missing-secret runs fail so reply opt-outs,
+KPIs, and the balance monitor cannot be silently inert. The same change set
+pins Actions and the Docker base, introduces one committed `uv.lock` across
+Python build paths with direct NumPy/Pillow declarations, removes the
+production `langchain-community` SQL-toolkit dependency and database-owner
+fallback, and reconciles MCP/source/deployment documentation. Vercel Git
+integration remains the one deploy path; Actions only verifies the live tree.
+The final privacy pass removed free-text provider/driver failures from public
+cron history, SQL-agent tools, `/query`, `/health`, queue status, and runtime
+warnings. Cron details are now controlled codes; startup clears legacy free
+text, adds a database constraint, and revokes direct anonymous table access.
+Custom LLM endpoints publish only provider/model and a sanitized host (plus an
+explicit port); userinfo, path, query, and fragment are discarded, although an
+operator must still never put a secret in the hostname itself. Chat rows retain
+their questions and answers, while the `error` column stores only the fixed
+`query_failed` code. `/mapbox-token` refuses non-`pk.` values. The deploy and
+daily gates now require `tracking_schema=ready`, meaning startup observed the
+three application sentinels, current journey-view marker, and cron privacy
+constraint when `cron_runs` exists. A missing optional cron table is safe; the
+health field is not a continuous grants audit.
+
+**Why.** A green workflow that skipped for missing configuration, a cron
+history request that silently defaulted to `isd-intelligence`, a mutable build
+tool, and a SQL agent able to fall back to the owner all create the same bad
+outcome: the system looks healthy without proving the operation that matters.
+The fix moves those assumptions into explicit, regression-tested boundaries.
+The forensic also found that a lexical SELECT check plus a read-only
+transaction still admitted `pg_advisory_lock`, `set_config`, `pg_notify`, and
+`pg_sleep`. SQLGlot now parses exactly one PostgreSQL query, permits only an
+exact reviewed AST/function set and two resolved views, and rejects unreviewed
+operators, functions, relations, table sampling, and recursive CTEs before
+execution. Approved views are qualified as `public.*`; execution uses
+`search_path=pg_catalog`, read-only mode, and a 20-second timeout.
+
+**Gotchas.** `GET /api/cron/runs` defaults to `isd-intelligence`; every monitor
+must send `job=` or a second cron disappears from view. `outreach-drain` uses
+`skipped/empty` for a legitimate idle day and `skipped/unarmed` for missing
+Vercel readiness, so treating every zero-send run alike creates false alarms.
+Workflow diagnostics may name missing variables but must never print their
+values or execute mailbox/provider/database calls while unconfigured. Locking
+the Vercel CLI did not make its graph acceptable: `npm audit` still disclosed
+high/critical transitive advisories, so the unused duplicate deploy path was
+removed instead of carrying vulnerable code beside the active Git integration.
+Truncating an exception is not redaction: an address, credential, or database
+URI can fit in a short message. Sanitizing only new writes is also incomplete
+when old rows remain publicly selectable, and verifying only a Git SHA is
+incomplete when the security repair is a database migration.
+The migration's lost-race recovery also used `all(await ... for ...)`, which
+creates an async generator that builtin `all()` cannot consume; an explicit
+awaited loop and a peer-race test now keep a successful concurrent migration
+from being misreported as unavailable.
+
+**Verification.** `uv lock --check` and Ruff passed; the full offline suite
+passed **1,098 tests** with 24 environment-dependent skips and three upstream
+deprecation warnings. All 13 static pages passed the explicit Node syntax
+gate. Focused SQL probes accepted normal finance CTE/predicate/window queries
+and rejected all tested session functions, catalog/base-table reads, table
+functions, qualified calls, table sampling, custom operators, and multiple
+statements. Workflow YAML and shell syntax, strict-network gates, immutable
+Action/Docker references, readiness branches, and `git diff --check` also
+passed. Adversarial privacy sentinels containing a recipient address, database
+URI, and key were absent from stored cron/chat values, SQL-tool and API
+responses, runtime warnings, health output, and custom-endpoint descriptions.
+Merge and production checks remain separate evidence.
+
+**Open items.** At the 2026-08-22 live check, `outreach-drain` was firing but
+reported `unarmed`. Code cannot resolve that external blocker: rotate and
+configure the required outreach values in the TAG-ai Vercel project without
+putting values in chat or Git, then prove the live cron changes to `empty` or
+`ok`. After any deployment, verify both cron histories explicitly and confirm
+the reply/KPI workflow summaries show their real readiness state.
+
+**Notes:** No outreach was enqueued or sent by this hardening work.
+
 ## 2026-08-22 — Complete stack forensic and official Agent Skills map
 
 **What changed.** Audited `master` at

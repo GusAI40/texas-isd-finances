@@ -30,16 +30,16 @@ not the same as "configured to survive a bad afternoon".
     python scripts/check_llm_balance.py
     python scripts/check_llm_balance.py --min 2.00   # fail below $2
 
-Exit 0: balance healthy, or no key configured (nothing to check — this must
-never fail a monitor for a credential the runner was not given).
-Exit 1: balance below the floor.
-Network failures are reported, never fatal: an unreachable provider is not an
-empty account, and a watchdog that cries wolf gets ignored.
+Exit 0: balance healthy, no key configured, or a transient network failure.
+Exit 1: balance below the floor, rejected credentials, or an invalid provider
+response. A provider rejection is an actionable outage; a network failure is
+reported but not confused with an empty account.
 """
 from __future__ import annotations
 
 import argparse
 import json
+import math
 import os
 import sys
 import urllib.error
@@ -50,29 +50,46 @@ UA = "txisd-balance-check/1.0 (+https://txisd.dev)"
 TIMEOUT = 30
 
 
-def fetch_balance(key: str) -> tuple[float | None, str]:
-    """(usd_balance, detail). None means 'could not tell', never 'zero'."""
+def fetch_balance(key: str) -> tuple[float | None, str, bool]:
+    """Return ``(usd_balance, detail, fatal)``.
+
+    ``None`` never means zero. Provider rejections and malformed successful
+    responses are fatal because the monitor cannot perform its sole job;
+    transient transport failures are not.
+    """
     req = urllib.request.Request(BALANCE_URL, headers={
         "Authorization": f"Bearer {key}", "Accept": "application/json",
         "User-Agent": UA})
     try:
         with urllib.request.urlopen(req, timeout=TIMEOUT) as r:
-            body = json.loads(r.read())
+            raw = r.read()
     except urllib.error.HTTPError as e:
         # 401 is a real finding — the key the site runs on stopped working.
-        return None, f"provider returned HTTP {e.code}"
+        return None, f"provider returned HTTP {e.code}", True
     except Exception as e:  # noqa: BLE001 — DNS/TLS/timeout are not an outage here
-        return None, f"could not reach the provider ({type(e).__name__})"
+        return None, f"could not reach the provider ({type(e).__name__})", False
+
+    try:
+        body = json.loads(raw)
+    except (json.JSONDecodeError, UnicodeDecodeError):
+        return None, "provider returned invalid JSON", True
+    if not isinstance(body, dict):
+        return None, "provider returned an invalid response shape", True
+    if not body.get("is_available", True):
+        return None, "provider reports the account is not available", True
 
     for info in body.get("balance_infos", []):
+        if not isinstance(info, dict):
+            continue
         if (info.get("currency") or "").upper() == "USD":
             try:
-                return float(info.get("total_balance")), "ok"
+                balance = float(info.get("total_balance"))
             except (TypeError, ValueError):
                 break
-    if not body.get("is_available", True):
-        return 0.0, "provider reports the account is not available"
-    return None, "no USD balance in the response"
+            if not math.isfinite(balance) or balance < 0:
+                return None, "provider returned an invalid USD balance", True
+            return balance, "ok", False
+    return None, "no USD balance in the response", True
 
 
 def main() -> int:
@@ -90,11 +107,15 @@ def main() -> int:
         print("DEEPSEEK_API_KEY not set — nothing to check, not a failure.")
         return 0
 
-    balance, detail = fetch_balance(key)
+    balance, detail, fatal = fetch_balance(key)
     if balance is None:
         print(f"UNVERIFIABLE  {detail}")
-        print("  Reported, not failed: an unreachable provider is not an empty "
-              "account.")
+        if fatal:
+            print("  FAILED: the configured monitor cannot obtain a valid "
+                  "provider balance.")
+            return 1
+        print("  Reported, not failed: a transient network problem is not an "
+              "empty account.")
         return 0
 
     print(f"question-box balance: ${balance:,.2f}")

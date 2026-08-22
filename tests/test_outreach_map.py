@@ -130,6 +130,19 @@ def test_no_email_address_is_ever_in_the_payload():
     assert "@" not in blob, "an email address leaked into the map payload"
 
 
+def test_failed_ops_query_log_redacts_driver_text(capsys):
+    sentinel = "recipient@example.org postgres://owner:pw@db sk-secret"
+
+    class BrokenConn:
+        async def fetch(self, _sql):
+            raise RuntimeError(sentinel)
+
+    assert asyncio.run(outreach_map._rows(BrokenConn(), "SELECT 1")) == []
+    output = capsys.readouterr().out
+    assert "RuntimeError" in output
+    assert sentinel not in output
+
+
 def test_ops_token_is_not_the_site_password():
     """Reusing SITE_PASSWORD would couple taking this private to taking the
     whole public portal private."""

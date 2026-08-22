@@ -298,9 +298,70 @@ def test_an_unreachable_provider_is_never_reported_as_empty():
     def boom(url, **kw):
         raise OSError("network down")
     m.urllib.request.urlopen = boom
-    balance, detail = m.fetch_balance("sk-whatever")
+    balance, detail, fatal = m.fetch_balance("sk-whatever")
     assert balance is None, "an outage must not read as an empty account"
     assert "reach" in detail
+    assert fatal is False
+
+
+def test_provider_rejection_and_invalid_response_are_failures(monkeypatch):
+    import importlib.util
+    import io
+    import urllib.error
+    from pathlib import Path as _P
+
+    sp = _P(__file__).resolve().parents[1] / "scripts" / "check_llm_balance.py"
+    spec = importlib.util.spec_from_file_location("_bal3", sp)
+    m = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(m)
+
+    def rejected(*args, **kwargs):
+        raise urllib.error.HTTPError(m.BALANCE_URL, 401, "no", {}, None)
+
+    monkeypatch.setattr(m.urllib.request, "urlopen", rejected)
+    assert m.fetch_balance("bad-key") == (None, "provider returned HTTP 401", True)
+
+    class Response(io.BytesIO):
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return False
+
+    monkeypatch.setattr(
+        m.urllib.request,
+        "urlopen",
+        lambda *args, **kwargs: Response(b"not-json"),
+    )
+    assert m.fetch_balance("key") == (None, "provider returned invalid JSON", True)
+
+    for body, detail in (
+        (b'{"is_available":false}', "account is not available"),
+        (
+            b'{"is_available":true,"balance_infos":['
+            b'{"currency":"USD","total_balance":"NaN"}]}',
+            "invalid USD balance",
+        ),
+        (
+            b'{"is_available":true,"balance_infos":['
+            b'{"currency":"USD","total_balance":"Infinity"}]}',
+            "invalid USD balance",
+        ),
+    ):
+        monkeypatch.setattr(
+            m.urllib.request,
+            "urlopen",
+            lambda *args, body=body, **kwargs: Response(body),
+        )
+        balance, got_detail, fatal = m.fetch_balance("key")
+        assert balance is None
+        assert detail in got_detail
+        assert fatal is True
+
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "configured-but-invalid")
+    monkeypatch.setattr(m, "fetch_balance", lambda key: (None, "rejected", True))
+    monkeypatch.setattr("sys.argv", ["check_llm_balance.py"])
+    assert m.main() == 1
 
 
 def test_the_balance_check_has_its_own_workflow():
@@ -314,7 +375,9 @@ def test_the_balance_check_has_its_own_workflow():
     own = (wf_dir / "llm-balance.yml").read_text()
     assert "check_llm_balance.py" in own
     assert "DEEPSEEK_API_KEY" in own
-    assert "INERT until the secret exists" in own, \
-        "a workflow that no-ops without a secret must say so where it is read"
+    assert "NOT CONFIGURED" in own
+    assert "github.event_name == 'schedule'" in own
+    assert "exit 1" in own, \
+        "an unconfigured scheduled monitor must notify instead of going green"
     assert "check_llm_balance" not in (wf_dir / "monitor.yml").read_text(), \
         "monitor.yml must stay secret-free"

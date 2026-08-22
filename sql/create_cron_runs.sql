@@ -35,9 +35,12 @@ CREATE TABLE IF NOT EXISTS public.cron_runs (
     -- What the run actually produced. Zero rows with status 'ok' is the exact
     -- shape of the original silent failure, so it must be recordable.
     rows_written INTEGER    NOT NULL DEFAULT 0,
-    -- Truncated at the application. Never a full traceback: these can contain
-    -- connection strings.
-    detail      TEXT
+    -- Controlled operational code only. Truncating exception text is not
+    -- redaction: provider errors can echo recipient addresses and database
+    -- drivers can echo connection URIs.
+    detail      TEXT CONSTRAINT cron_runs_public_detail_code
+        CHECK (detail IS NULL OR detail IN
+            ('already_ran_today', 'empty', 'failed', 'not_persisted', 'unarmed'))
 );
 
 -- The only query anyone runs against this: the last N firings of one job,
@@ -52,10 +55,21 @@ CREATE INDEX IF NOT EXISTS idx_cron_runs_job_time
 
 ALTER TABLE public.cron_runs ENABLE ROW LEVEL SECURITY;
 
--- Readable by anyone, like everything else here: whether a public
--- transparency site's pipeline is running is itself public information, and
--- there is nothing in these rows that is not.
+-- Pipeline health remains public through /api/cron/runs, whose response is
+-- allowlisted and redacts rows created by older deployments. Direct PostgREST
+-- access is intentionally disabled so a legacy free-text detail can never
+-- bypass that boundary.
 DROP POLICY IF EXISTS cron_runs_read ON public.cron_runs;
 CREATE POLICY cron_runs_read ON public.cron_runs FOR SELECT USING (true);
 
-GRANT SELECT ON public.cron_runs TO anon, authenticated;
+REVOKE ALL ON public.cron_runs FROM PUBLIC;
+DO $$
+DECLARE
+    r text;
+BEGIN
+    FOREACH r IN ARRAY ARRAY['anon', 'authenticated', 'nlp_reader'] LOOP
+        IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = r) THEN
+            EXECUTE format('REVOKE ALL ON public.cron_runs FROM %I', r);
+        END IF;
+    END LOOP;
+END $$;

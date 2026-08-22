@@ -1,9 +1,10 @@
 # Texas ISD Finance Portal — Quick Start Guide
 
 ## Prerequisites
-- Python 3.10+
+- Python 3.10–3.12
 - Supabase account
-- OpenAI API key (only needed for natural-language queries)
+- DeepSeek or OpenAI API key plus least-privilege `NLP_DB_URL` (only needed
+  for natural-language queries)
 - TEA Excel file: the "Summarized PEIMS Actual Financial Data" release
   (currently fiscal 2009–2025), from
   https://tea.texas.gov/finance-and-grants/state-funding/state-funding-reports-and-data/peims-financial-data-downloads
@@ -15,12 +16,13 @@ and takeover analysis are served from committed JSON. None of them touch a
 database. So this works on a fresh clone with no credentials of any kind:
 
 ```bash
-pip install -r requirements.txt
-uvicorn src.api:app --reload --port 8000
+python -m pip install "uv==0.11.33"
+uv sync --locked --no-dev --extra server
+uv run --locked --no-sync uvicorn src.api:app --reload --port 8000
 # open http://localhost:8000/
 ```
 
-You get the whole report. What needs credentials is the live *finance* data
+You get the core public report. What needs credentials is the live *finance* data
 (per-year budgets, peers, anomalies, the spending trend) and the
 natural-language question box. Everything below is for those.
 
@@ -36,8 +38,9 @@ source .venv/bin/activate
 # Activate — Windows:
 #   .venv\Scripts\activate
 
-# Install dependencies
-pip install -r requirements.txt
+# Install the exact locked dependencies
+python -m pip install "uv==0.11.33"
+uv sync --locked --all-extras --group dev
 ```
 
 ### 2. Configure Environment
@@ -46,7 +49,7 @@ pip install -r requirements.txt
 cp env_template.txt .env
 # Windows: copy env_template.txt .env
 
-# Edit .env with your Supabase and OpenAI credentials
+# Edit .env with Supabase plus your selected DeepSeek or OpenAI credentials
 ```
 
 ### 3. Prepare Data
@@ -72,12 +75,12 @@ it. Run the SQL first and it fails with
 
 ### 5. Test the NLP Engine (optional)
 ```bash
-python -m src.nlp_engine
+uv run --locked --no-sync python -m src.nlp_engine
 ```
 
 ### 6. Start the API + Portal
 ```bash
-uvicorn src.api:app --reload --port 8000
+uv run --locked --no-sync uvicorn src.api:app --reload --port 8000
 ```
 
 ### 7. Try It

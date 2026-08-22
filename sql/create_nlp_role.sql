@@ -3,11 +3,12 @@
 -- Why this exists
 -- ---------------
 -- `/query` hands a user's plain-English question to an LLM, which writes the
--- SQL itself. Telling the agent about only two views (the `include_tables`
--- argument in src/nlp_engine.py) controls what it *knows about*; it does not
+-- SQL itself. Telling the agent about only two views during schema discovery
+-- controls what it *knows about*; it does not by itself
 -- control what it is *allowed to run*. A prompt-injected or simply confused
 -- agent can emit any statement, and it executes with whatever privileges the
--- connection holds. Until this role exists, that is the owner connection.
+-- connection holds. The application therefore refuses `/query` entirely
+-- unless this dedicated role's `NLP_DB_URL` is configured.
 --
 -- This role closes that gap in the database, where it cannot be talked out of:
 -- SELECT on the two public views and nothing else, no schema creation, and
@@ -20,9 +21,8 @@
 --      (Supabase SQL editor, or the Management API query endpoint).
 --   3. Set the Vercel env var NLP_DB_URL to the pooler URL for this role:
 --        postgresql://nlp_reader.<PROJECT_REF>:<PASSWORD>@aws-<REGION>.pooler.supabase.com:6543/postgres
---      src/nlp_engine.py prefers NLP_DB_URL and falls back to SUPABASE_DB_URL,
---      so nothing breaks before the variable is set — but the fallback is the
---      privileged connection, so set it.
+--      src/nlp_engine.py requires NLP_DB_URL and never falls back to
+--      SUPABASE_DB_URL; without it, `/query` remains unavailable.
 --   4. Redeploy and confirm /query still answers a sample question.
 --
 -- Never commit the password. It belongs only in the host's env vars.
@@ -75,7 +75,11 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA public REVOKE ALL ON TABLES FROM nlp_reader;
 ALTER ROLE nlp_reader SET default_transaction_read_only = on;
 ALTER ROLE nlp_reader SET statement_timeout = '20s';
 ALTER ROLE nlp_reader SET idle_in_transaction_session_timeout = '30s';
-ALTER ROLE nlp_reader SET search_path = public;
+-- Runtime queries are AST-validated and the two allowed views are explicitly
+-- qualified as public.*. Keeping only pg_catalog on the function search path
+-- prevents an unqualified approved function name from resolving to an
+-- application helper in public. The application reasserts this per transaction.
+ALTER ROLE nlp_reader SET search_path = pg_catalog;
 
 -- Verify (run as the owner):
 --   SELECT rolname, rolcanlogin, rolsuper, rolcreatedb, rolcreaterole

@@ -5,19 +5,24 @@ services:
     name: texas-isd-finances
     runtime: python
     plan: free
-    buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn src.api:app --host 0.0.0.0 --port $PORT
+    buildCommand: pip install "uv==0.11.33" && uv sync --locked --no-dev --extra server
+    startCommand: ./.venv/bin/uvicorn src.api:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /health
     envVars:
       - key: SUPABASE_DB_URL
         sync: false # set in the Render dashboard
       # Least-privilege connection for /query, which lets a language model
       # write its own SQL. Create the role with sql/create_nlp_role.sql. If
-      # this is unset the NLP path falls back to SUPABASE_DB_URL and runs
-      # model-authored SQL as the table owner — see DEPLOYMENT.md step 1.3.
+      # this is unset /query stays unavailable; the application never falls
+      # back to the database-owner connection.
       - key: NLP_DB_URL
         sync: false # set in the Render dashboard
-      - key: OPENAI_API_KEY
+      # DeepSeek is the active provider. OpenAI is a configuration-selected
+      # alternate, not automatic failover: to use it, change NLP_PROVIDER to
+      # openai and configure OPENAI_API_KEY in the Render dashboard instead.
+      - key: NLP_PROVIDER
+        value: deepseek
+      - key: DEEPSEEK_API_KEY
         sync: false # set in the Render dashboard
       - key: PYTHON_VERSION
-        value: 3.12.3
+        value: 3.12.14

@@ -218,6 +218,19 @@ def test_llm_invalid_output_returns_none():
     assert extract_with_llm(item, _fake_client_garbage, b) is None
 
 
+def test_llm_provider_failure_log_redacts_exception_text(capsys):
+    sentinel = "recipient@example.org postgres://owner:pw@db sk-secret"
+
+    def failing_client(_messages, _schema):
+        raise RuntimeError(sentinel)
+
+    item = _NI("Fort Worth ISD bond", "x", "http://x", "N", "2026-01-10")
+    assert extract_with_llm(item, failing_client, LlmBudget(1)) is None
+    output = capsys.readouterr().out
+    assert "RuntimeError" in output
+    assert sentinel not in output
+
+
 def test_enrichment_only_runs_on_resolved_findings():
     calls = {"n": 0}
 

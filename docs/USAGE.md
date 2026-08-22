@@ -11,15 +11,16 @@ one adds credentials, and you can stop at any of them.
 |---|---|---|
 | **1 — Read it** | nothing | The core report: portal, both maps, and district outcomes, economics, bonds, equity and the Houston takeover analysis |
 | **2 — Live finance data** | a Supabase database | Per-year budgets, peers, anomalies, spending trend, statewide medians |
-| **3 — Ask questions** | a DeepSeek or OpenAI key | The plain-English question box at `/query` |
+| **3 — Ask questions** | a DeepSeek or OpenAI key plus least-privilege `NLP_DB_URL` | The plain-English question box at `/query` |
 
 ---
 
 ## Tier 1 — run it with no credentials at all
 
 ```bash
-pip install -r requirements.txt
-uvicorn src.api:app --reload --port 8000
+python -m pip install "uv==0.11.33"
+uv sync --locked --no-dev --extra server
+uv run --locked --no-sync uvicorn src.api:app --reload --port 8000
 ```
 
 Open <http://localhost:8000/>. That is not a demo mode: the core report is
@@ -84,8 +85,9 @@ language model that writes its own SQL. Limiting the tables the agent is
 live, an instruction override made it run `SELECT current_user` (it answered
 `postgres`) and read Supabase's `auth` schema. `nlp_reader` can read the two
 public views and nothing else, so the injection still works and returns
-nothing that isn't already on the page. Without `NLP_DB_URL` the engine falls
-back to the owner connection. See `docs/AUDIT_2026-07-31.md` C-1.
+nothing that isn't already on the page. Without `NLP_DB_URL` the engine stays
+unavailable; it never falls back to the owner connection. See
+`docs/AUDIT_2026-07-31.md` C-1.
 
 ---
 
@@ -99,7 +101,7 @@ works at Tier 1.
 | `GET /` | static | The portal page |
 | `GET /api` | static | Endpoint directory |
 | `POST /query` | *Tier 3* | Plain-English question → answer |
-| `GET /health` | static | `healthy` / `degraded` + database state |
+| `GET /health` | static | Runtime status, database state, sanitized LLM provider/model endpoint, `tracking_schema`, and deployed `revision` |
 | `GET /district/{n}/outcomes` | static | What the money buys: workforce, STAAR, attendance, graduation |
 | `GET /district/{n}/economics` | static | What you pay, where it goes, what it bought, who does better |
 | `GET /economics/texas` | static | The statewide series behind every district page |
@@ -158,8 +160,9 @@ exclude `static/`.
 ## Verifying a change
 
 ```bash
-ruff check . && python -m pytest -q
-python scripts/check_static_js.py
+uv run --locked --no-sync ruff check .
+uv run --locked --no-sync python -m pytest -q
+uv run --locked --no-sync python scripts/check_static_js.py
 ```
 
 That third command is not optional garnish. A `const` redeclaration once

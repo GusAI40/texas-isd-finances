@@ -26,7 +26,7 @@ always win.
 |---|---|---|
 | API, models, middleware | `src/api.py`, `api/index.py`, API tests | version-matched FastAPI; optional Pydantic |
 | Database, RLS, migrations | `sql/`, `src/migrations.py`, pool setup | Supabase + Postgres best practices |
-| SQL agent and providers | `src/nlp_engine.py`, `src/llm_config.py` | pinned LangChain; OpenAI only for fallback-specific work |
+| SQL agent and providers | `src/nlp_engine.py`, `src/llm_config.py` | pinned LangChain; OpenAI only for alternate-provider work |
 | Email and outreach | `src/outreach_*`, outreach scripts/workflows | Resend + email best practices; local outreach skill |
 | Hosting, cron, caching | `vercel.json`, `.vercelignore`, `api/` | Vercel optimization; deployment skills only with authority |
 | CI and repository safety | `.github/workflows/` | reviewed GitHub Actions hardening/efficiency |
@@ -36,13 +36,21 @@ always win.
 
 ## Non-negotiable boundaries
 
-- Never commit or publicly expose credentials, real addresses,
-  correspondence, or recipient-level telemetry. Public reply logs contain
-  aggregate counts only.
+- Never commit or publicly expose credentials, recipient email/contact
+  details, private operational addresses, correspondence, or recipient-level
+  telemetry. Public reply logs contain aggregate counts only. The configured
+  business postal address is intentionally included in outbound mail for
+  compliance; keep it out of logs and public telemetry.
 - District numbers are six-character strings; preserve leading zeros.
 - Vercel uses the Supabase transaction pooler on port 6543 with asyncpg
-  statement caching disabled. Model-authored SQL stays least-privilege and
-  SELECT-only.
+  statement caching disabled. `NLP_DB_URL` is mandatory for `/query`;
+  model-authored SQL never falls back to the owner. Preserve the exact SQLGlot
+  AST/function allowlist, two-view resolution, non-recursive CTE rule,
+  `public.*` qualification, `pg_catalog` search path, and read-only DB role;
+  “SELECT-only” by itself does not block session-affecting functions.
+- `pyproject.toml` and `uv.lock` are the reproducible dependency authority.
+  CI, Docker, and Render must use `uv sync --locked`; Vercel installs the
+  base project only, so offline/server extras must not leak into its bundle.
 - Durable opt-outs and send-time suppression fail closed. Public reply logs
   expose aggregates only. An uncertain send must not become a duplicate.
 - `static/*.json` files are committed runtime artifacts, not disposable build
@@ -62,7 +70,8 @@ python scripts/check_static_js.py
 
 Add focused tests for the changed surface. A 200 response does not prove the
 browser JavaScript works, and a green secret-dependent workflow may have
-skipped. For runtime/deployment changes and after a deployment, also run
-`python scripts/verify_live.py`; a network-error skip is not verification, so
-inspect its output as well as its exit code. Record durable decisions and new
-gotchas in the engineering log.
+skipped. For runtime/deployment changes and after a deployment, run
+`python scripts/verify_live.py --require-network --expect-revision <40-char-git-sha>`;
+add `--with-query` when the NLP path changed. A network-error skip is not
+verification, so inspect output as well as the exit code. Record durable
+decisions and new gotchas in the engineering log.

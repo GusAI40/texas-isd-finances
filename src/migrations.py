@@ -1,4 +1,4 @@
-"""Schema the application creates for itself, once, if it is missing.
+"""Application-owned schema and privacy controls refreshed at startup.
 
 Why this exists
 ---------------
@@ -15,14 +15,20 @@ applies this itself on startup and the manual step disappears.
 
 Scope, deliberately narrow
 --------------------------
-This is NOT a migration framework and must not become one. It creates additive,
-self-contained objects that nothing else depends on. It never drops, never
-alters an existing column, and never touches the PEIMS finance tables — losing
-a click is a nuisance, losing the district data is not recoverable from here.
-Anything destructive stays a human decision with a backup taken first.
+This is NOT a general migration framework and must not become one. It manages
+self-contained tracking, intelligence, outreach, and cron-privacy objects. The
+unattended path never drops tables, views, or columns and never mutates the
+PEIMS finance data. It can replace application-owned views and constraints and
+reapply access controls when a security definition changes. The bounded
+data-changing exception is ``CRON_LOG_PRIVACY_DDL``: it clears legacy free-text
+operational details that may contain credentials or recipient addresses, adds
+a controlled-code constraint, and revokes anonymous access. Anything broader
+or destructive stays a human decision with a backup taken first.
 
-Cost on a cold start is one `to_regclass` lookup, which returns immediately
-once the tables exist. The DDL runs at most once per database.
+Every startup checks three table sentinels plus the journey-view and cron-log
+privacy markers. Current databases take the fast path; missing or stale state
+is repaired under a transaction-scoped advisory lock. The DDL/security refresh
+is idempotent and may run again when definitions change or cold starts race.
 
 `sql/` is excluded from the Vercel bundle (see .vercelignore), so the statements
 have to live here in deployed code rather than being read from the .sql file.
@@ -418,6 +424,65 @@ END $$;
 OUTREACH_SENTINEL = "public.outreach_queue"
 
 
+# ``cron_runs`` predates the self-applying schema. It was deliberately public,
+# but its free-text ``detail`` column was fed truncated exception strings.
+# Truncation is not redaction: provider errors can echo recipient addresses and
+# driver errors can echo connection URIs. This one-time, idempotent hardening
+# clears legacy free text, constrains future values to controlled codes, and
+# makes the application endpoint the only anonymous read path (where legacy
+# rows are independently redacted). The named constraint is the migration
+# marker checked on each cold start.
+CRON_LOG_PRIVACY_CONSTRAINT = "cron_runs_public_detail_code"
+CRON_LOG_PRIVACY_DDL = f"""
+DO $cron_privacy$
+DECLARE
+    r text;
+BEGIN
+    IF to_regclass('public.cron_runs') IS NOT NULL THEN
+        UPDATE public.cron_runs
+           SET detail = NULL
+         WHERE detail IS NOT NULL
+           AND detail NOT IN
+               ('already_ran_today', 'empty', 'failed',
+                'not_persisted', 'unarmed');
+
+        IF NOT EXISTS (
+            SELECT 1
+              FROM pg_constraint
+             WHERE conrelid = 'public.cron_runs'::regclass
+               AND conname = '{CRON_LOG_PRIVACY_CONSTRAINT}'
+        ) THEN
+            ALTER TABLE public.cron_runs
+                ADD CONSTRAINT {CRON_LOG_PRIVACY_CONSTRAINT}
+                CHECK (detail IS NULL OR detail IN
+                    ('already_ran_today', 'empty', 'failed',
+                     'not_persisted', 'unarmed'));
+        END IF;
+
+        EXECUTE 'REVOKE ALL ON public.cron_runs FROM PUBLIC';
+        FOREACH r IN ARRAY ARRAY['anon', 'authenticated', 'nlp_reader'] LOOP
+            IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = r) THEN
+                EXECUTE format('REVOKE ALL ON public.cron_runs FROM %I', r);
+            END IF;
+        END LOOP;
+    END IF;
+END
+$cron_privacy$;
+"""
+
+
+async def _cron_log_privacy_current(conn) -> bool:
+    """Whether an existing cron log has the privacy migration marker."""
+    if await conn.fetchval(
+            "SELECT to_regclass('public.cron_runs')") is None:
+        return True
+    return bool(await conn.fetchval(
+        "SELECT EXISTS ("
+        "SELECT 1 FROM pg_constraint "
+        "WHERE conrelid = 'public.cron_runs'::regclass AND conname = $1)",
+        CRON_LOG_PRIVACY_CONSTRAINT))
+
+
 # `CREATE TABLE IF NOT EXISTS` is NOT race-safe: concurrent creators fail with a
 # duplicate key on pg_type rather than one of them yielding. On a serverless
 # deploy every cold start races every other, so six workers hitting an empty
@@ -453,17 +518,20 @@ async def ensure_schema(pool) -> str:
             have_outreach = await conn.fetchval(
                 "SELECT to_regclass($1)", OUTREACH_SENTINEL) is not None
             if have_tracking and have_intel and have_outreach:
-                if await _journey_view_current(conn):
+                journey_current = await _journey_view_current(conn)
+                cron_privacy_current = await _cron_log_privacy_current(conn)
+                if journey_current and cron_privacy_current:
                     return "ok: tracking schema already present"
-                # The tables exist but the view body predates the session
-                # fix. CREATE OR REPLACE VIEW is idempotent; the lock stops
-                # two cold-starting workers replacing it concurrently
-                # (which raises "tuple concurrently updated").
+                # A durable object exists but predates one of the security
+                # migrations. The lock stops cold-starting workers racing.
                 async with conn.transaction():
                     await conn.execute(
                         "SELECT pg_advisory_xact_lock($1)", _LOCK_KEY)
-                    await conn.execute(JOURNEY_VIEW_DDL)
-                return "ok: refreshed v_recipient_journey to current definition"
+                    if not journey_current:
+                        await conn.execute(JOURNEY_VIEW_DDL)
+                    if not cron_privacy_current:
+                        await conn.execute(CRON_LOG_PRIVACY_DDL)
+                return "ok: refreshed durable schema security"
 
             async with conn.transaction():
                 await conn.execute("SELECT pg_advisory_xact_lock($1)", _LOCK_KEY)
@@ -492,6 +560,8 @@ async def ensure_schema(pool) -> str:
                 # stale view until some later cold start.
                 if not await _journey_view_current(conn):
                     await conn.execute(JOURNEY_VIEW_DDL)
+                if not await _cron_log_privacy_current(conn):
+                    await conn.execute(CRON_LOG_PRIVACY_DDL)
 
             for name in (SENTINEL, INTEL_SENTINEL, OUTREACH_SENTINEL):
                 if await conn.fetchval("SELECT to_regclass($1)", name) is None:
@@ -512,12 +582,19 @@ async def ensure_schema(pool) -> str:
         # module built to prevent exactly that.
         try:
             async with pool.acquire() as conn:
-                if (all(await conn.fetchval(
-                            "SELECT to_regclass($1)", n) is not None
-                        for n in (SENTINEL, INTEL_SENTINEL,
-                                  OUTREACH_SENTINEL))
-                        and await _journey_view_current(conn)):
+                sentinels_present = True
+                for name in (SENTINEL, INTEL_SENTINEL, OUTREACH_SENTINEL):
+                    if await conn.fetchval(
+                            "SELECT to_regclass($1)", name) is None:
+                        sentinels_present = False
+                        break
+                if (sentinels_present
+                        and await _journey_view_current(conn)
+                        and await _cron_log_privacy_current(conn)):
                     return "ok: tracking schema present (raced another worker)"
         except Exception:                                 # noqa: BLE001
             pass
-        return f"ERROR: could not apply tracking schema ({exc})"
+        # This string is exposed by /health. Driver error text can contain a
+        # connection URI, so retain only the exception class.
+        return ("ERROR: could not apply tracking schema "
+                f"({type(exc).__name__}); detail redacted")

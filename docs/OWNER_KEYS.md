@@ -16,7 +16,7 @@ Rotating means: **generate a new value → update where it's used → revoke the
 
 | # | Credential | Rotate here | Then update |
 |---|---|---|---|
-| 1 | Vercel personal access token (`vcp_…`) | https://vercel.com/account/tokens → delete the old, create new | Anywhere you deploy from (`VERCEL_TOKEN=…`), and the `VERCEL_TOKEN` GitHub Actions secret if you set it up (§7) |
+| 1 | Vercel personal access token (`vcp_…`) | https://vercel.com/account/tokens → delete the old, create new | Manual operator tools that use `VERCEL_TOKEN`; the GitHub Actions verifier deliberately does not hold it (§7) |
 | 2 | Supabase personal access token (`sbp_…`) | https://supabase.com/dashboard/account/tokens | `SUPABASE_PAT` wherever you run `sync_outreach_state.py` / `apply` scripts |
 | 3 | GitHub personal access token (`ghp_…`) | https://github.com/settings/tokens → revoke, regenerate | Wherever you run `archive_raw_data.py` (§4) |
 | 4 | DeepSeek API key (`sk-…`) | https://platform.deepseek.com/api_keys | Vercel env var `DEEPSEEK_API_KEY` (see below), then redeploy |
@@ -28,11 +28,14 @@ Rotating means: **generate a new value → update where it's used → revoke the
 
 1. https://vercel.com/tag-ai-projects/texas-isd-finances/settings/environment-variables
 2. Edit the variable → paste the new value → Save (keep "Sensitive" checked).
-3. Redeploy so running functions pick it up: from the repo,
-   `VERCEL_TOKEN=<new token> vercel --prod --yes --scope tag-ai-projects`
-   (or press "Redeploy" on the latest Production deployment in the dashboard).
-4. Verify: `curl -s https://txisd.dev/health` → `"status":"healthy"`, and the
-   `llm` field still names the provider you expect.
+3. In the Vercel dashboard, redeploy the latest Production deployment whose
+   source is the verified current `master` commit. Git integration remains the
+   authoritative deploy path; do not create a parallel CLI deployment.
+4. Verify `/health` reports `status=healthy`, `database=connected`,
+   `tracking_schema=ready`, the expected 40-character `revision`, and the
+   intended sanitized `llm` provider/model endpoint. Then run
+   `python scripts/verify_live.py --require-network --expect-revision <sha>`;
+   add `--with-query` when rotating or changing the model provider.
 
 ---
 
@@ -128,24 +131,19 @@ prompted; a first manual "Run workflow" also arms the schedule).
 
 ---
 
-## 7. 🚀 GITHUB-ACTIONS DEPLOYS (optional — only after master is current)
+## 7. 🚀 GITHUB-ACTIONS DEPLOY VERIFICATION
 
-`.github/workflows/deploy.yml` deploys master on push **if** the secrets
-exist. Master now matches production (merged 2026-08-12) and the workflow's
-post-deploy step runs `scripts/verify_live.py` — so a bad deploy fails loudly
-instead of silently rolling back. To arm it:
+Vercel's Git integration deploys every merge to `master`.
+`.github/workflows/deploy.yml` then waits for production to serve that exact
+tree and runs `scripts/verify_live.py --require-network --expect-revision
+"$GITHUB_SHA"`, requiring healthy/connected runtime state and
+`tracking_schema=ready`; a missing, stale, unreachable, or schema-unready
+deploy fails loudly. The workflow needs no Vercel secrets and does not install
+a deployment CLI.
 
-1. https://github.com/GusAI40/texas-isd-finances/settings/secrets/actions
-2. Add `VERCEL_TOKEN` (your rotated token), `VERCEL_ORG_ID` and
-   `VERCEL_PROJECT_ID` (both printed by `vercel link --scope tag-ai-projects`
-   into `.vercel/project.json` — run it in a scratch clone; it rewrites
-   `vercel.json`, so `git checkout vercel.json` after).
-
-Until you do this, deploys stay manual:
-`VERCEL_TOKEN=… vercel --prod --yes --scope tag-ai-projects` — and the CLI
-often prints `Error: fetch failed` AFTER creating the deployment; check
-`vercel ls --scope tag-ai-projects` before retrying, and `vercel promote <url>`
-if it landed as Preview.
+Do not add a second Actions-based deploy while Git integration is connected.
+If an emergency forces a manual CLI deploy, first verify the TAG-ai target,
+disconnect or pause the Git path, and independently verify the resulting tree.
 
 ---
 
@@ -161,8 +159,13 @@ again. Username is `txisd`.
 
 ## Daily heartbeat — how you know it's all still true
 
-- **GitHub → Actions → "monitor"** (daily 12:00 UTC): health + database,
-  cron-run gaps, `verify_live.py` (production serves what git says), and
-  upstream freshness. Green = the whole chain holds. Red names the link.
-- `curl -s https://txisd.dev/health` — 5-second manual check.
+- **GitHub → Actions → "Verify Vercel Git deployment"**: after each
+  `master` change, requires the exact revision plus healthy database and ready
+  startup schema state.
+- **GitHub → Actions → "monitor"** (daily 12:00 UTC): strict network
+  health, both cron histories, the NLP query check, and upstream freshness.
+  Green means those checks ran; secret-dependent workflows report their own
+  readiness separately.
+- `curl -s https://txisd.dev/health` — manually confirm `status`, `database`,
+  `tracking_schema`, `revision`, and the intended sanitized `llm` value.
 - `python scripts/usage_report.py` — who's visiting, what they're asking.

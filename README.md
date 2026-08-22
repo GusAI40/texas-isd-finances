@@ -20,8 +20,9 @@ bought — built from the state's own records, fiscal 2009–2025.
 No credentials. No database. Nothing to configure.
 
 ```bash
-pip install -r requirements.txt
-uvicorn src.api:app --reload --port 8000
+python -m pip install "uv==0.11.33"
+uv sync --locked --no-dev --extra server
+uv run --locked --no-sync uvicorn src.api:app --reload --port 8000
 # open http://localhost:8000/
 ```
 
@@ -73,9 +74,10 @@ When `NLP_PROVIDER` is unset, `src/llm_config.py` prefers DeepSeek when both
 provider keys exist. The database URL matters: `/query` hands a visitor's
 question to a language model that writes its own SQL, and
 limiting the tables it is *told about* does not limit what the connection is
-*allowed to run*. Without `NLP_DB_URL` that runs as the database owner. See
-[docs/AUDIT_2026-07-31.md](docs/AUDIT_2026-07-31.md) C-1 for what that looked
-like in practice.
+*allowed to run*. Without `NLP_DB_URL`, `/query` refuses to initialize; it does
+not fall back to the database owner. See
+[docs/AUDIT_2026-07-31.md](docs/AUDIT_2026-07-31.md) C-1 for why that boundary
+must fail closed.
 
 ## Endpoints
 
@@ -102,7 +104,7 @@ texas-isd-finances/
 ├── api/index.py            # Vercel entrypoint (no rewrites in vercel.json — see below)
 ├── src/
 │   ├── api.py              # FastAPI: serves the portal, pages and API endpoints
-│   ├── nlp_engine.py       # Plain English → SQL (LangChain 1.x); prefers NLP_DB_URL
+│   ├── nlp_engine.py       # Plain English → policy-checked SQL; requires NLP_DB_URL
 │   └── visualizations.py   # Offline chart helpers
 ├── static/                 # The site AND its data — committed together on purpose
 │   ├── index.html          # The portal (single file, no build step)
@@ -141,9 +143,11 @@ python scripts/build_fallback_index.py --from-live   # LAST — reads the others
 ## Developing
 
 ```bash
-pip install -r requirements-dev.txt
-ruff check . && pytest
-python scripts/check_static_js.py
+python -m pip install "uv==0.11.33"
+uv sync --locked --all-extras --group dev
+uv run --locked --no-sync ruff check .
+uv run --locked --no-sync pytest
+uv run --locked --no-sync python scripts/check_static_js.py
 ```
 
 That third command is not garnish. A `const` redeclaration once killed
@@ -169,9 +173,11 @@ Read that before citing any of it.
 
 ## Security
 
-- `/query` runs as **`nlp_reader`** — SELECT on two public views, read-only
-  transactions, no schema rights. It is prompt-injectable and that is now
-  harmless: everything it can reach is already on the page.
+- `/query` requires **`nlp_reader`** — `USAGE` on `public` plus SELECT on only
+  two public views, with no CREATE, base-table, or public-function rights. An
+  exact SQLGlot AST/function policy rejects session-affecting SELECTs and
+  unreviewed syntax before a read-only, timeout-bounded transaction executes.
+  Treat prompt injection as residual resource/spend risk, never as harmless.
 - `QUERY_GLOBAL_LIMIT` and `QUERY_DAILY_LIMIT` are counted **in the database**,
   so they hold across every serverless instance rather than per-process. They
   cap calls, not dollars — configure a provider-side spend limit or prepaid
@@ -193,10 +199,11 @@ Two things that have each cost a production outage:
   path to the app — the old rule made FastAPI receive `/api/index` for every
   request and 404 the entire site while the build still reported READY.
 - **Production currently deploys from `master` through Vercel's Git
-  integration.** `.github/workflows/deploy.yml` is an inert replacement path;
-  enable its CLI secrets only after disconnecting Git integration, never in
-  parallel. A Vercel *redeploy* reuses an old deployment's tree and cannot pick
-  up a new commit.
+  integration.** `.github/workflows/deploy.yml` holds no Vercel credentials
+  and does not deploy; it waits until `/health` reports the expected Git SHA,
+  healthy/connected state, and `tracking_schema=ready`, then runs strict live
+  checks. A Vercel *redeploy* reuses an old deployment's
+  tree and cannot pick up a new commit.
 
 ## License
 

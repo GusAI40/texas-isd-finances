@@ -92,12 +92,17 @@ that the standard library is the smaller risk. `src/mcp_protocol.py` is the wire
   `MCP_ALLOWED_ORIGINS`.
 - `ttlMs: 86400000, cacheScope: "public"` on discovery and the tool list. The underlying
   data changes **once a year**, at a TEA release, so this is close to free.
+- `tools/call` **does implement MRTR `InputRequiredResult`** (SEP-2322) for one
+  bounded case: a district name that belongs to multiple real districts. It
+  returns `input_required`, accepts the client's `inputResponses` on a new
+  JSON-RPC call, and keeps no session or `requestState`. The full exchange is
+  documented below.
 
 ## What it deliberately does not implement
 
-- **Sampling and elicitation** — both deprecated in this revision, and every answer here
-  is a lookup; there is nothing to ask a model for.
-- **MRTR / `InputRequiredResult`** — follows from the above.
+- **Sampling or open-ended elicitation** — every answer here is a lookup. The
+  only request for user input is the closed-enum, same-name district choice in
+  the MRTR path above; arbitrary questions and model calls are not exposed.
 - **Resources, prompts, subscriptions, tasks** — no state, nothing long-running.
 - **Authentication** — everything served is already public.
 - **`/query`, the natural-language SQL endpoint.** This is the important one. It is the

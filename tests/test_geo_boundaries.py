@@ -140,3 +140,21 @@ def test_the_source_label_states_its_own_vintage(geo):
     assert "TIGER/Line" in src
     import re
     assert re.search(r"TIGER/Line (20\d{2})", src), src
+
+
+def test_the_public_sources_page_matches_the_boundary_payload(geo):
+    """The page said TIGER2024 after the builder and download moved to 2025.
+
+    Check the artifact actually served rather than hardcoding another year in
+    the test: the next legitimate rebuild should require the public citation
+    to move with it.
+    """
+    import re
+    match = re.search(r"TIGER/Line (20\d{2})", geo["meta"]["source"])
+    assert match, geo["meta"]["source"]
+    vintage = match.group(1)
+    html = (ROOT / "static" / "sources.html").read_text()
+    article = html.split('id="src-census_tiger"', 1)[1].split("</article>", 1)[0]
+    assert f"{vintage} boundaries" in article
+    assert f"TIGER{vintage}" in article
+    assert f"{geo['meta']['districts']:,} districts" in article

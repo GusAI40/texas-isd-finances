@@ -69,6 +69,22 @@ RESEND_TIMEOUT_S = 15
 # than a missing one.
 STALE_SENDING_S = 3600
 
+_SAFE_QUEUE_ERROR_DETAILS = frozenset({
+    "contact address changed since enqueue",
+    "contact row gone",
+    "delivery attempt failed",
+    "identity gate failed",
+    "opted out after enqueue",
+    "suppressed after enqueue",
+})
+
+
+def _safe_queue_error_detail(value: object) -> str | None:
+    """Redact legacy provider/driver text before it reaches an API response."""
+    if not isinstance(value, str) or not value:
+        return None
+    return value if value in _SAFE_QUEUE_ERROR_DETAILS else "failure detail redacted"
+
 
 def _digest(email: str) -> str:
     return hashlib.sha256(email.strip().lower().encode()).hexdigest()
@@ -256,9 +272,9 @@ async def drain(pool) -> tuple[int, dict]:
         refused, nothing was delivered.
       * AFTER Resend accepts — the message is GONE, so no failure past that
         point may ever read as anything but sent: a log-write failure marks
-        the row 'sent' with the failure in detail, never 'error', because an
-        operator who retries an "error" that was actually delivered re-emails
-        a named official.
+        the row 'sent' with a controlled failure code, never 'error', because
+        an operator who retries an "error" that was actually delivered
+        re-emails a named official.
     """
     key = os.environ.get("RESEND_API_KEY", "").strip()
     postal = os.environ.get("TAG_POSTAL_ADDRESS", "").strip()
@@ -302,13 +318,15 @@ async def drain(pool) -> tuple[int, dict]:
                 outreach_email.domain_verified, key, from_addr)
         except Exception as exc:  # noqa: BLE001 — released, not quarantined
             await release(claimed, "released: domain check unavailable")
-            return 503, {"error": f"could not verify the sending domain "
-                                  f"({exc}); batch released to the queue"}
+            return 503, {
+                "error": "could not verify the sending domain; batch "
+                         "released to the queue",
+                "failure_type": type(exc).__name__,
+            }
         if not verified:
             await release(claimed, "released: domain not verified")
-            return 503, {"error": f"sending domain of {from_addr!r} is not "
-                                  f"verified in Resend; batch released back "
-                                  f"to the queue"}
+            return 503, {"error": "sending domain is not verified in Resend; "
+                                  "batch released back to the queue"}
 
         contacts = {r["district_number"]: dict(r) for r in await conn.fetch(
             "SELECT * FROM public.outreach_contact "
@@ -384,8 +402,7 @@ async def drain(pool) -> tuple[int, dict]:
                 if gate:
                     await conn.execute(
                         "UPDATE public.outreach_queue SET status = 'error', "
-                        "detail = $2 WHERE id = $1", q["id"],
-                        ("identity gate: " + gate[0])[:300])
+                        "detail = 'identity gate failed' WHERE id = $1", q["id"])
                     skipped += 1
                     continue
 
@@ -404,13 +421,13 @@ async def drain(pool) -> tuple[int, dict]:
                     got = await run_in_threadpool(
                         outreach_email.resend_request, "/emails", key, payload,
                         RESEND_TIMEOUT_S)
-                except Exception as exc:  # noqa: BLE001 — refused or timed out; NOT retried
+                except Exception:  # noqa: BLE001 — refused or timed out; NOT retried
                     # A timeout is NOT "provably unsent" — Resend may have
                     # accepted before the socket died — so this marks the row
                     # for a human and never releases it for a retry.
                     await conn.execute(
                         "UPDATE public.outreach_queue SET status = 'error', "
-                        "detail = $2 WHERE id = $1", q["id"], str(exc)[:300])
+                        "detail = 'delivery attempt failed' WHERE id = $1", q["id"])
                     failed += 1
                     await asyncio.sleep(THROTTLE_S)
                     continue
@@ -438,20 +455,20 @@ async def drain(pool) -> tuple[int, dict]:
                         "sent_at = now(), detail = $2 WHERE id = $1",
                         q["id"], mid)
                 except Exception as exc:  # noqa: BLE001 — delivered; record that above all
-                    print(f"WARNING: message {mid} to district "
-                          f"{q['district_number']} was DELIVERED but logging "
-                          f"failed ({exc}) — reconcile against Resend before "
-                          f"any retry.")
+                    # Exception text from either provider can echo a recipient
+                    # or connection URI. Keep production logs aggregate-only.
+                    print("WARNING: one message was DELIVERED but logging "
+                          f"failed ({type(exc).__name__}); reconcile against "
+                          "Resend before any retry; no identifiers logged.")
                     try:
                         await conn.execute(
                             "UPDATE public.outreach_queue SET status = 'sent', "
                             "sent_at = now(), detail = $2 WHERE id = $1",
-                            q["id"],
-                            f"sent; log write failed: {exc}"[:300])
+                            q["id"], "sent; log write failed")
                     except Exception:  # noqa: BLE001 — nothing left to try
-                        print(f"WARNING: could not even mark queue row "
-                              f"{q['id']} sent — it will surface as stale "
-                              f"'sending'; message id {mid}.")
+                        print("WARNING: one delivered message could not be "
+                              "marked sent; it will surface as stale "
+                              "'sending'; no identifiers logged.")
                 if i < len(claimed) - 1:      # no pointless sleep after the last
                     await asyncio.sleep(THROTTLE_S)
 
@@ -461,12 +478,12 @@ async def drain(pool) -> tuple[int, dict]:
                 await release(leftover, "released: drain aborted mid-batch")
                 released += len(leftover)
             except Exception:  # noqa: BLE001 — the connection itself is gone
-                print(f"WARNING: drain aborted ({exc}) and "
-                      f"{len(leftover)} unattempted rows could not be "
-                      f"released — ids "
-                      f"{[r['id'] for r in leftover]}; they will surface "
-                      f"as stale 'sending'.")
-            return 500, {"error": f"drain aborted mid-batch ({exc})",
+                print("WARNING: drain aborted "
+                      f"({type(exc).__name__}); {len(leftover)} unattempted "
+                      "rows could not be released and will surface as stale "
+                      "'sending'; no identifiers logged.")
+            return 500, {"error": "drain aborted mid-batch",
+                         "failure_type": type(exc).__name__,
                          "sent": sent, "failed": failed,
                          "skipped": skipped, "released": released}
 
@@ -497,6 +514,10 @@ async def status(pool) -> dict:
         errors = [dict(r) for r in await conn.fetch(
             "SELECT district_number, detail FROM public.outreach_queue "
             "WHERE status = 'error' ORDER BY id DESC LIMIT 10")]
+        for error in errors:
+            # Old rows may predate the controlled detail codes and contain a
+            # provider exception that echoed a recipient address.
+            error["detail"] = _safe_queue_error_detail(error.get("detail"))
     return {
         "queue": counts, "contacts": int(contacts),
         "sent_all_time": int(sent_total),
