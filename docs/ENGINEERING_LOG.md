@@ -17,6 +17,63 @@ Entry template:
 
 ---
 
+## 2026-08-22 — Complete stack forensic and official Agent Skills map
+
+**What changed.** Audited `master` at
+`4ca94370b04f183334c7c946cb66586fad4d0bf5` from executable code,
+dependency manifests, deployment configuration, workflows, data builders,
+and read-only production checks. Added
+`docs/TECH_STACK_AND_AGENT_SKILLS.md`: a status-separated inventory of the
+production, optional, development, and public-data stack; topology and config
+surface; publisher-owned skills matrix; reviewed revisions and license/maturity
+caveats; code-path-specific how/where/why guidance; authority tiers; negative
+findings; and the follow-up queue. Added root `AGENTS.md` as the short routing
+file, linked the forensic from README and this boot file, and excluded
+`AGENTS.md` from the Vercel runtime payload. No external skill was installed or
+vendored. Reconciled active-provider, Git-integration deploy, endpoint-guide
+scope, and 671-recipient durable-floor language across README, `docs/USAGE.md`,
+`DEPLOYMENT.md`, and the current `CLAUDE.md` snapshot.
+
+Read-only production evidence on 2026-08-22: `/health` reported healthy,
+Supabase connected, and `deepseek-v4-flash` configured; `/api/cron/runs`
+showed that day's district-intelligence run wrote 372 rows with no gap, errors,
+or empty success; `/.well-known/mcp.json` advertised the live read-only MCP
+endpoint. `master` already contains the server-side outreach work (PR #48) and
+durable opt-out/public-log privacy hardening (PR #51), so the prior top entry's
+"not merged" line is historical. Credential-dependent workflow readiness was
+not inferred from code or successful skip exits.
+
+**Why.** The repository previously mixed active production, configured
+fallbacks, alternate hosts, build-only libraries, and source publishers into
+one implied stack. It also had two local Claude skills but no cross-agent map
+of which first-party skills apply, where they apply, or which project
+invariants override generic advice. The new guide makes those distinctions
+testable and keeps installation/production authority separate from research.
+
+**Gotchas.** Publisher ownership does not settle maturity, licensing, or
+architecture fit. LangChain labels its catalog early development; the audited
+Vercel catalog states MIT in README but has no standalone license file;
+OpenAI's Developers plugin is proprietary and should be used through the
+supported plugin mechanism, not copied; GitHub's owned catalog contains
+community-authored entries; Google Workspace CLI publishes Gmail skills but
+explicitly is not an officially supported Google product and targets an API/
+CLI path rather than this app's IMAP job. Mapbox, Docker, Render, OpenAI, and
+Gmail are not evidence of live production merely because their configuration
+exists.
+
+**Open items.** Migrate away from the sunset `langchain-community` SQL toolkit;
+make credential-dependent workflow readiness visible without leaking values
+and monitor `outreach-drain` separately from `isd-intelligence`;
+declare NumPy and Pillow directly and choose a reproducible dependency policy;
+pin the conditional Vercel CLI and mutable Action tags; reconcile remaining
+DeepSeek documentation drift; correct the MCP
+MRTR contradiction and TIGER2025 source label; classify or remove unused
+`SUPABASE_URL`/`SUPABASE_ANON_KEY`. Install a publisher skill only for a
+specific task, after inspecting its files and pinning a reviewed revision.
+
+**Notes:** Work branch `codex/forensic-stack-skills`; documentation-only Tier 0
+adoption. The draft PR is the review boundary before any skill installation.
+
 ## 2026-08-19 — Root cause found; the outreach machine moves to where the keys live
 
 **What happened.** Owner: "we sent 500+ emails, everything was logged, now

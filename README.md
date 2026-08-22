@@ -8,8 +8,9 @@ bought — built from the state's own records, fiscal 2009–2025.
 | If you are… | Start here |
 |---|---|
 | a parent, taxpayer or board member | **[docs/PLAIN_ENGLISH.md](docs/PLAIN_ENGLISH.md)** — what this is and what it found, no jargon |
-| here to run or extend the code | **[docs/USAGE.md](docs/USAGE.md)** — the complete guide, including every endpoint |
+| here to run or extend the code | **[docs/USAGE.md](docs/USAGE.md)** — setup and the core endpoint guide; `/docs` is the live API contract |
 | trying to picture the system | [PROJECT_MAP.md](PROJECT_MAP.md) — visual map |
+| auditing the stack or choosing Agent Skills | [docs/TECH_STACK_AND_AGENT_SKILLS.md](docs/TECH_STACK_AND_AGENT_SKILLS.md) — evidence-backed inventory, official sources, and adoption rules |
 | deploying it | [DEPLOYMENT.md](DEPLOYMENT.md) — full runbook |
 
 ---
@@ -24,11 +25,11 @@ uvicorn src.api:app --reload --port 8000
 # open http://localhost:8000/
 ```
 
-**That is not a demo mode.** 20 of the 32 endpoints are served from committed
-JSON in `static/` and never touch a database, so you get the whole report:
+**That is not a demo mode.** Most report layers are served from committed JSON
+in `static/` and never touch a database, so you get the core public report:
 every district's results, economics, bonds, equity, the Houston takeover
-analysis, and both maps. Only the live finance layer is missing, and the page
-says so instead of breaking.
+analysis, and both maps. Database-backed finance features and the model-backed
+question box stay unavailable, and the pages say so instead of breaking.
 
 Worth opening too: `/geomap` (real district boundaries), `/map` (the
 similarity "seating chart"), `/docs` (interactive API).
@@ -37,9 +38,9 @@ similarity "seating chart"), `/docs` (interactive API).
 
 | Tier | Add | Unlocks |
 |---|---|---|
-| **1** | nothing | The full report — 20 of the 32 endpoints |
+| **1** | nothing | Most public report layers from committed artifacts |
 | **2** | a Supabase database | Per-year budgets, peers, anomalies, trends, statewide medians |
-| **3** | an OpenAI key + `NLP_DB_URL` | The plain-English question box at `/query` |
+| **3** | a DeepSeek or OpenAI key + `NLP_DB_URL` | The plain-English question box at `/query` |
 
 ### Tier 2 — add the finance database
 
@@ -67,8 +68,10 @@ python scripts/apply_nlp_role.py    # creates nlp_reader, wires it up, verifies 
 # by hand: run sql/create_nlp_role.sql + sql/create_nlp_usage.sql, set NLP_DB_URL
 ```
 
-Set `OPENAI_API_KEY` **and** `NLP_DB_URL`. The second one matters: `/query`
-hands a visitor's question to a language model that writes its own SQL, and
+Set `DEEPSEEK_API_KEY` or `OPENAI_API_KEY` **and** `NLP_DB_URL`.
+When `NLP_PROVIDER` is unset, `src/llm_config.py` prefers DeepSeek when both
+provider keys exist. The database URL matters: `/query` hands a visitor's
+question to a language model that writes its own SQL, and
 limiting the tables it is *told about* does not limit what the connection is
 *allowed to run*. Without `NLP_DB_URL` that runs as the database owner. See
 [docs/AUDIT_2026-07-31.md](docs/AUDIT_2026-07-31.md) C-1 for what that looked
@@ -76,9 +79,8 @@ like in practice.
 
 ## Endpoints
 
-32 in total — the full table with per-endpoint notes is in
-[docs/USAGE.md](docs/USAGE.md#endpoints), and `/docs` serves interactive
-OpenAPI. The shape:
+The core endpoint guide is in [docs/USAGE.md](docs/USAGE.md#endpoints), and
+`/docs` is the maintained live OpenAPI contract. The core shape:
 
 **No database needed** — `/`, `/district/{n}/outcomes`, `/economics/texas`,
 `/district/{n}/economics`, `/district/{n}/bonds`, `/bonds/texas`,
@@ -99,7 +101,7 @@ load-bearing; any pandas read needs `dtype={"district_number": str}`.
 texas-isd-finances/
 ├── api/index.py            # Vercel entrypoint (no rewrites in vercel.json — see below)
 ├── src/
-│   ├── api.py              # FastAPI: serves the portal, the pages and all 32 endpoints
+│   ├── api.py              # FastAPI: serves the portal, pages and API endpoints
 │   ├── nlp_engine.py       # Plain English → SQL (LangChain 1.x); prefers NLP_DB_URL
 │   └── visualizations.py   # Offline chart helpers
 ├── static/                 # The site AND its data — committed together on purpose
@@ -172,7 +174,8 @@ Read that before citing any of it.
   harmless: everything it can reach is already on the page.
 - `QUERY_GLOBAL_LIMIT` and `QUERY_DAILY_LIMIT` are counted **in the database**,
   so they hold across every serverless instance rather than per-process. They
-  cap calls, not dollars — set a monthly cap on the OpenAI account too.
+  cap calls, not dollars — configure a provider-side spend limit or prepaid
+  balance too.
 - Row-level security on the base table; API roles read only the views.
 - Security headers set by the app, so they survive the deploy target.
 - No credentials in the repo. Ever. Host environment variables only.
@@ -189,9 +192,11 @@ Two things that have each cost a production outage:
   backend-framework routing so an internal rewrite passes the *destination*
   path to the app — the old rule made FastAPI receive `/api/index` for every
   request and 404 the entire site while the build still reported READY.
-- **Production is deployed from a working tree by the CLI, not built from
-  `master`.** So `master` can sit far behind what is live, and a Vercel
-  *redeploy* reuses the old deployment's code — it cannot pick up a change.
+- **Production currently deploys from `master` through Vercel's Git
+  integration.** `.github/workflows/deploy.yml` is an inert replacement path;
+  enable its CLI secrets only after disconnecting Git integration, never in
+  parallel. A Vercel *redeploy* reuses an old deployment's tree and cannot pick
+  up a new commit.
 
 ## License
 

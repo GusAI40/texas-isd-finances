@@ -29,6 +29,7 @@ tests/
 sql/
 .github/
 .claude/
+AGENTS.md
 *.xlsx
 *.xls
 *.csv
