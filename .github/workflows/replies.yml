@@ -9,7 +9,9 @@
 # The script reads the inbox READ-ONLY, matches senders against the addresses
 # we actually mailed, and records the FACT and the TIME. It never stores a
 # subject or a body: what a superintendent writes to us is correspondence, not
-# telemetry.
+# telemetry. Opt-outs are persisted directly to public.outreach_optout before
+# the run can report success, and public logs contain counts only — never a
+# recipient address or message content.
 #
 # Needs three repository secrets (Settings → Secrets → Actions):
 #   IMAP_USER        the mailbox, gus@ubntag.com
@@ -67,19 +69,3 @@ jobs:
           FLAG=""
           if [ "$WRITE" = "true" ]; then FLAG="--write"; fi
           python scripts/ingest_replies.py --days "$DAYS" $FLAG
-
-      # An opt-out request is a promise, not a metric. The script appends it to
-      # data/outreach_optout.txt, and that file is only load-bearing once it is
-      # committed — so surface it loudly rather than letting the runner discard
-      # it. Deliberately NOT an automatic commit: a bot pushing to a
-      # branch-protected repo on a schedule is a bigger risk than a person
-      # reading one line of output.
-      - name: Flag any new opt-outs for a human
-        if: always()
-        run: |
-          if ! git diff --quiet -- data/outreach_optout.txt 2>/dev/null; then
-            echo "::warning::New opt-out requests were detected. Commit"
-            echo "::warning::data/outreach_optout.txt and run"
-            echo "::warning::scripts/sync_outreach_state.py BEFORE the next wave."
-            git --no-pager diff -- data/outreach_optout.txt
-          fi
