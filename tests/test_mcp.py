@@ -461,6 +461,20 @@ def test_the_debt_tool_says_when_a_ratio_is_unknowable(client):
 # disambiguate. That relies on the model reading and obeying the prose. MRTR
 # makes it structural: the call does not complete until someone chooses.
 
+
+def test_the_mcp_guide_documents_the_input_required_path():
+    """The guide once said MRTR was absent while this code returned it.
+
+    That contradiction makes a client implement the wrong contract even when
+    every protocol test passes, so documentation accuracy is part of this
+    surface's regression boundary.
+    """
+    guide = (ROOT / "docs" / "MCP.md").read_text()
+    assert "does implement MRTR `InputRequiredResult`" in guide
+    assert '"resultType": "input_required"' in guide
+    assert "**MRTR / `InputRequiredResult`** — follows from the above" not in guide
+
+
 def test_an_ambiguous_district_name_asks_instead_of_guessing(client):
     r = rpc(client, "tools/call", {"name": "district_debt",
             "arguments": {"district_number": "Wylie ISD"}}).json()["result"]

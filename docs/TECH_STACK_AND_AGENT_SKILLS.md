@@ -1,11 +1,13 @@
 # Technology Stack Forensic and Official Agent Skills Map
 
-> **Audit state:** evidence-backed inventory and adoption plan; no external
-> skill has been installed by this document.
+> **Audit state:** evidence-backed inventory, adoption plan, and hardening
+> record; no external vendor skill is committed to the application.
 >
-> **Verified:** 2026-08-22 against `master` at
-> `4ca94370b04f183334c7c946cb66586fad4d0bf5`, plus read-only checks of the
-> live service and publisher-owned sources linked below.
+> **Verified:** 2026-08-22, beginning with the PR #52 documentation baseline
+> on `master` at `9b42a05ec6149979a7d4d1aeefbd60d76b3b483c` and continuing
+> through the operational-hardening change, read-only live checks, and the
+> publisher-owned sources linked below. Repository, merge, and deployment
+> evidence are deliberately separate.
 
 ## Executive finding
 
@@ -13,12 +15,14 @@ Texas ISD Finances is not just a FastAPI application attached to Supabase.
 The live system is a Vercel-hosted Python service with a static-data survival
 layer, a LangChain SQL agent, DeepSeek as the active model provider, Supabase
 Postgres, two Vercel Cron jobs, GitHub Actions monitoring, Resend delivery,
-first-party analytics, and a hand-written public MCP server. A larger offline
-Python toolchain builds the committed public-data artifacts from state and
-federal sources. Docker and Render exist as alternatives, not live production
-deployments; OpenAI is a configuration-selected alternate and Mapbox is an
-optional upgrade, not the current core path. There is no automatic failover
-from DeepSeek to OpenAI after a request failure.
+first-party analytics, and a hand-written public MCP server. The hardening
+change replaces the archived `langchain-community` toolkit with
+application-owned SQL tools and a SQLGlot AST policy. A larger offline Python toolchain
+builds the committed public-data artifacts from state and federal sources.
+Docker and Render exist as alternatives, not live production deployments;
+OpenAI is a configuration-selected alternate and Mapbox is an optional
+upgrade, not the current core path. There is no automatic failover from
+DeepSeek to OpenAI after a request failure.
 
 Read-only production checks on 2026-08-22 established that:
 
@@ -26,7 +30,13 @@ Read-only production checks on 2026-08-22 established that:
   `deepseek:deepseek-v4-flash` configured.
 - `/api/cron/runs` showed the daily `isd-intelligence` job completed that day,
   wrote 372 rows, and had no gap or empty successful runs in its window.
+- The same endpoint showed `outreach-drain` firing but `unarmed`; this is an
+  external Vercel configuration blocker, not a healthy idle queue.
 - `/.well-known/mcp.json` advertised the live, read-only `/mcp` endpoint.
+
+Repository remediation and live adoption are tracked separately below. A
+green source tree, merge, or deployment never substitutes for post-deploy
+verification of the matching revision.
 
 Publisher-owned or publisher-hosted Agent Skills material exists for the
 parts of this stack where current procedural knowledge matters most: FastAPI,
@@ -53,7 +63,7 @@ guide.
 | Which official skills exist | [Availability audit](#official-agent-skills-availability-audit) and [trust check](#reproducibility-and-trust-check) |
 | How, where, and why to use them | [Usage map](#how-where-and-why-to-use-the-relevant-skills) |
 | What may be installed or operated | [Adoption and authority](#adoption-and-authority-model) |
-| Risks and maintenance | [Forensic follow-ups](#forensic-findings-that-need-follow-up), [negative findings](#deliberate-negative-findings), and [maintenance](#maintenance-checklist) |
+| Risks and maintenance | [Remediation status](#forensic-remediation-status), [negative findings](#deliberate-negative-findings), and [maintenance](#maintenance-checklist) |
 
 ## Scope and evidence rules
 
@@ -106,19 +116,22 @@ flowchart TB
 
 | Layer | Product or technology | What it does here | Repository evidence | Official skills status |
 |---|---|---|---|---|
-| Language | Python 3.10+; production target 3.12 | Runs the API, agent, migrations, jobs, and offline builders. | `pyproject.toml`, `Dockerfile`, `.github/workflows/ci.yml` | No PSF product skill located. |
+| Language | Python `>=3.10,<3.13`; CI tests 3.10, 3.11, and 3.12 | Runs the API, agent, migrations, jobs, and offline builders. Vercel targets 3.12; the alternate Docker and Render paths pin 3.12.14 on this branch. | `pyproject.toml`, `Dockerfile`, `render.yaml`, `.github/workflows/ci.yml` | No PSF product skill located. |
 | API | FastAPI | ASGI application, public JSON API, static pages, auth gates, cron handlers, and OpenAPI schema. | `src/api.py`, `api/index.py` | **Yes:** versioned `fastapi` library skill. |
-| Validation | Pydantic 2 | Request/response models and validation. | `src/api.py`, `requirements-vercel.txt` | **Yes:** Pydantic's standalone `pydantic` skill; the FastAPI skill also covers common integration patterns. |
+| Validation | Pydantic 2 | Request/response models and validation. | `src/api.py`, `pyproject.toml`, `uv.lock` | **Yes:** Pydantic's standalone `pydantic` skill; the FastAPI skill also covers common integration patterns. |
 | Database runtime | `asyncpg` | Async connection pool to the Supabase transaction pooler; statement caching is disabled for pooler compatibility. | `src/api.py` (`get_pool`) | No driver skill; use Supabase/Postgres guidance. |
 | SQL/DB adapter | SQLAlchemy 2 + `psycopg2-binary` | LangChain SQL access and synchronous import/operator paths. | `src/nlp_engine.py`, `scripts/import_to_supabase.py`, runtime requirements | No publisher Agent Skills pack located. |
+| SQL policy parser | SQLGlot 30.17.0 | Parses PostgreSQL before model-authored SQL executes. An exact node/function allowlist rejects unreviewed syntax, session-affecting functions, table sampling, custom operators, recursive CTEs, user-defined types, and relations outside the two public finance views. | `src/nlp_engine.py`, `tests/test_nlp_engine.py`, `pyproject.toml`, `uv.lock` | No publisher Agent Skills pack located. Use the publisher's [AST primer](https://github.com/tobymao/sqlglot/blob/main/posts/ast_primer.md) as documentation, not as a skill. |
 | Configuration | `python-dotenv` + environment variables | Local environment loading and deploy-time configuration. | `src/api.py`, `src/nlp_engine.py`, `env_template.txt` | No publisher skill located. |
 | Primary database | Supabase hosted Postgres and pooler | Finance views, analytics, outreach state, tracking, cron ledger, RLS, and least-privilege NLP role. | `sql/`, `src/migrations.py`, `src/api.py`, `PROJECT_MAP.md` | **Yes:** `supabase` and `supabase-postgres-best-practices`. |
+| Startup schema/security refresh | Application-owned idempotent DDL through `asyncpg` | Checks tracking, intelligence, and outreach sentinels plus journey-view and cron-privacy markers; creates missing objects and refreshes application-owned views, constraints, and grants. The bounded cron repair nulls unsafe legacy detail. It never mutates finance data. | `src/migrations.py`, `tests/test_migrations.py` | Supabase/Postgres skills are relevant, but repository migration invariants take precedence. |
 | Primary hosting | Vercel Python serverless | Runs the ASGI entrypoint behind `txisd.dev`; provides deploys, function execution, CDN behavior, and custom-domain routing. | `api/index.py`, `vercel.json`, `.vercelignore`, `.github/workflows/deploy.yml` | **Yes:** `vercel-optimize`, `vercel-cli-with-tokens`, and `web-design-guidelines`; `deploy-to-vercel` is conditional. |
+| Vercel Git deploy verifier | Secret-free post-merge gate | Waits for `/health` to report the expected Git SHA, healthy/connected runtime state, and `tracking_schema=ready`, then runs strict live checks. | `.github/workflows/deploy.yml`, `scripts/verify_live.py`, `src/api.py`; [official system-variable reference](https://vercel.com/docs/environment-variables/system-environment-variables) | Vercel and GitHub workflow skills apply. It verifies rather than deploys; the duplicate CLI deploy path was removed. |
 | Scheduling | Vercel Cron | Daily district-intelligence refresh and daily outreach queue drain. | `vercel.json`, `/api/cron/isd-intelligence`, `/api/cron/outreach-drain` | Covered by Vercel material; repository-specific auth and idempotency rules remain authoritative. |
 | Static data tier | Committed JSON and images in `static/` | Serves most report layers without a live database and keeps the portal useful during a DB outage. | `static/*.json`, artifact loaders and routes in `src/api.py` | No vendor skill; project invariants and artifact tests govern it. |
 | Frontend | Handwritten HTML, CSS, and ES JavaScript | Portal, reports, first-party tracking, Canvas/SVG visualizations, and fetch-based API calls with no frontend build. | `static/*.html`, `static/design.css`, `static/ask.js`, `static/track.js` | Vercel `web-design-guidelines` is relevant; React/Next.js skills are not. |
-| AI framework | LangChain 1.x | Creates the tool-using SQL agent and connects it to read-only database views. | `src/nlp_engine.py`, `requirements-vercel.txt` | **Yes:** `ecosystem-primer`, `langchain-dependencies`, `langchain-fundamentals`, and selectively `langchain-middleware`. |
-| SQL toolkit | `langchain-community` | Supplies `SQLDatabase` and `SQLDatabaseToolkit`. | `src/nlp_engine.py` | Same LangChain pack, but this dependency is explicitly sunset and is a migration risk. |
+| AI framework | LangChain 1.x | Creates the tool-using SQL agent and connects it to the finance SQL adapter. | `src/nlp_engine.py`, `pyproject.toml`, `uv.lock` | **Yes:** `ecosystem-primer`, `langchain-dependencies`, `langchain-fundamentals`, and selectively `langchain-middleware`. |
+| SQL agent tools | Application-owned LangChain tools | Replaces archived `langchain-community` with SQLAlchemy-backed list/schema/check/query tools; requires `NLP_DB_URL`, limits discovery/schema tools to two finance views, caps visible rows at 100, qualifies approved views as `public.*`, sets `search_path` to `pg_catalog`, and executes under a read-only transaction with a 20-second timeout. The `nlp_reader` grants remain the final authorization boundary. | `src/nlp_engine.py`, `tests/test_nlp_engine.py`, `sql/create_nlp_role.sql` | Uses LangChain's current direct-tool pattern; there is no separate SQL-toolkit skill. SQLGlot is the separately declared parser dependency. |
 | Provider adapter | `langchain-openai` + OpenAI SDK | Uses `ChatOpenAI` for both OpenAI and DeepSeek's compatible API. | `src/llm_config.py`, `src/nlp_engine.py` | LangChain pack plus OpenAI troubleshooting only when OpenAI is selected. |
 | Active LLM | DeepSeek API, `deepseek-v4-flash` | Current `/query` model and optional news extraction provider when enabled. | `src/llm_config.py`, `.github/workflows/llm-balance.yml`; confirmed by live `/health` | No app-relevant publisher Agent Skills pack was located. |
 | Email delivery | Resend API | Sends queued superintendent outreach and supplies delivery status for KPI snapshots. | `src/outreach_email.py`, `src/outreach_runner.py`, `scripts/outreach_kpi.py` | **Yes:** `resend`, `email-best-practices`, and optionally `resend-cli`. |
@@ -134,10 +147,9 @@ flowchart TB
 |---|---|---|---|
 | OpenAI API, default `gpt-4o-mini` | Configuration-selected alternate when `NLP_PROVIDER=openai`, or the default when no provider is forced and no DeepSeek key exists. | `src/llm_config.py`, `DEPLOYMENT.md` | Not the provider reported live on 2026-08-22; this is selection, not automatic request failover. |
 | Mapbox GL JS | Optional enhancement for `/heatmap`, dynamically loaded from Mapbox CDN when a public token is configured. | `static/heatmap.html`, `/mapbox-token`, Mapbox CSP in `src/api.py` | `/geomap` is vendor-free Canvas; Mapbox is not required for the core map. |
-| Gmail-compatible IMAP | Credential-dependent inbound reply job using Python's standard library and a Gmail App Password by default. | `scripts/ingest_replies.py`, `.github/workflows/replies.yml` | The workflow exits successfully when secrets are absent; repository inspection cannot prove it is armed. Google's Workspace CLI publishes Gmail skills, but they target the Google API/CLI rather than this IMAP path. |
-| Vercel CLI deploy workflow | Alternate production deploy path using Node 20 and Vercel CLI. | `.github/workflows/deploy.yml` | The workflow says it must remain inert while Vercel Git integration is connected, or duplicate deploys race. |
-| Docker + Uvicorn | Portable alternate image/runtime. | `Dockerfile`, full requirements | Not the live production host. |
-| Render + Uvicorn | Blueprint-based alternate host. | `render.yaml` | Not the live production host and its LLM configuration still describes OpenAI only. Render publishes conditional skills for Blueprints, web services, environment variables, Docker, deployment, debugging, and monitoring. |
+| Gmail-compatible IMAP | Credential-dependent inbound reply job using Python's standard library and a Gmail App Password by default. | `scripts/ingest_replies.py`, `.github/workflows/replies.yml` | If secrets are absent, a manual run is a readiness probe; a scheduled run warns, records `NOT CONFIGURED`, and fails so an unobserved opt-out cannot look green. Google's Workspace CLI skills target a different API/CLI path. |
+| Docker + Uvicorn | Portable alternate image/runtime with Python 3.12.14 and the official multi-platform manifest digest. | `Dockerfile`, `pyproject.toml`, `uv.lock` | Not the live production host. |
+| Render + Uvicorn | Blueprint-based alternate host, aligned on Python 3.12.14, DeepSeek selection, and the universal lock on this branch. | `render.yaml` | Not the live production host. Render publishes conditional skills for Blueprints, web services, environment variables, Docker, deployment, debugging, and monitoring. |
 | Optional LLM news extraction | Feature-flagged extraction with a hard call budget. | `ISD_LLM_EXTRACT` path in `src/api.py` | Off unless explicitly enabled. |
 | Supabase Management API | PAT-authenticated operator path for schema/data synchronization and reply/KPI jobs. | `scripts/sync_outreach_contacts.py`, `scripts/ingest_replies.py`, `scripts/outreach_kpi.py` | Not the normal live request data path; mutable calls require explicit target verification. |
 | GitHub Releases API | Optional raw-data archive publishing. | `scripts/archive_raw_data.py` | Upload requires `GITHUB_TOKEN`; local archive creation does not. |
@@ -146,8 +158,8 @@ flowchart TB
 
 | Purpose | Products and libraries | Evidence |
 |---|---|---|
-| Package/build resolution | `uv` on Vercel; `pip` in local, CI, Docker, and Render flows | `pyproject.toml`, workflows, `Dockerfile`, `render.yaml` |
-| Testing | pytest and HTTPX | `requirements-dev.txt`, `tests/`, `pyproject.toml` |
+| Package/build resolution | `uv==0.11.33` plus one universal `uv.lock` added by this hardening change; Vercel installs the base runtime, while CI, Docker, and Render select reviewed extras/groups from the same graph | `pyproject.toml`, `uv.lock`, workflows, `Dockerfile`, `render.yaml` |
+| Testing | pytest and HTTPX from the locked `dev` dependency group | `tests/`, `pyproject.toml`, `uv.lock` |
 | Linting | Ruff | `pyproject.toml`, `.github/workflows/ci.yml` |
 | Browser-script syntax gate | Node.js `--check` | `scripts/check_static_js.py`, CI workflow |
 | Data frames and numeric work | pandas and NumPy | `scripts/prepare_data.py`, multiple `scripts/build_*.py` files |
@@ -157,11 +169,27 @@ flowchart TB
 | Social-card rendering | Pillow | `scripts/build_share_cards.py` |
 | Network clients | Primarily Python standard-library `urllib` and `imaplib` | ingestion, verification, outreach, and monitoring scripts |
 
-NumPy and Pillow are imported directly but are not declared directly in any
-requirements file. They currently arrive transitively (or from an operator's
-environment), which makes offline rebuilds less reproducible. There is also no
-committed Python lockfile, even though production resolves dependencies at
-build time.
+NumPy and Pillow are now direct `offline` dependencies and remain mirrored in
+`requirements.txt`. The hardening change adds one cross-platform `uv.lock`
+for Python 3.10-3.12; Vercel uses only the base runtime, Docker and Render add
+the `server` extra, and CI installs all extras plus `dev`. Requirements files
+are compatibility mirrors, not a second resolution authority.
+
+### Reproducible runtime and CI pins
+
+These are repository controls. Production adoption always requires an
+independently verified deployment of the matching tree.
+
+| Control | Exact repository state | Evidence |
+|---|---|---|
+| Python compatibility | `>=3.10,<3.13`; CI matrix 3.10/3.11/3.12; Docker and Render 3.12.14 | `pyproject.toml`, `.github/workflows/ci.yml`, `Dockerfile`, `render.yaml` |
+| Resolver | `uv==0.11.33`; `uv lock --check` and `uv sync --locked` gates | CI, Docker, Render, README/runbooks |
+| Locked request runtime | FastAPI 0.141.1, Pydantic 2.13.4, SQLAlchemy 2.0.52, asyncpg 0.31.0, psycopg2-binary 2.9.12, python-dotenv 1.2.3 | `uv.lock` |
+| Locked agent runtime | LangChain 1.3.16, LangChain Core 1.6.0, `langchain-openai` 1.6.0, OpenAI SDK 2.54.0, SQLGlot 30.17.0; no `langchain-community` | `uv.lock` |
+| CI actions | `actions/checkout` v4 at `11d5960a326750d5838078e36cf38b85af677262`; `actions/setup-python` v5 at `a26af69be951a213d495a4c3e4e4022e16d87065`; read-only workflow tokens and no persisted checkout credentials | `.github/workflows/*.yml` |
+| Production verification | No deploy CLI or deploy secrets in Actions; the verifier requires the exact Git SHA, healthy/connected database state, and `tracking_schema=ready`, then retries strict live checks after Git-driven production changes. Readiness proves startup observed the three sentinels, current journey-view marker, and cron-privacy marker when the optional cron table exists; it is not a continuous grants audit. | `.github/workflows/deploy.yml`, `scripts/verify_live.py`, `src/api.py` |
+| Container base | `python:3.12.14-slim-bookworm` at manifest digest `sha256:a116514e…a78134` | `Dockerfile` |
+| Update path | Weekly reviewable Dependabot PRs for `uv`, GitHub Actions, and Docker | `.github/dependabot.yml` |
 
 ## External public-data and discovery sources
 
@@ -197,8 +225,8 @@ Names are recorded so operators can map integrations without exposing values.
 - Delivery and mailbox: `RESEND_API_KEY`, `IMAP_PASSWORD`.
 - Application gates: `CRON_SECRET`, `OPS_TOKEN`, `OUTREACH_TOKEN`,
   `SITE_PASSWORD`.
-- Deployment and publishing: `VERCEL_TOKEN`, `VERCEL_ORG_ID`,
-  `VERCEL_PROJECT_ID`, `GITHUB_TOKEN`.
+- Manual operator deployment and release publishing: `VERCEL_TOKEN`,
+  `GITHUB_TOKEN`. The Actions production verifier needs neither.
 
 ### Non-secret or operational configuration
 
@@ -214,13 +242,17 @@ Names are recorded so operators can map integrations without exposing values.
 - Outreach: `RESEND_FROM`, `RESEND_REPLY_TO`, `TAG_BCC`,
   `TAG_POSTAL_ADDRESS`, `IMAP_USER`, `IMAP_HOST`.
 - Operator/platform: `SUPABASE_PROJECT_REF`, `VERCEL_PROJECT`,
-  `VERCEL_TEAM`, `SITE_URL`, `ARCHIVE_OUT_DIR`, `PORT`, `PYTHON_VERSION`.
+  `VERCEL_TEAM`, `SITE_URL`, `ARCHIVE_OUT_DIR`, `PORT`, `PYTHON_VERSION`,
+  `VERCEL_GIT_COMMIT_SHA`. The last is a non-secret Vercel system variable;
+  expose System Environment Variables to the function or `/health` reports
+  `revision=local` and strict deploy verification fails.
 - `MAPBOX_TOKEN` is deliberately returned to the browser and must be a
   URL-restricted public `pk.` token, not a secret token.
 
-`SUPABASE_URL` and `SUPABASE_ANON_KEY` remain in `env_template.txt` but have no
-code references. They should be identified as legacy/template-only or removed
-in a focused cleanup.
+`NLP_DB_URL` is mandatory for `/query`. If it is absent,
+the feature stays unavailable instead of falling back to the database owner.
+The unused `SUPABASE_URL` and `SUPABASE_ANON_KEY` placeholders were removed
+from `env_template.txt`; neither has a code reference.
 
 ## Official Agent Skills availability audit
 
@@ -249,7 +281,7 @@ specific files and use a project-approved commit or release.
 
 | Source | Reviewed revision | License/maturity observation |
 |---|---|---|
-| `fastapi/fastapi` | tag [`0.141.1`](https://github.com/fastapi/fastapi/tree/0.141.1/fastapi/.agents/skills/fastapi), `95f8322` | MIT. This was the locally resolved release; the unpinned production build still needs its own version check. |
+| `fastapi/fastapi` | tag [`0.141.1`](https://github.com/fastapi/fastapi/tree/0.141.1/fastapi/.agents/skills/fastapi), `95f8322` | MIT. The current universal lock resolves FastAPI 0.141.1; production remains on its deployed graph until this branch ships. |
 | `supabase/agent-skills` | [`8331f91`](https://github.com/supabase/agent-skills/commit/8331f910845103c08d51f6ca1d86ebb7d1f745e3) | MIT; publisher docs also point to the repository. |
 | `pydantic/skills` | [`e5f7cb1`](https://github.com/pydantic/skills/commit/e5f7cb13d01561fe3735040ed37596abd9b83976) | MIT. |
 | `vercel-labs/agent-skills` | [`dd089a8`](https://github.com/vercel-labs/agent-skills/commit/dd089a8c752c966dee8bf0f27cb625ba193ffd9e) | README says MIT, but no top-level `LICENSE` was present at the inspected revision; link/install only until clarified. |
@@ -322,8 +354,9 @@ specific files and use a project-approved commit or release.
   reliability, function-duration, and build-minute problems. The design skill
   fits the native HTML/CSS portal's accessibility and interaction surface.
 - **Project override:** target the correct team/project, keep `vercel.json`
-  free of rewrites, do not arm both Git integration and the CLI deployment
-  workflow, and verify the live tree after deployment.
+  free of rewrites, keep Git integration as the single production deploy
+  mechanism, and verify the matching live tree after deployment. Do not add a
+  credential-bearing CLI workflow beside it.
 - **Do not use:** `react-best-practices`; this repository has no React,
   Next.js, or frontend package manifest.
 
@@ -333,16 +366,19 @@ specific files and use a project-approved commit or release.
   `ecosystem-primer`, then load `langchain-dependencies`; add
   `langchain-fundamentals` only for agent changes. Keep the revision pinned
   because the repository labels itself early development.
-- **Where:** `src/nlp_engine.py`, `src/llm_config.py`, provider tests, SQL-tool
-  prompt rules, and the planned migration away from `langchain-community`.
+- **Where:** `src/nlp_engine.py`, `src/llm_config.py`, provider tests, the
+  application-owned SQL tools, and prompt/security rules.
 - **Why:** it covers the current `create_agent` API, tools, middleware, and
   dependency compatibility—the precise areas most likely to drift in this
   application.
 - **Later:** `eval-engineering` could turn known-answer question regressions
   into a stronger agent evaluation suite, but it adds Harbor/Docker workflow
   overhead and is not a first install.
-- **Project override:** preserve SELECT-only enforcement, two-view exposure,
-  aggregate-count rules, global budget controls, and deterministic tests.
+- **Project override:** preserve the exact SQLGlot AST/function policy,
+  two-view exposure, `public.*` qualification, `pg_catalog` search path,
+  read-only role/transaction boundaries, aggregate-count rules, global budget
+  controls, and deterministic tests. “SELECT-only” is insufficient: a SELECT
+  can call a session-affecting function.
 
 #### Resend: API and email best-practice skills
 
@@ -420,8 +456,9 @@ specific files and use a project-approved commit or release.
 - **Why:** the checked-in alternate target can drift even while Vercel remains
   healthy; official deployment and debugging procedures reduce guesswork if
   Render is intentionally reactivated.
-- **Project override:** Render is not production evidence. Reconcile the stale
-  OpenAI-only configuration and verify a separate target before any deploy.
+- **Project override:** Render is not production evidence. Its provider and
+  lock configuration are reconciled on this branch, but a separate target
+  still must be verified before any deploy.
 
 #### Google Workspace CLI Gmail skills: documented, not adopted
 
@@ -444,16 +481,17 @@ specific files and use a project-approved commit or release.
   deliberately unusual stateless MCP transport, so current protocol and skill
   packaging guidance is useful.
 - **Project override:** do not add an MCP client config until actual Codex and
-  Claude round trips prove compatibility; the repository currently contains
-  contradictory MRTR documentation and deliberately rejects legacy
-  `initialize`.
+  Claude round trips prove compatibility. The hardening change reconciles and
+  test-locks the formerly contradictory MRTR documentation; the transport
+  still deliberately rejects legacy `initialize`.
 
 ## Products without an applicable official skill found
 
 As of the verified date, the audit did not locate a publisher-owned,
 application-relevant Agent Skills pack for the following direct stack areas:
 
-- DeepSeek API integration.
+- DeepSeek API integration and SQLGlot. SQLGlot publishes an official AST
+  primer, but no publisher Agent Skills repository was located.
 - Python/PSF, Uvicorn, python-dotenv, SQLAlchemy, asyncpg, psycopg2, pytest,
   HTTPX, NumPy, pandas, openpyxl, xlrd,
   Matplotlib, Seaborn, Plotly, pyshp, Pillow, and Ruff.
@@ -477,7 +515,7 @@ Re-run publisher-org and publisher-doc searches before changing this matrix.
 |---|---|---|
 | **0 — Document** | Record sources, relevance, and guardrails; install nothing. | **This audit.** |
 | **1 — Observe** | Read code, docs, logs, metrics, schemas, RLS, deployment state, and security posture. | FastAPI review, Supabase advisors, Vercel metrics, Actions hardening review. |
-| **2 — Develop** | Make branch-scoped changes, test locally, use preview/test resources, and open a PR. | Schema migration in a test branch, `/heatmap` fix, LangChain dependency migration. |
+| **2 — Develop** | Make branch-scoped changes, test locally, use preview/test resources, and open a PR. | Schema migration in a test branch, `/heatmap` fix, or maintenance of the application-owned LangChain tools. |
 | **3 — Operate** | Mutate production or external systems only with explicit authority and a verified target/dry run. | Merge/deploy, production SQL, secret changes, workflow dispatch, Resend send, release upload. |
 
 Skills provide instructions—not credentials, authorization, or proof.
@@ -494,20 +532,28 @@ one through a supported plugin, personal-skill location, or pinned checkout:
 7. test in a fresh agent session; and
 8. update deliberately—never auto-update operational skills.
 
-## Forensic findings that need follow-up
+## Forensic remediation status
 
-| Priority | Finding | Evidence and consequence | Recommended next action |
-|---|---|---|---|
-| High | `langchain-community` is sunset but supplies the live SQL toolkit. | `src/nlp_engine.py` says it directly; dependency remains in both runtime manifests. | Use pinned LangChain guidance to design and regression-test a supported replacement before the package disappears or breaks. |
-| High | Credential-dependent Actions jobs can be green while inert. | `replies.yml` and `outreach-kpi.yml` exit 0 when required secrets are absent. | Add an explicit operational readiness signal or scheduled assertion without exposing secret values. |
-| High | The outreach drain is not covered by the daily cron monitor. | `monitor.yml` calls `/api/cron/runs` without `job=outreach-drain`; the endpoint defaults to `isd-intelligence`. An unarmed or stalled outreach drain can remain invisible. | Monitor each Vercel Cron job explicitly and keep secret readiness separate from public run-health output. |
-| High | Offline rebuilds depend on undeclared direct imports and no lockfile. | NumPy and Pillow are imported directly but not declared; only requirements ranges are committed. | Declare build dependencies directly and add a reviewed lock/reproducible build policy. |
-| Medium | Primary-provider documentation still has drift. | Live and code prefer DeepSeek. This PR corrects README setup, but Project Map and Render material still present OpenAI as primary. | Reconcile the remaining documents from `src/llm_config.py` and live `/health`. |
-| Medium | Deployment dependencies and Actions are mutable. | The conditional CLI workflow installs `vercel@latest`; workflows use mutable major action tags. If the alternate deploy path is armed later, tool behavior can change without a repository diff. | Pin a reviewed Vercel CLI version and action commit SHAs, then use a deliberate updater such as Dependabot. |
-| Medium | MCP documentation contradicts the implementation. | An early `docs/MCP.md` section says MRTR/input-required is absent; later docs and `src/mcp_tools.py` implement it. | Correct the document and perform actual client round-trip tests before adding repo MCP client config. |
-| Medium | Public source vintage label drift remains. | `static/sources.html` labels TIGER boundaries 2024 while the builder uses TIGER2025. | Fix the rendered source label and preserve the existing provenance tests. |
-| Low | Unused Supabase template variables imply an SDK path that does not exist. | `SUPABASE_URL` and `SUPABASE_ANON_KEY` have no code references. | Mark them legacy or remove them in a focused config cleanup. |
-| Informational | Mapbox, Docker, and Render are easy to overstate. | Code proves Mapbox is optional and Vercel excludes Docker/Render files. | Keep status labels in all future architecture material. |
+| Original finding | Repository remediation | Verification state |
+|---|---|---|
+| Public operational paths could expose raw provider/driver text, recipient addresses, connection URIs, custom endpoint credentials, or a secret Mapbox token. | Cron history now accepts only controlled detail codes, redacts legacy rows on read, self-cleans old free text, constrains future values, and revokes direct anonymous table access. SQL tools and `/query` return fixed failures; the chat row retains the user's question and generated answer while its `error` column stores only the fixed `query_failed` code. `/health` normalizes schema/database errors and reduces a custom endpoint to its hostname and optional explicit port after stripping userinfo, path, query, and fragment; operators must never embed a secret in the hostname itself. `/mapbox-token` serves only `pk.` values. Deployable API logging records exception classes, never messages. | Adversarial sentinel tests cover cron writes/legacy reads, SQL tools, query response/storage boundary, health/schema errors, custom LLM URLs, queue errors, and Mapbox secrets. The post-merge and daily gates require `tracking_schema=ready`: startup must observe three sentinels, the current journey-view marker, and the cron privacy constraint when `cron_runs` exists. A missing optional `cron_runs` table is safe, and readiness is not a continuous ACL audit. |
+| Archived `langchain-community` supplied the SQL toolkit. | Removed from manifests and lock; replaced with application-owned, SQLAlchemy-backed LangChain tools. `NLP_DB_URL` is mandatory, discovery is limited to two views, model-visible listings stop at 100 rows, and database grants enforce the same access boundary. | Construction, provider, answer, truncation, role, and clean-import regression tests cover the replacement. Production must still match the reviewed tree. |
+| Lexical “SELECT-only” checks and read-only transactions still allowed `pg_advisory_lock`, `set_config`, `pg_notify`, `pg_sleep`, table sampling, and custom operators. | SQLGlot now requires exactly one PostgreSQL query and an exact reviewed AST node/function set, resolves every physical relation to the two finance views, rejects recursive CTEs and user-defined types, qualifies approved views as `public.*`, and executes with `search_path=pg_catalog`, read-only mode, and a 20-second timeout. | Positive finance-query tests plus direct side-effect, catalog/base-table, table-function, qualified-function, table-sample, custom-operator, recursive-CTE, and multi-statement rejection tests fail closed. The database role remains an independent boundary. |
+| Reply, KPI, and LLM-balance workflows could look green while silently inert. | Each publishes missing secret **names only** as an Actions warning and `NOT CONFIGURED` summary, gates external calls on `configured=true`, and fails a scheduled run while leaving manual dispatch usable as a readiness probe. Provider rejection or malformed balance data also fails; transient network errors are not misreported as an empty account. | Offline readiness and balance tests prevent a return to invisible scheduled success. A run summary reports readiness; it does not prove a secret exists. |
+| `outreach-drain` was outside the daily cron monitor. | The monitor now names both configured Vercel jobs. The helper distinguishes healthy `empty` from unhealthy `unarmed`, checks 36-hour freshness, and rejects malformed, errored, or zero-output success states without copying private detail. | Offline policy tests pass. The current live read still reports `unarmed`, so the new monitor will fail until Vercel is configured. |
+| Offline imports and build graphs were not reproducible. | NumPy and Pillow are direct dependencies; one universal `uv.lock` drives Vercel, CI, Docker, and Render; CI checks the lock; requirements remain mirrors. | Supply-chain tests assert lock coverage and direct declarations. |
+| Actions and the alternate deploy toolchain were mutable. | External Actions use full commit SHAs with read-only tokens and discarded checkout credentials; the container base has a manifest digest. The duplicate Vercel CLI deploy path was removed after its locked graph still disclosed high/critical advisories. Actions now only verifies the real Git-driven deploy and holds no Vercel credential. Dependabot proposes reviewed updates for the remaining three ecosystems; unneeded monitor/deploy pip installs were removed. | Supply-chain tests reject mutable Action/bootstrap references, mutable Docker bases, excess workflow permission, deploy secrets/CLI installation, or a non-strict production gate. |
+| Network-blind monitors could return green when production or every publisher was unreachable. | Deploy/live verification and scheduled freshness checks use `--require-network`; permissive local defaults remain available for restricted sandboxes. | Workflow tests require strict flags at the production gates. |
+| Provider/configuration documentation drifted from reality. | Project Map, Render, environment template, agent/runbook text, and provider tests now describe DeepSeek as active, OpenAI as a configuration alternate, and no automatic failover. `NLP_DB_URL` no longer falls back to owner; unused Supabase client placeholders are removed. | Code/config searches and provider tests cover the corrected contract. Live `/health` still independently proves only the deployed DeepSeek selection. |
+| MCP MRTR and TIGER provenance text contradicted code/artifacts. | MCP docs now describe implemented MRTR `InputRequiredResult`; the source page now says TIGER2025 and 1,016 boundaries. | MCP and geography regression tests pin both corrections; the rendered source page must be checked against the matching deployed tree. |
+| Optional products were easy to overstate. | The inventory continues to classify Mapbox, Docker, and Render as optional/alternate and separates configuration from live evidence. | This remains a documentation discipline, not a deployment claim. |
+
+Within this hardening scope, the only remaining blocker that repository code
+cannot close is the **live outreach arming state**. The TAG-ai Vercel project
+must receive a rotated `RESEND_API_KEY`, `TAG_POSTAL_ADDRESS`, and a new
+`OUTREACH_TOKEN` without exposing their values. Then verify the public cron
+aggregate changes from `unarmed` to the legitimate idle state `empty` or to
+`ok`. Do not infer readiness from a merge or a green workflow.
 
 ## Deliberate negative findings
 
@@ -519,15 +565,17 @@ one through a supported plugin, personal-skill location, or pinned checkout:
 - The public MCP tools do not expose `/query`; they are deterministic reads
   over committed artifacts and do not spend model tokens.
 - Render and Docker configuration does not prove additional live deployments.
-- A successful credential-dependent workflow does not prove its secrets exist,
-  because several jobs deliberately skip with exit code 0.
+- A successful credential-dependent workflow does not prove its secrets exist.
+  Manual missing-secret dispatches are visible readiness probes; scheduled
+  reply, KPI, and LLM-balance runs warn, record `NOT CONFIGURED`, and fail so
+  absence cannot remain green and invisible.
 
 ## Maintenance checklist
 
 Update this guide when any of these changes:
 
-- `pyproject.toml`, requirements, `vercel.json`, `render.yaml`, `Dockerfile`,
-  `.vercelignore`, or a GitHub workflow;
+- `pyproject.toml`, `uv.lock`, requirements, `vercel.json`, `render.yaml`,
+  `Dockerfile`, `.vercelignore`, Dependabot, or a GitHub workflow;
 - an external hostname, API, environment-variable name, source publisher, or
   live provider;
 - a new library or service is imported directly;

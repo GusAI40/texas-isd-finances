@@ -19,7 +19,9 @@
 #                    (Google Account → Security → 2-Step Verification →
 #                    App passwords). IMAP must also be enabled in Gmail.
 #   SUPABASE_PAT     read the send log, write the reply events
-# Until all three exist the job skips harmlessly and says so.
+# Until all three exist a manual run is a harmless readiness probe. A scheduled
+# run fails after publishing a NOT CONFIGURED warning and summary, because an
+# unobserved reply can contain a legally significant opt-out.
 #
 # Idempotent by design: it re-reads the same three weeks every day, and
 # `event_key` makes the repeats no-ops. Without that, one reply would become
@@ -46,13 +48,43 @@ jobs:
   ingest:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: "3.11"
 
+      # Secret VALUES stay in step-local environment variables. This step
+      # reports only the fixed variable NAMES that are absent.
+      - name: Check reply-ingest readiness
+        id: readiness
+        env:
+          IMAP_USER: ${{ secrets.IMAP_USER }}
+          IMAP_PASSWORD: ${{ secrets.IMAP_PASSWORD }}
+          SUPABASE_PAT: ${{ secrets.SUPABASE_PAT }}
+        run: |
+          missing=()
+          [ -n "$IMAP_USER" ] || missing+=(IMAP_USER)
+          [ -n "$IMAP_PASSWORD" ] || missing+=(IMAP_PASSWORD)
+          [ -n "$SUPABASE_PAT" ] || missing+=(SUPABASE_PAT)
+          if [ "${#missing[@]}" -gt 0 ]; then
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "::warning title=Reply ingest not configured::Missing repository secrets: ${missing[*]}. Execution was skipped; no mailbox or database call ran."
+            {
+              echo "### ⚠️ Reply ingest: NOT CONFIGURED"
+              echo
+              echo "Missing repository secret names: \`${missing[*]}\`."
+              echo "No mailbox or database call ran. Add them in Settings → Secrets → Actions."
+            } >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+            echo "### ✅ Reply ingest: configured; execution eligible" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
       - name: Record replies from people we emailed
+        if: steps.readiness.outputs.configured == 'true'
         env:
           IMAP_USER: ${{ secrets.IMAP_USER }}
           IMAP_PASSWORD: ${{ secrets.IMAP_PASSWORD }}
@@ -60,12 +92,12 @@ jobs:
           DAYS: ${{ github.event.inputs.days || '21' }}
           WRITE: ${{ github.event.inputs.write || 'true' }}
         run: |
-          if [ -z "$IMAP_USER" ] || [ -z "$IMAP_PASSWORD" ] || [ -z "$SUPABASE_PAT" ]; then
-            echo "secrets not configured — skipping. Add IMAP_USER,"
-            echo "IMAP_PASSWORD (a Gmail APP password) and SUPABASE_PAT in"
-            echo "repo Settings → Secrets → Actions to arm this."
-            exit 0
-          fi
           FLAG=""
           if [ "$WRITE" = "true" ]; then FLAG="--write"; fi
           python scripts/ingest_replies.py --days "$DAYS" $FLAG
+
+      - name: Notify when scheduled reply ingest is unconfigured
+        if: steps.readiness.outputs.configured != 'true' && github.event_name == 'schedule'
+        run: |
+          echo "Scheduled reply ingest cannot run until its repository secrets are configured." >&2
+          exit 1

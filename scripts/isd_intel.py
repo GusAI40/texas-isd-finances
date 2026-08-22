@@ -883,7 +883,8 @@ def extract_with_llm(item: NewsItem, client: Callable[[list, dict], dict],
             if _valid_extraction(out):
                 return out
         except Exception as exc:  # pragma: no cover - depends on provider
-            print(f"WARNING: LLM extraction failed: {exc}")
+            print("WARNING: LLM extraction failed "
+                  f"({type(exc).__name__}); detail redacted")
             break
     return None
 

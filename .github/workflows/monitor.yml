@@ -16,14 +16,18 @@ on:
     - cron: '0 12 * * *'
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   health:
     name: Production health
     runs-on: ubuntu-latest
     steps:
-      # A 200 alone proves nothing — the body must say healthy AND connected,
-      # or a paused Supabase free tier reads as a pass.
-      - name: /health says healthy and database connected
+      # A 200 alone proves nothing — the body must say healthy, connected, AND
+      # schema-ready. The last condition proves self-applied security migrations
+      # completed; serving new bytes over an old unsafe schema is not healthy.
+      - name: /health says healthy, connected, and schema-ready
         run: |
           curl -sS --fail --max-time 30 https://txisd.dev/health | tee health.json
           python3 - <<'EOF'
@@ -34,62 +38,58 @@ jobs:
               problems.append(f"status={h.get('status')!r} (want 'healthy')")
           if h.get("database") != "connected":
               problems.append(f"database={h.get('database')!r} (want 'connected')")
+          if h.get("tracking_schema") != "ready":
+              problems.append(
+                  f"tracking_schema={h.get('tracking_schema')!r} (want 'ready')")
           if problems:
               sys.exit("UNHEALTHY: " + "; ".join(problems))
-          print("healthy, database connected, llm:", h.get("llm"))
+          print("healthy, database connected, schema ready, llm:", h.get("llm"))
           EOF
 
   cron-runs:
-    name: Scheduled jobs actually ran
+    name: Cron · ${{ matrix.job }}
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Intelligence must complete and write a briefing. Outreach has a
+          # different legitimate idle state: a fired drain with an empty
+          # queue is healthy, while an unarmed drain is not production-ready.
+          - job: isd-intelligence
+            policy: productive
+          - job: outreach-drain
+            policy: drain
     steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+
       # A job that never fires and a job that fires and writes nothing look
       # identical from outside — this is the endpoint built to tell them
-      # apart, and this step is what finally reads it on a schedule.
-      - name: /api/cron/runs shows no gap and no empty runs
+      # apart. The job query is mandatory: the endpoint defaults to
+      # isd-intelligence, which once left outreach-drain entirely unwatched.
+      - name: Check recorded firings and outcomes
+        env:
+          CRON_JOB: ${{ matrix.job }}
+          CRON_POLICY: ${{ matrix.policy }}
         run: |
-          curl -sS --fail --max-time 30 https://txisd.dev/api/cron/runs | tee runs.json
-          python3 - <<'EOF'
-          import json, sys
-          r = json.load(open("runs.json"))
-          if not r.get("available"):
-              sys.exit("cron run history unavailable — the cron_runs table is "
-                       "missing or the database is down; the job cannot be "
-                       "proven to have run")
-          problems = []
-          gap = r.get("gap_days")
-          if gap is None:
-              problems.append("no successful run recorded at all (gap_days is null)")
-          elif gap > 1:
-              problems.append(f"gap_days={gap}: job '{r.get('job')}' has not "
-                              "completed since then")
-          if r.get("wrote_nothing", 0) > 0:
-              problems.append(f"wrote_nothing={r['wrote_nothing']}: runs reported "
-                              "success while writing zero rows — the exact shape "
-                              "of the original silent failure")
-          if r.get("errors", 0) > 0:
-              problems.append(f"errors={r['errors']} failed runs in the window")
-          if problems:
-              sys.exit("SILENT FAILURE: " + "; ".join(problems))
-          print(f"job '{r.get('job')}': gap_days={gap}, last_success={r.get('last_success')}")
-          EOF
+          python3 scripts/check_cron_health.py \
+            --url https://txisd.dev/api/cron/runs \
+            --job "$CRON_JOB" --policy "$CRON_POLICY"
 
   verify:
     name: Live drift and upstream freshness
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: '3.12'
-          cache: pip
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install requests
 
       # Does production serve what this tree says it should? The bond layer
       # ran two years stale with a green suite because nothing compared the
@@ -100,11 +100,13 @@ jobs:
         # that touches /query at all: everything else here reads static JSON,
         # so a dead provider, an expired key or a broken tool-calling loop
         # would otherwise look exactly like a healthy site.
-        run: python scripts/verify_live.py --with-query
+        run: >-
+          python scripts/verify_live.py --with-query --require-network
+          --expect-revision "$GITHUB_SHA"
 
       # Has any publisher moved past the vintage we ingested? Exits non-zero
       # when upstream has data we have not seen. On failure: ingest it, or
       # bump scripts/freshness_vintages.json with a note.
       - name: check_freshness — upstream has nothing we lack
         if: always()
-        run: python scripts/check_freshness.py
+        run: python scripts/check_freshness.py --require-network

@@ -68,6 +68,11 @@ MCP_ALLOWED_ORIGINS = tuple(
     ).split(",") if o.strip())
 
 
+def _warn_exception(context: str, exc: BaseException) -> None:
+    """Log an operational failure without echoing driver/provider payloads."""
+    print(f"WARNING: {context} ({type(exc).__name__}); detail redacted")
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Create the database pool on startup, close it on shutdown.
@@ -88,7 +93,7 @@ async def lifespan(app: FastAPI):
                 db_url, min_size=1, max_size=10, statement_cache_size=0
             )
         except Exception as exc:  # pragma: no cover - depends on environment
-            print(f"WARNING: could not connect to database: {exc}")
+            _warn_exception("could not connect to database", exc)
         # Journey tracking creates its own tables. Until they exist every click
         # is dropped silently (visitor_event.rid is a FK), and the manual
         # alternative — pasting DDL into a dashboard — is a step that is easy to
@@ -304,7 +309,7 @@ async def _record_visit(pool, path: str, device: str, ref_host: str) -> None:
                 "DO UPDATE SET hits = public.site_visits.hits + 1",
                 path, device, ref_host)
     except Exception as exc:                       # table missing, DB asleep…
-        print(f"WARNING: visit not counted: {exc}")
+        _warn_exception("visit not counted", exc)
 
 
 async def _log_question(pool, question: str, ok: bool, ms: int) -> None:
@@ -327,7 +332,7 @@ async def _log_question(pool, question: str, ok: bool, ms: int) -> None:
                 "INSERT INTO public.nlp_questions (question, ok, ms) VALUES ($1, $2, $3)",
                 text, ok, ms)
     except Exception as exc:
-        print(f"WARNING: question not logged: {exc}")
+        _warn_exception("question not logged", exc)
 
 
 async def _log_turn(pool, *, conversation_id: str, turn: int, question: str,
@@ -362,9 +367,10 @@ async def _log_turn(pool, *, conversation_id: str, turn: int, question: str,
                 "VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)",
                 conversation_id, turn, text, (answer_text or "")[:8000] or None,
                 kind, district, ok, ms, model, structured,
-                (followup_label or "")[:60] or None, (error or "")[:400] or None)
+                (followup_label or "")[:60] or None,
+                "query_failed" if error else None)
     except Exception as exc:            # table missing, DB asleep
-        print(f"WARNING: conversation turn not recorded: {exc}")
+        _warn_exception("conversation turn not recorded", exc)
 
 
 # ---------------------------------------------------------------------------
@@ -424,7 +430,7 @@ async def _record_event(pool, *, rid: str, visitor: str, session: str,
                 (conversation_id or "")[:64] or None,
                 (event_key or "")[:80] or None)
     except Exception as exc:            # unminted rid, table missing, DB asleep
-        print(f"WARNING: journey event not recorded ({event}): {exc}")
+        _warn_exception(f"journey event {event!r} not recorded", exc)
 
 
 @app.middleware("http")
@@ -456,7 +462,7 @@ async def count_page_views(request: Request, call_next):
                         _pool_or_none(request), route, device, ref)
                     await _track_journey(request, resp, route, device, ref, ua)
     except Exception as exc:
-        print(f"WARNING: page-view counting failed: {exc}")
+        _warn_exception("page-view counting failed", exc)
     return resp
 
 
@@ -758,7 +764,7 @@ async def submit_feedback(body: Feedback, request: Request):
                 body.district_number, (body.contact or "").strip()[:160] or None,
                 rid or None, body.helpful)
     except Exception as exc:                # noqa: BLE001
-        print(f"WARNING: feedback not stored: {exc}")
+        _warn_exception("feedback not stored", exc)
     return {"ok": True}
 
 
@@ -901,7 +907,7 @@ async def _shared_limit_reached(pool) -> bool:
                 if got is None:
                     return True
     except asyncpg.exceptions.UndefinedTableError as exc:
-        print(f"WARNING: nlp_usage table missing, per-instance ceiling only: {exc}")
+        _warn_exception("nlp_usage table missing; per-instance ceiling only", exc)
         return False
     except Exception as exc:  # pragma: no cover - depends on environment
         # Neither open nor closed: DEGRADED. Failing fully open here left the
@@ -914,8 +920,10 @@ async def _shared_limit_reached(pool) -> bool:
         # So the shared ceiling is replaced by a much tighter local one rather
         # than removed. NOTE: this bounds CALLS, not DOLLARS. The only hard
         # money ceiling is the provider-side spend cap.
-        print(f"WARNING: metering unreachable, degrading to "
-              f"{_DEGRADED_LIMIT}/min for this instance: {exc}")
+        _warn_exception(
+            f"metering unreachable; degrading to {_DEGRADED_LIMIT}/min",
+            exc,
+        )
         return _degraded_ceiling_reached()
     return False
 
@@ -993,6 +1001,14 @@ async def nlp_query(request: NLPQueryRequest, http_request: Request):
             status_code=504,
             detail="That question took too long to answer. Try a narrower one.",
         )
+    # The public boundary owns the failure message even if an alternate engine
+    # implementation regresses and returns provider exception text.
+    if not isinstance(result, dict) or not result.get("success"):
+        result = {
+            "success": False,
+            "question": request.question,
+            "error": "The question could not be answered. Please try again.",
+        }
     # `ok` records whether the question was actually ANSWERED, not merely that
     # it avoided a timeout. The engine returns success=False with an error for
     # things like an exhausted OpenAI balance, and logging those as successes
@@ -1010,7 +1026,7 @@ async def nlp_query(request: NLPQueryRequest, http_request: Request):
                 request.question, result["answer"],
                 district_number=request.district_number)
         except Exception as exc:         # noqa: BLE001 — never lose an answer
-            print(f"WARNING: could not structure the answer: {exc}")
+            _warn_exception("could not structure the answer", exc)
 
     # The conversation, in order. Two writes on purpose: `chat_turn` is the
     # anonymous content record, and the `question` event below is the only
@@ -2496,7 +2512,8 @@ async def feed_xml(request: Request):
                 if row:
                     briefing = json.loads(row["payload"])
         except Exception as exc:  # table missing or DB down → fall through to file
-            print(f"WARNING: briefing table unavailable for feed.xml, using snapshot: {exc}")
+            _warn_exception(
+                "briefing table unavailable for feed.xml; using snapshot", exc)
     if briefing is None:
         snap = STATIC_DIR / "isd_briefing.json"
         if snap.exists():
@@ -2878,7 +2895,8 @@ async def mapbox_token():
     used here or anywhere client-facing. Returns an empty string when unset, and
     the page shows a configure-me message rather than breaking.
     """
-    return {"token": os.getenv("MAPBOX_TOKEN", "")}
+    token = os.getenv("MAPBOX_TOKEN", "").strip()
+    return {"token": token if token.startswith("pk.") else ""}
 
 
 @app.get("/map", include_in_schema=False)
@@ -2962,7 +2980,7 @@ async def ops_intel_data(request: Request, days: int = Query(7, ge=1, le=365)):
             async with pool.acquire() as conn:
                 return [dict(r) for r in await conn.fetch(sql, *args)]
         except Exception as exc:            # noqa: BLE001 — a panel, not the page
-            print(f"WARNING: intel query failed: {exc}")
+            _warn_exception("intelligence panel query failed", exc)
             return []
 
     people = await rows(intel.PEOPLE_SQL)
@@ -3225,16 +3243,16 @@ async def cron_outreach_drain(request: Request):
     started = time.monotonic()
     try:
         code, payload = await outreach_runner.drain(pool)
-    except Exception as exc:  # noqa: BLE001 — the run row is the whole point
+    except Exception:  # noqa: BLE001 — the run row is the whole point
         await _record_cron_run(pool, "outreach-drain", started, "error", 0,
-                               str(exc)[:300])
+                               "failed")
         raise
     await _record_cron_run(
         pool, "outreach-drain", started,
         "skipped" if payload.get("status") in ("unarmed", "empty") else
         ("ok" if code == 200 else "error"),
         int(payload.get("sent") or 0),
-        payload.get("status") or (payload.get("error") or "")[:200] or None)
+        payload.get("status") or ("failed" if payload.get("error") else None))
     return JSONResponse(payload, status_code=code,
                         headers={"Cache-Control": "no-store"})
 
@@ -3592,7 +3610,7 @@ async def get_briefing(request: Request):
                     return Response(content=row["payload"],
                                     media_type="application/json", headers=hdrs)
         except Exception as exc:  # table missing or DB down → fall through to file
-            print(f"WARNING: briefing table unavailable, using snapshot: {exc}")
+            _warn_exception("briefing table unavailable; using snapshot", exc)
     snap = STATIC_DIR / "isd_briefing.json"
     if snap.exists():
         return FileResponse(snap, media_type="application/json", headers=hdrs)
@@ -3600,16 +3618,39 @@ async def get_briefing(request: Request):
                         detail="No briefing yet. Run the daily research (see docs/ISD_INTELLIGENCE.md).")
 
 
+_PUBLIC_CRON_DETAIL_CODES = frozenset({
+    "already_ran_today",
+    "empty",
+    "failed",
+    "not_persisted",
+    "unarmed",
+})
+
+
+def _public_cron_detail(value: object) -> str | None:
+    """Return only a controlled, identifier-free operational code.
+
+    ``cron_runs`` is exposed through a public endpoint (direct anonymous table
+    access is revoked by the privacy migration). Historical rows can contain
+    exception text from before this boundary existed, so the same allowlist is
+    applied on both write and read. Truncation is not redaction: a URL,
+    credential, or recipient address can fit inside a truncated string.
+    """
+    return value if isinstance(value, str) and value in _PUBLIC_CRON_DETAIL_CODES else None
+
+
 async def _record_cron_run(pool, job: str, started: float, status: str,
-                           rows_written: int = 0, detail: str = None) -> None:
+                           rows_written: int = 0,
+                           detail_code: str | None = None) -> None:
     """Write one breadcrumb saying this job fired, and what came of it.
 
     Fails open, deliberately and loudly-in-the-logs-only: a missing table must
     never turn a working pipeline into a 500. The whole point of this record is
     to make failures visible, so it cannot itself become one.
 
-    `detail` is truncated hard. Exception text from asyncpg can contain the
-    connection string, and this table is world-readable.
+    ``detail_code`` is an allowlisted operational state, never exception text.
+    Exception text from asyncpg/providers can contain connection strings or
+    recipient addresses, and the aggregate result is publicly observable.
     """
     if pool is None:
         return
@@ -3623,9 +3664,11 @@ async def _record_cron_run(pool, job: str, started: float, status: str,
                 "(job, started_at, duration_ms, status, rows_written, detail) "
                 "VALUES ($1, $2, $3, $4, $5, $6)",
                 job, began, elapsed_ms, status, rows_written,
-                (detail or "")[:500] or None)
+                _public_cron_detail(detail_code))
     except Exception as exc:
-        print(f"WARNING: could not record cron run (table missing?): {exc}")
+        # Log the class only. Driver messages can embed the database URL.
+        print("WARNING: could not record cron run "
+              f"({type(exc).__name__}); no exception detail logged")
 
 
 @app.get("/api/cron/runs", tags=["Intelligence"])
@@ -3660,7 +3703,13 @@ async def get_cron_runs(request: Request, job: str = "isd-intelligence",
                        f"sql/create_cron_runs.sql ({type(exc).__name__})"}
 
     from datetime import timezone
-    runs = [dict(r) for r in rows]
+    runs = []
+    for row in rows:
+        run = dict(row)
+        # Redact legacy rows too: old deployments persisted raw exception
+        # strings before writes were restricted to controlled codes.
+        run["detail"] = _public_cron_detail(run.get("detail"))
+        runs.append(run)
     ok = [r for r in runs if r["status"] == "ok"]
     last_ok = ok[0]["started_at"] if ok else None
     gap = ((datetime.now(timezone.utc) - last_ok).days
@@ -3719,10 +3768,10 @@ async def cron_isd_intelligence(request: Request):
                     # by date and Vercel can retry. Recorded as its own status so
                     # that a run of nothing but skips is still visibly a run.
                     await _record_cron_run(pool, "isd-intelligence", started,
-                                           "skipped", 0, "already ran today")
+                                           "skipped", 0, "already_ran_today")
                     return {"status": "already_ran", "run_date": run_date}
         except Exception as exc:
-            print(f"WARNING: idempotency check failed, proceeding: {exc}")
+            _warn_exception("idempotency check failed; proceeding", exc)
 
     # The research itself is synchronous and network-bound; keep it off the loop.
     from scripts import isd_intel
@@ -3744,7 +3793,7 @@ async def cron_isd_intelligence(request: Request):
         try:
             items += isd_intel.fetch_tea_newsroom()
         except Exception as exc:
-            print(f"WARNING: TEA newsroom fetch failed: {exc}")
+            _warn_exception("TEA newsroom fetch failed", exc)
         # Then Google News for breadth across the priority districts.
         queries = isd_intel.build_queries(None)
         for name in priority:
@@ -3753,7 +3802,7 @@ async def cron_isd_intelligence(request: Request):
             try:
                 items += isd_intel.fetch_google_news_rss(q)
             except Exception as exc:  # one bad feed must not sink the run
-                print(f"WARNING: feed failed for {q!r}: {exc}")
+                _warn_exception("one intelligence feed failed", exc)
 
         # LLM enrichment is opt-in and hard-bounded. Off unless ISD_LLM_EXTRACT
         # is set AND a key is present; capped at ISD_LLM_MAX_CALLS per run so it
@@ -3769,16 +3818,15 @@ async def cron_isd_intelligence(request: Request):
 
     try:
         briefing = await run_in_threadpool(_run)
-    except Exception as exc:
+    except Exception:
         # Record BEFORE re-raising. Previously this path left nothing behind, so
         # a job failing every day was indistinguishable from a job that was
         # never scheduled.
         await _record_cron_run(pool, "isd-intelligence", started, "error", 0,
-                               f"{type(exc).__name__}: {exc}")
+                               "failed")
         raise
 
     stored = False
-    store_error = None
     if pool is not None:
         try:
             async with pool.acquire() as conn:
@@ -3788,8 +3836,8 @@ async def cron_isd_intelligence(request: Request):
                     run_dt, json.dumps(briefing))
                 stored = True
         except Exception as exc:
-            print(f"WARNING: could not store briefing (table missing?): {exc}")
-            store_error = f"{type(exc).__name__}: {exc}"
+            print("WARNING: could not store briefing "
+                  f"({type(exc).__name__}); no exception detail logged")
 
     # rows_written is what makes the original failure legible after the fact:
     # the run succeeded, analysed items, and persisted nothing. Recording a
@@ -3798,7 +3846,7 @@ async def cron_isd_intelligence(request: Request):
         pool, "isd-intelligence", started,
         "ok" if stored else "error",
         briefing["meta"]["items_analyzed"] if stored else 0,
-        None if stored else (store_error or "briefing built but not persisted"))
+        None if stored else "not_persisted")
 
     return {"status": "ok", "run_date": run_date, "stored": stored,
             "items_analyzed": briefing["meta"]["items_analyzed"],
@@ -3840,21 +3888,39 @@ async def health_check(request: Request):
     key-free description (provider:model via host) — never the API key itself.
     """
     llm = llm_config.describe()
+    # Vercel populates this for Git deployments at build and runtime. A commit
+    # SHA is public repository metadata, not a credential; exposing it closes
+    # the gap where stable headline checks could pass against an older bundle.
+    candidate_revision = (os.getenv("VERCEL_GIT_COMMIT_SHA") or "").lower()
+    revision = (
+        candidate_revision
+        if len(candidate_revision) == 40
+        and all(char in "0123456789abcdef" for char in candidate_revision)
+        else "local"
+    )
     pool = request.app.state.db_pool
     # Whether the journey-tracking tables exist. Without this, a deploy where
     # the migration failed looks identical from outside to one where it worked
     # — and the symptom (clicks silently dropped) is invisible by design,
     # because a foreign-key rejection is caught and logged, not surfaced.
-    schema = getattr(request.app.state, "schema_status", "unknown")
+    raw_schema = getattr(request.app.state, "schema_status", "unknown")
+    schema = (
+        "ready" if isinstance(raw_schema, str) and raw_schema.startswith("ok:")
+        else "unavailable" if isinstance(raw_schema, str)
+        and raw_schema.startswith("ERROR:")
+        else "unknown"
+    )
     if pool is None:
         return {"status": "degraded", "database": "not configured", "llm": llm,
-                "tracking_schema": schema}
+                "tracking_schema": schema, "revision": revision}
     try:
         async with pool.acquire() as conn:
             await conn.fetchval("SELECT 1")
         return {"status": "healthy", "database": "connected", "llm": llm,
-                "tracking_schema": schema}
-    except Exception as e:
-        raise HTTPException(status_code=503, detail=f"Database connection failed: {str(e)}")
+                "tracking_schema": schema, "revision": revision}
+    except Exception:
+        # A driver error may echo a connection URI. Health is public; the
+        # operational state is useful, the exception text is not.
+        raise HTTPException(status_code=503, detail="Database connection failed") from None
 
 # Run with: uvicorn src.api:app --reload --port 8000

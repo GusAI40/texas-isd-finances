@@ -115,6 +115,19 @@ def test_describe_never_leaks_the_key(monkeypatch):
     assert "configured" in text
 
 
+def test_describe_strips_custom_endpoint_userinfo_path_and_query(monkeypatch):
+    clear(monkeypatch)
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-test")
+    monkeypatch.setenv("NLP_BASE_URL", (
+        "https://recipient@example.org:private@example.test:8443/"
+        "v1?token=sk-leak"
+    ))
+    text = describe()
+    assert "via example.test:8443" in text
+    for secret in ("recipient", "private", "/v1", "token", "sk-leak"):
+        assert secret not in text
+
+
 def test_both_callers_resolve_the_same_provider(monkeypatch):
     """The /query agent and the news enrichment must never split across two
     providers — that would bill two accounts and half-fail."""
@@ -127,3 +140,19 @@ def test_both_callers_resolve_the_same_provider(monkeypatch):
     # Neither may read a provider key directly any more.
     assert 'getenv("OPENAI_API_KEY")' not in engine_src
     assert 'getenv("OPENAI_API_KEY")' not in intel_src
+
+
+def test_operator_maps_and_render_blueprint_match_provider_selection():
+    """Operator prose must not turn the alternate into the primary or imply
+    request failover that the implementation does not perform."""
+    root = Path(__file__).resolve().parent.parent
+    project_map = (root / "PROJECT_MAP.md").read_text()
+    assert "DeepSeek active; OpenAI alternate" in project_map
+    assert "No automatic request failover" in project_map
+    assert "failed DeepSeek request is **not** retried against OpenAI" in project_map
+
+    render = (root / "render.yaml").read_text()
+    assert "- key: NLP_PROVIDER\n        value: deepseek" in render
+    assert "- key: DEEPSEEK_API_KEY" in render
+    assert "not automatic failover" in render
+    assert "- key: OPENAI_API_KEY" not in render

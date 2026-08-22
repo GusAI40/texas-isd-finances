@@ -1,0 +1,31 @@
+version: 2
+
+# Pins stay immutable in the default branch; updates arrive as reviewable PRs
+# and must pass the same lock, test, and deployment gates as human changes.
+updates:
+  - package-ecosystem: uv
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: America/Chicago
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:15"
+      timezone: America/Chicago
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:30"
+      timezone: America/Chicago
+    open-pull-requests-limit: 3

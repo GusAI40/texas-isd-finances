@@ -8,7 +8,9 @@
 # Needs two repository secrets (Settings → Secrets → Actions):
 #   RESEND_API_KEY   read the statuses
 #   SUPABASE_PAT     read the sent log / write the statuses
-# Until both exist the job skips harmlessly and says so.
+# Until both exist a manual run is a harmless readiness probe. A scheduled run
+# fails after publishing a NOT CONFIGURED warning and summary so missing KPI
+# collection cannot remain green and invisible.
 
 name: Outreach KPI
 
@@ -24,16 +26,45 @@ jobs:
   snapshot:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
 
-      - name: Snapshot engagement statuses
+      # Secret VALUES stay in step-local environment variables. This step
+      # reports only the fixed variable NAMES that are absent.
+      - name: Check outreach-KPI readiness
+        id: readiness
         env:
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
           SUPABASE_PAT: ${{ secrets.SUPABASE_PAT }}
         run: |
-          if [ -z "$RESEND_API_KEY" ] || [ -z "$SUPABASE_PAT" ]; then
-            echo "secrets not configured — skipping (add RESEND_API_KEY and"
-            echo "SUPABASE_PAT in repo Settings → Secrets → Actions to arm)"
-            exit 0
+          missing=()
+          [ -n "$RESEND_API_KEY" ] || missing+=(RESEND_API_KEY)
+          [ -n "$SUPABASE_PAT" ] || missing+=(SUPABASE_PAT)
+          if [ "${#missing[@]}" -gt 0 ]; then
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "::warning title=Outreach KPI not configured::Missing repository secrets: ${missing[*]}. Execution was skipped; no provider or database call ran."
+            {
+              echo "### ⚠️ Outreach KPI: NOT CONFIGURED"
+              echo
+              echo "Missing repository secret names: \`${missing[*]}\`."
+              echo "No provider or database call ran. Add them in Settings → Secrets → Actions."
+            } >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+            echo "### ✅ Outreach KPI: configured; execution eligible" >> "$GITHUB_STEP_SUMMARY"
           fi
+
+      - name: Snapshot engagement statuses
+        if: steps.readiness.outputs.configured == 'true'
+        env:
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          SUPABASE_PAT: ${{ secrets.SUPABASE_PAT }}
+        run: |
           python scripts/outreach_kpi.py
+
+      - name: Notify when scheduled KPI collection is unconfigured
+        if: steps.readiness.outputs.configured != 'true' && github.event_name == 'schedule'
+        run: |
+          echo "Scheduled outreach KPI collection cannot run until its repository secrets are configured." >&2
+          exit 1

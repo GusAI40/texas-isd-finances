@@ -20,8 +20,8 @@
 #
 # Needs one repository secret (Settings → Secrets → Actions):
 #   DEEPSEEK_API_KEY
-# Without it the script says so and exits 0 — but note that means this workflow
-# is INERT until the secret exists. Check the run log once after adding it.
+# A missing key is reported as NOT CONFIGURED. Scheduled runs fail so the
+# repository owner is notified; manual runs remain a safe readiness probe.
 
 name: LLM balance
 
@@ -37,15 +37,42 @@ jobs:
   balance:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: "3.12"
 
+      - name: Check balance-monitor readiness
+        id: readiness
+        env:
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+        run: |
+          if [ -z "$DEEPSEEK_API_KEY" ]; then
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "::warning title=LLM balance monitor not configured::Missing repository secret: DEEPSEEK_API_KEY."
+            {
+              echo "### ⚠️ LLM balance monitor: NOT CONFIGURED"
+              echo
+              echo "Missing repository secret name: \`DEEPSEEK_API_KEY\`."
+            } >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+            echo "### ✅ LLM balance monitor: configured" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
       - name: How much money is left for the question box?
+        if: steps.readiness.outputs.configured == 'true'
         env:
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
         # --min fails the run below $2, which is roughly a fortnight of
         # observed demand and a few days of the configured ceiling.
         run: python scripts/check_llm_balance.py --min 2.00
+
+      - name: Notify when a scheduled monitor is unconfigured
+        if: steps.readiness.outputs.configured != 'true' && github.event_name == 'schedule'
+        run: |
+          echo "Scheduled balance monitoring cannot run without DEEPSEEK_API_KEY." >&2
+          exit 1

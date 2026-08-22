@@ -45,7 +45,9 @@ not authentication, and identifying ourselves is the fix.
 
 Exit 0: every verifiable source is at or behind our vintage. Exit 1: upstream
 has something we have not ingested, or a source is uncovered. Network errors
-are reported and do not fail — a sandbox without egress is not a stale site.
+are normally reported without failure—a sandbox without egress is not a stale
+site. Scheduled monitoring uses ``--require-network`` so a broken watchdog
+cannot stay green indefinitely.
 """
 from __future__ import annotations
 
@@ -267,6 +269,8 @@ def main(argv: list[str] | None = None) -> int:
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--json", type=Path, default=None,
                     help="also write the full report as JSON")
+    ap.add_argument("--require-network", action="store_true",
+                    help="also fail on publisher network errors; use in CI")
     args = ap.parse_args(argv)
 
     vintages = load_vintages()
@@ -304,7 +308,7 @@ def main(argv: list[str] | None = None) -> int:
              "newer": newer, "uncovered": uncovered, "errors": errors}, indent=1))
         print(f"\nwrote {args.json}")
 
-    return 1 if (newer or uncovered) else 0
+    return 1 if (newer or uncovered or (args.require_network and errors)) else 0
 
 
 if __name__ == "__main__":

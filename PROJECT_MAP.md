@@ -19,7 +19,7 @@ graph TB
         CITIZEN["👤 Citizens, journalists,<br/>parents, lawmakers"]
     end
 
-    subgraph CITY["🏙️ CITY: Your Cloud Host (Render / Docker / Vercel)"]
+    subgraph CITY["🏙️ CITY: Your Cloud Host (Vercel; Render / Docker alternates)"]
         subgraph STREET["🛣️ STREET: The Web Service (FastAPI — src/api.py)"]
             subgraph HOUSE["🏠 HOUSE: The Portal (static/index.html)"]
                 R1["🚪 Front porch:<br/>district search"]
@@ -29,7 +29,7 @@ graph TB
             end
             API["📋 Service windows (API endpoints):<br/>/districts /stats /anomalies /query /docs"]
         end
-        AGENT["🤖 AGENT: The Translator<br/>(src/nlp_engine.py — LangChain + OpenAI)<br/>Turns English questions into<br/>database questions (SQL)"]
+        AGENT["🤖 AGENT: The Translator<br/>(src/nlp_engine.py — LangChain + configured LLM)<br/>DeepSeek active; OpenAI alternate<br/>Turns English questions into SQL<br/>No automatic request failover"]
     end
 
     subgraph VAULT["🏦 NEXT TOWN OVER: The Vault (Supabase Postgres)"]
@@ -80,11 +80,16 @@ graph TB
 |---|---|
 | **Python + FastAPI** | The road crew — moves every request quickly |
 | **Supabase (Postgres)** | The bank vault — stores the records safely |
-| **LangChain + OpenAI** | The translator's brain |
+| **LangChain + selected LLM** | The translator's brain — DeepSeek in production; OpenAI is a configured alternate |
 | **Pandas** | The factory's cleaning machine |
 | **Plotly / Matplotlib** | The chart artists |
 | **GitHub + CI** | The town hall records office + inspector |
 | **Docker / Render / Vercel** | Three different plots of land you can build the town on |
+
+**Provider truth:** `src/llm_config.py` makes one configuration choice. DeepSeek
+is active in production. OpenAI is selected only through configuration (an
+explicit `NLP_PROVIDER=openai`, or startup key detection when no DeepSeek key
+exists). A failed DeepSeek request is **not** retried against OpenAI.
 
 ## Objectives & The Revenue Question
 

@@ -1,84 +1,47 @@
-name: Deploy to Vercel (production)
+name: Verify Vercel Git deployment (production)
 
-# Brings the site to life on every push to master — the same working-tree
-# deploy the runbook describes (`vercel deploy --prod`), run in CI instead of
-# on someone's laptop, so shipping no longer depends on a local Vercel login.
+# Production deploys through Vercel's existing Git integration when master
+# moves. This workflow deliberately does not install a deployment CLI or hold
+# deployment credentials: a second deploy path can race the Git integration,
+# and the reviewed CLI graph carried avoidable transitive vulnerabilities.
 #
-# ⚠️ READ THIS BEFORE ADDING THE SECRETS (established 2026-08-14).
-# Vercel's own Git integration is ALREADY connected to this repo and builds
-# production on every merge to master — that is how PRs #7-#14 all shipped, and
-# the tell that it is connected is the existence of the
-# texas-isd-finances-git-master-….vercel.app domain. Setting the three secrets
-# below therefore does not turn deploys ON; it makes TWO deploys race for the
-# same production alias on every merge, with the loser's build silently
-# discarded and no way to tell from the outside which tree won.
-# So configure this ONLY as a replacement: disconnect the Git integration in
-# the Vercel project first, then add the secrets. Never both.
-#
-# INERT until configured. It does nothing until three repo secrets exist, so
-# merging this file changes nothing on its own:
-#   VERCEL_TOKEN       a Vercel access token owned by a TAG-ai team seat holder
-#   VERCEL_ORG_ID      the TAG-ai team id     (team_…)  — NOT GOAT-UIX
-#   VERCEL_PROJECT_ID  the texas-isd-finances project id (prj_…) that owns txisd.dev
-# Add them under Settings → Secrets and variables → Actions. The ORG/PROJECT
-# ids target the RIGHT project by id, so a same-named project on another team
-# can never be deployed by accident.
-#
-# It uploads the working tree (honoring .vercelignore) and builds on Vercel —
-# identical to the laptop flow — so vercel.json's framework preset and the
-# project's env vars (SUPABASE_DB_URL, OPENAI_API_KEY, NLP_DB_URL, CRON_SECRET,
-# MAPBOX_TOKEN) apply exactly as they do today.
+# Instead, this is the gate after the real deploy. It waits for the public
+# alias to serve this checkout and fails if the matching tree never arrives.
 
 on:
   push:
     branches: [master]
-  workflow_dispatch:   # a manual "Run workflow" button, for on-demand deploys
+  workflow_dispatch:
 
 concurrency:
-  group: vercel-production
-  cancel-in-progress: false
+  group: verify-vercel-production
+  cancel-in-progress: true
+
+permissions:
+  contents: read
 
 jobs:
-  deploy:
+  verify:
     runs-on: ubuntu-latest
-    env:
-      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
     steps:
-      - name: Skip if the deploy secrets are not set
-        if: ${{ env.VERCEL_TOKEN == '' }}
-        run: |
-          echo "::notice::VERCEL_TOKEN is not set — skipping deploy."
-          echo "Add VERCEL_TOKEN, VERCEL_ORG_ID and VERCEL_PROJECT_ID as repo"
-          echo "secrets to enable production deploys on push to master."
-
-      - name: Checkout
-        if: ${{ env.VERCEL_TOKEN != '' }}
-        uses: actions/checkout@v4
-
-      - name: Set up Node (for the Vercel CLI)
-        if: ${{ env.VERCEL_TOKEN != '' }}
-        uses: actions/setup-node@v4
+      - name: Checkout the revision Vercel must serve
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
-          node-version: '20'
+          persist-credentials: false
 
-      - name: Deploy to production
-        if: ${{ env.VERCEL_TOKEN != '' }}
+      - name: Wait for production to serve this tree
         run: |
-          npm i -g vercel@latest
-          # ORG/PROJECT ids in env pin the target project — no `vercel link`,
-          # no chance of hitting the wrong same-named project.
-          url=$(vercel deploy --prod --yes --token="$VERCEL_TOKEN")
-          echo "Deployed: $url"
-          echo "### Deployed to production :rocket:" >> "$GITHUB_STEP_SUMMARY"
-          echo "$url" >> "$GITHUB_STEP_SUMMARY"
-
-      - name: Verify production serves THIS tree (the gate that matters)
-        if: ${{ env.VERCEL_TOKEN != '' }}
-        # A stale tree passes a 200 check happily — that is the rollback trap.
-        # verify_live.py compares live headline figures against this checkout
-        # and exits non-zero on drift, so deploying an old master fails loudly.
-        run: |
-          python -m pip install requests
-          python scripts/verify_live.py
+          attempts=12
+          for attempt in $(seq 1 "$attempts"); do
+            echo "Production verification attempt $attempt/$attempts"
+            if python3 scripts/verify_live.py \
+                --require-network --expect-revision "$GITHUB_SHA"; then
+              echo "### ✅ Production serves this Git revision with schema ready" >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
+            if [ "$attempt" -lt "$attempts" ]; then
+              sleep 30
+            fi
+          done
+          echo "### ❌ Production revision or schema readiness was not verified" >> "$GITHUB_STEP_SUMMARY"
+          exit 1

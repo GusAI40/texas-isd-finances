@@ -10,19 +10,22 @@ SUPABASE_DB_URL=postgresql://postgres.[YOUR_PROJECT_REF]:[YOUR_PASSWORD]@aws-[RE
 # Direct connection (IPv6 networks or with the IPv4 add-on only):
 # SUPABASE_DB_URL=postgresql://postgres:[YOUR_PASSWORD]@db.[YOUR_PROJECT_REF].supabase.co:5432/postgres?sslmode=require
 
-SUPABASE_URL=https://[YOUR_PROJECT_REF].supabase.co
-SUPABASE_ANON_KEY=[YOUR_SUPABASE_ANON_KEY]
-OPENAI_API_KEY=[YOUR_OPENAI_API_KEY]
-
 # Least-privilege connection for the natural-language query path (/query).
 # That path lets a language model write its own SQL, so it must not use the
 # owner connection above. Create the role with sql/create_nlp_role.sql, then
-# put its pooler URL here. If unset, /query falls back to SUPABASE_DB_URL,
-# which works but is privileged — set this in any real deployment.
+# put its pooler URL here. If unset, /query stays unavailable; it never falls
+# back to the database-owner connection.
 NLP_DB_URL=postgresql://nlp_reader.[YOUR_PROJECT_REF]:[NLP_PASSWORD]@aws-[REGION].pooler.supabase.com:6543/postgres
+
+# One provider is selected at startup. DeepSeek is the current default;
+# OpenAI is a configuration alternate, not automatic request failover.
+NLP_PROVIDER=deepseek
+DEEPSEEK_API_KEY=[YOUR_DEEPSEEK_API_KEY]
+# NLP_PROVIDER=openai
+# OPENAI_API_KEY=[YOUR_OPENAI_API_KEY]
 
 # Optional overrides
 # CORS_ALLOW_ORIGINS=https://your-frontend.example.com
-# NLP_MODEL=gpt-4o-mini
-# DATA_MIN_YEAR=2008
-# DATA_MAX_YEAR=2024
+# NLP_MODEL=deepseek-v4-flash
+# DATA_MIN_YEAR=2009
+# DATA_MAX_YEAR=2025

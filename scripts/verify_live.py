@@ -33,9 +33,10 @@ embarrass us if they were wrong.
     python scripts/verify_live.py --base http://127.0.0.1:8000
     python scripts/verify_live.py --json docs/live_check.json
 
-Exits non-zero on any drift, so it can run as a cron or a deploy gate. A
-network failure is reported separately and does NOT fail the run — an agent
-sandbox with no egress is not a broken deployment.
+Exits non-zero on any drift. A network failure is reported separately and is
+non-fatal for an ordinary local run—an agent sandbox with no egress is not a
+broken deployment. CI and deploy gates use ``--require-network`` so an
+unreachable production site can never pass green.
 """
 from __future__ import annotations
 
@@ -381,6 +382,11 @@ def main() -> int:
     ap.add_argument("--with-query", action="store_true",
                     help="also ask the live NLP agent one question with a "
                          "known answer. Costs one LLM call, so it is opt-in.")
+    ap.add_argument("--require-network", action="store_true",
+                    help="also fail when any live endpoint is unreachable; "
+                         "use in CI and deployment gates")
+    ap.add_argument("--expect-revision", default=None,
+                    help="require /health revision to equal this Git SHA")
     args = ap.parse_args()
     base = args.base.rstrip("/")
 
@@ -444,6 +450,77 @@ def main() -> int:
         print(f"{'  ok  ' if state == 'ok' else ' DRIFT' if state == 'DRIFT' else ' ---- '}"
               f"  {label:44}")
 
+    if args.expect_revision:
+        body, err = get(base + "/health")
+        actual_revision = dig(body, "revision") if body is not None else None
+        if err and err.startswith("TRANSPORT"):
+            state = "UNREACHABLE"
+            unreachable.append(f"/health ({err})")
+        elif err:
+            state = "MISSING LIVE"
+            missing.append(f"deployment revision (/health -> {err})")
+        elif actual_revision == args.expect_revision:
+            state = "ok"
+        else:
+            state = "DRIFT"
+            drift.append((
+                "deployment revision",
+                args.expect_revision,
+                actual_revision or "missing revision marker",
+            ))
+        rows.append({
+            "check": "deployment revision",
+            "endpoint": "/health",
+            "expected": args.expect_revision,
+            "live": actual_revision,
+            "state": state,
+            "error": err,
+        })
+        print(
+            f"{'  ok  ' if state == 'ok' else ' DRIFT' if state == 'DRIFT' else ' ---- '}"
+            f"  {'deployment revision':44}"
+            f"  repo {args.expect_revision!r}"
+            f"   live {actual_revision!r}"
+        )
+
+        # Serving the requested bytes is not enough when those bytes carry a
+        # self-applied security migration. The cron-log privacy repair clears
+        # legacy exception text and revokes anonymous table access at startup;
+        # an exact revision with tracking_schema=unavailable is therefore not
+        # a successful deployment.
+        expected_health = {
+            "status": "healthy",
+            "database": "connected",
+            "tracking_schema": "ready",
+        }
+        actual_health = {
+            key: dig(body, key) if body is not None else None
+            for key in expected_health
+        }
+        if err and err.startswith("TRANSPORT"):
+            health_state = "UNREACHABLE"
+        elif err:
+            health_state = "MISSING LIVE"
+        elif actual_health == expected_health:
+            health_state = "ok"
+        else:
+            health_state = "DRIFT"
+            drift.append(("deployment health", expected_health, actual_health))
+        rows.append({
+            "check": "deployment health and schema migration",
+            "endpoint": "/health",
+            "expected": expected_health,
+            "live": actual_health,
+            "state": health_state,
+            "error": err,
+        })
+        print(
+            f"{'  ok  ' if health_state == 'ok' else ' DRIFT' if health_state == 'DRIFT' else ' ---- '}"
+            f"  {'deployment health and schema migration':44}"
+            f"  repo {expected_health!r}"
+            f"   live {actual_health!r}"
+        )
+
     tstate, twhy = check_headline_twin(base, arts)
     rows.append({"check": "clock DB total matches its lineage artefact",
                  "endpoint": "/dollar/texas", "state": tstate,
@@ -499,7 +576,7 @@ def main() -> int:
              "unreachable": sorted(set(unreachable))}, indent=1))
         print(f"\nwrote {args.json}")
 
-    return 1 if (drift or missing) else 0
+    return 1 if (drift or missing or (args.require_network and unreachable)) else 0
 
 
 if __name__ == "__main__":

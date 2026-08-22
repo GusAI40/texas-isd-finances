@@ -1,5 +1,14 @@
 # Public-Launch Audit — June 1, 2026 (Round 2 addendum below, July 22, 2026)
 
+> **Current status (2026-08-22):** this file preserves the two dated launch
+> audits. The current stack, official Agent Skills research, and hardening
+> disposition live in `docs/TECH_STACK_AND_AGENT_SKILLS.md`. The SQL agent no
+> longer depends on `langchain-community` and no longer falls back to the
+> database-owner URL. Model-authored SQL is additionally parsed through an
+> exact SQLGlot AST/function/relation policy before a timeout-bounded read-only
+> transaction; all Python build paths use the committed `uv.lock`. Repository
+> controls and production verification remain separate evidence.
+
 Full code and repository audit performed ahead of opening this project for
 public use. Scope: every source file, SQL schema, docs, CI, and git history.
 
@@ -54,14 +63,16 @@ Data coverage is TEA's summarized financial data for fiscal years
 - ~~The NLP agent's SQL access is limited to two read-only views, and the
   schema grants no write access to API roles; still, prefer a dedicated
   read-only database role in production.~~ **Closed.**
-  `sql/create_nlp_role.sql` creates `nlp_reader` — SELECT on the two views,
-  `default_transaction_read_only = on`, no schema or role rights — and
-  `src/nlp_engine.py` prefers `NLP_DB_URL` over the owner connection. The
+  `sql/create_nlp_role.sql` creates `nlp_reader` — schema `USAGE` plus SELECT
+  on the two views, `default_transaction_read_only = on`, and no CREATE,
+  base-table, public-function, or role rights — and `src/nlp_engine.py`
+  requires `NLP_DB_URL`, never uses the owner connection, and rejects every
+  SQL AST node/function/relation outside its reviewed finance-query policy. The
   point: `include_tables` controlled what the agent was *told about*, never
   what the database would *let it run*. Now the boundary is enforced where
-  a prompt cannot reach it. The env-var fallback to `SUPABASE_DB_URL` keeps
-  a fresh checkout working, so a deployment is only actually protected once
-  `NLP_DB_URL` is set — DEPLOYMENT.md step 1.3.
+  a prompt cannot reach it. If the least-privilege URL is missing, `/query`
+  stays unavailable instead of running model-authored SQL as the owner — see
+  DEPLOYMENT.md step 1.4.
 - Anomaly thresholds (15/20/10%) are heuristics; the portal labels them as
   starting points for questions, not findings of wrongdoing.
 
@@ -81,11 +92,11 @@ secret scan.
 | R2-2 | **High** | `env_template.txt` used Supabase's direct-connection format (`db.[REF].supabase.co:5432`). Per current Supabase docs this host is **IPv6-only** without the paid IPv4 add-on — Render/Railway/Vercel egress over IPv4, so every documented deploy path would have failed with connection timeouts. | Template and DEPLOYMENT.md now lead with the shared **session pooler** string (`postgres.[REF]@aws-[REGION].pooler.supabase.com:5432`), which is IPv4-compatible on all tiers |
 | R2-3 | **Medium** | Git-history secret scan: deleted internal status docs remain in history and expose the old Supabase **project ref** (`emtwbizmorqwhboebgzw`) and confirm which services were configured. No complete secrets leak (DB password is masked, the anon key is truncated at the JWT header, no OpenAI keys found). | Documented here. **Recommendation:** if that Supabase project is still live, rotate its database password and anon key, since the ref narrows an attacker's target. History rewrite is optional (refs are semi-public by design) but `git filter-repo` guidance is available if desired |
 | R2-4 | Medium | `vercel.json` used `includeFiles`, which the current Vercel Python runtime docs do not support — Python bundles include all project files by default and support only `excludeFiles`. | Replaced with `excludeFiles` for tests/data; docs updated with the current 500 MB uncompressed bundle cap and Python 3.12 default |
-| R2-5 | Low | `langchain-community` (source of `SQLDatabase`/`SQLDatabaseToolkit`) was officially sunset in June 2026 and is no longer actively maintained. It still functions and no standalone replacement for the SQL toolkit exists yet. | Documented in code and here; track langchain-community issue #674 for the migration path |
+| R2-5 | Low | `langchain-community` (source of `SQLDatabase`/`SQLDatabaseToolkit`) was officially sunset in June 2026 and is no longer actively maintained. It still functions and no standalone replacement for the SQL toolkit exists yet. | **Closed 2026-08-22:** replaced by application-owned SQLAlchemy tools following LangChain's current direct-tool pattern; removed from manifests and lock. |
 | R2-6 | Low | Dead code: `DistrictSummary`/`AnomalyFlag` Pydantic models were defined but never used. | Removed |
 | R2-7 | Info | `render.yaml` validated against the current Blueprint spec: `runtime: python` (correct; `env:` is discouraged), `plan: free`, and `healthCheckPath` are all valid. | No change needed |
 
-## Version matrix validated (July 22, 2026)
+## Version matrix validated (July 22, 2026; historical snapshot)
 
 | Package | Installed/tested | Notes |
 |---|---|---|

@@ -324,7 +324,7 @@ def test_every_per_recipient_rail_is_reheld_at_send_time():
     src = inspect.getsource(outreach_runner.drain)
     for marker in ("opted out after enqueue", "suppressed after enqueue",
                    "contact address changed since enqueue",
-                   "identity gate: "):
+                   "identity gate failed"):
         assert marker in src, f"send-time rail missing: {marker}"
     # and the gate runs against the CURRENT contact row, pre-render
     assert src.index("identity_problems") < src.index("render_email")
@@ -466,6 +466,18 @@ def test_a_failed_drain_keeps_its_reason_in_the_cron_log():
     fn = api[api.index("async def cron_outreach_drain"):
              api.index("async def outreach_status")]
     assert 'payload.get("error")' in fn
+
+
+def test_provider_and_legacy_error_text_is_never_returned_verbatim():
+    sentinel = "delivery failed for recipient@example.org?token=sk-secret"
+    assert outreach_runner._safe_queue_error_detail(sentinel) == (
+        "failure detail redacted"
+    )
+    assert outreach_runner._safe_queue_error_detail(
+        "delivery attempt failed") == "delivery attempt failed"
+    src = __import__("inspect").getsource(outreach_runner.drain)
+    assert "str(exc)" not in src
+    assert "drain aborted mid-batch ({exc})" not in src
 
 
 def test_the_identity_gates_name_map_is_read_once_not_per_message():

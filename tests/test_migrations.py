@@ -84,4 +84,105 @@ def test_ensure_schema_swallows_a_broken_pool():
 
     result = asyncio.run(migrations.ensure_schema(Boom()))
     assert result.startswith("ERROR")
-    assert "connection refused" in result
+    assert "RuntimeError" in result
+    assert "connection refused" not in result
+
+
+def test_cron_privacy_migration_is_idempotent_and_identifier_free():
+    ddl = migrations.CRON_LOG_PRIVACY_DDL
+    assert migrations.CRON_LOG_PRIVACY_CONSTRAINT in ddl
+    assert "IF NOT EXISTS" in ddl
+    assert "UPDATE public.cron_runs" in ddl
+    assert "SET detail = NULL" in ddl
+    assert "REVOKE ALL ON public.cron_runs" in ddl
+    assert "email" not in ddl.lower()
+
+
+def test_existing_schema_self_applies_cron_privacy_hardening():
+    class Tx:
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *args):
+            return False
+
+    class Conn:
+        def __init__(self):
+            self.privacy_current = False
+            self.executed = []
+
+        async def fetchval(self, sql, *_args):
+            if "pg_get_viewdef" in sql:
+                return "view includes followup"
+            if "SELECT EXISTS" in sql:
+                return self.privacy_current
+            if "to_regclass" in sql:
+                return "present"
+            raise AssertionError(sql)
+
+        async def execute(self, sql, *_args):
+            self.executed.append(sql)
+            if sql == migrations.CRON_LOG_PRIVACY_DDL:
+                self.privacy_current = True
+
+        def transaction(self):
+            return Tx()
+
+    class Acquire(Tx):
+        def __init__(self, conn):
+            self.conn = conn
+
+        async def __aenter__(self):
+            return self.conn
+
+    class Pool:
+        def __init__(self, conn):
+            self.conn = conn
+
+        def acquire(self):
+            return Acquire(self.conn)
+
+    conn = Conn()
+    result = asyncio.run(migrations.ensure_schema(Pool(conn)))
+    assert result == "ok: refreshed durable schema security"
+    assert migrations.CRON_LOG_PRIVACY_DDL in conn.executed
+    assert conn.privacy_current is True
+
+
+def test_peer_race_recovery_awaits_each_schema_check():
+    """A peer can finish the migration after this worker's first read fails."""
+    class Acquire:
+        def __init__(self, conn):
+            self.conn = conn
+
+        async def __aenter__(self):
+            return self.conn
+
+        async def __aexit__(self, *args):
+            return False
+
+    class FirstConn:
+        async def fetchval(self, *_args):
+            raise RuntimeError("lost migration race")
+
+    class RecoveredConn:
+        async def fetchval(self, sql, *_args):
+            if "pg_get_viewdef" in sql:
+                return "view includes followup"
+            if "SELECT EXISTS" in sql:
+                return True
+            if "to_regclass" in sql:
+                return "present"
+            raise AssertionError(sql)
+
+    class RacingPool:
+        def __init__(self):
+            self.acquires = 0
+
+        def acquire(self):
+            self.acquires += 1
+            conn = FirstConn() if self.acquires == 1 else RecoveredConn()
+            return Acquire(conn)
+
+    result = asyncio.run(migrations.ensure_schema(RacingPool()))
+    assert result == "ok: tracking schema present (raced another worker)"

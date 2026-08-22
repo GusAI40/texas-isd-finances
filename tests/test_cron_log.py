@@ -93,13 +93,23 @@ async def test_no_database_is_a_no_op_not_a_crash():
 
 
 @pytest.mark.anyio
-async def test_detail_is_truncated_because_the_table_is_world_readable():
-    """asyncpg exception text can carry the connection string."""
+async def test_free_text_detail_is_rejected_not_merely_truncated():
+    """A short exception can still carry a URI or recipient address."""
     import time
     pool = FakePool()
-    await api._record_cron_run(pool, "j", time.monotonic(), "error", 0, "x" * 5000)
-    detail = pool.writes[0][1][5]
-    assert len(detail) <= 500
+    secret = "postgres://owner:password@db.example/recipient@example.org"
+    await api._record_cron_run(pool, "j", time.monotonic(), "error", 0, secret)
+    assert pool.writes[0][1][5] is None
+
+
+@pytest.mark.anyio
+async def test_only_controlled_public_detail_codes_are_persisted():
+    import time
+    for code in api._PUBLIC_CRON_DETAIL_CODES:
+        pool = FakePool()
+        await api._record_cron_run(
+            pool, "j", time.monotonic(), "skipped", 0, code)
+        assert pool.writes[0][1][5] == code
 
 
 @pytest.mark.anyio
@@ -148,13 +158,66 @@ def test_the_endpoint_collects_no_identifiers(client):
         api.app.state.db_pool = saved
 
 
+def test_the_endpoint_redacts_legacy_exception_rows(client):
+    """Old database rows are unsafe even after all new writes are fixed."""
+    from datetime import datetime, timezone
+
+    class ReadConn:
+        async def fetch(self, _sql, *_args):
+            return [{
+                "started_at": datetime.now(timezone.utc),
+                "duration_ms": 1,
+                "status": "error",
+                "rows_written": 0,
+                "detail": "delivery to recipient@example.org failed",
+            }]
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *args):
+            return False
+
+    class ReadPool:
+        def acquire(self):
+            return ReadConn()
+
+    saved, api.app.state.db_pool = getattr(api.app.state, "db_pool", None), ReadPool()
+    try:
+        body = client.get("/api/cron/runs?job=outreach-drain").json()
+        assert body["runs"][0]["detail"] is None
+        assert "recipient@example.org" not in str(body)
+    finally:
+        api.app.state.db_pool = saved
+
+
 # --- the migration ----------------------------------------------------------
 
 def test_the_migration_records_the_three_real_outcomes():
     sql = (ROOT / "sql" / "create_cron_runs.sql").read_text()
     assert "CHECK (status IN ('ok', 'skipped', 'error'))" in sql
+    assert "cron_runs_public_detail_code" in sql
+    assert "'already_ran_today', 'empty', 'failed', 'not_persisted', 'unarmed'" in sql
     assert "rows_written" in sql, "a run that wrote nothing must be recordable"
     assert "ENABLE ROW LEVEL SECURITY" in sql
+
+
+def test_direct_anonymous_cron_log_access_is_revoked():
+    sql = (ROOT / "sql" / "create_cron_runs.sql").read_text()
+    assert "GRANT SELECT ON public.cron_runs" not in sql
+    assert "REVOKE ALL ON public.cron_runs FROM PUBLIC" in sql
+    for role in ("anon", "authenticated", "nlp_reader"):
+        assert role in sql
+
+
+def test_deployed_app_self_applies_the_legacy_cleanup():
+    from src import migrations
+
+    ddl = migrations.CRON_LOG_PRIVACY_DDL
+    assert "UPDATE public.cron_runs" in ddl
+    assert "SET detail = NULL" in ddl
+    assert "REVOKE ALL ON public.cron_runs" in ddl
+    assert migrations.CRON_LOG_PRIVACY_CONSTRAINT in ddl
 
 
 def test_the_migration_stores_nothing_about_who_made_a_request():

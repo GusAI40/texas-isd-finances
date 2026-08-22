@@ -66,7 +66,8 @@ async def _rows(conn, sql: str) -> list[dict]:
     try:
         return [dict(r) for r in await conn.fetch(sql)]
     except Exception as exc:  # noqa: BLE001 - reported, never fatal
-        print(f"outreach_map: skipping ({exc})")
+        print("outreach_map: skipping failed query "
+              f"({type(exc).__name__}); detail redacted")
         return []
 
 

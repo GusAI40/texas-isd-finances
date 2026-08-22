@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass
+from urllib.parse import urlsplit
 
 # Verified against api-docs.deepseek.com: OpenAI-compatible endpoint, and tool
 # calling is supported — the SQL agent is useless without it.
@@ -74,8 +75,19 @@ def resolve_llm_config() -> LLMConfig:
 
 
 def describe() -> str:
-    """A one-line, key-free summary for logs and /health. Never prints the key."""
+    """A one-line, credential-free summary for logs and public ``/health``."""
     c = resolve_llm_config()
-    where = c.base_url or "api.openai.com"
+    raw_url = c.base_url or "https://api.openai.com"
+    try:
+        parsed = urlsplit(raw_url if "://" in raw_url else f"https://{raw_url}")
+        hostname = parsed.hostname
+        if not hostname:
+            raise ValueError("endpoint has no hostname")
+        port = parsed.port
+        where = f"{hostname}:{port}" if port is not None else hostname
+    except (TypeError, ValueError):
+        # Never fall back to the raw value: malformed custom URLs are exactly
+        # where userinfo or query-string credentials are likely to hide.
+        where = "custom endpoint"
     return (f"{c.provider}:{c.model} via {where} "
             f"({'configured' if c.configured else 'NO KEY SET'})")

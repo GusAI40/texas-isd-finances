@@ -1,6 +1,6 @@
 ---
 name: outreach
-description: The superintendent outreach machine for texas-isd-finances — how to safely prepare, send, verify, and account for email waves to Texas school superintendents, and how to read the results. Use this whenever the user asks to send outreach, send emails to superintendents, run the next wave, check outreach status/KPIs, sync outreach state, or asks anything about who has been emailed, opened, or clicked. Also use BEFORE touching any file matching data/outreach_* — every one of them is load-bearing send state, and this skill explains which mistakes re-email 571 real people.
+description: The superintendent outreach machine for texas-isd-finances — how to safely prepare, send, verify, and account for email waves to Texas school superintendents, and how to read the results. Use this whenever the user asks to send outreach, send emails to superintendents, run the next wave, check outreach status/KPIs, sync outreach state, or asks anything about who has been emailed, opened, or clicked. Also use BEFORE touching any file matching data/outreach_* — every one of them is load-bearing send state, and this skill explains which mistakes re-email 671 real people.
 ---
 
 # Outreach — sending email to real superintendents without breaking a promise
@@ -11,16 +11,31 @@ is a broken promise to a person. The machine has rails for both, but the rails
 only hold if you understand where the state lives. Read this whole file before
 running anything with `--send`.
 
+## Current production path
+
+The server-side machine is authoritative: Supabase holds `outreach_contact`,
+`outreach_queue`, `outreach_sent`, and `outreach_optout`; Vercel Cron calls
+`/api/cron/outreach-drain`; the hidden token-protected endpoints enqueue and
+report status. The local `scripts/send_outreach.py --send` path below is an
+operator fallback only. Do not switch back to it merely because production is
+unarmed—fix the missing Vercel configuration and prove the cron is ready.
+
+As of 2026-08-22, a live aggregate check showed the drain firing but
+`unarmed`. That means code is deployed but at least one required delivery
+variable is absent. No send or enqueue is authorized by this observation.
+
 ## Where the state lives (the whole design in one table)
 
 | Thing | Where | Survives container loss? |
 |---|---|---|
-| Sent log (who got mail) | `data/outreach_sent.csv` (gitignored) | NO — container only |
-| Sent log mirror | Supabase `public.outreach_sent` | YES — IF pushed with `SUPABASE_PAT` |
+| Sent log (authoritative) | Supabase `public.outreach_sent` | YES |
+| Local sent-log cache | `data/outreach_sent.csv` (gitignored) | NO — container only |
 | Opt-outs | `data/outreach_optout.txt` + Supabase mirror | file NO / mirror YES |
 | Suppressions (bounces, provider blocks) | `data/outreach_suppression.json` | NO — container only |
 | **Watermark (the floor)** | `data/outreach_watermark.json` (COMMITTED) | YES — it is the only send state in git |
-| Mailing list | `data/outreach_merge.csv` (gitignored) | NO — rebuild with `scripts/build_outreach_merge.py` |
+| Mailing list (authoritative) | Supabase `public.outreach_contact` | YES |
+| Delivery queue | Supabase `public.outreach_queue` | YES |
+| Local mailing-list builder | `data/outreach_merge.csv` (gitignored) | NO — rebuild with `scripts/build_outreach_merge.py` |
 | Journey tokens (rid → person) | `data/outreach_recipients.csv` + Supabase `outreach_recipient` | file NO / mirror YES |
 
 The trap this table exists to prevent: `_remote_emails()` returns an EMPTY
@@ -34,6 +49,12 @@ was LOST, never that people un-received email. Never pass
 they understand exactly which guarantee they are overriding.
 
 ## Credentials — and the one thing never to do
+
+The production runner needs `RESEND_API_KEY` and `TAG_POSTAL_ADDRESS` in the
+TAG-ai Vercel project; `OUTREACH_TOKEN` protects enqueue/status/manual drain,
+and `CRON_SECRET` authorizes Vercel Cron. `SUPABASE_PAT` is not required by
+the deployed runner because it writes through the application pool. The
+reply/KPI GitHub jobs have separate repository-secret readiness checks.
 
 A real send needs three environment variables; the script refuses without the
 first two:
@@ -191,8 +212,9 @@ Interpretation rules that have already prevented false findings once:
   header, not an auth failure.** Send a UA (the scripts do) or use curl.
 - The open pixel (`/px/{rid}.gif`) renders inside a superintendent's inbox —
   it must never 500. Tracking paths read the DB pool via `_pool_or_none()`.
-- Vercel is on Hobby (non-commercial terms) — flag the Pro upgrade whenever a
-  wave is discussed; these emails introduce TAG ai.
+- The production project is on the TAG-ai **Pro** team. A separate GOAT-UIX
+  team is Hobby and owns a same-named project; verify the team and custom
+  domain before every deployment or environment change.
 - `gus@ubntag.com` is the only monitored mailbox; replies land there.
 - The two bond-vendor companion CSVs must never be ingested (they carry a
   CRM with named reps and commissions). Not outreach files, but they live in
