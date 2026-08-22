@@ -168,25 +168,170 @@ def test_an_opt_out_is_still_recorded_as_a_reply():
     assert len(got) == 1 and got[0]["optout"] is True
 
 
-def test_opt_outs_are_appended_without_duplicating(tmp_path, monkeypatch):
-    f = tmp_path / "outreach_optout.txt"
-    f.write_text("already@there.example\n")
-    monkeypatch.setattr(replies, "OPTOUT_FILE", f)
-    added = replies.honour_optouts([
+def test_opt_outs_are_persisted_idempotently(monkeypatch):
+    calls = []
+
+    def fake_sql(query, pat):
+        calls.append((query, pat))
+        if "INSERT INTO" in query:
+            return [{"inserted": 1}]
+        return [{"durable": 2}]
+
+    monkeypatch.setattr(replies, "sql", fake_sql)
+    result = replies.persist_optouts([
         {"email": "already@there.example", "optout": True},
+        {"email": "New Person <NEW@District.Example>", "optout": True},
         {"email": "new@district.example", "optout": True},
         {"email": "happy@district.example", "optout": False},
+    ], "pat")
+    assert result == {"requested": 2, "inserted": 1, "durable": 2}
+    assert len(calls) == 2
+    insert, proof = (call[0] for call in calls)
+    assert all(pat == "pat" for _, pat in calls)
+    assert "INSERT INTO public.outreach_optout" in insert
+    assert "ON CONFLICT (email) DO NOTHING" in insert
+    assert "lower(o.email) = r.email" in insert
+    assert "SELECT count(*)::int AS durable" in proof
+    assert insert.count("new@district.example") == 1
+
+
+def test_duplicate_optout_is_successful_without_a_second_insert(monkeypatch):
+    monkeypatch.setattr(replies, "sql", lambda query, pat: (
+        [{"inserted": 0}] if "INSERT INTO" in query else [{"durable": 1}]))
+    assert replies.persist_optouts(
+        [{"email": "already@there.example", "optout": True}], "pat") == {
+            "requested": 1, "inserted": 0, "durable": 1}
+
+
+def test_partial_optout_persistence_fails_closed(monkeypatch):
+    monkeypatch.setattr(replies, "sql", lambda query, pat: (
+        [{"inserted": 1}] if "INSERT INTO" in query else [{"durable": 1}]))
+    with pytest.raises(RuntimeError, match="durability check failed"):
+        replies.persist_optouts([
+            {"email": "one@district.example", "optout": True},
+            {"email": "two@district.example", "optout": True},
+        ], "pat")
+
+
+def test_no_optouts_make_no_database_call(monkeypatch):
+    monkeypatch.setattr(
+        replies, "sql",
+        lambda query, pat: pytest.fail("database called without an opt-out"))
+    assert replies.persist_optouts(
+        [{"email": "a@b.c", "optout": False}], "pat") == {
+            "requested": 0, "inserted": 0, "durable": 0}
+
+
+def test_write_mode_logs_counts_not_recipient_addresses(monkeypatch, capsys):
+    for key in ("SUPABASE_PAT", "IMAP_USER", "IMAP_PASSWORD"):
+        monkeypatch.setenv(key, "set")
+    monkeypatch.setattr(replies, "fetch_sends", lambda pat: {"redacted": []})
+    monkeypatch.setattr(replies, "read_inbox", lambda days: [{}, {}])
+    monkeypatch.setattr(replies, "match", lambda messages, sends: [
+        {"email": "private.one@district.example", "optout": True},
+        {"email": "private.two@district.example", "optout": False},
     ])
-    assert added == ["new@district.example"]
-    lines = [ln.strip() for ln in f.read_text().splitlines() if ln.strip()]
-    assert lines == ["already@there.example", "new@district.example"]
+    monkeypatch.setattr(
+        replies, "persist_optouts",
+        lambda matches, pat: {"requested": 1, "inserted": 1, "durable": 1})
+    monkeypatch.setattr(replies, "write_events", lambda matches, pat: 2)
+    monkeypatch.setattr(replies.sys, "argv", ["ingest_replies.py", "--write"])
+
+    assert replies.main() == 0
+    captured = capsys.readouterr()
+    output = captured.out + captured.err
+    assert "private.one@district.example" not in output
+    assert "private.two@district.example" not in output
+    assert "reply matches: 2" in output
+    assert "opt-out requests detected: 1" in output
+    assert "opt-outs durable: 1 (1 newly inserted)" in output
 
 
-def test_no_opt_outs_touches_nothing(tmp_path, monkeypatch):
-    f = tmp_path / "outreach_optout.txt"
-    monkeypatch.setattr(replies, "OPTOUT_FILE", f)
-    assert replies.honour_optouts([{"email": "a@b.c", "optout": False}]) == []
-    assert not f.exists()
+def test_dry_run_logs_counts_not_recipient_addresses(monkeypatch, capsys):
+    for key in ("SUPABASE_PAT", "IMAP_USER", "IMAP_PASSWORD"):
+        monkeypatch.setenv(key, "set")
+    monkeypatch.setattr(replies, "fetch_sends", lambda pat: {"redacted": []})
+    monkeypatch.setattr(replies, "read_inbox", lambda days: [{}])
+    monkeypatch.setattr(replies, "match", lambda messages, sends: [{
+        "email": "private.dryrun@district.example", "optout": True,
+    }])
+    monkeypatch.setattr(replies.sys, "argv", ["ingest_replies.py"])
+
+    assert replies.main() == 0
+    captured = capsys.readouterr()
+    output = captured.out + captured.err
+    assert "private.dryrun@district.example" not in output
+    assert "reply matches: 1" in output
+    assert "opt-out requests detected: 1" in output
+
+
+def test_inbox_failure_cannot_echo_message_details(monkeypatch, capsys):
+    for key in ("SUPABASE_PAT", "IMAP_USER", "IMAP_PASSWORD"):
+        monkeypatch.setenv(key, "set")
+    monkeypatch.setattr(replies, "fetch_sends", lambda pat: {"redacted": []})
+    monkeypatch.setattr(
+        replies, "read_inbox",
+        lambda days: (_ for _ in ()).throw(
+            ValueError("private@district.example CONFIDENTIAL BODY")))
+    monkeypatch.setattr(replies.sys, "argv", ["ingest_replies.py"])
+
+    assert replies.main() == 1
+    captured = capsys.readouterr()
+    output = captured.out + captured.err
+    assert "private@district.example" not in output
+    assert "CONFIDENTIAL BODY" not in output
+    assert "no message details were logged" in output
+
+
+def test_send_log_failure_cannot_echo_recipient_details(monkeypatch, capsys):
+    for key in ("SUPABASE_PAT", "IMAP_USER", "IMAP_PASSWORD"):
+        monkeypatch.setenv(key, "set")
+    monkeypatch.setattr(
+        replies, "fetch_sends",
+        lambda pat: (_ for _ in ()).throw(
+            OSError("private@district.example CONFIDENTIAL ROW")))
+    monkeypatch.setattr(replies.sys, "argv", ["ingest_replies.py"])
+
+    assert replies.main() == 1
+    captured = capsys.readouterr()
+    output = captured.out + captured.err
+    assert "private@district.example" not in output
+    assert "CONFIDENTIAL ROW" not in output
+    assert "no send-log details were logged" in output
+
+
+def test_persistence_failure_blocks_event_write_and_redacts_logs(
+        monkeypatch, capsys):
+    for key in ("SUPABASE_PAT", "IMAP_USER", "IMAP_PASSWORD"):
+        monkeypatch.setenv(key, "set")
+    monkeypatch.setattr(replies, "fetch_sends", lambda pat: {"redacted": []})
+    monkeypatch.setattr(replies, "read_inbox", lambda days: [{}])
+    monkeypatch.setattr(replies, "match", lambda messages, sends: [
+        {"email": "private@district.example", "optout": True},
+    ])
+    monkeypatch.setattr(
+        replies, "persist_optouts",
+        lambda matches, pat: (_ for _ in ()).throw(
+            Exception("database echoed private@district.example "
+                      "CONFIDENTIAL BODY")))
+    monkeypatch.setattr(
+        replies, "write_events",
+        lambda matches, pat: pytest.fail("event write ran after opt-out failure"))
+    monkeypatch.setattr(replies.sys, "argv", ["ingest_replies.py", "--write"])
+
+    assert replies.main() == 1
+    captured = capsys.readouterr()
+    output = captured.out + captured.err
+    assert "private@district.example" not in output
+    assert "CONFIDENTIAL BODY" not in output
+    assert "Reply state was not durably recorded" in output
+    assert "No recipient addresses were logged" in output
+
+
+def test_workflow_cannot_dump_the_ignored_optout_file():
+    workflow = (ROOT / ".github" / "workflows" / "replies.yml").read_text()
+    assert "git diff" not in workflow
+    assert "data/outreach_optout.txt" not in workflow
 
 
 # --- safety rails -----------------------------------------------------------

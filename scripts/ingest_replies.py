@@ -13,13 +13,15 @@ no funnel because it looks measured.
 WHAT IT READS AND WHAT IT KEEPS
 -------------------------------
 It reads the inbox over IMAP, matches each sender against the addresses we
-actually mailed, and writes ONE `reply` event per (recipient, message). It
-keeps the FACT and the TIME. It does not keep the subject, the body, or a
-quotation of any kind — `visitor_event` has nowhere to put them and it should
-stay that way. What a superintendent wrote to us is correspondence, not
-telemetry.
+actually mailed, and writes ONE `reply` event per (recipient, message). An
+opt-out is written directly to the durable `outreach_optout` table before the
+reply event is recorded. It keeps the FACT and the TIME. It does not keep the
+subject, the body, or a quotation of any kind — `visitor_event` has nowhere to
+put them and it should stay that way. What a superintendent wrote to us is
+correspondence, not telemetry. Public job logs contain aggregate counts only,
+never recipient addresses.
 
-    python scripts/ingest_replies.py                 # dry run, prints matches
+    python scripts/ingest_replies.py                 # dry run, prints counts
     python scripts/ingest_replies.py --write         # writes the events
     python scripts/ingest_replies.py --days 30       # look further back
 
@@ -60,7 +62,6 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
 PROJECT_REF = "zwhvabkvrexphlskubog"
-OPTOUT_FILE = ROOT / "data" / "outreach_optout.txt"
 
 # Phrases that mean "stop emailing me". Deliberately broad: the asymmetry is
 # not close. Wrongly opting someone out costs one unsent email; missing a real
@@ -268,27 +269,53 @@ def write_events(matches: list[dict], pat: str) -> int:
     return int(rows[0]["n"]) if rows else 0
 
 
-def honour_optouts(matches: list[dict]) -> list[str]:
-    """Add anyone who asked to stop to the opt-out list.
+def persist_optouts(matches: list[dict], pat: str) -> dict[str, int]:
+    """Durably record every opt-out, idempotently, without returning addresses.
 
-    Done here rather than left for a human because the list is checked before
-    every send and a request sitting unread in an inbox is not honoured. The
+    One Management API statement inserts, then a second statement proves every
+    requested row is present. The separate proof is load-bearing: PostgreSQL's
+    statement snapshot would hide rows inserted by a data-modifying CTE from a
+    same-statement table scan. A scheduled run must fail rather than report
+    success if Supabase accepted only part of the suppression set. The
     detector is deliberately broad; see the note on _OPTOUT.
     """
-    asked = sorted({m["email"] for m in matches if m["optout"]})
+    asked = sorted({addr for m in matches if m.get("optout")
+                    if (addr := normalise(m.get("email", "")))})
     if not asked:
-        return []
-    existing = set()
-    if OPTOUT_FILE.exists():
-        existing = {ln.strip().lower() for ln in
-                    OPTOUT_FILE.read_text().splitlines() if ln.strip()}
-    new = [a for a in asked if a not in existing]
-    if new:
-        OPTOUT_FILE.parent.mkdir(parents=True, exist_ok=True)
-        with OPTOUT_FILE.open("a") as fh:
-            for a in new:
-                fh.write(a + "\n")
-    return new
+        return {"requested": 0, "inserted": 0, "durable": 0}
+
+    values = ",".join(f"({_q(addr)})" for addr in asked)
+    rows = sql(
+        "WITH requested(email) AS (VALUES " + values + "), "
+        "inserted AS ("
+        "INSERT INTO public.outreach_optout (email) "
+        "SELECT r.email FROM requested r "
+        "WHERE NOT EXISTS ("
+        "SELECT 1 FROM public.outreach_optout o "
+        "WHERE lower(o.email) = r.email) "
+        "ON CONFLICT (email) DO NOTHING RETURNING email) "
+        "SELECT count(*)::int AS inserted FROM inserted",
+        pat)
+    if not rows:
+        raise RuntimeError("Supabase returned no opt-out insert result")
+
+    proof = sql(
+        "WITH requested(email) AS (VALUES " + values + ") "
+        "SELECT count(*)::int AS durable FROM requested r WHERE EXISTS ("
+        "SELECT 1 FROM public.outreach_optout o "
+        "WHERE lower(o.email) = r.email)",
+        pat)
+    if not proof:
+        raise RuntimeError("Supabase returned no opt-out durability result")
+
+    result = {"requested": len(asked),
+              "inserted": int(rows[0]["inserted"]),
+              "durable": int(proof[0]["durable"])}
+    if result["durable"] != result["requested"]:
+        raise RuntimeError(
+            "opt-out durability check failed "
+            f"({result['durable']}/{result['requested']} present)")
+    return result
 
 
 def main() -> int:
@@ -318,15 +345,31 @@ def main() -> int:
         else:
             print(f"Supabase returned HTTP {exc.code} reading the send log.")
         return 1
-    except OSError as exc:
-        print(f"Could not reach Supabase: {exc}")
+    except OSError:
+        print("Could not reach Supabase; no send-log details were logged.")
+        return 1
+    except Exception:                               # noqa: BLE001
+        # A malformed adapter response can include row data in its exception.
+        # The send log contains addresses, so the public job gets no details.
+        print("Could not safely read the Supabase send log.")
         return 1
     print(f"  mailed addresses on record: {len(sends):,}")
 
-    messages = read_inbox(args.days)
+    try:
+        messages = read_inbox(args.days)
+    except Exception:                               # noqa: BLE001
+        # IMAP errors and malformed headers can echo raw server/message text.
+        # Keep that correspondence out of the public Actions traceback.
+        print("Could not safely read the mailbox; no message details were logged.")
+        return 1
     print(f"  messages in the last {args.days} days: {len(messages):,}")
 
-    matches = match(messages, sends)
+    try:
+        matches = match(messages, sends)
+    except Exception:                               # noqa: BLE001
+        print("Could not safely process mailbox replies; no message details "
+              "were logged.")
+        return 1
     if not matches:
         # A real answer, and the expected one for a while. Saying "no replies"
         # is not the same as failing, and the difference has to be visible or
@@ -336,22 +379,36 @@ def main() -> int:
         print("  honestly empty until a superintendent writes back.")
         return 0
 
-    print(f"\n  REPLIES FROM PEOPLE WE MAILED ({len(matches)})\n")
-    for m in sorted(matches, key=lambda x: x["at"]):
-        flag = "  ** ASKED TO BE REMOVED **" if m["optout"] else ""
-        print(f"  {m['at']:%Y-%m-%d %H:%M}  {m['email']:<44}{flag}")
+    optout_count = sum(1 for m in matches if m["optout"])
+    print(f"\n  reply matches: {len(matches):,}")
+    print(f"  opt-out requests detected: {optout_count:,}")
 
     if not args.write:
         print("\n  Dry run. Re-run with --write to record these.")
         return 0
 
-    total = write_events(matches, pat)
-    print(f"\n  recorded. reply events now in the database: {total}")
-    removed = honour_optouts(matches)
-    if removed:
-        print(f"  added to {OPTOUT_FILE.name}: {', '.join(removed)}")
-        print("  COMMIT that file and mirror it with sync_outreach_state.py "
-              "before the next wave.")
+    try:
+        # Suppression wins the ordering decision: if a later event write fails,
+        # the person who asked us to stop is still protected. Both operations
+        # are idempotent, so the daily retry safely completes the reply event.
+        optouts = persist_optouts(matches, pat)
+        total = write_events(matches, pat)
+    except urllib.error.HTTPError as exc:
+        print(f"\n  Supabase returned HTTP {exc.code} writing reply state.")
+        return 1
+    except OSError:
+        print("\n  Could not reach Supabase while writing reply state.")
+        return 1
+    except Exception:                               # noqa: BLE001
+        # Never interpolate a database/parser error here: it may echo the SQL,
+        # and the SQL necessarily contains the address being suppressed.
+        print("\n  Reply state was not durably recorded. No recipient "
+              "addresses were logged; retry after checking Supabase.")
+        return 1
+
+    print(f"\n  reply events now in the database: {total}")
+    print("  opt-outs durable: "
+          f"{optouts['durable']} ({optouts['inserted']} newly inserted)")
     return 0
 
 
