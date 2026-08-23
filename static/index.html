@@ -43,10 +43,34 @@
      "Look up a different district" from the very first frame. Anything
      above the fold that depends on localStorage has to be decided here —
      doing it in boot() once left the hero on screen for two API round-trips
-     and then removed it, which read as a bug. */
-  try { if (localStorage.getItem('tisd_district')
-            && sessionStorage.getItem('tisd_home') !== '1')
-          document.documentElement.classList.add('has-district'); } catch (e) {}
+     and then removed it, which read as a bug.
+
+     A ?d= LINK counts too, and for exactly the same reason — that fix was
+     applied to the saved-district case and missed the linked one, which is
+     the arrival every outreach email creates: a named superintendent sent to
+     /?d=<their district> under the promise "we built YOUR district's report."
+
+     Measured, not assumed. boot() DID set the class from `?d=` already, in
+     its synchronous prefix — but boot() is an IIFE ~4,000 lines into the
+     body, behind two large inline scripts, and `.welcome` is parsed and
+     paintable long before the parser reaches it. On a desktop that gap is
+     invisible. On a phone at 20x CPU throttle it is not: polling painted
+     frames, the generic statewide hero — a headline about all 1,310
+     districts — appears before this fix and never after it. A superintendent
+     on a phone was promised their district and shown the front door of a
+     directory first.
+
+     A district in the URL is explicit, so it wins over the one-shot home flag
+     here exactly as it does in boot(). Shape-checked against the six-digit
+     TEA number, so `?d=garbage` cannot hide the welcome and leave nothing in
+     its place. */
+  try {
+    var _linked = new URLSearchParams(location.search).get('d');
+    if (/^\d{6}$/.test(_linked || '')
+        || (localStorage.getItem('tisd_district')
+            && sessionStorage.getItem('tisd_home') !== '1'))
+      document.documentElement.classList.add('has-district');
+  } catch (e) {}
   /* Theme, also decided before first paint so there is no flash of the wrong
      one. Saved choice wins; otherwise follow the device's setting. */
   try {
