@@ -7,6 +7,11 @@ one adds credentials, and you can stop at any of them.
 > not an exhaustive count. The application has expanded substantially; use the
 > live `/docs` OpenAPI page or the generated schema for the maintained contract.
 
+> **Production note (2026-08-23):** the public portal is live at
+> <https://txisd.dev>. Outbound outreach remains intentionally unarmed pending
+> [issue #53](https://github.com/GusAI40/texas-isd-finances/issues/53); the
+> public finance and privacy fixes do not depend on it.
+
 | Tier | What you need | What you get |
 |---|---|---|
 | **1 — Read it** | nothing | The core report: portal, both maps, and district outcomes, economics, bonds, equity and the Houston takeover analysis |
@@ -170,6 +175,21 @@ killed `static/map.html` outright while the page still returned 200 and still
 contained every string you would grep for. **A 200 proves nothing and
 grepping the HTML proves less** — parse the script.
 
+## Scheduled and operator workflows
+
+- `GET /api/cron/isd-intelligence` runs the bounded daily research job. The
+  deploy entrypoint persists the briefing and its review queue atomically;
+  storage failure is a failure, never a false success. See
+  [`docs/ISD_CRON_HARDENING.md`](ISD_CRON_HARDENING.md).
+- `GET /api/cron/outreach-drain` is authenticated and fail-closed. It does not
+  send unless all required production variables are present. Arming it is an
+  owner action, not part of running the public portal; follow
+  [`docs/OWNER_KEYS.md`](OWNER_KEYS.md#5--the-outreach-go-button-948-superintendents-held-for-your-word)
+  and the open issue rather than guessing at secret values.
+- `GET /api/cron/runs` exposes only aggregate job outcomes and controlled
+  detail codes. Recipient addresses, provider/driver messages, and connection
+  strings are not public telemetry.
+
 ## Deploying
 
 `DEPLOYMENT.md` has the full runbook. Two things that have each cost a
@@ -181,9 +201,10 @@ production outage:
   `/api/index` for every request and 404 the entire site while the build
   still reported READY.
 - **Production currently deploys from `master` through Vercel's Git
-  integration.** The CLI workflow is an inert replacement: disconnect Git
-  integration before enabling its secrets, never run both. A Vercel
-  *redeploy* reuses the old deployment's code and cannot pick up a new commit.
+  integration.** `.github/workflows/deploy.yml` is a secret-free verifier, not
+  a second deploy path: it waits for the exact merged revision and then runs
+  strict live checks. A Vercel *redeploy* reuses the old deployment's code and
+  cannot pick up a new commit.
 
 ## Where to read next
 

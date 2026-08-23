@@ -186,7 +186,7 @@ independently verified deployment of the matching tree.
 | Resolver | `uv==0.11.33`; `uv lock --check` and `uv sync --locked` gates | CI, Docker, Render, README/runbooks |
 | Locked request runtime | FastAPI 0.141.1, Pydantic 2.13.4, SQLAlchemy 2.0.52, asyncpg 0.31.0, psycopg2-binary 2.9.12, python-dotenv 1.2.3 | `uv.lock` |
 | Locked agent runtime | LangChain 1.3.16, LangChain Core 1.6.0, `langchain-openai` 1.6.0, OpenAI SDK 2.54.0, SQLGlot 30.17.0; no `langchain-community` | `uv.lock` |
-| CI actions | `actions/checkout` v4 at `11d5960a326750d5838078e36cf38b85af677262`; `actions/setup-python` v5 at `a26af69be951a213d495a4c3e4e4022e16d87065`; read-only workflow tokens and no persisted checkout credentials | `.github/workflows/*.yml` |
+| CI actions | `actions/checkout` v7.0.1 at `3d3c42e5aac5ba805825da76410c181273ba90b1`; `actions/setup-python` v7.0.0 at `5fda3b95a4ea91299a34e894583c3862153e4b97`; read-only workflow tokens and no persisted checkout credentials | `.github/workflows/*.yml` |
 | Production verification | No deploy CLI or deploy secrets in Actions; the verifier requires the exact Git SHA, healthy/connected database state, and `tracking_schema=ready`, then retries strict live checks after Git-driven production changes. Readiness proves startup observed the three sentinels, current journey-view marker, and cron-privacy marker when the optional cron table exists; it is not a continuous grants audit. | `.github/workflows/deploy.yml`, `scripts/verify_live.py`, `src/api.py` |
 | Container base | `python:3.12.14-slim-bookworm` at manifest digest `sha256:a116514e…a78134` | `Dockerfile` |
 | Update path | Weekly reviewable Dependabot PRs for `uv`, GitHub Actions, and Docker | `.github/dependabot.yml` |

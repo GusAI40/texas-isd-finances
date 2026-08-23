@@ -15,6 +15,23 @@ bought — built from the state's own records, fiscal 2009–2025.
 
 ---
 
+## Current status (2026-08-23)
+
+- **Public application:** live at <https://txisd.dev>. The portal, static
+  reports, database-backed finance routes, and configured natural-language
+  query path are deployed from the default branch, `master`.
+- **Delivery:** Vercel Git integration owns production. Every merge is checked
+  against the exact deployed Git revision, database health, startup-managed
+  schema markers, and the live API contract.
+- **Known operator hold:** outbound outreach is fail-closed and currently
+  **unarmed**. [Issue #53](https://github.com/GusAI40/texas-isd-finances/issues/53)
+  remains open until the owner rotates/configures the Resend and outreach
+  secrets and completes a no-send production proof. This does not expose
+  addresses and does not affect the public finance portal.
+- **Source of truth:** current code and docs live on
+  [`master`](https://github.com/GusAI40/texas-isd-finances/tree/master); old
+  audit and feature branches are not operating documentation.
+
 ## Run it in 30 seconds
 
 No credentials. No database. Nothing to configure.
@@ -42,6 +59,25 @@ similarity "seating chart"), `/docs` (interactive API).
 | **1** | nothing | Most public report layers from committed artifacts |
 | **2** | a Supabase database | Per-year budgets, peers, anomalies, trends, statewide medians |
 | **3** | a DeepSeek or OpenAI key + `NLP_DB_URL` | The plain-English question box at `/query` |
+
+## Architecture in one minute
+
+```text
+TEA and other public datasets -> scripts/ + sql/ -> committed static JSON
+                                           \-> Supabase Postgres
+browser -> FastAPI (src/api.py) -> static portal or read-only DB views
+                              \-> NLP engine -> selected LLM -> nlp_reader DB role
+Vercel Git integration <- master; GitHub Actions verifies CI and the live revision
+Vercel Cron -> authenticated intelligence/outreach routes -> Postgres state
+```
+
+The frontend has no build step: FastAPI serves the pages and versioned JSON in
+`static/`. Supabase supplies the live finance views and durable operational
+state. The model-backed query route is optional and fails closed unless it has
+both a provider key and the least-privilege `NLP_DB_URL`. See
+[PROJECT_MAP.md](PROJECT_MAP.md) for the visual tour and
+[docs/TECH_STACK_AND_AGENT_SKILLS.md](docs/TECH_STACK_AND_AGENT_SKILLS.md) for
+the evidence-backed component inventory.
 
 ### Tier 2 — add the finance database
 
@@ -79,6 +115,27 @@ not fall back to the database owner. See
 [docs/AUDIT_2026-07-31.md](docs/AUDIT_2026-07-31.md) C-1 for why that boundary
 must fail closed.
 
+## Environment variables
+
+Copy `env_template.txt` to `.env`; never commit the resulting `.env` file.
+The minimum configuration depends on the tier:
+
+| Capability | Variables |
+|---|---|
+| Live finance data | `SUPABASE_DB_URL` |
+| Plain-English questions | `NLP_DB_URL` plus `DEEPSEEK_API_KEY` or `OPENAI_API_KEY`; optional `NLP_PROVIDER` |
+| Site lock | `SITE_PASSWORD`; optional `SITE_USERNAME` |
+| Scheduled routes | `CRON_SECRET` |
+| Armed outreach | `RESEND_API_KEY`, `TAG_POSTAL_ADDRESS`, `OUTREACH_TOKEN`; see `docs/OWNER_KEYS.md` before enabling |
+| Private operational status | `OPS_TOKEN` |
+
+Optional model, rate-limit, data-year, sender, mailbox, map, and operator-tool
+variables are documented in the complete table in
+[DEPLOYMENT.md](DEPLOYMENT.md#4-configuration-reference). The commented,
+copyable inventory is [env_template.txt](env_template.txt). Host secrets belong
+in Vercel/your deploy platform; management credentials such as `SUPABASE_PAT`
+and `VERCEL_TOKEN` are for explicit operator scripts, not normal request paths.
+
 ## Endpoints
 
 The core endpoint guide is in [docs/USAGE.md](docs/USAGE.md#endpoints), and
@@ -105,7 +162,10 @@ texas-isd-finances/
 ├── src/
 │   ├── api.py              # FastAPI: serves the portal, pages and API endpoints
 │   ├── nlp_engine.py       # Plain English → policy-checked SQL; requires NLP_DB_URL
-│   └── visualizations.py   # Offline chart helpers
+│   ├── migrations.py       # bounded startup schema + privacy controls
+│   ├── isd_cron_runtime.py # atomic daily-intelligence persistence at deploy entrypoint
+│   ├── outreach_runner.py  # fail-closed queued outreach drain
+│   └── mcp_*.py            # read-only MCP protocol and finance tools
 ├── static/                 # The site AND its data — committed together on purpose
 │   ├── index.html          # The portal (single file, no build step)
 │   ├── map.html geomap.html
@@ -116,8 +176,8 @@ texas-isd-finances/
 │   ├── ingest_*.py         # TEA snapshot, STAAR, property/tax
 │   ├── build_*.py          # outcomes, geo, economics, bonds, equity, takeover, fallback
 │   ├── apply_nlp_role.py   # closes audit finding C-1 end to end
-│   └── check_static_js.py  # parses the page JS — a 200 response proves nothing
-├── sql/                    # create_tables · create_nlp_role · create_nlp_usage · views
+│   └── check_static_js.py  # parses page JS — a 200 response proves nothing
+├── sql/                    # finance views, NLP role/usage, cron and operations schema
 ├── tests/                  # Runs with no credentials at all
 └── docs/                   # PLAIN_ENGLISH · USAGE · TUTORIAL · WHAT_A_DOLLAR_BUYS ·
                             #   AUDIT_2026-07-31 · ENGINEERING_LOG
