@@ -17,6 +17,32 @@ Entry template:
 
 ---
 
+## 2026-08-23 — Repository close-out reconciles stale work and operator truth
+
+**What changed.** The close-out branch rebased the useful daily-intelligence
+hardening from draft PR #47 onto current `master`, adapted it to the public
+cron-log privacy boundary, and brought the pinned `actions/checkout` and
+`actions/setup-python` dependencies to the green Dependabot revisions. The
+README now gives a five-minute status, architecture, run path, and environment
+map; `docs/USAGE.md`, `DEPLOYMENT.md`, `PROJECT_MAP.md`, the stack inventory,
+and `env_template.txt` agree with the live Git-driven deployment and current
+operator surfaces.
+
+**Why.** A clean worktree is not a closed repository when draft PRs contain
+unreconciled code, the user guide describes a removed deploy mechanism, or the
+environment template omits the secrets that make scheduled work fail closed.
+
+**Gotchas.** PR #47 predated the cron-log privacy fix and its regression test
+expected free-form text in a publicly observable field. The consolidated code
+uses controlled detail codes and row counts instead. Python 3.14 and OpenAI 3.x
+Dependabot proposals exceed the repository's tested compatibility contracts
+and are intentionally not part of this close-out.
+
+**Open items.** Production outreach remains unarmed under issue #53 until the
+owner rotates/configures `RESEND_API_KEY`, `TAG_POSTAL_ADDRESS`, and a fresh
+`OUTREACH_TOKEN`, then proves the production route without sending. No code or
+documentation change can supply or safely infer those values.
+
 ## 2026-08-22 — Forensic hardening makes silent and mutable failure visible
 
 **What changed.** The repository-side hardening now monitors both configured

@@ -15,4 +15,10 @@ Python bundles are capped at 500 MB uncompressed — if the full dependency set
 (pandas, matplotlib, langchain) exceeds that, use the slim requirements
 documented in DEPLOYMENT.md; the portal and data endpoints work either way.
 """
-from src.api import app  # noqa: F401
+from src.api import app
+from src.isd_cron_runtime import install as install_isd_cron_hardening
+
+# Production owns one hardened cron route. Keeping the replacement here avoids
+# changing any public route while making the Vercel execution path fail closed
+# on durable-write errors and persist the human-review queue atomically.
+install_isd_cron_hardening(app)

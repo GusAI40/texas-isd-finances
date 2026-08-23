@@ -1,31 +1,83 @@
-# Supabase Configuration
+# Texas ISD Finances environment template
 #
-# IMPORTANT (per current Supabase docs): the "direct connection" host
-# (db.[PROJECT_REF].supabase.co:5432) is IPv6-only unless you buy the IPv4
-# add-on. Most deploy targets (Render, Railway, Vercel) are IPv4-only, so
-# use the SHARED POOLER (session mode) connection string instead — find it
-# in your Supabase dashboard under Connect > Session pooler:
-SUPABASE_DB_URL=postgresql://postgres.[YOUR_PROJECT_REF]:[YOUR_PASSWORD]@aws-[REGION].pooler.supabase.com:5432/postgres
+# Copy this file to .env for local work and fill only the capabilities you use.
+# Never commit .env or real values. Production secrets belong in the hosting
+# provider. The app runs at Tier 1 with every value below unset.
 
-# Direct connection (IPv6 networks or with the IPv4 add-on only):
-# SUPABASE_DB_URL=postgresql://postgres:[YOUR_PASSWORD]@db.[YOUR_PROJECT_REF].supabase.co:5432/postgres?sslmode=require
+# --- Tier 2: Supabase finance data ------------------------------------------
+# Serverless: use the transaction pooler on port 6543. Long-running local or
+# Docker use may use the session pooler on 5432. The direct db.<ref> host is
+# IPv6-only unless the Supabase IPv4 add-on is enabled.
+SUPABASE_DB_URL=postgresql://postgres.[PROJECT_REF]:[PASSWORD]@aws-[REGION].pooler.supabase.com:6543/postgres
 
-# Least-privilege connection for the natural-language query path (/query).
-# That path lets a language model write its own SQL, so it must not use the
-# owner connection above. Create the role with sql/create_nlp_role.sql, then
-# put its pooler URL here. If unset, /query stays unavailable; it never falls
-# back to the database-owner connection.
-NLP_DB_URL=postgresql://nlp_reader.[YOUR_PROJECT_REF]:[NLP_PASSWORD]@aws-[REGION].pooler.supabase.com:6543/postgres
-
-# One provider is selected at startup. DeepSeek is the current default;
-# OpenAI is a configuration alternate, not automatic request failover.
+# --- Tier 3: natural-language questions ------------------------------------
+# This MUST be the least-privilege nlp_reader role created by
+# sql/create_nlp_role.sql; /query never falls back to the owner URL above.
+NLP_DB_URL=postgresql://nlp_reader.[PROJECT_REF]:[PASSWORD]@aws-[REGION].pooler.supabase.com:6543/postgres
 NLP_PROVIDER=deepseek
 DEEPSEEK_API_KEY=[YOUR_DEEPSEEK_API_KEY]
 # NLP_PROVIDER=openai
 # OPENAI_API_KEY=[YOUR_OPENAI_API_KEY]
 
-# Optional overrides
-# CORS_ALLOW_ORIGINS=https://your-frontend.example.com
+# Optional model and query controls
 # NLP_MODEL=deepseek-v4-flash
+# NLP_BASE_URL=https://api.deepseek.com
+# NLP_TEMPERATURE=0
+# QUERY_RATE_LIMIT=10
+# QUERY_GLOBAL_LIMIT=60
+# QUERY_DAILY_LIMIT=5000
+# QUERY_DEGRADED_LIMIT=5
+# QUERY_TIMEOUT_SECONDS=45
+
+# --- Public application -----------------------------------------------------
+# CORS_ALLOW_ORIGINS=https://txisd.dev
+# MCP_ALLOWED_ORIGINS=https://txisd.dev,https://claude.ai,http://localhost,http://127.0.0.1
 # DATA_MIN_YEAR=2009
 # DATA_MAX_YEAR=2025
+# SITE_URL=https://txisd.dev
+# MAPBOX_TOKEN=pk.[PUBLIC_MAPBOX_TOKEN_ONLY]
+
+# Setting SITE_PASSWORD locks every public route except /health and /api/cron/*.
+# SITE_PASSWORD=[GENERATE_A_STRONG_PASSWORD]
+# SITE_USERNAME=txisd
+
+# --- Scheduled runtime jobs -------------------------------------------------
+# Vercel Cron and the app must share this bearer secret.
+# CRON_SECRET=[GENERATE_A_RANDOM_SECRET]
+
+# Daily intelligence controls (optional; enrichment is off by default).
+# ISD_PRIORITY_DISTRICTS=Beaumont ISD;Fort Worth ISD;Lake Worth ISD;Connally ISD;Houston ISD
+# ISD_MAX_QUERIES=12
+# ISD_LLM_EXTRACT=0
+# ISD_LLM_MAX_CALLS=25
+
+# Private operator endpoints. Keep these distinct from CRON_SECRET.
+# OPS_TOKEN=[GENERATE_A_RANDOM_SECRET]
+# OUTREACH_TOKEN=[GENERATE_A_DIFFERENT_RANDOM_SECRET]
+
+# Outreach remains fail-closed until every required value is intentionally set.
+# Follow docs/OWNER_KEYS.md and issue #53 before arming production.
+# RESEND_API_KEY=[YOUR_RESEND_API_KEY]
+# TAG_POSTAL_ADDRESS=[YOUR_REAL_BUSINESS_POSTAL_ADDRESS]
+# RESEND_FROM=Gus Sanchez <gus@ubntag.com>
+# RESEND_REPLY_TO=gus@ubntag.com
+# TAG_BCC=gus@ubntag.com
+
+# Reply-ingestion workflow (operator/GitHub Actions only).
+# IMAP_USER=[MAILBOX_ADDRESS]
+# IMAP_PASSWORD=[MAILBOX_APP_PASSWORD]
+# IMAP_HOST=imap.gmail.com
+
+# --- Explicit management scripts only; not normal request-path secrets ------
+# SUPABASE_PAT=[YOUR_SUPABASE_PERSONAL_ACCESS_TOKEN]
+# SUPABASE_PROJECT_REF=[PROJECT_REF]
+# VERCEL_TOKEN=[YOUR_VERCEL_PERSONAL_ACCESS_TOKEN]
+# VERCEL_PROJECT=texas-isd-finances
+# VERCEL_TEAM=[TEAM_SLUG]
+# GITHUB_TOKEN=[SHORT_LIVED_TOKEN_FOR_ARCHIVE_SCRIPT]
+# ARCHIVE_OUT_DIR=[LOCAL_OUTPUT_DIRECTORY]
+
+# Vercel supplies this system value when system environment variables are
+# exposed. Do not invent it locally; strict production verification compares it
+# with the merged Git revision.
+# VERCEL_GIT_COMMIT_SHA=[SYSTEM_PROVIDED]

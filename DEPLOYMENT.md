@@ -149,20 +149,29 @@ operations; repository documentation is not proof that any value exists.
 | `NLP_MODEL` | no (per provider) | Model id. Defaults: `deepseek-v4-flash` / `gpt-4o-mini` |
 | `NLP_BASE_URL` | no (per provider) | Override the API endpoint |
 | `NLP_TEMPERATURE` | no (default `0`) | Determinism for SQL generation |
-| `NLP_VERBOSE` | no (default `false`) | Log agent reasoning |
 | `DATA_MIN_YEAR` / `DATA_MAX_YEAR` | no (2009/2025) | Data coverage bounds |
+| `MCP_ALLOWED_ORIGINS` | no (production/Claude/local defaults) | Comma-separated browser origins allowed to call `/mcp`; direct MCP clients are unaffected. |
 | `QUERY_RATE_LIMIT` | no (default 10) | `/query` per IP, per minute. Per-process; spoofable via `X-Forwarded-For`, so this only stops one honest user hogging the box. |
 | `QUERY_GLOBAL_LIMIT` | no (default 60) | `/query` all callers, per minute. Counted in the database, so it holds across every instance. |
 | `QUERY_DAILY_LIMIT` | no (default 5000) | `/query` all callers, per day. **This is the one that bounds the bill** — a per-minute cap alone still permits 86,400 calls a day. |
+| `QUERY_DEGRADED_LIMIT` | no (default 5) | Tight per-process fallback ceiling when shared database metering is unavailable. |
+| `QUERY_TIMEOUT_SECONDS` | no (default 45) | Maximum wall-clock time for one model-backed query. |
+| `SITE_URL` | no (default production URL) | Canonical public origin used by generated links and operator tooling. |
+| `MAPBOX_TOKEN` | for Mapbox-enhanced maps | Only public `pk.` tokens are served to browsers; secret token classes are rejected. |
 | `SITE_PASSWORD` | no (unset = public) | Locks the **whole site** behind a browser password prompt. See below. |
 | `SITE_USERNAME` | no (default `txisd`) | Username for that prompt; the password is what actually gates. |
 | `CRON_SECRET` | for Vercel cron routes | Bearer secret for `/api/cron/*`; Vercel cron and the application must share it. |
+| `ISD_PRIORITY_DISTRICTS` / `ISD_MAX_QUERIES` | no | Semicolon-separated daily-intelligence focus list and bounded feed-query count. |
+| `ISD_LLM_EXTRACT` / `ISD_LLM_MAX_CALLS` | no (`0` / `25`) | Opt in to model enrichment and cap calls per intelligence run. |
 | `RESEND_API_KEY` | to send outreach | Resend credential used by the server runner and delivery/KPI tooling. |
 | `RESEND_FROM` / `RESEND_REPLY_TO` / `TAG_BCC` | no | Sender, reply, and private-copy routing overrides. |
 | `TAG_POSTAL_ADDRESS` | to arm outreach | Business postal address intentionally included in outbound mail for compliance; never copy it into logs or public telemetry. |
 | `OUTREACH_TOKEN` / `OPS_TOKEN` | for private operator routes | Separate bearer credentials for outreach control and operational status. |
 | `IMAP_USER` / `IMAP_PASSWORD` / `IMAP_HOST` | for reply ingestion | Mailbox identity, app password, and optional host used by the reply job. |
 | `SUPABASE_PAT` | for management jobs | Supabase Management API credential for local synchronization, reply, and KPI scripts; not the normal request-path database credential. |
+| `SUPABASE_PROJECT_REF` | for management jobs | Project identifier used with `SUPABASE_PAT`; never a substitute for the database URL. |
+| `VERCEL_TOKEN` / `VERCEL_PROJECT` / `VERCEL_TEAM` | for explicit operator scripts | Manual Vercel API identity/target. They are not used by the GitHub Actions deploy verifier. |
+| `GITHUB_TOKEN` / `ARCHIVE_OUT_DIR` | for raw-data archival | Short-lived GitHub credential and optional local output directory used by `scripts/archive_raw_data.py`. |
 | `VERCEL_GIT_COMMIT_SHA` | for production verification | Non-secret Vercel system value returned as `/health.revision`. Enable exposure of Vercel System Environment Variables to the function; otherwise the API reports `local` and strict verification fails. |
 
 ### Choosing the language model (DeepSeek or OpenAI)
