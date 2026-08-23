@@ -232,6 +232,42 @@ def test_index_has_flash_free_theme_toggle():
     assert "design.css" in head, "the design system must load before first paint"
 
 
+def test_an_emailed_district_link_is_decided_before_first_paint():
+    """The outreach arrival, which is the one that matters most.
+
+    Every outreach email sends a named superintendent to /?d=<their district>
+    under the promise "we built YOUR district's report". boot() already read
+    that param — but boot() is an IIFE ~4,000 lines into the body, behind two
+    large inline scripts, while `.welcome` is parsed and paintable long
+    before the parser reaches it. Polling painted frames on a phone at 20x
+    CPU throttle, the generic statewide hero (a headline about all 1,310
+    districts) showed up before this fix and never after it. On a desktop the
+    gap is invisible, which is exactly why it survived.
+
+    Same invariant the theme and the saved district already hold — anything
+    above the fold is decided in <head>, never mid-body — extended to the
+    link. Asserted on the PRE-PAINT script specifically: the param being read
+    somewhere in the file is what was already true and still flashed.
+    """
+    html = (STATIC / "index.html").read_text(encoding="utf-8")
+    head = html.split("</head>")[0]
+    assert "has-district" in head, (
+        "the district is decided after <head>, so an emailed superintendent "
+        "sees the statewide hero until the API answers")
+    # Anchored on the statement itself, then read the condition that guards
+    # it: the param merely appearing somewhere in <head> is not the guarantee.
+    mark = "classList.add('has-district')"
+    assert mark in head, "nothing sets has-district before first paint"
+    guard = head[head.rindex("try {", 0, head.index(mark)):head.index(mark)]
+    assert "location.search" in guard and "'d'" in guard, (
+        "the pre-paint script never looks at ?d= — only a saved district, so "
+        "an emailed arrival still waits for boot()")
+    # shape-checked, so ?d=garbage cannot hide the welcome and leave nothing
+    assert "d{6}" in guard, (
+        "the linked district is not shape-checked against the 6-digit TEA "
+        "number")
+
+
 DESIGN_CSS = STATIC / "design.css"
 
 
