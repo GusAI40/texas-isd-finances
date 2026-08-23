@@ -398,3 +398,55 @@ def test_no_pool_is_not_a_refusal():
 
     from src.api import _shared_limit_reached
     assert asyncio.run(_shared_limit_reached(None)) is False
+
+
+def test_the_prompt_describes_every_column_the_view_actually_serves():
+    """A column the prompt does not mention cannot be selected, and the agent
+    will substitute the nearest one it does know about.
+
+    This shipped. `operating_spend` was added to v_finance_summary (with a SQL
+    comment explaining why it must not be confused with total_spend) and the
+    prompt's column list was never updated. A live probe on 2026-08-23 asked
+    four districts for operating spend and got total_spend all four times, to
+    the dollar — Tioga ISD 2014 answered $5,603,166 against a true $3,205,610,
+    a 75% overstatement, and two answers volunteered "that is the district's
+    all-funds total disbursements" without noticing that was the wrong figure.
+
+    So the prompt's column list is checked against the view's, from the SQL.
+    """
+    import re
+    from pathlib import Path
+
+    from src.nlp_engine import SYSTEM_PROMPT
+
+    sql = Path("sql/create_tables.sql").read_text()
+    body = sql.split("CREATE OR REPLACE VIEW public.v_finance_summary AS")[1]
+    body = body.split("FROM public.texas_school_finance")[0]
+    # Column names are the trailing identifier of each select item.
+    served = set(re.findall(r"(?:AS\s+|^\s{4})([a-z_]+),?\s*$", body, re.M))
+    served = {c for c in served if not c.startswith("all_funds")}
+
+    # Scope to the COLUMN LIST, not the whole prompt. Splitting only on
+    # "Available views:" leaves the Rules section in scope, and a column named
+    # there satisfies the check without ever being described — which is how
+    # the first version of this test passed against the bug it was written to
+    # catch.
+    described = SYSTEM_PROMPT.split("Available views:")[1].split("Rules:")[0]
+    missing = sorted(c for c in served if c not in described)
+    assert not missing, (
+        f"v_finance_summary serves {sorted(served)} but the prompt never names "
+        f"{missing}. The agent cannot select a column it has not been told "
+        f"exists — it substitutes, and the answer is wrong with no error.")
+
+
+def test_operating_spend_is_never_answered_with_total_spend():
+    """The distinction is the whole reason operating_spend exists: total_spend
+    carries bond-funded construction, so for a district mid-build the two are
+    not close. The prompt must say so in words the agent can act on."""
+    from src.nlp_engine import SYSTEM_PROMPT
+
+    assert "operating_spend" in SYSTEM_PROMPT
+    low = SYSTEM_PROMPT.lower()
+    assert "operating spend" in low, "the phrase a user types must be mapped"
+    assert "never answer one of those with total_spend" in low, (
+        "the rule that prevents the substitution must survive prompt edits")

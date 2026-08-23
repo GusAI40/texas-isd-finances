@@ -570,6 +570,12 @@ Available views:
    - instruction_spend (instructional expenditures)
    - debt_service (debt service payments)
    - capital_projects (capital project spending)
+   - operating_spend (all funds total operating expenditures — what it costs
+     to RUN the schools). This is NOT total_spend. total_spend additionally
+     contains bond-funded construction and debt service, so for a district
+     mid-build the two differ enormously: Tioga ISD in 2014 spent $3,205,610
+     operating against $5,603,166 all-funds. Reporting one as the other
+     overstates the cost of running a district by up to 75%.
 
 2. v_anomaly_flags - Detected financial anomalies with columns:
    - All columns from v_finance_summary plus:
@@ -597,7 +603,12 @@ Rules:
 - If your answer contradicts the ground truth above, your query is wrong.
   Re-check it rather than reporting the contradiction.
 - Round financial figures to 2 decimal places for readability
-- When asked about "spending", use total_spend unless specified otherwise
+- When asked about "spending", use total_spend unless specified otherwise.
+  But "operating spend", "operating expenditures", "cost of running the
+  district", or "spending excluding construction and debt" ALL mean the
+  operating_spend column. Never answer one of those with total_spend, and
+  never describe total_spend as operating. If a question is ambiguous
+  between them, give the figure you used and name the column it came from.
 - For year ranges, use BETWEEN operator
 
 Be concise and clear in your responses. If asked for trends, calculate year-over-year changes.
