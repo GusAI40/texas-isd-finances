@@ -716,3 +716,76 @@ def test_reconciliation_still_runs_when_a_message_send_fails(monkeypatch, tmp_pa
                          push=lambda pat, **kw: calls.append(pat) or 0)
     assert code == 1, "a send failure must still be reported as exit 1"
     assert calls == ["sbp_fake"], "reconciliation did not run after a send failure"
+
+
+# --- rebuilding the mailing list without the TEA download ---------------------
+
+def test_the_api_priced_frames_agree_with_the_page_they_link_to():
+    """finance_frames_from_api exists so a fresh machine can rebuild the
+    mailing list from public sources — no 18MB TEA workbook, no credential.
+    It must produce the figure the READER sees, not the arithmetically better
+    one: v_finance_summary divides two integer columns, so it truncates before
+    rounding (Argyle's 31,704.748 is served as 31,704 while round() gives
+    31,705). An email that says $31,705 beside a page that says $31,704 breaks
+    this module's rule that an insight can never disagree with what it links
+    to — and the reader has both on screen.
+    """
+    import inspect
+
+    from scripts.build_outreach_merge import finance_frames_from_api
+    src = inspect.getsource(finance_frames_from_api)
+    assert 'rec.get("spend_per_student")' in src, (
+        "the API path recomputes all-funds instead of taking the page's own "
+        "figure, so the email will disagree with the report by a dollar")
+    # It must reach the network and nothing else. Asserted structurally with
+    # ast rather than on the text, because the docstring names the tempting
+    # artefact (static/economics_data.json) precisely to warn the next person
+    # off it — a substring check would fail on its own warning.
+    import ast
+    calls = {n.func.attr for n in ast.walk(ast.parse(src))
+             if isinstance(n, ast.Call) and isinstance(n.func, ast.Attribute)}
+    for reads_a_file in ("read_text", "open", "read_csv"):
+        assert reads_a_file not in calls, (
+            f"the API path calls {reads_a_file}() — it must price districts "
+            f"from the public endpoint, not from a local artefact that "
+            f"measures something else")
+    assert "urlopen" in calls
+
+
+def test_a_dropped_connection_can_never_pass_as_an_absent_figure():
+    """The failure this guards is silent, which is the dangerous kind.
+
+    Across ~1,000 sequential calls a dropped connection is ordinary. If it
+    were swallowed, the district would simply have no hook — indistinguishable
+    in the finished file from a district the state genuinely has no figures
+    for. The merge file is the input to mass email, so the run retries once
+    and then REFUSES, rather than writing a mailing list quietly short of
+    hooks that reads as complete.
+    """
+    import inspect
+
+    from scripts.build_outreach_merge import finance_frames_from_api
+    src = inspect.getsource(finance_frames_from_api)
+    assert "for attempt in (1, 2)" in src, "a single blip is not a retry"
+    assert "raise RuntimeError" in src, (
+        "network failures are swallowed — a short file would look complete")
+    # and the year is chosen by value, not by position in the response
+    assert "max(rows, key=" in src, (
+        "rows[-1] prices every hook from fiscal 2009 the day the endpoint "
+        "serves newest-first")
+
+
+def test_switching_where_the_money_comes_from_is_never_automatic():
+    """A missing CSV used to silently reroute the figures to the API. Someone
+    would then queue a wave believing they were on the path they had always
+    used. It refuses and names the flag instead — the choice belongs in the
+    command that ran."""
+    import inspect
+
+    from scripts.build_outreach_merge import main
+    src = inspect.getsource(main)
+    guard = "if not csv_present and not args.finance_from_api"
+    assert guard in src
+    # the refusal must come BEFORE any pricing decision, not after it
+    assert src.index("return 1", src.index(guard)) < src.index("frames = "), (
+        "an absent CSV must stop the run, not quietly change data source")

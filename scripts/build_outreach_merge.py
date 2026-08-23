@@ -113,6 +113,80 @@ def greeting_from(name: str) -> str:
     return f"{hon} {surname}".strip() if hon else f"Superintendent {surname}"
 
 
+def finance_frames_from_api(numbers: list[str], base: str = SITE) -> dict[str, dict]:
+    """The same per-district figures, from the live site's public API.
+
+    Why this exists: the CSV below is gitignored and derived from an ~18MB TEA
+    workbook, so rebuilding the mailing list on a fresh machine meant a manual
+    download before anything else could run — and rebuilding it is now the
+    step between "the outreach machine is armed" and "a wave can be queued".
+    /district/{n}/summary is public, needs no credential, and serves the same
+    four numbers this function has always used.
+
+    It must be the API and not static/economics_data.json, which is committed
+    and looks like it would do: that artefact's `total_per_student` is
+    operating + debt and EXCLUDES construction, so it disagrees with all-funds
+    by design (Ricardo ISD: $13,582 vs $18,290). The hook's whole job is to
+    chain the all-funds figure to the operating one wherever construction is a
+    material share — computing that from a figure with construction removed
+    would invert the sentence it exists to make honest.
+    """
+    import urllib.request
+
+    out: dict[str, dict] = {}
+    failed: list[str] = []
+    for i, num in enumerate(numbers, 1):
+        rows = None
+        # One retry: across ~1,000 sequential calls a single dropped
+        # connection is ordinary, and it must not be mistaken for a district
+        # the state has no figures for. What survives a retry is reported.
+        for attempt in (1, 2):
+            try:
+                req = urllib.request.Request(
+                    f"{base}/district/{num}/summary",
+                    headers={"User-Agent":
+                             "txisd-outreach/1.0 (+https://txisd.dev)"})
+                with urllib.request.urlopen(req, timeout=30) as r:
+                    rows = json.load(r)
+                break
+            except Exception:  # noqa: BLE001 — retried, then reported
+                if attempt == 2:
+                    failed.append(num)
+        if not rows:
+            continue
+        # By year, not by position: `rows[-1]` silently prices every hook from
+        # fiscal 2009 the day the endpoint starts serving newest-first.
+        rec = (max(rows, key=lambda r: r.get("year") or 0)
+               if isinstance(rows, list) else rows)
+        e, tot, ops = (rec.get("enrollment"), rec.get("total_spend"),
+                       rec.get("operating_spend"))
+        per = rec.get("spend_per_student")
+        # A district the PAGE cannot price is one the email must not price
+        # either — recomputing here is what reintroduces the one-dollar
+        # disagreement this function exists to avoid.
+        if per is None or not e or e <= 0 or not tot or not ops:
+            continue
+        out[num] = {
+            "year": int(rec["year"]), "enrollment": int(e),
+            "all_funds_per_student": round(per),
+            "operating_per_student": round(ops / e),
+            "construction_debt_share_pct": round(100 * (1 - ops / tot)),
+        }
+        if i % 100 == 0:
+            print(f"  {i}/{len(numbers)} districts priced from the API")
+    if failed:
+        # Refuse rather than write a mailing list quietly short of hooks: a
+        # missing hook that came from a dropped connection is indistinguishable
+        # in the output from a district the state genuinely has no figures for,
+        # and this file is the input to mass email.
+        raise RuntimeError(
+            f"{len(failed)} districts could not be priced after a retry "
+            f"({', '.join(failed[:8])}{'…' if len(failed) > 8 else ''}). "
+            f"Re-run — a merge file short of hooks cannot be told apart from "
+            f"one whose districts genuinely have no figures.")
+    return out
+
+
 def finance_frames() -> dict[str, dict]:
     """Per-district figures with the frame attached, from the raw state file —
     the same columns the Argyle audit used."""
@@ -212,6 +286,10 @@ def main() -> int:
     ap = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--out", type=Path, default=ROOT / "data/outreach_merge.csv")
+    ap.add_argument("--finance-from-api", action="store_true",
+                    help="price districts from the live public API instead of "
+                         "the gitignored TEA CSV — no download, no credential; "
+                         "the default when the CSV is absent")
     ap.add_argument("--include-charters", action="store_true",
                     help="charters have superintendents too; off by default "
                          "because the draft email speaks to taxing ISDs")
@@ -223,7 +301,25 @@ def main() -> int:
 
     crosswalk = {r["district_number"]: r for r in csv.DictReader(
         (ROOT / "data/district_crosswalk.csv").open(encoding="utf-8", newline=""))}
-    frames = finance_frames()
+    # The CSV stays the default where it exists (offline, and no 1,000 HTTP
+    # calls); the API is the fallback that makes a fresh machine work at all.
+    csv_present = (ROOT / "data/texas_finance_clean.csv").exists()
+    if not csv_present and not args.finance_from_api:
+        # Explicit, not automatic: silently changing where the money figures
+        # come from is how someone queues a wave believing they are on the
+        # CSV path. The flag is one word and makes the choice visible in the
+        # command that ran.
+        print("data/texas_finance_clean.csv is absent. Either restore it, or "
+              "pass --finance-from-api to price districts from the live "
+              "public API (no download, no credential).", file=sys.stderr)
+        return 1
+    if args.finance_from_api:
+        wanted = [n for n, x in sorted(crosswalk.items())
+                  if args.include_charters or x["is_charter"].lower() != "true"]
+        frames = finance_frames_from_api(wanted)
+    else:
+        frames = finance_frames()
+    print(f"  priced {len(frames):,} districts")
     bonds, debt, trends, sw_change = load_insights()
 
     rows, skipped_charter, missing_contact = [], 0, []
