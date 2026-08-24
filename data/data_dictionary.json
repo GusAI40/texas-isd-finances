@@ -1,0 +1,6489 @@
+{
+ "generated_from": "the real files, at build time",
+ "artifacts": [
+  {
+   "file": "bond_data.json",
+   "title": "Every school bond election since 1958",
+   "what_it_is": "4,992 decided propositions with dates, amounts, purpose and vote counts, matched to districts.",
+   "bytes": 1186692,
+   "records": 952,
+   "sample_district": "057905",
+   "source": null,
+   "publisher": null,
+   "year": 2026,
+   "first_year": 1958,
+   "limits": [
+    "Propositions bundle purposes. A proposition reading 'School Building & Gymnasium' is counted under athletics, so athletics dollars are an upper bound; the athletics-only figure is reported separately.",
+    "Amounts are as asked, in the dollars of their year, and are not inflation-adjusted \u2014 counts and pass rates are the comparable measures across eras.",
+    "Purpose is free text written by hundreds of districts over 66 years; the keyword rules used to classify it are published above.",
+    "About a fifth of records carry a vote tally under 20 (a multi-million-dollar bond recorded as '1 for, 0 against'). Those are placeholders rather than turnout, so the tally is shown as unreported. The carried/defeated result itself is unaffected."
+   ],
+   "fields": {
+    "district_number": {
+     "type": "str",
+     "example": "057905"
+    },
+    "district_name": {
+     "type": "str",
+     "example": "DALLAS ISD"
+    },
+    "match": {
+     "type": "object",
+     "keys": 3
+    },
+    "match.method": {
+     "type": "str",
+     "example": "name+county"
+    },
+    "match.exact": {
+     "type": "bool",
+     "example": "True"
+    },
+    "match.source_names": {
+     "type": "list",
+     "length": 1,
+     "example": "Dallas ISD"
+    },
+    "elections": {
+     "type": "list",
+     "length": 15
+    },
+    "elections[].date": {
+     "type": "str",
+     "example": "2002-01-19"
+    },
+    "elections[].year": {
+     "type": "int",
+     "example": "2002"
+    },
+    "elections[].amount": {
+     "type": "float",
+     "example": "1366300000.0"
+    },
+    "elections[].purpose": {
+     "type": "str",
+     "example": "Building"
+    },
+    "elections[].category": {
+     "type": "str",
+     "example": "buildings & other"
+    },
+    "elections[].passed": {
+     "type": "bool",
+     "example": "True"
+    },
+    "elections[].for": {
+     "type": "int",
+     "example": "78351"
+    },
+    "elections[].against": {
+     "type": "int",
+     "example": "21519"
+    },
+    "elections[].votes_reported": {
+     "type": "bool",
+     "example": "True"
+    },
+    "totals": {
+     "type": "object",
+     "keys": 9
+    },
+    "totals.props": {
+     "type": "int",
+     "example": "15"
+    },
+    "totals.passed": {
+     "type": "int",
+     "example": "12"
+    },
+    "totals.pass_rate": {
+     "type": "float",
+     "example": "80.0"
+    },
+    "totals.asked": {
+     "type": "float",
+     "example": "14442670000.0"
+    },
+    "totals.approved": {
+     "type": "float",
+     "example": "14289770000.0"
+    },
+    "totals.approved_share": {
+     "type": "float",
+     "example": "0.989"
+    },
+    "totals.first_year": {
+     "type": "int",
+     "example": "2002"
+    },
+    "totals.last_year": {
+     "type": "int",
+     "example": "2026"
+    },
+    "totals.athletics_asked": {
+     "type": "float",
+     "example": "86800000.0"
+    }
+   },
+   "top_level": [
+    "bundling",
+    "by_era",
+    "by_purpose",
+    "did_it_work",
+    "districts",
+    "meta",
+    "stadium"
+   ]
+  },
+  {
+   "file": "campus_data.json",
+   "title": "What the district rating hides",
+   "what_it_is": "Every rated campus with its letter grade and score, so a district's average can be checked against the schools inside it.",
+   "bytes": 1734909,
+   "records": 1195,
+   "sample_district": "057905",
+   "source": "tea_accountability",
+   "publisher": "Texas Education Agency",
+   "year": 2025,
+   "first_year": null,
+   "limits": [
+    "'Not Rated' is not a bad rating. 525 campuses carry it \u2014 too few students, a first year of operation, a data issue \u2014 and every one is excluded rather than counted as failure.",
+    "Alternative Education Accountability campuses are rated on a different scale and are excluded from the headline. Both figures are published so the choice is visible rather than trusted.",
+    "No campus is ranked against a campus in another district here. The claim is about the gap INSIDE a district, which is what a district rating conceals.",
+    "One year (2025). A single campus rating moves on small numbers of students and should not be read as a trend.",
+    "A rating is a measure of tested performance against state targets, not of a school."
+   ],
+   "fields": {
+    "district_name": {
+     "type": "str",
+     "example": "DALLAS ISD"
+    },
+    "district_rating": {
+     "type": "str",
+     "example": "B"
+    },
+    "district_score": {
+     "type": "int",
+     "example": "83"
+    },
+    "campuses": {
+     "type": "list",
+     "length": 233
+    },
+    "campuses[].campus_number": {
+     "type": "str",
+     "example": "057905264"
+    },
+    "campuses[].campus_name": {
+     "type": "str",
+     "example": "RONALD E MCNAIR EL"
+    },
+    "campuses[].school_type": {
+     "type": "str",
+     "example": "Elementary"
+    },
+    "campuses[].students": {
+     "type": "int",
+     "example": "500"
+    },
+    "campuses[].pct_poor": {
+     "type": "float",
+     "example": "98.2"
+    },
+    "campuses[].rating": {
+     "type": "str",
+     "example": "F"
+    },
+    "campuses[].score": {
+     "type": "int",
+     "example": "59"
+    },
+    "campuses[].is_alternative_education": {
+     "type": "bool",
+     "example": "False"
+    },
+    "best": {
+     "type": "str",
+     "example": "A"
+    },
+    "worst": {
+     "type": "str",
+     "example": "F"
+    },
+    "spans_grades": {
+     "type": "int",
+     "example": "4"
+    },
+    "students_below_a_d": {
+     "type": "int",
+     "example": "7786"
+    }
+   },
+   "top_level": [
+    "districts",
+    "meta",
+    "texas"
+   ]
+  },
+  {
+   "file": "campus_performance.json",
+   "title": "STAAR by school, and by student group",
+   "what_it_is": "What students actually scored, by subject for 8,264 campuses, and by 15 student groups for every district. Plus per-campus teacher experience, tenure and degree mix.",
+   "bytes": 6656816,
+   "records": 1204,
+   "sample_district": "057905",
+   "source": "Texas Academic Performance Report (TAPR)",
+   "publisher": "Texas Education Agency",
+   "year": 2025,
+   "first_year": null,
+   "limits": [
+    "A masked cell is NOT a zero. TEA suppresses groups small enough to identify a student; those cells are omitted here, so a group missing from a campus or district had too few test-takers to report \u2014 it did not score nothing.",
+    "Rates are TEA's published percentages, never recomputed from the numerator and denominator: TEA rounds before publishing and dividing them back gives a different number from the one on TEA's own page.",
+    "Campus records carry SUBJECTS; student-group results are published at district grain only. Campus-by-group cells are mostly masked, and a table of blanks with a few identifiable children in it is worse than no table.",
+    "No campus is ranked against a campus in another district. The finding is the spread INSIDE a district; a statewide campus league table is a far more dangerous artefact.",
+    "Teacher CERTIFICATION is not published in TAPR's staff dataset and is not here. A degree is not a certificate, and the degree mix must not be presented as an answer to 'are the teachers certified'.",
+    "Two statewide figures are published per group and they are not interchangeable. `meets` is test-weighted \u2014 the share of TEXAS TESTS that met the bar. `meets_district_mean` is the unweighted average of district rates, which is what the equity layer reports. On all students they read about 49.7% and 46.5%: the first says how the typical student did, the second how the typical district did, and neither is wrong.",
+    "Campus-level teacher TURNOVER is likewise not in this dataset. Beginning-teacher share and average tenure are published instead, and they are related but not the same measure."
+   ],
+   "fields": {
+    "district_name": {
+     "type": "str",
+     "example": "DALLAS ISD"
+    },
+    "groups": {
+     "type": "object",
+     "keys": 15
+    },
+    "groups.all": {
+     "type": "object",
+     "keys": 4
+    },
+    "groups.all.tests": {
+     "type": "int",
+     "example": "189147"
+    },
+    "groups.all.approaches": {
+     "type": "float",
+     "example": "72.0"
+    },
+    "groups.all.meets": {
+     "type": "float",
+     "example": "46.0"
+    },
+    "groups.all.masters": {
+     "type": "float",
+     "example": "19.0"
+    },
+    "groups.african_american": {
+     "type": "object",
+     "keys": 4
+    },
+    "groups.african_american.tests": {
+     "type": "int",
+     "example": "33788"
+    },
+    "groups.african_american.approaches": {
+     "type": "float",
+     "example": "67.0"
+    },
+    "groups.african_american.meets": {
+     "type": "float",
+     "example": "39.0"
+    },
+    "groups.african_american.masters": {
+     "type": "float",
+     "example": "14.0"
+    },
+    "groups.white": {
+     "type": "object",
+     "keys": 4
+    },
+    "groups.white.tests": {
+     "type": "int",
+     "example": "10052"
+    },
+    "groups.white.approaches": {
+     "type": "float",
+     "example": "89.0"
+    },
+    "groups.white.meets": {
+     "type": "float",
+     "example": "76.0"
+    },
+    "groups.white.masters": {
+     "type": "float",
+     "example": "51.0"
+    },
+    "groups.hispanic": {
+     "type": "object",
+     "keys": 4
+    },
+    "groups.hispanic.tests": {
+     "type": "int",
+     "example": "139141"
+    },
+    "groups.hispanic.approaches": {
+     "type": "float",
+     "example": "72.0"
+    },
+    "groups.hispanic.meets": {
+     "type": "float",
+     "example": "45.0"
+    },
+    "groups.hispanic.masters": {
+     "type": "float",
+     "example": "18.0"
+    },
+    "groups.american_indian": {
+     "type": "object",
+     "keys": 4
+    },
+    "groups.american_indian.tests": {
+     "type": "int",
+     "example": "569"
+    },
+    "groups.american_indian.approaches": {
+     "type": "float",
+     "example": "62.0"
+    },
+    "groups.american_indian.meets": {
+     "type": "float",
+     "example": "34.0"
+    },
+    "groups.american_indian.masters": {
+     "type": "float",
+     "example": "13.0"
+    },
+    "groups.two_or_more": {
+     "type": "object",
+     "keys": 4
+    },
+    "groups.two_or_more.tests": {
+     "type": "int",
+     "example": "3180"
+    },
+    "groups.two_or_more.approaches": {
+     "type": "float",
+     "example": "79.0"
+    },
+    "groups.two_or_more.meets": {
+     "type": "float",
+     "example": "59.0"
+    },
+    "groups.two_or_more.masters": {
+     "type": "float",
+     "example": "33.0"
+    },
+    "groups.asian": {
+     "type": "object",
+     "keys": 4
+    },
+    "groups.asian.tests": {
+     "type": "int",
+     "example": "2335"
+    },
+    "groups.asian.approaches": {
+     "type": "float",
+     "example": "81.0"
+    },
+    "groups.asian.meets": {
+     "type": "float",
+     "example": "63.0"
+    },
+    "groups.asian.masters": {
+     "type": "float",
+     "example": "42.0"
+    },
+    "groups.pacific_islander": {
+     "type": "object",
+     "keys": 4
+    },
+    "groups.pacific_islander.tests": {
+     "type": "int",
+     "example": "82"
+    },
+    "groups.pacific_islander.approaches": {
+     "type": "float",
+     "example": "80.0"
+    },
+    "groups.pacific_islander.meets": {
+     "type": "float",
+     "example": "48.0"
+    },
+    "groups.pacific_islander.masters": {
+     "type": "float",
+     "example": "21.0"
+    },
+    "groups.male": {
+     "type": "object",
+     "keys": 4
+    },
+    "groups.male.tests": {
+     "type": "int",
+     "example": "97402"
+    },
+    "groups.male.approaches": {
+     "type": "float",
+     "example": "70.0"
+    },
+    "groups.male.meets": {
+     "type": "float",
+     "example": "44.0"
+    },
+    "groups.male.masters": {
+     "type": "float",
+     "example": "19.0"
+    },
+    "groups.female": {
+     "type": "object",
+     "keys": 4
+    },
+    "groups.female.tests": {
+     "type": "int",
+     "example": "91745"
+    },
+    "groups.female.approaches": {
+     "type": "float",
+     "example": "74.0"
+    },
+    "groups.female.meets": {
+     "type": "float",
+     "example": "47.0"
+    },
+    "groups.female.masters": {
+     "type": "float",
+     "example": "20.0"
+    },
+    "groups.special_ed": {
+     "type": "object",
+     "keys": 4
+    },
+    "groups.special_ed.tests": {
+     "type": "int",
+     "example": "29490"
+    },
+    "groups.special_ed.approaches": {
+     "type": "float",
+     "example": "51.0"
+    },
+    "groups.special_ed.meets": {
+     "type": "float",
+     "example": "29.0"
+    },
+    "groups.special_ed.masters": {
+     "type": "float",
+     "example": "11.0"
+    },
+    "groups.econ_disadv": {
+     "type": "object",
+     "keys": 4
+    },
+    "groups.econ_disadv.tests": {
+     "type": "int",
+     "example": "169722"
+    },
+    "groups.econ_disadv.approaches": {
+     "type": "float",
+     "example": "70.0"
+    },
+    "groups.econ_disadv.meets": {
+     "type": "float",
+     "example": "43.0"
+    },
+    "groups.econ_disadv.masters": {
+     "type": "float",
+     "example": "16.0"
+    },
+    "groups.at_risk": {
+     "type": "object",
+     "keys": 4
+    },
+    "groups.at_risk.tests": {
+     "type": "int",
+     "example": "143934"
+    },
+    "groups.at_risk.approaches": {
+     "type": "float",
+     "example": "65.0"
+    },
+    "groups.at_risk.meets": {
+     "type": "float",
+     "example": "36.0"
+    },
+    "groups.at_risk.masters": {
+     "type": "float",
+     "example": "12.0"
+    },
+    "groups.emergent_bilingual": {
+     "type": "object",
+     "keys": 4
+    },
+    "groups.emergent_bilingual.tests": {
+     "type": "int",
+     "example": "97699"
+    },
+    "groups.emergent_bilingual.approaches": {
+     "type": "float",
+     "example": "68.0"
+    },
+    "groups.emergent_bilingual.meets": {
+     "type": "float",
+     "example": "39.0"
+    },
+    "groups.emergent_bilingual.masters": {
+     "type": "float",
+     "example": "14.0"
+    },
+    "groups.gifted": {
+     "type": "object",
+     "keys": 4
+    },
+    "groups.gifted.tests": {
+     "type": "int",
+     "example": "48635"
+    },
+    "groups.gifted.approaches": {
+     "type": "float",
+     "example": "94.0"
+    },
+    "groups.gifted.meets": {
+     "type": "float",
+     "example": "78.0"
+    },
+    "groups.gifted.masters": {
+     "type": "float",
+     "example": "44.0"
+    },
+    "subjects": {
+     "type": "object",
+     "keys": 5
+    },
+    "subjects.all": {
+     "type": "object",
+     "keys": 4
+    },
+    "subjects.all.tests": {
+     "type": "int",
+     "example": "189147"
+    },
+    "subjects.all.approaches": {
+     "type": "float",
+     "example": "72.0"
+    },
+    "subjects.all.meets": {
+     "type": "float",
+     "example": "46.0"
+    },
+    "subjects.all.masters": {
+     "type": "float",
+     "example": "19.0"
+    },
+    "subjects.reading": {
+     "type": "object",
+     "keys": 4
+    },
+    "subjects.reading.tests": {
+     "type": "int",
+     "example": "79618"
+    },
+    "subjects.reading.approaches": {
+     "type": "float",
+     "example": "71.0"
+    },
+    "subjects.reading.meets": {
+     "type": "float",
+     "example": "49.0"
+    },
+    "subjects.reading.masters": {
+     "type": "float",
+     "example": "21.0"
+    },
+    "subjects.math": {
+     "type": "object",
+     "keys": 4
+    },
+    "subjects.math.tests": {
+     "type": "int",
+     "example": "63042"
+    },
+    "subjects.math.approaches": {
+     "type": "float",
+     "example": "71.0"
+    },
+    "subjects.math.meets": {
+     "type": "float",
+     "example": "43.0"
+    },
+    "subjects.math.masters": {
+     "type": "float",
+     "example": "19.0"
+    },
+    "subjects.social_studies": {
+     "type": "object",
+     "keys": 4
+    },
+    "subjects.social_studies.tests": {
+     "type": "int",
+     "example": "17788"
+    },
+    "subjects.social_studies.approaches": {
+     "type": "float",
+     "example": "76.0"
+    },
+    "subjects.social_studies.meets": {
+     "type": "float",
+     "example": "49.0"
+    },
+    "subjects.social_studies.masters": {
+     "type": "float",
+     "example": "26.0"
+    },
+    "subjects.science": {
+     "type": "object",
+     "keys": 4
+    },
+    "subjects.science.tests": {
+     "type": "int",
+     "example": "28699"
+    },
+    "subjects.science.approaches": {
+     "type": "float",
+     "example": "74.0"
+    },
+    "subjects.science.meets": {
+     "type": "float",
+     "example": "40.0"
+    },
+    "subjects.science.masters": {
+     "type": "float",
+     "example": "13.0"
+    }
+   },
+   "top_level": [
+    "campuses",
+    "campuses_by_district",
+    "districts",
+    "meta",
+    "texas"
+   ]
+  },
+  {
+   "file": "debt_data.json",
+   "title": "What is still owed",
+   "what_it_is": "Principal and unpaid interest outstanding per district, the year it clears, and which districts carry capital appreciation bonds.",
+   "bytes": 485783,
+   "records": 917,
+   "sample_district": "057905",
+   "source": "bond_review_board_debt",
+   "publisher": "Texas Bond Review Board",
+   "year": 2025,
+   "first_year": null,
+   "limits": [
+    "Figures are as of fiscal 2025, the Board's most recent completed year. Years after it are the amortisation schedule for debt already sold, not a forecast of future borrowing \u2014 districts will issue more, so the schedule is a floor.",
+    "Excludes obligations maturing in under a year, commercial paper, and special obligations that do not require Attorney General approval, per the Board's own scope note.",
+    "Dollars repaid per dollar borrowed is reported at each district's PEAK year, not the current one. On outstanding balances the ratio rises on its own as principal is retired and is not a measure of anything.",
+    "No ratio is reported where CAB principal never reached $5m in any year on record. Below that the figure is dominated by a nearly-retired balance, and for districts whose bonds were sold before 2005, or whose reported years have a gap, the record never shows the deal at all. Their deferred interest is still reported \u2014 it is the ratio, not the debt, that is unknowable here.",
+    "Debt outstanding is not comparable to a district's operating budget: it is a stock owed over decades, and it sits outside TEA's operating total entirely.",
+    "68 of the Board's 1,035 listed school districts publish no series and carry no Board-tracked debt."
+   ],
+   "fields": {
+    "district_name": {
+     "type": "str",
+     "example": "DALLAS ISD"
+    },
+    "students": {
+     "type": "int",
+     "example": "139776"
+    },
+    "principal": {
+     "type": "int",
+     "example": "4613765000"
+    },
+    "interest": {
+     "type": "int",
+     "example": "2635128833"
+    },
+    "total": {
+     "type": "int",
+     "example": "7248893833"
+    },
+    "per_student": {
+     "type": "int",
+     "example": "51861"
+    },
+    "interest_share_pct": {
+     "type": "float",
+     "example": "36.4"
+    },
+    "clears_in": {
+     "type": "int",
+     "example": "2054"
+    },
+    "history": {
+     "type": "list",
+     "length": 21,
+     "example": "[2005, 2143606081]"
+    }
+   },
+   "top_level": [
+    "districts",
+    "meta",
+    "texas"
+   ]
+  },
+  {
+   "file": "district_geo.json",
+   "title": "District boundaries",
+   "what_it_is": "Census TIGER polygons for 1,016 districts, joined to TEA numbers by the county the polygon physically sits in.",
+   "bytes": 535239,
+   "records": 1016,
+   "sample_district": "057905",
+   "source": "US Census TIGER/Line 2025, Unified School Districts, Texas (public domain)",
+   "publisher": null,
+   "year": null,
+   "first_year": null,
+   "limits": [],
+   "fields": {
+    "n": {
+     "type": "str",
+     "example": "DALLAS ISD"
+    },
+    "c": {
+     "type": "list",
+     "length": 2,
+     "example": "-96.7425"
+    },
+    "b": {
+     "type": "list",
+     "length": 4,
+     "example": "-96.97"
+    },
+    "r": {
+     "type": "list",
+     "length": 2,
+     "example": "[-969686, 326798, 178, 353, 198, 63, 63,"
+    },
+    "m": {
+     "type": "object",
+     "keys": 5
+    },
+    "m.t": {
+     "type": "float",
+     "example": "16.8"
+    },
+    "m.p": {
+     "type": "float",
+     "example": "87.2"
+    },
+    "m.s": {
+     "type": "float",
+     "example": "15518.8"
+    },
+    "m.g": {
+     "type": "float",
+     "example": "5.5"
+    },
+    "m.e": {
+     "type": "int",
+     "example": "139096"
+    }
+   },
+   "top_level": [
+    "d",
+    "meta"
+   ]
+  },
+  {
+   "file": "economics_data.json",
+   "title": "What you pay and where it goes",
+   "what_it_is": "Tax bill on a $300,000 home, what leaves under recapture, the split between teaching, buildings and debt, and which similar districts do better. One year, every district.",
+   "bytes": 2943087,
+   "records": 1202,
+   "sample_district": "057905",
+   "source": null,
+   "publisher": null,
+   "year": 2025,
+   "first_year": null,
+   "limits": [
+    "Effect sizes are observational. Within-district first differences remove everything about a district that does not change, but not confounders that move at the same time.",
+    "TEA does not itemise facilities: debt service covers all buildings together, so a stadium cannot be separated from a roof without a district's own bond documents.",
+    "Tax figures are withheld for districts where two independent estimates of the tax base disagree by more than 25%."
+   ],
+   "fields": {
+    "district_number": {
+     "type": "str",
+     "example": "057905"
+    },
+    "district_name": {
+     "type": "str",
+     "example": "Dallas ISD"
+    },
+    "year": {
+     "type": "int",
+     "example": "2025"
+    },
+    "students": {
+     "type": "int",
+     "example": "139776"
+    },
+    "tax": {
+     "type": "object",
+     "keys": 7
+    },
+    "tax.mo_rate": {
+     "type": "float",
+     "example": "0.7718"
+    },
+    "tax.is_rate": {
+     "type": "float",
+     "example": "0.242"
+    },
+    "tax.total_rate": {
+     "type": "float",
+     "example": "1.0138"
+    },
+    "tax.bill_on_home": {
+     "type": "int",
+     "example": "3041"
+    },
+    "tax.leaves_district": {
+     "type": "int",
+     "example": "88"
+    },
+    "tax.home_value": {
+     "type": "int",
+     "example": "300000"
+    },
+    "tax.tax_price": {
+     "type": "float",
+     "example": "214.04"
+    },
+    "allocation": {
+     "type": "object",
+     "keys": 9
+    },
+    "allocation.instruction_per_student": {
+     "type": "int",
+     "example": "7206"
+    },
+    "allocation.debt_per_student": {
+     "type": "int",
+     "example": "3578"
+    },
+    "allocation.other_operating_per_student": {
+     "type": "int",
+     "example": "7004"
+    },
+    "allocation.operating_per_student": {
+     "type": "int",
+     "example": "14210"
+    },
+    "allocation.total_per_student": {
+     "type": "int",
+     "example": "17788"
+    },
+    "allocation.payroll_per_student": {
+     "type": "int",
+     "example": "11503"
+    },
+    "allocation.cents_on_debt_per_dollar_taught": {
+     "type": "int",
+     "example": "50"
+    },
+    "allocation.teachers_equivalent_of_debt": {
+     "type": "int",
+     "example": "8826"
+    },
+    "allocation.lineage": {
+     "type": "object",
+     "keys": 3
+    },
+    "allocation.lineage.denominator": {
+     "type": "int",
+     "example": "139776"
+    },
+    "allocation.lineage.recomputed_from": {
+     "type": "str",
+     "example": "data/texas_finance_clean.csv, re-read longhand by scripts/re"
+    },
+    "allocation.lineage.figures": {
+     "type": "object",
+     "keys": 3
+    },
+    "allocation.lineage.figures.spend_instruction_per_student": {
+     "type": "object",
+     "keys": 3
+    },
+    "allocation.lineage.figures.spend_debt_per_student": {
+     "type": "object",
+     "keys": 3
+    },
+    "allocation.lineage.figures.spend_operating_per_student": {
+     "type": "object",
+     "keys": 3
+    },
+    "revenue": {
+     "type": "object",
+     "keys": 9
+    },
+    "revenue.local_per_student": {
+     "type": "int",
+     "example": "13525"
+    },
+    "revenue.state_per_student": {
+     "type": "int",
+     "example": "1489"
+    },
+    "revenue.federal_per_student": {
+     "type": "int",
+     "example": "2039"
+    },
+    "revenue.total_per_student": {
+     "type": "int",
+     "example": "17053"
+    },
+    "revenue.local_pct": {
+     "type": "int",
+     "example": "79"
+    },
+    "revenue.state_pct": {
+     "type": "int",
+     "example": "9"
+    },
+    "revenue.federal_pct": {
+     "type": "int",
+     "example": "12"
+    },
+    "revenue.note": {
+     "type": "str",
+     "example": "local is gross property tax before recapture is deducted"
+    },
+    "revenue.lineage": {
+     "type": "object",
+     "keys": 3
+    },
+    "revenue.lineage.denominator": {
+     "type": "int",
+     "example": "139776"
+    },
+    "revenue.lineage.recomputed_from": {
+     "type": "str",
+     "example": "data/texas_finance_clean.csv + data/tea_property.csv, re-rea"
+    },
+    "revenue.lineage.figures": {
+     "type": "object",
+     "keys": 4
+    },
+    "revenue.lineage.figures.total_per_student": {
+     "type": "object",
+     "keys": 3
+    },
+    "revenue.lineage.figures.local_per_student": {
+     "type": "object",
+     "keys": 3
+    },
+    "revenue.lineage.figures.state_per_student": {
+     "type": "object",
+     "keys": 3
+    },
+    "revenue.lineage.figures.federal_per_student": {
+     "type": "object",
+     "keys": 3
+    },
+    "recapture": {
+     "type": "object",
+     "keys": 3
+    },
+    "recapture.paid": {
+     "type": "int",
+     "example": "52538602"
+    },
+    "recapture.per_student": {
+     "type": "int",
+     "example": "376"
+    },
+    "recapture.share_of_local_mo": {
+     "type": "float",
+     "example": "0.0382"
+    },
+    "own": {
+     "type": "object",
+     "keys": 2
+    },
+    "own.pct_poor": {
+     "type": "float",
+     "example": "85.7"
+    },
+    "own.turnover": {
+     "type": "float",
+     "example": "18.2"
+    },
+    "reliability": {
+     "type": "object",
+     "keys": 3
+    },
+    "reliability.score": {
+     "type": "float",
+     "example": "5.4"
+    },
+    "reliability.years_measured": {
+     "type": "int",
+     "example": "6"
+    },
+    "reliability.percentile": {
+     "type": "int",
+     "example": "76"
+    },
+    "who_does_better": {
+     "type": "list",
+     "length": 5
+    },
+    "who_does_better[].district_number": {
+     "type": "str",
+     "example": "031901"
+    },
+    "who_does_better[].name": {
+     "type": "str",
+     "example": "Brownsville ISD"
+    },
+    "who_does_better[].students": {
+     "type": "int",
+     "example": "37766"
+    },
+    "who_does_better[].pct_poor": {
+     "type": "float",
+     "example": "89.4"
+    },
+    "who_does_better[].beats_by": {
+     "type": "float",
+     "example": "14.2"
+    },
+    "who_does_better[].turnover": {
+     "type": "float",
+     "example": "8.8"
+    },
+    "who_does_better[].spend_per_student": {
+     "type": "int",
+     "example": "13732"
+    }
+   },
+   "top_level": [
+    "districts",
+    "macro",
+    "meta",
+    "micro"
+   ]
+  },
+  {
+   "file": "equity_data.json",
+   "title": "How low-income students do",
+   "what_it_is": "District STAAR for economically disadvantaged students, benchmarked against poor students statewide rather than against the local gap.",
+   "bytes": 372493,
+   "records": 1090,
+   "sample_district": "057905",
+   "source": null,
+   "publisher": null,
+   "year": 2025,
+   "first_year": null,
+   "limits": [
+    "The headline is how economically disadvantaged students do, NOT the gap. The gap correlates about zero with how well poor students actually do (-0.024): the 30 narrowest-gap districts average 40.2% for poor students against 39.0% statewide, so ranking on the gap picks out districts that are merely average for poor children. A gap narrows just as easily when the top falls as when the bottom rises.",
+    "Results are at TEA's Meets grade level bar, not the lower Approaches.",
+    "District-group cells with fewer than 100 tests are not ranked; TEA's percentages there are noisy and disclosure-masked.",
+    "'Economically disadvantaged' is TEA's category, driven by free and reduced-price meal eligibility, and it is a blunt proxy for family circumstance."
+   ],
+   "fields": {
+    "district_number": {
+     "type": "str",
+     "example": "057905"
+    },
+    "district_name": {
+     "type": "str",
+     "example": "DALLAS ISD"
+    },
+    "year": {
+     "type": "int",
+     "example": "2025"
+    },
+    "poor": {
+     "type": "object",
+     "keys": 5
+    },
+    "poor.meets": {
+     "type": "float",
+     "example": "43.0"
+    },
+    "poor.approaches": {
+     "type": "float",
+     "example": "70.0"
+    },
+    "poor.masters": {
+     "type": "float",
+     "example": "16.0"
+    },
+    "poor.tests": {
+     "type": "int",
+     "example": "169722"
+    },
+    "poor.percentile": {
+     "type": "int",
+     "example": "66"
+    },
+    "not_poor_meets": {
+     "type": "float",
+     "example": "74.0"
+    },
+    "gap": {
+     "type": "float",
+     "example": "31.0"
+    },
+    "poor_by_subject": {
+     "type": "object",
+     "keys": 2
+    },
+    "poor_by_subject.reading": {
+     "type": "float",
+     "example": "46.0"
+    },
+    "poor_by_subject.math": {
+     "type": "float",
+     "example": "40.0"
+    },
+    "other_groups": {
+     "type": "object",
+     "keys": 2
+    },
+    "other_groups.emergent_bilingual": {
+     "type": "object",
+     "keys": 2
+    },
+    "other_groups.emergent_bilingual.meets": {
+     "type": "float",
+     "example": "39.0"
+    },
+    "other_groups.emergent_bilingual.tests": {
+     "type": "int",
+     "example": "97699"
+    },
+    "other_groups.special_ed": {
+     "type": "object",
+     "keys": 2
+    },
+    "other_groups.special_ed.meets": {
+     "type": "float",
+     "example": "29.0"
+    },
+    "other_groups.special_ed.tests": {
+     "type": "int",
+     "example": "29490"
+    },
+    "poor_change": {
+     "type": "float",
+     "example": "4.0"
+    }
+   },
+   "top_level": [
+    "districts",
+    "leaders",
+    "meta",
+    "state",
+    "state_by_subject"
+   ]
+  },
+  {
+   "file": "erate_data.json",
+   "title": "Federal internet money",
+   "what_it_is": "E-Rate funding committed and disbursed per district \u2014 money paid to vendors, so it appears in no PEIMS file.",
+   "bytes": 908900,
+   "records": 1074,
+   "sample_district": "057905",
+   "source": null,
+   "publisher": null,
+   "year": 2026,
+   "first_year": 2017,
+   "limits": [
+    "E-Rate discounts are mostly paid by USAC straight to vendors, so this money buys a district connectivity without appearing as district spending in TEA's books \u2014 it is not comparable to, and never mixed with, the PEIMS figures elsewhere on this site.",
+    "Consortium applications are counted statewide and never attributed to member districts: the record does not say which member received how much. A district with no record here may still receive service through a consortium.",
+    "Disbursement lags commitment by design \u2014 invoicing for a funding year can run for years. A year marked invoicing_open has money still being drawn; its drawn percentage is a floor, not a finding.",
+    "The applicant-to-district match resolves USAC billed-entity numbers to TEA numbers by state code, campus-code prefix and audited name+county; where two roads disagree the entity is refused rather than guessed. Charter NETWORKS spanning several TEA districts under one applicant number are counted in the unresolved bucket, not misassigned to one of their districts.",
+    "Amounts are in the dollars of their own year and are not inflation-adjusted."
+   ],
+   "fields": {
+    "committed": {
+     "type": "int",
+     "example": "60252066"
+    },
+    "disbursed": {
+     "type": "int",
+     "example": "34641547"
+    },
+    "top_service": {
+     "type": "str",
+     "example": "Internal Connections"
+    },
+    "years": {
+     "type": "list",
+     "length": 9
+    },
+    "years[].committed": {
+     "type": "int",
+     "example": "3192171"
+    },
+    "years[].disbursed": {
+     "type": "int",
+     "example": "3192171"
+    },
+    "years[].year": {
+     "type": "int",
+     "example": "2017"
+    }
+   },
+   "top_level": [
+    "districts",
+    "meta",
+    "texas"
+   ]
+  },
+  {
+   "file": "fallback_index.json",
+   "title": "The site works with the database switched off",
+   "what_it_is": "District names, numbers and a dated statewide snapshot, so the picker, search and headline figure survive an outage.",
+   "bytes": 82314,
+   "records": 1216,
+   "sample_district": null,
+   "source": null,
+   "publisher": null,
+   "year": null,
+   "first_year": null,
+   "limits": [],
+   "fields": {
+    "district_number": {
+     "type": "str",
+     "example": "057816"
+    },
+    "district_name": {
+     "type": "str",
+     "example": "A W BROWN LEADERSHIP ACADEMY"
+    }
+   },
+   "top_level": [
+    "benchmarks",
+    "captured",
+    "districts",
+    "dollar_texas",
+    "meta",
+    "stats"
+   ]
+  },
+  {
+   "file": "forensic_data.json",
+   "title": "Four questions Texas answers in four incompatible files",
+   "what_it_is": "What sits outside the operating total, who pays, what the ballot promised, and where results landed against what need predicts.",
+   "bytes": 2417658,
+   "records": 1202,
+   "sample_district": "057905",
+   "source": null,
+   "publisher": null,
+   "year": 2025,
+   "first_year": null,
+   "limits": [
+    "Nothing here is a finding of wrongdoing. Every flag is a description of a published number against a published threshold, and the thresholds are above so you can disagree with them.",
+    "There is deliberately no combined score. Debt, recapture, ballot history and results measure four unrelated things, and adding them would invent a ranking the data cannot support.",
+    "Debt service sits outside TEA's operating total, so it is composed with it, never subtracted from it.",
+    "Local revenue is gross property collections before recapture is deducted. TEA reports it net, which understates how locally funded a paying district is.",
+    "Ballot amounts are as asked, in the dollars of their year, and are not inflation-adjusted.",
+    "Whether a passed bond changed results is a statewide test, not a district one, and it is fragile \u2014 see the bond section."
+   ],
+   "fields": {
+    "district_number": {
+     "type": "str",
+     "example": "057905"
+    },
+    "district_name": {
+     "type": "str",
+     "example": "Dallas ISD"
+    },
+    "absences": {
+     "type": "list",
+     "length": 0
+    },
+    "absence_summary": {
+     "type": "object",
+     "keys": 4
+    },
+    "absence_summary.count": {
+     "type": "int",
+     "example": "0"
+    },
+    "absence_summary.findings": {
+     "type": "int",
+     "example": "0"
+    },
+    "absence_summary.sections": {
+     "type": "list",
+     "length": 0
+    },
+    "absence_summary.kinds": {
+     "type": "list",
+     "length": 0
+    },
+    "students": {
+     "type": "int",
+     "example": "139776"
+    },
+    "year": {
+     "type": "int",
+     "example": "2025"
+    },
+    "outside_operating": {
+     "type": "object",
+     "keys": 8
+    },
+    "outside_operating.per_student": {
+     "type": "int",
+     "example": "3578"
+    },
+    "outside_operating.percentile": {
+     "type": "int",
+     "example": "83"
+    },
+    "outside_operating.state_median": {
+     "type": "int",
+     "example": "1538"
+    },
+    "outside_operating.cents_per_dollar_taught": {
+     "type": "int",
+     "example": "50"
+    },
+    "outside_operating.teachers_equivalent": {
+     "type": "int",
+     "example": "8826"
+    },
+    "outside_operating.operating_per_student": {
+     "type": "int",
+     "example": "14210"
+    },
+    "outside_operating.total_per_student": {
+     "type": "int",
+     "example": "17788"
+    },
+    "outside_operating.annual_total": {
+     "type": "int",
+     "example": "500118528"
+    },
+    "who_pays": {
+     "type": "object",
+     "keys": 13
+    },
+    "who_pays.local_pct": {
+     "type": "int",
+     "example": "79"
+    },
+    "who_pays.state_pct": {
+     "type": "int",
+     "example": "9"
+    },
+    "who_pays.federal_pct": {
+     "type": "int",
+     "example": "12"
+    },
+    "who_pays.local_percentile": {
+     "type": "int",
+     "example": "88"
+    },
+    "who_pays.state_local_pct": {
+     "type": "int",
+     "example": "54"
+    },
+    "who_pays.tax_bill_on_home": {
+     "type": "int",
+     "example": "3041"
+    },
+    "who_pays.home_value": {
+     "type": "int",
+     "example": "300000"
+    },
+    "who_pays.leaves_district": {
+     "type": "int",
+     "example": "88"
+    },
+    "who_pays.recapture_per_student": {
+     "type": "int",
+     "example": "376"
+    },
+    "who_pays.recapture_paid": {
+     "type": "int",
+     "example": "52538602"
+    },
+    "who_pays.recapture_share_of_local_mo": {
+     "type": "float",
+     "example": "0.0382"
+    },
+    "who_pays.recapture_percentile": {
+     "type": "int",
+     "example": "47"
+    },
+    "who_pays.basis": {
+     "type": "str",
+     "example": "local is gross property tax before recapture is deducted"
+    },
+    "ballot": {
+     "type": "object",
+     "keys": 14
+    },
+    "ballot.props": {
+     "type": "int",
+     "example": "15"
+    },
+    "ballot.passed": {
+     "type": "int",
+     "example": "12"
+    },
+    "ballot.pass_rate": {
+     "type": "float",
+     "example": "80.0"
+    },
+    "ballot.asked": {
+     "type": "float",
+     "example": "14442670000.0"
+    },
+    "ballot.approved": {
+     "type": "float",
+     "example": "14289770000.0"
+    },
+    "ballot.approved_per_student": {
+     "type": "int",
+     "example": "102233"
+    },
+    "ballot.refused": {
+     "type": "int",
+     "example": "152900000"
+    },
+    "ballot.first_year": {
+     "type": "int",
+     "example": "2002"
+    },
+    "ballot.last_year": {
+     "type": "int",
+     "example": "2026"
+    },
+    "ballot.athletics_asked": {
+     "type": "float",
+     "example": "86800000.0"
+    },
+    "ballot.athletics_share_pct": {
+     "type": "int",
+     "example": "1"
+    },
+    "ballot.match_method": {
+     "type": "str",
+     "example": "name+county"
+    },
+    "ballot.match_exact": {
+     "type": "bool",
+     "example": "True"
+    },
+    "ballot.last_election": {
+     "type": "object",
+     "keys": 9
+    },
+    "ballot.last_election.date": {
+     "type": "str",
+     "example": "2026-05-02"
+    },
+    "ballot.last_election.year": {
+     "type": "int",
+     "example": "2026"
+    },
+    "ballot.last_election.amount": {
+     "type": "float",
+     "example": "26250000.0"
+    },
+    "ballot.last_election.purpose": {
+     "type": "str",
+     "example": "Swimming Pool"
+    },
+    "ballot.last_election.category": {
+     "type": "str",
+     "example": "buildings & other"
+    },
+    "ballot.last_election.passed": {
+     "type": "bool",
+     "example": "True"
+    },
+    "ballot.last_election.for": {
+     "type": "int",
+     "example": "27216"
+    },
+    "ballot.last_election.against": {
+     "type": "int",
+     "example": "11095"
+    },
+    "ballot.last_election.votes_reported": {
+     "type": "bool",
+     "example": "True"
+    },
+    "where_it_landed": {
+     "type": "object",
+     "keys": 8
+    },
+    "where_it_landed.actual": {
+     "type": "float",
+     "example": "42.0"
+    },
+    "where_it_landed.expected": {
+     "type": "float",
+     "example": "36.5"
+    },
+    "where_it_landed.gap": {
+     "type": "float",
+     "example": "5.5"
+    },
+    "where_it_landed.model_r2": {
+     "type": "float",
+     "example": "0.5005"
+    },
+    "where_it_landed.spend_per_student": {
+     "type": "float",
+     "example": "15518.8"
+    },
+    "where_it_landed.spend_state_median": {
+     "type": "float",
+     "example": "14416.4"
+    },
+    "where_it_landed.need": {
+     "type": "object",
+     "keys": 3
+    },
+    "where_it_landed.need.pct_econ_disadv": {
+     "type": "float",
+     "example": "87.2"
+    },
+    "where_it_landed.need.pct_emergent_bilingual": {
+     "type": "float",
+     "example": "50.5"
+    },
+    "where_it_landed.need.pct_special_ed": {
+     "type": "float",
+     "example": "11.9"
+    },
+    "where_it_landed.year": {
+     "type": "int",
+     "example": "2024"
+    },
+    "flags": {
+     "type": "list",
+     "length": 4
+    },
+    "flags[].key": {
+     "type": "str",
+     "example": "debt_vs_instruction"
+    },
+    "flags[].tone": {
+     "type": "str",
+     "example": "watch"
+    },
+    "flags[].label": {
+     "type": "str",
+     "example": "Debt costs more than half of what instruction costs"
+    },
+    "flags[].detail": {
+     "type": "str",
+     "example": "50\u00a2 goes to debt for every dollar that reaches a classroom. "
+    }
+   },
+   "top_level": [
+    "districts",
+    "leaderboards",
+    "meta",
+    "statewide",
+    "table"
+   ]
+  },
+  {
+   "file": "forensic_quality.json",
+   "title": "Checks on the data itself",
+   "what_it_is": "Benford's-law tests, reconciliation identities, and districts paying debt service with no voter-approved bond on record.",
+   "bytes": 22928,
+   "records": 0,
+   "sample_district": null,
+   "source": "TEA Summarized PEIMS Actual Financial Data; ballot record compiled from county election returns",
+   "publisher": null,
+   "year": 2025,
+   "first_year": 2009,
+   "limits": [],
+   "fields": {},
+   "top_level": [
+    "benford",
+    "benford_per_district_refused",
+    "debt_without_a_ballot",
+    "meta",
+    "reconciliation"
+   ]
+  },
+  {
+   "file": "isd_briefing.json",
+   "title": "District news",
+   "what_it_is": "Headlines resolved to districts, refreshed daily by a cron job.",
+   "bytes": 11816,
+   "records": 0,
+   "sample_district": null,
+   "source": null,
+   "publisher": null,
+   "year": null,
+   "first_year": null,
+   "limits": [],
+   "fields": {},
+   "top_level": [
+    "meta",
+    "review_queue",
+    "top_findings"
+   ]
+  },
+  {
+   "file": "map_data.json",
+   "title": "Every district placed on two axes",
+   "what_it_is": "Coordinates for the seating-chart view, from a principal-components reduction of district characteristics.",
+   "bytes": 182057,
+   "records": 0,
+   "sample_district": null,
+   "source": null,
+   "publisher": null,
+   "year": 2025,
+   "first_year": null,
+   "limits": [],
+   "fields": {},
+   "top_level": [
+    "meta",
+    "nodes"
+   ]
+  },
+  {
+   "file": "national_data.json",
+   "title": "Texas against the rest of the country",
+   "what_it_is": "Census F-33 per-pupil spending for every state and every US district with 500+ students, with each Texas district's national percentile.",
+   "bytes": 109784,
+   "records": 1048,
+   "sample_district": "057905",
+   "source": null,
+   "publisher": null,
+   "year": 2024,
+   "first_year": null,
+   "limits": [
+    "Census fiscal 2024 \u2014 one year behind the TEA fiscal 2025 figures elsewhere on this site. The two are never mixed in one figure.",
+    "Current spending only: the Census excludes construction, land, debt, and spending for students outside a district's fall membership, so this figure runs below the all-in per-student total shown elsewhere on this site.",
+    "The state ranking divides by average daily attendance, NCES's own denominator; dividing by fall membership instead moves Texas only from 44 to 45 of 51.",
+    "Texas charter schools have no Census F-33 row at all \u2014 the Census surveys governments, and charters are not independent governments \u2014 so they have no national percentile, by construction rather than by omission.",
+    "Districts under 500 students are shown but not ranked, the same rule used across this site."
+   ],
+   "fields": {
+    "enroll_f33": {
+     "type": "int",
+     "example": "139246"
+    },
+    "leaid": {
+     "type": "str",
+     "example": "4816230"
+    },
+    "pctile": {
+     "type": "int",
+     "example": "43"
+    },
+    "ppcs": {
+     "type": "int",
+     "example": "15160"
+    }
+   },
+   "top_level": [
+    "absent",
+    "districts",
+    "meta",
+    "national",
+    "states",
+    "texas_districts_ranked"
+   ]
+  },
+  {
+   "file": "outcomes_data.json",
+   "title": "What the money bought",
+   "what_it_is": "Teacher turnover, experience and salary, class size, attendance, graduation and STAAR, each against structural peers and against what the district's demographics predict.",
+   "bytes": 845349,
+   "records": 1205,
+   "sample_district": "057905",
+   "source": "TEA Snapshot District & Charter Detail + TEA Summarized PEIMS",
+   "publisher": null,
+   "year": 2024,
+   "first_year": null,
+   "limits": [],
+   "fields": {
+    "district_number": {
+     "type": "str",
+     "example": "057905"
+    },
+    "district_name": {
+     "type": "str",
+     "example": "DALLAS ISD"
+    },
+    "year": {
+     "type": "int",
+     "example": "2024"
+    },
+    "students": {
+     "type": "int",
+     "example": "139096"
+    },
+    "peer_count": {
+     "type": "int",
+     "example": "6"
+    },
+    "need": {
+     "type": "object",
+     "keys": 3
+    },
+    "need.pct_econ_disadv": {
+     "type": "float",
+     "example": "87.2"
+    },
+    "need.pct_emergent_bilingual": {
+     "type": "float",
+     "example": "50.5"
+    },
+    "need.pct_special_ed": {
+     "type": "float",
+     "example": "11.9"
+    },
+    "measures": {
+     "type": "object",
+     "keys": 9
+    },
+    "measures.teacher_turnover_pct": {
+     "type": "list",
+     "length": 2,
+     "example": "16.8"
+    },
+    "measures.teacher_avg_experience": {
+     "type": "list",
+     "length": 2,
+     "example": "9.9"
+    },
+    "measures.avg_teacher_salary": {
+     "type": "list",
+     "length": 2,
+     "example": "68699.0"
+    },
+    "measures.students_per_teacher": {
+     "type": "list",
+     "length": 2,
+     "example": "13.6"
+    },
+    "measures.attendance_rate": {
+     "type": "list",
+     "length": 2,
+     "example": "92.4"
+    },
+    "measures.grad_rate_4yr": {
+     "type": "list",
+     "length": 2,
+     "example": "82.6"
+    },
+    "measures.test_all_meets": {
+     "type": "list",
+     "length": 2,
+     "example": "42.0"
+    },
+    "measures.test_all_approaches": {
+     "type": "list",
+     "length": 2,
+     "example": "70.0"
+    },
+    "measures.test_all_masters": {
+     "type": "list",
+     "length": 2,
+     "example": "16.0"
+    },
+    "spend_per_student": {
+     "type": "float",
+     "example": "15518.8"
+    },
+    "spend_peer_median": {
+     "type": "float",
+     "example": "12483.3"
+    },
+    "spend_state_median": {
+     "type": "float",
+     "example": "14416.4"
+    },
+    "border_keeps_teachers_better": {
+     "type": "NoneType",
+     "example": null
+    },
+    "expectation": {
+     "type": "object",
+     "keys": 4
+    },
+    "expectation.expected": {
+     "type": "float",
+     "example": "36.5"
+    },
+    "expectation.actual": {
+     "type": "float",
+     "example": "42.0"
+    },
+    "expectation.gap": {
+     "type": "float",
+     "example": "5.5"
+    },
+    "expectation.model_r2": {
+     "type": "float",
+     "example": "0.5005"
+    }
+   },
+   "top_level": [
+    "districts",
+    "meta"
+   ]
+  },
+  {
+   "file": "source_fingerprint.json",
+   "title": "Proof of which file everything came from",
+   "what_it_is": "SHA-256, byte count and per-year statewide sums of the cleaned source CSV, so any figure can be traced to an exact file.",
+   "bytes": 1195,
+   "records": null,
+   "sample_district": null,
+   "source": null,
+   "publisher": null,
+   "year": null,
+   "first_year": null,
+   "limits": [],
+   "fields": {},
+   "top_level": [
+    "columns",
+    "districts",
+    "first_year",
+    "last_year",
+    "note",
+    "rows",
+    "source",
+    "source_bytes",
+    "source_sha256"
+   ]
+  },
+  {
+   "file": "spending_detail.json",
+   "title": "Where the operating dollar actually goes",
+   "what_it_is": "All 16 PEIMS function codes (buses, meals, counsellors, administration), 8 program codes (special education, bilingual, athletics) and 4 object codes (payroll, supplies). Per district.",
+   "bytes": 3369976,
+   "records": 1202,
+   "sample_district": "057905",
+   "source": "TEA Summarized PEIMS Actual Financial Data",
+   "publisher": "Texas Education Agency",
+   "year": 2025,
+   "first_year": 2009,
+   "limits": [
+    "These are ACTUAL expenditures for the fiscal year shown, not a budget and not the current year.",
+    "A function absent for a district is left out, never written as zero: a district with no food service line usually runs none, and a zero would rank every other district up.",
+    "Percentiles and medians are over districts with at least 100 students that reported the function. Below that one bus is an outlier.",
+    "Function codes describe what money was spent ON; PROGRAM codes describe who it served. They are two different cuts of the same operating dollar and must never be added together.",
+    "Programme codes do NOT tile operating spend \u2014 code 99 carries what TEA does not attribute to a programme \u2014 so a programme share is taken against TEA's own programme total, never against operating.",
+    "Central administration (41,92) is not 'overhead' and campus administration (23) is principals, not bureaucrats. Comparing either across districts of very different size mostly measures size."
+   ],
+   "fields": {
+    "district_name": {
+     "type": "str",
+     "example": "DALLAS ISD"
+    },
+    "year": {
+     "type": "int",
+     "example": "2025"
+    },
+    "students": {
+     "type": "int",
+     "example": "139776"
+    },
+    "operating_total": {
+     "type": "int",
+     "example": "1986168795"
+    },
+    "operating_per_student": {
+     "type": "float",
+     "example": "14209.66"
+    },
+    "functions": {
+     "type": "object",
+     "keys": 16
+    },
+    "functions.instruction": {
+     "type": "object",
+     "keys": 5
+    },
+    "functions.instruction.amount": {
+     "type": "int",
+     "example": "1007186822"
+    },
+    "functions.instruction.per_student": {
+     "type": "float",
+     "example": "7205.72"
+    },
+    "functions.instruction.share_of_operating": {
+     "type": "float",
+     "example": "50.71"
+    },
+    "functions.instruction.percentile": {
+     "type": "int",
+     "example": "41"
+    },
+    "functions.instruction.share_first_year": {
+     "type": "float",
+     "example": "60.01"
+    },
+    "functions.resources": {
+     "type": "object",
+     "keys": 5
+    },
+    "functions.resources.amount": {
+     "type": "int",
+     "example": "21502733"
+    },
+    "functions.resources.per_student": {
+     "type": "float",
+     "example": "153.84"
+    },
+    "functions.resources.share_of_operating": {
+     "type": "float",
+     "example": "1.08"
+    },
+    "functions.resources.percentile": {
+     "type": "int",
+     "example": "74"
+    },
+    "functions.resources.share_first_year": {
+     "type": "float",
+     "example": "1.38"
+    },
+    "functions.curriculum": {
+     "type": "object",
+     "keys": 5
+    },
+    "functions.curriculum.amount": {
+     "type": "int",
+     "example": "63918034"
+    },
+    "functions.curriculum.per_student": {
+     "type": "float",
+     "example": "457.29"
+    },
+    "functions.curriculum.share_of_operating": {
+     "type": "float",
+     "example": "3.22"
+    },
+    "functions.curriculum.percentile": {
+     "type": "int",
+     "example": "88"
+    },
+    "functions.curriculum.share_first_year": {
+     "type": "float",
+     "example": "2.51"
+    },
+    "functions.instr_leadership": {
+     "type": "object",
+     "keys": 5
+    },
+    "functions.instr_leadership.amount": {
+     "type": "int",
+     "example": "52300602"
+    },
+    "functions.instr_leadership.per_student": {
+     "type": "float",
+     "example": "374.17"
+    },
+    "functions.instr_leadership.share_of_operating": {
+     "type": "float",
+     "example": "2.63"
+    },
+    "functions.instr_leadership.percentile": {
+     "type": "int",
+     "example": "83"
+    },
+    "functions.instr_leadership.share_first_year": {
+     "type": "float",
+     "example": "1.63"
+    },
+    "functions.campus_admin": {
+     "type": "object",
+     "keys": 5
+    },
+    "functions.campus_admin.amount": {
+     "type": "int",
+     "example": "118815025"
+    },
+    "functions.campus_admin.per_student": {
+     "type": "float",
+     "example": "850.04"
+    },
+    "functions.campus_admin.share_of_operating": {
+     "type": "float",
+     "example": "5.98"
+    },
+    "functions.campus_admin.percentile": {
+     "type": "int",
+     "example": "60"
+    },
+    "functions.campus_admin.share_first_year": {
+     "type": "float",
+     "example": "5.63"
+    },
+    "functions.counseling": {
+     "type": "object",
+     "keys": 5
+    },
+    "functions.counseling.amount": {
+     "type": "int",
+     "example": "101175816"
+    },
+    "functions.counseling.per_student": {
+     "type": "float",
+     "example": "723.84"
+    },
+    "functions.counseling.share_of_operating": {
+     "type": "float",
+     "example": "5.09"
+    },
+    "functions.counseling.percentile": {
+     "type": "int",
+     "example": "88"
+    },
+    "functions.counseling.share_first_year": {
+     "type": "float",
+     "example": "4.05"
+    },
+    "functions.social_work": {
+     "type": "object",
+     "keys": 5
+    },
+    "functions.social_work.amount": {
+     "type": "int",
+     "example": "5647712"
+    },
+    "functions.social_work.per_student": {
+     "type": "float",
+     "example": "40.41"
+    },
+    "functions.social_work.share_of_operating": {
+     "type": "float",
+     "example": "0.28"
+    },
+    "functions.social_work.percentile": {
+     "type": "int",
+     "example": "52"
+    },
+    "functions.social_work.share_first_year": {
+     "type": "float",
+     "example": "0.13"
+    },
+    "functions.health": {
+     "type": "object",
+     "keys": 5
+    },
+    "functions.health.amount": {
+     "type": "int",
+     "example": "24562274"
+    },
+    "functions.health.per_student": {
+     "type": "float",
+     "example": "175.73"
+    },
+    "functions.health.share_of_operating": {
+     "type": "float",
+     "example": "1.24"
+    },
+    "functions.health.percentile": {
+     "type": "int",
+     "example": "77"
+    },
+    "functions.health.share_first_year": {
+     "type": "float",
+     "example": "1.14"
+    },
+    "functions.transportation": {
+     "type": "object",
+     "keys": 5
+    },
+    "functions.transportation.amount": {
+     "type": "int",
+     "example": "71975189"
+    },
+    "functions.transportation.per_student": {
+     "type": "float",
+     "example": "514.93"
+    },
+    "functions.transportation.share_of_operating": {
+     "type": "float",
+     "example": "3.62"
+    },
+    "functions.transportation.percentile": {
+     "type": "int",
+     "example": "70"
+    },
+    "functions.transportation.share_first_year": {
+     "type": "float",
+     "example": "1.86"
+    },
+    "functions.food": {
+     "type": "object",
+     "keys": 5
+    },
+    "functions.food.amount": {
+     "type": "int",
+     "example": "109777955"
+    },
+    "functions.food.per_student": {
+     "type": "float",
+     "example": "785.38"
+    },
+    "functions.food.share_of_operating": {
+     "type": "float",
+     "example": "5.53"
+    },
+    "functions.food.percentile": {
+     "type": "int",
+     "example": "52"
+    },
+    "functions.food.share_first_year": {
+     "type": "float",
+     "example": "4.62"
+    },
+    "functions.extracurricular": {
+     "type": "object",
+     "keys": 5
+    },
+    "functions.extracurricular.amount": {
+     "type": "int",
+     "example": "49377351"
+    },
+    "functions.extracurricular.per_student": {
+     "type": "float",
+     "example": "353.26"
+    },
+    "functions.extracurricular.share_of_operating": {
+     "type": "float",
+     "example": "2.49"
+    },
+    "functions.extracurricular.percentile": {
+     "type": "int",
+     "example": "20"
+    },
+    "functions.extracurricular.share_first_year": {
+     "type": "float",
+     "example": "0.68"
+    },
+    "functions.general_admin": {
+     "type": "object",
+     "keys": 5
+    },
+    "functions.general_admin.amount": {
+     "type": "int",
+     "example": "61347999"
+    },
+    "functions.general_admin.per_student": {
+     "type": "float",
+     "example": "438.9"
+    },
+    "functions.general_admin.share_of_operating": {
+     "type": "float",
+     "example": "3.09"
+    },
+    "functions.general_admin.percentile": {
+     "type": "int",
+     "example": "17"
+    },
+    "functions.general_admin.share_first_year": {
+     "type": "float",
+     "example": "2.8"
+    },
+    "functions.plant": {
+     "type": "object",
+     "keys": 5
+    },
+    "functions.plant.amount": {
+     "type": "int",
+     "example": "190226926"
+    },
+    "functions.plant.per_student": {
+     "type": "float",
+     "example": "1360.94"
+    },
+    "functions.plant.share_of_operating": {
+     "type": "float",
+     "example": "9.58"
+    },
+    "functions.plant.percentile": {
+     "type": "int",
+     "example": "25"
+    },
+    "functions.plant.share_first_year": {
+     "type": "float",
+     "example": "10.1"
+    },
+    "functions.security": {
+     "type": "object",
+     "keys": 5
+    },
+    "functions.security.amount": {
+     "type": "int",
+     "example": "52875657"
+    },
+    "functions.security.per_student": {
+     "type": "float",
+     "example": "378.29"
+    },
+    "functions.security.share_of_operating": {
+     "type": "float",
+     "example": "2.66"
+    },
+    "functions.security.percentile": {
+     "type": "int",
+     "example": "77"
+    },
+    "functions.security.share_first_year": {
+     "type": "float",
+     "example": "1.12"
+    },
+    "functions.data_processing": {
+     "type": "object",
+     "keys": 5
+    },
+    "functions.data_processing.amount": {
+     "type": "int",
+     "example": "37354829"
+    },
+    "functions.data_processing.per_student": {
+     "type": "float",
+     "example": "267.25"
+    },
+    "functions.data_processing.share_of_operating": {
+     "type": "float",
+     "example": "1.88"
+    },
+    "functions.data_processing.percentile": {
+     "type": "int",
+     "example": "43"
+    },
+    "functions.data_processing.share_first_year": {
+     "type": "float",
+     "example": "1.19"
+    },
+    "functions.community": {
+     "type": "object",
+     "keys": 5
+    },
+    "functions.community.amount": {
+     "type": "int",
+     "example": "18123871"
+    },
+    "functions.community.per_student": {
+     "type": "float",
+     "example": "129.66"
+    },
+    "functions.community.share_of_operating": {
+     "type": "float",
+     "example": "0.91"
+    },
+    "functions.community.percentile": {
+     "type": "int",
+     "example": "76"
+    },
+    "functions.community.share_first_year": {
+     "type": "float",
+     "example": "1.15"
+    },
+    "objects": {
+     "type": "object",
+     "keys": 4
+    },
+    "objects.payroll": {
+     "type": "object",
+     "keys": 3
+    },
+    "objects.payroll.amount": {
+     "type": "int",
+     "example": "1607821750"
+    },
+    "objects.payroll.per_student": {
+     "type": "float",
+     "example": "11502.85"
+    },
+    "objects.payroll.share": {
+     "type": "float",
+     "example": "80.95"
+    },
+    "objects.contracted": {
+     "type": "object",
+     "keys": 3
+    },
+    "objects.contracted.amount": {
+     "type": "int",
+     "example": "149162947"
+    },
+    "objects.contracted.per_student": {
+     "type": "float",
+     "example": "1067.16"
+    },
+    "objects.contracted.share": {
+     "type": "float",
+     "example": "7.51"
+    },
+    "objects.supplies": {
+     "type": "object",
+     "keys": 3
+    },
+    "objects.supplies.amount": {
+     "type": "int",
+     "example": "191766762"
+    },
+    "objects.supplies.per_student": {
+     "type": "float",
+     "example": "1371.96"
+    },
+    "objects.supplies.share": {
+     "type": "float",
+     "example": "9.66"
+    },
+    "objects.other": {
+     "type": "object",
+     "keys": 3
+    },
+    "objects.other.amount": {
+     "type": "int",
+     "example": "37417336"
+    },
+    "objects.other.per_student": {
+     "type": "float",
+     "example": "267.69"
+    },
+    "objects.other.share": {
+     "type": "float",
+     "example": "1.88"
+    },
+    "programs": {
+     "type": "object",
+     "keys": 8
+    },
+    "programs.regular": {
+     "type": "object",
+     "keys": 3
+    },
+    "programs.regular.amount": {
+     "type": "int",
+     "example": "785412438"
+    },
+    "programs.regular.per_student": {
+     "type": "float",
+     "example": "5619.08"
+    },
+    "programs.regular.share_of_program_total": {
+     "type": "float",
+     "example": "39.54"
+    },
+    "programs.gifted": {
+     "type": "object",
+     "keys": 3
+    },
+    "programs.gifted.amount": {
+     "type": "int",
+     "example": "12416846"
+    },
+    "programs.gifted.per_student": {
+     "type": "float",
+     "example": "88.83"
+    },
+    "programs.gifted.share_of_program_total": {
+     "type": "float",
+     "example": "0.63"
+    },
+    "programs.career_tech": {
+     "type": "object",
+     "keys": 3
+    },
+    "programs.career_tech.amount": {
+     "type": "int",
+     "example": "51582966"
+    },
+    "programs.career_tech.per_student": {
+     "type": "float",
+     "example": "369.04"
+    },
+    "programs.career_tech.share_of_program_total": {
+     "type": "float",
+     "example": "2.6"
+    },
+    "programs.special_ed": {
+     "type": "object",
+     "keys": 3
+    },
+    "programs.special_ed.amount": {
+     "type": "int",
+     "example": "244391079"
+    },
+    "programs.special_ed.per_student": {
+     "type": "float",
+     "example": "1748.45"
+    },
+    "programs.special_ed.share_of_program_total": {
+     "type": "float",
+     "example": "12.3"
+    },
+    "programs.compensatory": {
+     "type": "object",
+     "keys": 3
+    },
+    "programs.compensatory.amount": {
+     "type": "int",
+     "example": "245496781"
+    },
+    "programs.compensatory.per_student": {
+     "type": "float",
+     "example": "1756.36"
+    },
+    "programs.compensatory.share_of_program_total": {
+     "type": "float",
+     "example": "12.36"
+    },
+    "programs.bilingual": {
+     "type": "object",
+     "keys": 3
+    },
+    "programs.bilingual.amount": {
+     "type": "int",
+     "example": "35956401"
+    },
+    "programs.bilingual.per_student": {
+     "type": "float",
+     "example": "257.24"
+    },
+    "programs.bilingual.share_of_program_total": {
+     "type": "float",
+     "example": "1.81"
+    },
+    "programs.athletics": {
+     "type": "object",
+     "keys": 3
+    },
+    "programs.athletics.amount": {
+     "type": "int",
+     "example": "29340518"
+    },
+    "programs.athletics.per_student": {
+     "type": "float",
+     "example": "209.91"
+    },
+    "programs.athletics.share_of_program_total": {
+     "type": "float",
+     "example": "1.48"
+    },
+    "programs.undistributed": {
+     "type": "object",
+     "keys": 3
+    },
+    "programs.undistributed.amount": {
+     "type": "int",
+     "example": "510912543"
+    },
+    "programs.undistributed.per_student": {
+     "type": "float",
+     "example": "3655.22"
+    },
+    "programs.undistributed.share_of_program_total": {
+     "type": "float",
+     "example": "25.72"
+    },
+    "reconciles": {
+     "type": "float",
+     "example": "1.0"
+    },
+    "small_district": {
+     "type": "bool",
+     "example": "False"
+    }
+   },
+   "top_level": [
+    "districts",
+    "leaderboards",
+    "meta",
+    "texas"
+   ]
+  },
+  {
+   "file": "takeover_data.json",
+   "title": "Did the HISD takeover change results?",
+   "what_it_is": "Difference-in-differences against 13 districts matched on pre-takeover size and poverty.",
+   "bytes": 3915,
+   "records": 0,
+   "sample_district": null,
+   "source": null,
+   "publisher": null,
+   "year": null,
+   "first_year": null,
+   "limits": [
+    "One treated district. There is no meaningful p-value for a sample of one and none is claimed; the placebo rank across every Texas district is the honest substitute.",
+    "Two years of results is short.",
+    "'The takeover' bundles a new board, a new superintendent, a new curriculum, heavy staff turnover and school closures. This measures whether results moved, not which decision moved them.",
+    "Houston lost more enrolment than the comparison districts across the transition. Its poverty share held steady, so the leavers were not disproportionately poor, but a composition effect cannot be excluded."
+   ],
+   "fields": {},
+   "top_level": [
+    "by_group",
+    "comparison_districts",
+    "composition",
+    "headline",
+    "meta",
+    "parallel_trends",
+    "placebo",
+    "trajectory"
+   ]
+  },
+  {
+   "file": "tax_history.json",
+   "title": "What the tax rate has done since 2009",
+   "what_it_is": "Per-district rate and taxable value, 2009-2024, with the decomposition that says whether a bill rose because of the rate or because of property values.",
+   "bytes": 996201,
+   "records": 1015,
+   "sample_district": "057905",
+   "source": "Texas Comptroller school district property values and adopted tax rates, joined to TEA PEIMS enrollment",
+   "publisher": "Texas Comptroller of Public Accounts / Texas Education Agency",
+   "year": 2024,
+   "first_year": 2009,
+   "limits": [
+    "The bill is the same $300,000 home priced under each year's rate. It is NOT anyone's actual bill: no appraisal roll is used and homestead or over-65 exemptions are not modelled.",
+    "Separating rate from value is the point. Across most of Texas the rate has FALLEN while bills rose, because taxable values rose faster. A rate-only answer gets that backwards.",
+    "Rates are as adopted for the tax year and are matched to the fiscal year the finance file reports; a district that did not report in a year is skipped, never interpolated.",
+    "Charters levy no property tax and have no row here at all.",
+    "This layer labels a rate with the year the Comptroller adopted it. The economics card labels the SAME figure with the latest FINANCE year, because build_economics_data.py carries a district's last reported rate forward when the newest fiscal year has no adopted rate yet (rate_fallback, .groupby().last()). So a rate shown here as 2024 can appear there as 2025. Same number, two honest labels \u2014 stated here so a reader meeting both does not conclude one of them is wrong.",
+    "The statewide line is enrollment-weighted as well as median, because 1,000 small districts would otherwise outvote Houston."
+   ],
+   "fields": {
+    "district_name": {
+     "type": "str",
+     "example": "DALLAS ISD"
+    },
+    "first_year": {
+     "type": "int",
+     "example": "2009"
+    },
+    "last_year": {
+     "type": "int",
+     "example": "2024"
+    },
+    "years_reported": {
+     "type": "int",
+     "example": "16"
+    },
+    "series": {
+     "type": "object",
+     "keys": 6
+    },
+    "series.years": {
+     "type": "list",
+     "length": 16,
+     "example": "2009"
+    },
+    "series.total_rate": {
+     "type": "list",
+     "length": 16,
+     "example": "1.1834"
+    },
+    "series.mo_rate": {
+     "type": "list",
+     "length": 16,
+     "example": "1.04"
+    },
+    "series.is_rate": {
+     "type": "list",
+     "length": 16,
+     "example": "0.1434"
+    },
+    "series.bill_on_fixed_home": {
+     "type": "list",
+     "length": 16,
+     "example": "3550"
+    },
+    "series.taxable_value": {
+     "type": "list",
+     "length": 16,
+     "example": "None"
+    },
+    "change": {
+     "type": "object",
+     "keys": 8
+    },
+    "change.rate_first": {
+     "type": "float",
+     "example": "1.1834"
+    },
+    "change.rate_last": {
+     "type": "float",
+     "example": "1.0138"
+    },
+    "change.rate_change_pct": {
+     "type": "float",
+     "example": "-14.3"
+    },
+    "change.bill_first": {
+     "type": "int",
+     "example": "3550"
+    },
+    "change.bill_last": {
+     "type": "int",
+     "example": "3041"
+    },
+    "change.bill_change": {
+     "type": "int",
+     "example": "-509"
+    },
+    "change.taxable_value_change_pct": {
+     "type": "NoneType",
+     "example": null
+    },
+    "change.reading": {
+     "type": "NoneType",
+     "example": null
+    },
+    "home_value": {
+     "type": "int",
+     "example": "300000"
+    },
+    "short_series": {
+     "type": "bool",
+     "example": "False"
+    }
+   },
+   "top_level": [
+    "districts",
+    "meta",
+    "texas"
+   ]
+  },
+  {
+   "file": "trend_data.json",
+   "title": "Seventeen years of direction",
+   "what_it_is": "Six measures per district, fiscal 2009-2025, in constant dollars, each against the state's own line.",
+   "bytes": 2878417,
+   "records": 1201,
+   "sample_district": "057905",
+   "source": "TEA Summarized PEIMS Actual Financial Data, fiscal 2009-2025",
+   "publisher": null,
+   "year": 2025,
+   "first_year": 2009,
+   "limits": [
+    "A trend describes a direction, not a cause. A falling instruction share can be a district cutting classrooms or a district opening them; this data cannot tell the two apart.",
+    "Operating balance compares operating revenue with operating spending only. Including debt service or capital would count buildings paid for out of bond proceeds as a deficit.",
+    "The shift between functions is real reallocation, not reclassification: the 16 function codes still sum to the reported operating total in every year, risers and fallers cancel to a zero residual, no single function absorbs the decline, and it predates COVID and continues after the federal money left. See meta.reclassification_check.",
+    "Districts under 500 students keep their series but are left out of the rankings: one retirement moves a small district's per-student figure more than a policy would.",
+    "Fiscal 2025 is the newest release and has had the least time to be corrected."
+   ],
+   "fields": {
+    "district_number": {
+     "type": "str",
+     "example": "057905"
+    },
+    "district_name": {
+     "type": "str",
+     "example": "DALLAS ISD"
+    },
+    "years": {
+     "type": "list",
+     "length": 17,
+     "example": "2009"
+    },
+    "series": {
+     "type": "object",
+     "keys": 8
+    },
+    "series.enrollment": {
+     "type": "list",
+     "length": 17,
+     "example": "157174"
+    },
+    "series.debt_share": {
+     "type": "list",
+     "length": 17,
+     "example": "7.6"
+    },
+    "series.instruction_share": {
+     "type": "list",
+     "length": 17,
+     "example": "60.0"
+    },
+    "series.instruction_ps": {
+     "type": "list",
+     "length": 17,
+     "example": "8240.0"
+    },
+    "series.debt_ps": {
+     "type": "list",
+     "length": 17,
+     "example": "1131.0"
+    },
+    "series.security_ps": {
+     "type": "list",
+     "length": 17,
+     "example": "154.0"
+    },
+    "series.operating_balance_ps": {
+     "type": "list",
+     "length": 17,
+     "example": "-354.0"
+    },
+    "series.federal_ps": {
+     "type": "list",
+     "length": 17,
+     "example": "2171.0"
+    },
+    "change": {
+     "type": "object",
+     "keys": 6
+    },
+    "change.instruction_share": {
+     "type": "object",
+     "keys": 6
+    },
+    "change.instruction_share.first_year": {
+     "type": "int",
+     "example": "2009"
+    },
+    "change.instruction_share.first": {
+     "type": "float",
+     "example": "60.0"
+    },
+    "change.instruction_share.last_year": {
+     "type": "int",
+     "example": "2025"
+    },
+    "change.instruction_share.last": {
+     "type": "float",
+     "example": "50.7"
+    },
+    "change.instruction_share.change": {
+     "type": "float",
+     "example": "-9.3"
+    },
+    "change.instruction_share.pct_change": {
+     "type": "float",
+     "example": "-15.5"
+    },
+    "change.instruction_ps": {
+     "type": "object",
+     "keys": 6
+    },
+    "change.instruction_ps.first_year": {
+     "type": "int",
+     "example": "2009"
+    },
+    "change.instruction_ps.first": {
+     "type": "float",
+     "example": "8240.0"
+    },
+    "change.instruction_ps.last_year": {
+     "type": "int",
+     "example": "2025"
+    },
+    "change.instruction_ps.last": {
+     "type": "float",
+     "example": "7018.0"
+    },
+    "change.instruction_ps.change": {
+     "type": "float",
+     "example": "-1222.0"
+    },
+    "change.instruction_ps.pct_change": {
+     "type": "float",
+     "example": "-14.8"
+    },
+    "change.debt_ps": {
+     "type": "object",
+     "keys": 6
+    },
+    "change.debt_ps.first_year": {
+     "type": "int",
+     "example": "2009"
+    },
+    "change.debt_ps.first": {
+     "type": "float",
+     "example": "1131.0"
+    },
+    "change.debt_ps.last_year": {
+     "type": "int",
+     "example": "2025"
+    },
+    "change.debt_ps.last": {
+     "type": "float",
+     "example": "3485.0"
+    },
+    "change.debt_ps.change": {
+     "type": "float",
+     "example": "2354.0"
+    },
+    "change.debt_ps.pct_change": {
+     "type": "float",
+     "example": "208.1"
+    },
+    "change.security_ps": {
+     "type": "object",
+     "keys": 6
+    },
+    "change.security_ps.first_year": {
+     "type": "int",
+     "example": "2009"
+    },
+    "change.security_ps.first": {
+     "type": "float",
+     "example": "154.0"
+    },
+    "change.security_ps.last_year": {
+     "type": "int",
+     "example": "2025"
+    },
+    "change.security_ps.last": {
+     "type": "float",
+     "example": "368.0"
+    },
+    "change.security_ps.change": {
+     "type": "float",
+     "example": "214.0"
+    },
+    "change.security_ps.pct_change": {
+     "type": "float",
+     "example": "139.0"
+    },
+    "change.operating_balance_ps": {
+     "type": "object",
+     "keys": 6
+    },
+    "change.operating_balance_ps.first_year": {
+     "type": "int",
+     "example": "2009"
+    },
+    "change.operating_balance_ps.first": {
+     "type": "float",
+     "example": "-354.0"
+    },
+    "change.operating_balance_ps.last_year": {
+     "type": "int",
+     "example": "2025"
+    },
+    "change.operating_balance_ps.last": {
+     "type": "float",
+     "example": "-662.0"
+    },
+    "change.operating_balance_ps.change": {
+     "type": "float",
+     "example": "-308.0"
+    },
+    "change.operating_balance_ps.pct_change": {
+     "type": "float",
+     "example": "-87.0"
+    },
+    "change.federal_ps": {
+     "type": "object",
+     "keys": 6
+    },
+    "change.federal_ps.first_year": {
+     "type": "int",
+     "example": "2009"
+    },
+    "change.federal_ps.first": {
+     "type": "float",
+     "example": "2171.0"
+    },
+    "change.federal_ps.last_year": {
+     "type": "int",
+     "example": "2025"
+    },
+    "change.federal_ps.last": {
+     "type": "float",
+     "example": "1986.0"
+    },
+    "change.federal_ps.change": {
+     "type": "float",
+     "example": "-185.0"
+    },
+    "change.federal_ps.pct_change": {
+     "type": "float",
+     "example": "-8.5"
+    },
+    "vs_state": {
+     "type": "object",
+     "keys": 6
+    },
+    "vs_state.instruction_share": {
+     "type": "object",
+     "keys": 2
+    },
+    "vs_state.instruction_share.gap_vs_state": {
+     "type": "float",
+     "example": "-6.0"
+    },
+    "vs_state.instruction_share.steeper_than_state": {
+     "type": "bool",
+     "example": "True"
+    },
+    "vs_state.instruction_ps": {
+     "type": "object",
+     "keys": 2
+    },
+    "vs_state.instruction_ps.gap_vs_state": {
+     "type": "float",
+     "example": "-853.0"
+    },
+    "vs_state.instruction_ps.steeper_than_state": {
+     "type": "bool",
+     "example": "True"
+    },
+    "vs_state.debt_ps": {
+     "type": "object",
+     "keys": 2
+    },
+    "vs_state.debt_ps.gap_vs_state": {
+     "type": "float",
+     "example": "1420.0"
+    },
+    "vs_state.debt_ps.steeper_than_state": {
+     "type": "bool",
+     "example": "True"
+    },
+    "vs_state.security_ps": {
+     "type": "object",
+     "keys": 2
+    },
+    "vs_state.security_ps.gap_vs_state": {
+     "type": "float",
+     "example": "78.0"
+    },
+    "vs_state.security_ps.steeper_than_state": {
+     "type": "bool",
+     "example": "True"
+    },
+    "vs_state.operating_balance_ps": {
+     "type": "object",
+     "keys": 2
+    },
+    "vs_state.operating_balance_ps.gap_vs_state": {
+     "type": "float",
+     "example": "17.0"
+    },
+    "vs_state.operating_balance_ps.steeper_than_state": {
+     "type": "bool",
+     "example": "False"
+    },
+    "vs_state.federal_ps": {
+     "type": "object",
+     "keys": 2
+    },
+    "vs_state.federal_ps.gap_vs_state": {
+     "type": "float",
+     "example": "-165.0"
+    },
+    "vs_state.federal_ps.steeper_than_state": {
+     "type": "bool",
+     "example": "True"
+    },
+    "small_district": {
+     "type": "bool",
+     "example": "False"
+    },
+    "note": {
+     "type": "NoneType",
+     "example": null
+    }
+   },
+   "top_level": [
+    "districts",
+    "findings",
+    "meta",
+    "revenue_mix_now",
+    "statewide",
+    "summary"
+   ]
+  }
+ ],
+ "totals": {
+  "artifacts": 20,
+  "bytes": 25745529,
+  "district_records": 16739,
+  "fields_documented": 617
+ },
+ "routes": [
+  {
+   "method": "GET",
+   "path": "/",
+   "summary": "Serve the public portal page \u2014 with per-district search + social"
+  },
+  {
+   "method": "GET",
+   "path": "/.well-known/mcp.json",
+   "summary": "MCP discovery: tells an assistant (or a registry crawler) where this"
+  },
+  {
+   "method": "GET",
+   "path": "/about",
+   "summary": "The mission: what this is, why it was built, who it's for, and what we"
+  },
+  {
+   "method": "GET",
+   "path": "/anomalies",
+   "summary": "Get districts with anomaly flags"
+  },
+  {
+   "method": "GET",
+   "path": "/api",
+   "summary": "API information and endpoint directory"
+  },
+  {
+   "method": "GET",
+   "path": "/api/cron/isd-intelligence",
+   "summary": "Daily research run, triggered by Vercel Cron."
+  },
+  {
+   "method": "GET",
+   "path": "/api/cron/outreach-drain",
+   "summary": "One batch off the queue. Vercel Cron fires this daily with the"
+  },
+  {
+   "method": "GET",
+   "path": "/api/cron/runs",
+   "summary": "Has the scheduled work actually been running?"
+  },
+  {
+   "method": "GET",
+   "path": "/benchmarks",
+   "summary": "Statewide per-year medians \u2014 the 'what's normal?' context that"
+  },
+  {
+   "method": "GET",
+   "path": "/bonds/texas",
+   "summary": "66 years of Texas school bond elections, without the per-district detail."
+  },
+  {
+   "method": "GET",
+   "path": "/briefing",
+   "summary": "The most recent daily ISD intelligence briefing."
+  },
+  {
+   "method": "GET",
+   "path": "/campuses/texas",
+   "summary": "What the district rating hides."
+  },
+  {
+   "method": "GET",
+   "path": "/debt/texas",
+   "summary": "What Texas school districts still OWE \u2014 the stock, not the yearly payment."
+  },
+  {
+   "method": "GET",
+   "path": "/district-geo",
+   "summary": "Simplified Texas school-district boundaries (Census TIGER/Line 2025, public"
+  },
+  {
+   "method": "GET",
+   "path": "/district/{district_number}/bonds",
+   "summary": "Every bond this district ever put on a ballot, and how the vote went."
+  },
+  {
+   "method": "GET",
+   "path": "/district/{district_number}/breakdown",
+   "summary": "Function-level spending breakdown (MECE categories from TEA function"
+  },
+  {
+   "method": "GET",
+   "path": "/district/{district_number}/campus-performance",
+   "summary": "Every campus in one district with its own STAAR scores, by subject."
+  },
+  {
+   "method": "GET",
+   "path": "/district/{district_number}/campuses",
+   "summary": "Every rated campus in one district, worst first, against the district's"
+  },
+  {
+   "method": "GET",
+   "path": "/district/{district_number}/debt",
+   "summary": "What one district still owes, and the year it clears."
+  },
+  {
+   "method": "GET",
+   "path": "/district/{district_number}/dollar",
+   "summary": "Where one dollar goes, as 100 pennies \u2014 for this district, for its"
+  },
+  {
+   "method": "GET",
+   "path": "/district/{district_number}/economics",
+   "summary": "What you pay, where it goes, what it buys, and who does better."
+  },
+  {
+   "method": "GET",
+   "path": "/district/{district_number}/equity",
+   "summary": "How this district does for the students it actually serves."
+  },
+  {
+   "method": "GET",
+   "path": "/district/{district_number}/erate",
+   "summary": "One district's E-Rate history as its own applicant."
+  },
+  {
+   "method": "GET",
+   "path": "/district/{district_number}/forensics",
+   "summary": "The four money questions Texas reports in four incompatible places."
+  },
+  {
+   "method": "GET",
+   "path": "/district/{district_number}/insights",
+   "summary": "Actionable intelligence: where this district materially differs from"
+  },
+  {
+   "method": "GET",
+   "path": "/district/{district_number}/lineage/{metric}",
+   "summary": "Why is this number this number?"
+  },
+  {
+   "method": "GET",
+   "path": "/district/{district_number}/national",
+   "summary": "One district against every other district in the country."
+  },
+  {
+   "method": "GET",
+   "path": "/district/{district_number}/outcomes",
+   "summary": "What the money buys: student population, teaching workforce, and"
+  },
+  {
+   "method": "GET",
+   "path": "/district/{district_number}/peers",
+   "summary": "Peer comparison, plus this district's statewide percentile. The #1"
+  },
+  {
+   "method": "GET",
+   "path": "/district/{district_number}/performance",
+   "summary": "One district's STAAR results by student group and by subject."
+  },
+  {
+   "method": "GET",
+   "path": "/district/{district_number}/spending",
+   "summary": "One district's operating dollar, split sixteen ways, against the state."
+  },
+  {
+   "method": "GET",
+   "path": "/district/{district_number}/spending-detail",
+   "summary": "Two more spending dimensions the summarized data already carries:"
+  },
+  {
+   "method": "GET",
+   "path": "/district/{district_number}/summary",
+   "summary": "Get financial summary for a specific district"
+  },
+  {
+   "method": "GET",
+   "path": "/district/{district_number}/tax-history",
+   "summary": "One district's rate since 2009, and why a bill moved."
+  },
+  {
+   "method": "GET",
+   "path": "/district/{district_number}/trends",
+   "summary": "Seventeen fiscal years of this district, against the state's own line."
+  },
+  {
+   "method": "GET",
+   "path": "/district/{district_number}/turnarounds",
+   "summary": "Walk the similarity graph and find structural peers that reversed a"
+  },
+  {
+   "method": "GET",
+   "path": "/districts",
+   "summary": "List all districts with optional search"
+  },
+  {
+   "method": "GET",
+   "path": "/docs",
+   "summary": ""
+  },
+  {
+   "method": "GET",
+   "path": "/dollar/texas",
+   "summary": "The whole state's dollar, pooled: every category summed across every"
+  },
+  {
+   "method": "POST",
+   "path": "/e",
+   "summary": "How long a tracked recipient stayed on a page."
+  },
+  {
+   "method": "GET",
+   "path": "/economics/texas",
+   "summary": "The statewide series behind every district page."
+  },
+  {
+   "method": "GET",
+   "path": "/equity/texas",
+   "summary": "Statewide results by student group, and who does best for poor students."
+  },
+  {
+   "method": "GET",
+   "path": "/erate/texas",
+   "summary": "Federal E-Rate money for school connectivity \u2014 the dollars TEA's"
+  },
+  {
+   "method": "GET",
+   "path": "/fallback-index",
+   "summary": "The district picker and statewide figures, with no database involved."
+  },
+  {
+   "method": "GET",
+   "path": "/feed",
+   "summary": "The Feed: the day's district headlines as a stream, each with the"
+  },
+  {
+   "method": "GET",
+   "path": "/feed.xml",
+   "summary": "The Feed as Atom, for feed readers. Same DB-then-snapshot lookup as"
+  },
+  {
+   "method": "GET",
+   "path": "/forensics",
+   "summary": "The Forensic File: what sits outside the operating total, who pays, what"
+  },
+  {
+   "method": "GET",
+   "path": "/forensics/quality",
+   "summary": "Forensic-accounting tests on the filings themselves."
+  },
+  {
+   "method": "GET",
+   "path": "/forensics/texas",
+   "summary": "Statewide totals, the ranked tables, and one compact row per district."
+  },
+  {
+   "method": "GET",
+   "path": "/geomap",
+   "summary": "The real geographic map of Texas school district boundaries."
+  },
+  {
+   "method": "GET",
+   "path": "/health",
+   "summary": "Health check endpoint."
+  },
+  {
+   "method": "GET",
+   "path": "/heatmap",
+   "summary": "Mapbox choropleth: districts colored by news intensity or outcomes."
+  },
+  {
+   "method": "GET",
+   "path": "/intel",
+   "summary": "The daily ISD intelligence briefing, rendered."
+  },
+  {
+   "method": "GET",
+   "path": "/lineage/texas/{metric}",
+   "summary": "The working behind the statewide headline itself."
+  },
+  {
+   "method": "GET",
+   "path": "/map",
+   "summary": "Serve the statewide similarity map page."
+  },
+  {
+   "method": "GET",
+   "path": "/map-data",
+   "summary": "Precomputed 2D similarity-map coordinates (PCA of the exogenous"
+  },
+  {
+   "method": "GET",
+   "path": "/mapbox-token",
+   "summary": "The PUBLIC Mapbox token, from the MAPBOX_TOKEN env var."
+  },
+  {
+   "method": "POST",
+   "path": "/mcp",
+   "summary": "Model Context Protocol 2026-07-28, so an assistant can answer questions"
+  },
+  {
+   "method": "GET",
+   "path": "/national/texas",
+   "summary": "Texas against the other 49 states, on the federal government's ruler."
+  },
+  {
+   "method": "GET",
+   "path": "/performance/texas",
+   "summary": "STAAR by student group, statewide, at the Meets bar."
+  },
+  {
+   "method": "GET",
+   "path": "/provenance",
+   "summary": "Where every number came from, and how to check it yourself."
+  },
+  {
+   "method": "POST",
+   "path": "/query",
+   "summary": "Process natural language query about Texas school finances"
+  },
+  {
+   "method": "GET",
+   "path": "/report/first-671",
+   "summary": "The outreach campaign's results, in plain language \u2014 a handout."
+  },
+  {
+   "method": "GET",
+   "path": "/robots.txt",
+   "summary": "Let search engines in, and point them at the district index."
+  },
+  {
+   "method": "GET",
+   "path": "/sample-queries",
+   "summary": "Get sample natural language queries"
+  },
+  {
+   "method": "GET",
+   "path": "/share/{name}",
+   "summary": "Per-district 1200x630 social card (and the default). Pre-rendered into"
+  },
+  {
+   "method": "GET",
+   "path": "/sitemap.xml",
+   "summary": "Every district is a page worth finding. Without this, a search for"
+  },
+  {
+   "method": "GET",
+   "path": "/sources",
+   "summary": "The source-of-truth page: every dataset, every measure, and the four"
+  },
+  {
+   "method": "GET",
+   "path": "/spending/texas",
+   "summary": "Where the operating dollar actually goes \u2014 all sixteen PEIMS functions."
+  },
+  {
+   "method": "GET",
+   "path": "/static/ask.js",
+   "summary": "The everywhere ask layer: the floating button + sheet every page loads."
+  },
+  {
+   "method": "GET",
+   "path": "/static/design.css",
+   "summary": "The shared design system, linked by every page."
+  },
+  {
+   "method": "GET",
+   "path": "/static/tag-pipeline.png",
+   "summary": "The TAG ai intelligence-layer graphic, hot-linked by the superintendent"
+  },
+  {
+   "method": "GET",
+   "path": "/static/track.js",
+   "summary": "The dwell beacon. Inert for everyone except a mailed recipient \u2014 it"
+  },
+  {
+   "method": "GET",
+   "path": "/stats",
+   "summary": "Get database statistics"
+  },
+  {
+   "method": "GET",
+   "path": "/takeover/houston",
+   "summary": "Did the June 2023 state takeover of Houston ISD change results?"
+  },
+  {
+   "method": "GET",
+   "path": "/tax/texas",
+   "summary": "What school tax rates have actually done since 2009."
+  },
+  {
+   "method": "GET",
+   "path": "/transparency",
+   "summary": "AI disclosure, terms of use, and the making-of \u2014 linked from the"
+  },
+  {
+   "method": "GET",
+   "path": "/trends/texas",
+   "summary": "The seventeen-year statewide series and the six findings in it."
+  }
+ ],
+ "views": {
+  "v_finance_summary": [
+   "district_number",
+   "district_name",
+   "year",
+   "total_revenue",
+   "total_spend",
+   "enrollment",
+   "spend_per_student",
+   "revenue_per_student",
+   "instruction_spend",
+   "debt_service",
+   "capital_projects",
+   "operating_spend",
+   "library_media_spend",
+   "curriculum_staff_dev_spend",
+   "instructional_leadership_spend",
+   "campus_admin_spend",
+   "counseling_spend",
+   "social_work_spend",
+   "health_services_spend",
+   "transportation_spend",
+   "food_service_spend",
+   "extracurricular_spend",
+   "general_admin_spend",
+   "plant_maintenance_spend",
+   "security_spend",
+   "data_processing_spend",
+   "community_services_spend",
+   "payroll_spend",
+   "contracted_services_spend",
+   "supplies_spend"
+  ],
+  "v_spending_detail": [
+   "enrollment",
+   "obj_payroll",
+   "obj_contracted",
+   "obj_supplies",
+   "obj_other",
+   "obj_total",
+   "prog_regular",
+   "prog_special_ed",
+   "prog_bilingual",
+   "prog_career_tech",
+   "prog_gifted",
+   "prog_compensatory",
+   "prog_athletics",
+   "prog_total"
+  ]
+ },
+ "groups": [
+  {
+   "title": "Money",
+   "blurb": "What is spent, what is paid, and where it goes",
+   "files": [
+    {
+     "file": "economics_data.json",
+     "title": "What you pay and where it goes",
+     "what_it_is": "Tax bill on a $300,000 home, what leaves under recapture, the split between teaching, buildings and debt, and which similar districts do better. One year, every district.",
+     "bytes": 2943087,
+     "records": 1202,
+     "sample_district": "057905",
+     "source": null,
+     "publisher": null,
+     "year": 2025,
+     "first_year": null,
+     "limits": [
+      "Effect sizes are observational. Within-district first differences remove everything about a district that does not change, but not confounders that move at the same time.",
+      "TEA does not itemise facilities: debt service covers all buildings together, so a stadium cannot be separated from a roof without a district's own bond documents.",
+      "Tax figures are withheld for districts where two independent estimates of the tax base disagree by more than 25%."
+     ],
+     "fields": {
+      "district_number": {
+       "type": "str",
+       "example": "057905"
+      },
+      "district_name": {
+       "type": "str",
+       "example": "Dallas ISD"
+      },
+      "year": {
+       "type": "int",
+       "example": "2025"
+      },
+      "students": {
+       "type": "int",
+       "example": "139776"
+      },
+      "tax": {
+       "type": "object",
+       "keys": 7
+      },
+      "tax.mo_rate": {
+       "type": "float",
+       "example": "0.7718"
+      },
+      "tax.is_rate": {
+       "type": "float",
+       "example": "0.242"
+      },
+      "tax.total_rate": {
+       "type": "float",
+       "example": "1.0138"
+      },
+      "tax.bill_on_home": {
+       "type": "int",
+       "example": "3041"
+      },
+      "tax.leaves_district": {
+       "type": "int",
+       "example": "88"
+      },
+      "tax.home_value": {
+       "type": "int",
+       "example": "300000"
+      },
+      "tax.tax_price": {
+       "type": "float",
+       "example": "214.04"
+      },
+      "allocation": {
+       "type": "object",
+       "keys": 9
+      },
+      "allocation.instruction_per_student": {
+       "type": "int",
+       "example": "7206"
+      },
+      "allocation.debt_per_student": {
+       "type": "int",
+       "example": "3578"
+      },
+      "allocation.other_operating_per_student": {
+       "type": "int",
+       "example": "7004"
+      },
+      "allocation.operating_per_student": {
+       "type": "int",
+       "example": "14210"
+      },
+      "allocation.total_per_student": {
+       "type": "int",
+       "example": "17788"
+      },
+      "allocation.payroll_per_student": {
+       "type": "int",
+       "example": "11503"
+      },
+      "allocation.cents_on_debt_per_dollar_taught": {
+       "type": "int",
+       "example": "50"
+      },
+      "allocation.teachers_equivalent_of_debt": {
+       "type": "int",
+       "example": "8826"
+      },
+      "allocation.lineage": {
+       "type": "object",
+       "keys": 3
+      },
+      "allocation.lineage.denominator": {
+       "type": "int",
+       "example": "139776"
+      },
+      "allocation.lineage.recomputed_from": {
+       "type": "str",
+       "example": "data/texas_finance_clean.csv, re-read longhand by scripts/re"
+      },
+      "allocation.lineage.figures": {
+       "type": "object",
+       "keys": 3
+      },
+      "allocation.lineage.figures.spend_instruction_per_student": {
+       "type": "object",
+       "keys": 3
+      },
+      "allocation.lineage.figures.spend_debt_per_student": {
+       "type": "object",
+       "keys": 3
+      },
+      "allocation.lineage.figures.spend_operating_per_student": {
+       "type": "object",
+       "keys": 3
+      },
+      "revenue": {
+       "type": "object",
+       "keys": 9
+      },
+      "revenue.local_per_student": {
+       "type": "int",
+       "example": "13525"
+      },
+      "revenue.state_per_student": {
+       "type": "int",
+       "example": "1489"
+      },
+      "revenue.federal_per_student": {
+       "type": "int",
+       "example": "2039"
+      },
+      "revenue.total_per_student": {
+       "type": "int",
+       "example": "17053"
+      },
+      "revenue.local_pct": {
+       "type": "int",
+       "example": "79"
+      },
+      "revenue.state_pct": {
+       "type": "int",
+       "example": "9"
+      },
+      "revenue.federal_pct": {
+       "type": "int",
+       "example": "12"
+      },
+      "revenue.note": {
+       "type": "str",
+       "example": "local is gross property tax before recapture is deducted"
+      },
+      "revenue.lineage": {
+       "type": "object",
+       "keys": 3
+      },
+      "revenue.lineage.denominator": {
+       "type": "int",
+       "example": "139776"
+      },
+      "revenue.lineage.recomputed_from": {
+       "type": "str",
+       "example": "data/texas_finance_clean.csv + data/tea_property.csv, re-rea"
+      },
+      "revenue.lineage.figures": {
+       "type": "object",
+       "keys": 4
+      },
+      "revenue.lineage.figures.total_per_student": {
+       "type": "object",
+       "keys": 3
+      },
+      "revenue.lineage.figures.local_per_student": {
+       "type": "object",
+       "keys": 3
+      },
+      "revenue.lineage.figures.state_per_student": {
+       "type": "object",
+       "keys": 3
+      },
+      "revenue.lineage.figures.federal_per_student": {
+       "type": "object",
+       "keys": 3
+      },
+      "recapture": {
+       "type": "object",
+       "keys": 3
+      },
+      "recapture.paid": {
+       "type": "int",
+       "example": "52538602"
+      },
+      "recapture.per_student": {
+       "type": "int",
+       "example": "376"
+      },
+      "recapture.share_of_local_mo": {
+       "type": "float",
+       "example": "0.0382"
+      },
+      "own": {
+       "type": "object",
+       "keys": 2
+      },
+      "own.pct_poor": {
+       "type": "float",
+       "example": "85.7"
+      },
+      "own.turnover": {
+       "type": "float",
+       "example": "18.2"
+      },
+      "reliability": {
+       "type": "object",
+       "keys": 3
+      },
+      "reliability.score": {
+       "type": "float",
+       "example": "5.4"
+      },
+      "reliability.years_measured": {
+       "type": "int",
+       "example": "6"
+      },
+      "reliability.percentile": {
+       "type": "int",
+       "example": "76"
+      },
+      "who_does_better": {
+       "type": "list",
+       "length": 5
+      },
+      "who_does_better[].district_number": {
+       "type": "str",
+       "example": "031901"
+      },
+      "who_does_better[].name": {
+       "type": "str",
+       "example": "Brownsville ISD"
+      },
+      "who_does_better[].students": {
+       "type": "int",
+       "example": "37766"
+      },
+      "who_does_better[].pct_poor": {
+       "type": "float",
+       "example": "89.4"
+      },
+      "who_does_better[].beats_by": {
+       "type": "float",
+       "example": "14.2"
+      },
+      "who_does_better[].turnover": {
+       "type": "float",
+       "example": "8.8"
+      },
+      "who_does_better[].spend_per_student": {
+       "type": "int",
+       "example": "13732"
+      }
+     },
+     "top_level": [
+      "districts",
+      "macro",
+      "meta",
+      "micro"
+     ]
+    },
+    {
+     "file": "spending_detail.json",
+     "title": "Where the operating dollar actually goes",
+     "what_it_is": "All 16 PEIMS function codes (buses, meals, counsellors, administration), 8 program codes (special education, bilingual, athletics) and 4 object codes (payroll, supplies). Per district.",
+     "bytes": 3369976,
+     "records": 1202,
+     "sample_district": "057905",
+     "source": "TEA Summarized PEIMS Actual Financial Data",
+     "publisher": "Texas Education Agency",
+     "year": 2025,
+     "first_year": 2009,
+     "limits": [
+      "These are ACTUAL expenditures for the fiscal year shown, not a budget and not the current year.",
+      "A function absent for a district is left out, never written as zero: a district with no food service line usually runs none, and a zero would rank every other district up.",
+      "Percentiles and medians are over districts with at least 100 students that reported the function. Below that one bus is an outlier.",
+      "Function codes describe what money was spent ON; PROGRAM codes describe who it served. They are two different cuts of the same operating dollar and must never be added together.",
+      "Programme codes do NOT tile operating spend \u2014 code 99 carries what TEA does not attribute to a programme \u2014 so a programme share is taken against TEA's own programme total, never against operating.",
+      "Central administration (41,92) is not 'overhead' and campus administration (23) is principals, not bureaucrats. Comparing either across districts of very different size mostly measures size."
+     ],
+     "fields": {
+      "district_name": {
+       "type": "str",
+       "example": "DALLAS ISD"
+      },
+      "year": {
+       "type": "int",
+       "example": "2025"
+      },
+      "students": {
+       "type": "int",
+       "example": "139776"
+      },
+      "operating_total": {
+       "type": "int",
+       "example": "1986168795"
+      },
+      "operating_per_student": {
+       "type": "float",
+       "example": "14209.66"
+      },
+      "functions": {
+       "type": "object",
+       "keys": 16
+      },
+      "functions.instruction": {
+       "type": "object",
+       "keys": 5
+      },
+      "functions.instruction.amount": {
+       "type": "int",
+       "example": "1007186822"
+      },
+      "functions.instruction.per_student": {
+       "type": "float",
+       "example": "7205.72"
+      },
+      "functions.instruction.share_of_operating": {
+       "type": "float",
+       "example": "50.71"
+      },
+      "functions.instruction.percentile": {
+       "type": "int",
+       "example": "41"
+      },
+      "functions.instruction.share_first_year": {
+       "type": "float",
+       "example": "60.01"
+      },
+      "functions.resources": {
+       "type": "object",
+       "keys": 5
+      },
+      "functions.resources.amount": {
+       "type": "int",
+       "example": "21502733"
+      },
+      "functions.resources.per_student": {
+       "type": "float",
+       "example": "153.84"
+      },
+      "functions.resources.share_of_operating": {
+       "type": "float",
+       "example": "1.08"
+      },
+      "functions.resources.percentile": {
+       "type": "int",
+       "example": "74"
+      },
+      "functions.resources.share_first_year": {
+       "type": "float",
+       "example": "1.38"
+      },
+      "functions.curriculum": {
+       "type": "object",
+       "keys": 5
+      },
+      "functions.curriculum.amount": {
+       "type": "int",
+       "example": "63918034"
+      },
+      "functions.curriculum.per_student": {
+       "type": "float",
+       "example": "457.29"
+      },
+      "functions.curriculum.share_of_operating": {
+       "type": "float",
+       "example": "3.22"
+      },
+      "functions.curriculum.percentile": {
+       "type": "int",
+       "example": "88"
+      },
+      "functions.curriculum.share_first_year": {
+       "type": "float",
+       "example": "2.51"
+      },
+      "functions.instr_leadership": {
+       "type": "object",
+       "keys": 5
+      },
+      "functions.instr_leadership.amount": {
+       "type": "int",
+       "example": "52300602"
+      },
+      "functions.instr_leadership.per_student": {
+       "type": "float",
+       "example": "374.17"
+      },
+      "functions.instr_leadership.share_of_operating": {
+       "type": "float",
+       "example": "2.63"
+      },
+      "functions.instr_leadership.percentile": {
+       "type": "int",
+       "example": "83"
+      },
+      "functions.instr_leadership.share_first_year": {
+       "type": "float",
+       "example": "1.63"
+      },
+      "functions.campus_admin": {
+       "type": "object",
+       "keys": 5
+      },
+      "functions.campus_admin.amount": {
+       "type": "int",
+       "example": "118815025"
+      },
+      "functions.campus_admin.per_student": {
+       "type": "float",
+       "example": "850.04"
+      },
+      "functions.campus_admin.share_of_operating": {
+       "type": "float",
+       "example": "5.98"
+      },
+      "functions.campus_admin.percentile": {
+       "type": "int",
+       "example": "60"
+      },
+      "functions.campus_admin.share_first_year": {
+       "type": "float",
+       "example": "5.63"
+      },
+      "functions.counseling": {
+       "type": "object",
+       "keys": 5
+      },
+      "functions.counseling.amount": {
+       "type": "int",
+       "example": "101175816"
+      },
+      "functions.counseling.per_student": {
+       "type": "float",
+       "example": "723.84"
+      },
+      "functions.counseling.share_of_operating": {
+       "type": "float",
+       "example": "5.09"
+      },
+      "functions.counseling.percentile": {
+       "type": "int",
+       "example": "88"
+      },
+      "functions.counseling.share_first_year": {
+       "type": "float",
+       "example": "4.05"
+      },
+      "functions.social_work": {
+       "type": "object",
+       "keys": 5
+      },
+      "functions.social_work.amount": {
+       "type": "int",
+       "example": "5647712"
+      },
+      "functions.social_work.per_student": {
+       "type": "float",
+       "example": "40.41"
+      },
+      "functions.social_work.share_of_operating": {
+       "type": "float",
+       "example": "0.28"
+      },
+      "functions.social_work.percentile": {
+       "type": "int",
+       "example": "52"
+      },
+      "functions.social_work.share_first_year": {
+       "type": "float",
+       "example": "0.13"
+      },
+      "functions.health": {
+       "type": "object",
+       "keys": 5
+      },
+      "functions.health.amount": {
+       "type": "int",
+       "example": "24562274"
+      },
+      "functions.health.per_student": {
+       "type": "float",
+       "example": "175.73"
+      },
+      "functions.health.share_of_operating": {
+       "type": "float",
+       "example": "1.24"
+      },
+      "functions.health.percentile": {
+       "type": "int",
+       "example": "77"
+      },
+      "functions.health.share_first_year": {
+       "type": "float",
+       "example": "1.14"
+      },
+      "functions.transportation": {
+       "type": "object",
+       "keys": 5
+      },
+      "functions.transportation.amount": {
+       "type": "int",
+       "example": "71975189"
+      },
+      "functions.transportation.per_student": {
+       "type": "float",
+       "example": "514.93"
+      },
+      "functions.transportation.share_of_operating": {
+       "type": "float",
+       "example": "3.62"
+      },
+      "functions.transportation.percentile": {
+       "type": "int",
+       "example": "70"
+      },
+      "functions.transportation.share_first_year": {
+       "type": "float",
+       "example": "1.86"
+      },
+      "functions.food": {
+       "type": "object",
+       "keys": 5
+      },
+      "functions.food.amount": {
+       "type": "int",
+       "example": "109777955"
+      },
+      "functions.food.per_student": {
+       "type": "float",
+       "example": "785.38"
+      },
+      "functions.food.share_of_operating": {
+       "type": "float",
+       "example": "5.53"
+      },
+      "functions.food.percentile": {
+       "type": "int",
+       "example": "52"
+      },
+      "functions.food.share_first_year": {
+       "type": "float",
+       "example": "4.62"
+      },
+      "functions.extracurricular": {
+       "type": "object",
+       "keys": 5
+      },
+      "functions.extracurricular.amount": {
+       "type": "int",
+       "example": "49377351"
+      },
+      "functions.extracurricular.per_student": {
+       "type": "float",
+       "example": "353.26"
+      },
+      "functions.extracurricular.share_of_operating": {
+       "type": "float",
+       "example": "2.49"
+      },
+      "functions.extracurricular.percentile": {
+       "type": "int",
+       "example": "20"
+      },
+      "functions.extracurricular.share_first_year": {
+       "type": "float",
+       "example": "0.68"
+      },
+      "functions.general_admin": {
+       "type": "object",
+       "keys": 5
+      },
+      "functions.general_admin.amount": {
+       "type": "int",
+       "example": "61347999"
+      },
+      "functions.general_admin.per_student": {
+       "type": "float",
+       "example": "438.9"
+      },
+      "functions.general_admin.share_of_operating": {
+       "type": "float",
+       "example": "3.09"
+      },
+      "functions.general_admin.percentile": {
+       "type": "int",
+       "example": "17"
+      },
+      "functions.general_admin.share_first_year": {
+       "type": "float",
+       "example": "2.8"
+      },
+      "functions.plant": {
+       "type": "object",
+       "keys": 5
+      },
+      "functions.plant.amount": {
+       "type": "int",
+       "example": "190226926"
+      },
+      "functions.plant.per_student": {
+       "type": "float",
+       "example": "1360.94"
+      },
+      "functions.plant.share_of_operating": {
+       "type": "float",
+       "example": "9.58"
+      },
+      "functions.plant.percentile": {
+       "type": "int",
+       "example": "25"
+      },
+      "functions.plant.share_first_year": {
+       "type": "float",
+       "example": "10.1"
+      },
+      "functions.security": {
+       "type": "object",
+       "keys": 5
+      },
+      "functions.security.amount": {
+       "type": "int",
+       "example": "52875657"
+      },
+      "functions.security.per_student": {
+       "type": "float",
+       "example": "378.29"
+      },
+      "functions.security.share_of_operating": {
+       "type": "float",
+       "example": "2.66"
+      },
+      "functions.security.percentile": {
+       "type": "int",
+       "example": "77"
+      },
+      "functions.security.share_first_year": {
+       "type": "float",
+       "example": "1.12"
+      },
+      "functions.data_processing": {
+       "type": "object",
+       "keys": 5
+      },
+      "functions.data_processing.amount": {
+       "type": "int",
+       "example": "37354829"
+      },
+      "functions.data_processing.per_student": {
+       "type": "float",
+       "example": "267.25"
+      },
+      "functions.data_processing.share_of_operating": {
+       "type": "float",
+       "example": "1.88"
+      },
+      "functions.data_processing.percentile": {
+       "type": "int",
+       "example": "43"
+      },
+      "functions.data_processing.share_first_year": {
+       "type": "float",
+       "example": "1.19"
+      },
+      "functions.community": {
+       "type": "object",
+       "keys": 5
+      },
+      "functions.community.amount": {
+       "type": "int",
+       "example": "18123871"
+      },
+      "functions.community.per_student": {
+       "type": "float",
+       "example": "129.66"
+      },
+      "functions.community.share_of_operating": {
+       "type": "float",
+       "example": "0.91"
+      },
+      "functions.community.percentile": {
+       "type": "int",
+       "example": "76"
+      },
+      "functions.community.share_first_year": {
+       "type": "float",
+       "example": "1.15"
+      },
+      "objects": {
+       "type": "object",
+       "keys": 4
+      },
+      "objects.payroll": {
+       "type": "object",
+       "keys": 3
+      },
+      "objects.payroll.amount": {
+       "type": "int",
+       "example": "1607821750"
+      },
+      "objects.payroll.per_student": {
+       "type": "float",
+       "example": "11502.85"
+      },
+      "objects.payroll.share": {
+       "type": "float",
+       "example": "80.95"
+      },
+      "objects.contracted": {
+       "type": "object",
+       "keys": 3
+      },
+      "objects.contracted.amount": {
+       "type": "int",
+       "example": "149162947"
+      },
+      "objects.contracted.per_student": {
+       "type": "float",
+       "example": "1067.16"
+      },
+      "objects.contracted.share": {
+       "type": "float",
+       "example": "7.51"
+      },
+      "objects.supplies": {
+       "type": "object",
+       "keys": 3
+      },
+      "objects.supplies.amount": {
+       "type": "int",
+       "example": "191766762"
+      },
+      "objects.supplies.per_student": {
+       "type": "float",
+       "example": "1371.96"
+      },
+      "objects.supplies.share": {
+       "type": "float",
+       "example": "9.66"
+      },
+      "objects.other": {
+       "type": "object",
+       "keys": 3
+      },
+      "objects.other.amount": {
+       "type": "int",
+       "example": "37417336"
+      },
+      "objects.other.per_student": {
+       "type": "float",
+       "example": "267.69"
+      },
+      "objects.other.share": {
+       "type": "float",
+       "example": "1.88"
+      },
+      "programs": {
+       "type": "object",
+       "keys": 8
+      },
+      "programs.regular": {
+       "type": "object",
+       "keys": 3
+      },
+      "programs.regular.amount": {
+       "type": "int",
+       "example": "785412438"
+      },
+      "programs.regular.per_student": {
+       "type": "float",
+       "example": "5619.08"
+      },
+      "programs.regular.share_of_program_total": {
+       "type": "float",
+       "example": "39.54"
+      },
+      "programs.gifted": {
+       "type": "object",
+       "keys": 3
+      },
+      "programs.gifted.amount": {
+       "type": "int",
+       "example": "12416846"
+      },
+      "programs.gifted.per_student": {
+       "type": "float",
+       "example": "88.83"
+      },
+      "programs.gifted.share_of_program_total": {
+       "type": "float",
+       "example": "0.63"
+      },
+      "programs.career_tech": {
+       "type": "object",
+       "keys": 3
+      },
+      "programs.career_tech.amount": {
+       "type": "int",
+       "example": "51582966"
+      },
+      "programs.career_tech.per_student": {
+       "type": "float",
+       "example": "369.04"
+      },
+      "programs.career_tech.share_of_program_total": {
+       "type": "float",
+       "example": "2.6"
+      },
+      "programs.special_ed": {
+       "type": "object",
+       "keys": 3
+      },
+      "programs.special_ed.amount": {
+       "type": "int",
+       "example": "244391079"
+      },
+      "programs.special_ed.per_student": {
+       "type": "float",
+       "example": "1748.45"
+      },
+      "programs.special_ed.share_of_program_total": {
+       "type": "float",
+       "example": "12.3"
+      },
+      "programs.compensatory": {
+       "type": "object",
+       "keys": 3
+      },
+      "programs.compensatory.amount": {
+       "type": "int",
+       "example": "245496781"
+      },
+      "programs.compensatory.per_student": {
+       "type": "float",
+       "example": "1756.36"
+      },
+      "programs.compensatory.share_of_program_total": {
+       "type": "float",
+       "example": "12.36"
+      },
+      "programs.bilingual": {
+       "type": "object",
+       "keys": 3
+      },
+      "programs.bilingual.amount": {
+       "type": "int",
+       "example": "35956401"
+      },
+      "programs.bilingual.per_student": {
+       "type": "float",
+       "example": "257.24"
+      },
+      "programs.bilingual.share_of_program_total": {
+       "type": "float",
+       "example": "1.81"
+      },
+      "programs.athletics": {
+       "type": "object",
+       "keys": 3
+      },
+      "programs.athletics.amount": {
+       "type": "int",
+       "example": "29340518"
+      },
+      "programs.athletics.per_student": {
+       "type": "float",
+       "example": "209.91"
+      },
+      "programs.athletics.share_of_program_total": {
+       "type": "float",
+       "example": "1.48"
+      },
+      "programs.undistributed": {
+       "type": "object",
+       "keys": 3
+      },
+      "programs.undistributed.amount": {
+       "type": "int",
+       "example": "510912543"
+      },
+      "programs.undistributed.per_student": {
+       "type": "float",
+       "example": "3655.22"
+      },
+      "programs.undistributed.share_of_program_total": {
+       "type": "float",
+       "example": "25.72"
+      },
+      "reconciles": {
+       "type": "float",
+       "example": "1.0"
+      },
+      "small_district": {
+       "type": "bool",
+       "example": "False"
+      }
+     },
+     "top_level": [
+      "districts",
+      "leaderboards",
+      "meta",
+      "texas"
+     ]
+    },
+    {
+     "file": "tax_history.json",
+     "title": "What the tax rate has done since 2009",
+     "what_it_is": "Per-district rate and taxable value, 2009-2024, with the decomposition that says whether a bill rose because of the rate or because of property values.",
+     "bytes": 996201,
+     "records": 1015,
+     "sample_district": "057905",
+     "source": "Texas Comptroller school district property values and adopted tax rates, joined to TEA PEIMS enrollment",
+     "publisher": "Texas Comptroller of Public Accounts / Texas Education Agency",
+     "year": 2024,
+     "first_year": 2009,
+     "limits": [
+      "The bill is the same $300,000 home priced under each year's rate. It is NOT anyone's actual bill: no appraisal roll is used and homestead or over-65 exemptions are not modelled.",
+      "Separating rate from value is the point. Across most of Texas the rate has FALLEN while bills rose, because taxable values rose faster. A rate-only answer gets that backwards.",
+      "Rates are as adopted for the tax year and are matched to the fiscal year the finance file reports; a district that did not report in a year is skipped, never interpolated.",
+      "Charters levy no property tax and have no row here at all.",
+      "This layer labels a rate with the year the Comptroller adopted it. The economics card labels the SAME figure with the latest FINANCE year, because build_economics_data.py carries a district's last reported rate forward when the newest fiscal year has no adopted rate yet (rate_fallback, .groupby().last()). So a rate shown here as 2024 can appear there as 2025. Same number, two honest labels \u2014 stated here so a reader meeting both does not conclude one of them is wrong.",
+      "The statewide line is enrollment-weighted as well as median, because 1,000 small districts would otherwise outvote Houston."
+     ],
+     "fields": {
+      "district_name": {
+       "type": "str",
+       "example": "DALLAS ISD"
+      },
+      "first_year": {
+       "type": "int",
+       "example": "2009"
+      },
+      "last_year": {
+       "type": "int",
+       "example": "2024"
+      },
+      "years_reported": {
+       "type": "int",
+       "example": "16"
+      },
+      "series": {
+       "type": "object",
+       "keys": 6
+      },
+      "series.years": {
+       "type": "list",
+       "length": 16,
+       "example": "2009"
+      },
+      "series.total_rate": {
+       "type": "list",
+       "length": 16,
+       "example": "1.1834"
+      },
+      "series.mo_rate": {
+       "type": "list",
+       "length": 16,
+       "example": "1.04"
+      },
+      "series.is_rate": {
+       "type": "list",
+       "length": 16,
+       "example": "0.1434"
+      },
+      "series.bill_on_fixed_home": {
+       "type": "list",
+       "length": 16,
+       "example": "3550"
+      },
+      "series.taxable_value": {
+       "type": "list",
+       "length": 16,
+       "example": "None"
+      },
+      "change": {
+       "type": "object",
+       "keys": 8
+      },
+      "change.rate_first": {
+       "type": "float",
+       "example": "1.1834"
+      },
+      "change.rate_last": {
+       "type": "float",
+       "example": "1.0138"
+      },
+      "change.rate_change_pct": {
+       "type": "float",
+       "example": "-14.3"
+      },
+      "change.bill_first": {
+       "type": "int",
+       "example": "3550"
+      },
+      "change.bill_last": {
+       "type": "int",
+       "example": "3041"
+      },
+      "change.bill_change": {
+       "type": "int",
+       "example": "-509"
+      },
+      "change.taxable_value_change_pct": {
+       "type": "NoneType",
+       "example": null
+      },
+      "change.reading": {
+       "type": "NoneType",
+       "example": null
+      },
+      "home_value": {
+       "type": "int",
+       "example": "300000"
+      },
+      "short_series": {
+       "type": "bool",
+       "example": "False"
+      }
+     },
+     "top_level": [
+      "districts",
+      "meta",
+      "texas"
+     ]
+    },
+    {
+     "file": "trend_data.json",
+     "title": "Seventeen years of direction",
+     "what_it_is": "Six measures per district, fiscal 2009-2025, in constant dollars, each against the state's own line.",
+     "bytes": 2878417,
+     "records": 1201,
+     "sample_district": "057905",
+     "source": "TEA Summarized PEIMS Actual Financial Data, fiscal 2009-2025",
+     "publisher": null,
+     "year": 2025,
+     "first_year": 2009,
+     "limits": [
+      "A trend describes a direction, not a cause. A falling instruction share can be a district cutting classrooms or a district opening them; this data cannot tell the two apart.",
+      "Operating balance compares operating revenue with operating spending only. Including debt service or capital would count buildings paid for out of bond proceeds as a deficit.",
+      "The shift between functions is real reallocation, not reclassification: the 16 function codes still sum to the reported operating total in every year, risers and fallers cancel to a zero residual, no single function absorbs the decline, and it predates COVID and continues after the federal money left. See meta.reclassification_check.",
+      "Districts under 500 students keep their series but are left out of the rankings: one retirement moves a small district's per-student figure more than a policy would.",
+      "Fiscal 2025 is the newest release and has had the least time to be corrected."
+     ],
+     "fields": {
+      "district_number": {
+       "type": "str",
+       "example": "057905"
+      },
+      "district_name": {
+       "type": "str",
+       "example": "DALLAS ISD"
+      },
+      "years": {
+       "type": "list",
+       "length": 17,
+       "example": "2009"
+      },
+      "series": {
+       "type": "object",
+       "keys": 8
+      },
+      "series.enrollment": {
+       "type": "list",
+       "length": 17,
+       "example": "157174"
+      },
+      "series.debt_share": {
+       "type": "list",
+       "length": 17,
+       "example": "7.6"
+      },
+      "series.instruction_share": {
+       "type": "list",
+       "length": 17,
+       "example": "60.0"
+      },
+      "series.instruction_ps": {
+       "type": "list",
+       "length": 17,
+       "example": "8240.0"
+      },
+      "series.debt_ps": {
+       "type": "list",
+       "length": 17,
+       "example": "1131.0"
+      },
+      "series.security_ps": {
+       "type": "list",
+       "length": 17,
+       "example": "154.0"
+      },
+      "series.operating_balance_ps": {
+       "type": "list",
+       "length": 17,
+       "example": "-354.0"
+      },
+      "series.federal_ps": {
+       "type": "list",
+       "length": 17,
+       "example": "2171.0"
+      },
+      "change": {
+       "type": "object",
+       "keys": 6
+      },
+      "change.instruction_share": {
+       "type": "object",
+       "keys": 6
+      },
+      "change.instruction_share.first_year": {
+       "type": "int",
+       "example": "2009"
+      },
+      "change.instruction_share.first": {
+       "type": "float",
+       "example": "60.0"
+      },
+      "change.instruction_share.last_year": {
+       "type": "int",
+       "example": "2025"
+      },
+      "change.instruction_share.last": {
+       "type": "float",
+       "example": "50.7"
+      },
+      "change.instruction_share.change": {
+       "type": "float",
+       "example": "-9.3"
+      },
+      "change.instruction_share.pct_change": {
+       "type": "float",
+       "example": "-15.5"
+      },
+      "change.instruction_ps": {
+       "type": "object",
+       "keys": 6
+      },
+      "change.instruction_ps.first_year": {
+       "type": "int",
+       "example": "2009"
+      },
+      "change.instruction_ps.first": {
+       "type": "float",
+       "example": "8240.0"
+      },
+      "change.instruction_ps.last_year": {
+       "type": "int",
+       "example": "2025"
+      },
+      "change.instruction_ps.last": {
+       "type": "float",
+       "example": "7018.0"
+      },
+      "change.instruction_ps.change": {
+       "type": "float",
+       "example": "-1222.0"
+      },
+      "change.instruction_ps.pct_change": {
+       "type": "float",
+       "example": "-14.8"
+      },
+      "change.debt_ps": {
+       "type": "object",
+       "keys": 6
+      },
+      "change.debt_ps.first_year": {
+       "type": "int",
+       "example": "2009"
+      },
+      "change.debt_ps.first": {
+       "type": "float",
+       "example": "1131.0"
+      },
+      "change.debt_ps.last_year": {
+       "type": "int",
+       "example": "2025"
+      },
+      "change.debt_ps.last": {
+       "type": "float",
+       "example": "3485.0"
+      },
+      "change.debt_ps.change": {
+       "type": "float",
+       "example": "2354.0"
+      },
+      "change.debt_ps.pct_change": {
+       "type": "float",
+       "example": "208.1"
+      },
+      "change.security_ps": {
+       "type": "object",
+       "keys": 6
+      },
+      "change.security_ps.first_year": {
+       "type": "int",
+       "example": "2009"
+      },
+      "change.security_ps.first": {
+       "type": "float",
+       "example": "154.0"
+      },
+      "change.security_ps.last_year": {
+       "type": "int",
+       "example": "2025"
+      },
+      "change.security_ps.last": {
+       "type": "float",
+       "example": "368.0"
+      },
+      "change.security_ps.change": {
+       "type": "float",
+       "example": "214.0"
+      },
+      "change.security_ps.pct_change": {
+       "type": "float",
+       "example": "139.0"
+      },
+      "change.operating_balance_ps": {
+       "type": "object",
+       "keys": 6
+      },
+      "change.operating_balance_ps.first_year": {
+       "type": "int",
+       "example": "2009"
+      },
+      "change.operating_balance_ps.first": {
+       "type": "float",
+       "example": "-354.0"
+      },
+      "change.operating_balance_ps.last_year": {
+       "type": "int",
+       "example": "2025"
+      },
+      "change.operating_balance_ps.last": {
+       "type": "float",
+       "example": "-662.0"
+      },
+      "change.operating_balance_ps.change": {
+       "type": "float",
+       "example": "-308.0"
+      },
+      "change.operating_balance_ps.pct_change": {
+       "type": "float",
+       "example": "-87.0"
+      },
+      "change.federal_ps": {
+       "type": "object",
+       "keys": 6
+      },
+      "change.federal_ps.first_year": {
+       "type": "int",
+       "example": "2009"
+      },
+      "change.federal_ps.first": {
+       "type": "float",
+       "example": "2171.0"
+      },
+      "change.federal_ps.last_year": {
+       "type": "int",
+       "example": "2025"
+      },
+      "change.federal_ps.last": {
+       "type": "float",
+       "example": "1986.0"
+      },
+      "change.federal_ps.change": {
+       "type": "float",
+       "example": "-185.0"
+      },
+      "change.federal_ps.pct_change": {
+       "type": "float",
+       "example": "-8.5"
+      },
+      "vs_state": {
+       "type": "object",
+       "keys": 6
+      },
+      "vs_state.instruction_share": {
+       "type": "object",
+       "keys": 2
+      },
+      "vs_state.instruction_share.gap_vs_state": {
+       "type": "float",
+       "example": "-6.0"
+      },
+      "vs_state.instruction_share.steeper_than_state": {
+       "type": "bool",
+       "example": "True"
+      },
+      "vs_state.instruction_ps": {
+       "type": "object",
+       "keys": 2
+      },
+      "vs_state.instruction_ps.gap_vs_state": {
+       "type": "float",
+       "example": "-853.0"
+      },
+      "vs_state.instruction_ps.steeper_than_state": {
+       "type": "bool",
+       "example": "True"
+      },
+      "vs_state.debt_ps": {
+       "type": "object",
+       "keys": 2
+      },
+      "vs_state.debt_ps.gap_vs_state": {
+       "type": "float",
+       "example": "1420.0"
+      },
+      "vs_state.debt_ps.steeper_than_state": {
+       "type": "bool",
+       "example": "True"
+      },
+      "vs_state.security_ps": {
+       "type": "object",
+       "keys": 2
+      },
+      "vs_state.security_ps.gap_vs_state": {
+       "type": "float",
+       "example": "78.0"
+      },
+      "vs_state.security_ps.steeper_than_state": {
+       "type": "bool",
+       "example": "True"
+      },
+      "vs_state.operating_balance_ps": {
+       "type": "object",
+       "keys": 2
+      },
+      "vs_state.operating_balance_ps.gap_vs_state": {
+       "type": "float",
+       "example": "17.0"
+      },
+      "vs_state.operating_balance_ps.steeper_than_state": {
+       "type": "bool",
+       "example": "False"
+      },
+      "vs_state.federal_ps": {
+       "type": "object",
+       "keys": 2
+      },
+      "vs_state.federal_ps.gap_vs_state": {
+       "type": "float",
+       "example": "-165.0"
+      },
+      "vs_state.federal_ps.steeper_than_state": {
+       "type": "bool",
+       "example": "True"
+      },
+      "small_district": {
+       "type": "bool",
+       "example": "False"
+      },
+      "note": {
+       "type": "NoneType",
+       "example": null
+      }
+     },
+     "top_level": [
+      "districts",
+      "findings",
+      "meta",
+      "revenue_mix_now",
+      "statewide",
+      "summary"
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Results",
+   "blurb": "What the money bought",
+   "files": [
+    {
+     "file": "outcomes_data.json",
+     "title": "What the money bought",
+     "what_it_is": "Teacher turnover, experience and salary, class size, attendance, graduation and STAAR, each against structural peers and against what the district's demographics predict.",
+     "bytes": 845349,
+     "records": 1205,
+     "sample_district": "057905",
+     "source": "TEA Snapshot District & Charter Detail + TEA Summarized PEIMS",
+     "publisher": null,
+     "year": 2024,
+     "first_year": null,
+     "limits": [],
+     "fields": {
+      "district_number": {
+       "type": "str",
+       "example": "057905"
+      },
+      "district_name": {
+       "type": "str",
+       "example": "DALLAS ISD"
+      },
+      "year": {
+       "type": "int",
+       "example": "2024"
+      },
+      "students": {
+       "type": "int",
+       "example": "139096"
+      },
+      "peer_count": {
+       "type": "int",
+       "example": "6"
+      },
+      "need": {
+       "type": "object",
+       "keys": 3
+      },
+      "need.pct_econ_disadv": {
+       "type": "float",
+       "example": "87.2"
+      },
+      "need.pct_emergent_bilingual": {
+       "type": "float",
+       "example": "50.5"
+      },
+      "need.pct_special_ed": {
+       "type": "float",
+       "example": "11.9"
+      },
+      "measures": {
+       "type": "object",
+       "keys": 9
+      },
+      "measures.teacher_turnover_pct": {
+       "type": "list",
+       "length": 2,
+       "example": "16.8"
+      },
+      "measures.teacher_avg_experience": {
+       "type": "list",
+       "length": 2,
+       "example": "9.9"
+      },
+      "measures.avg_teacher_salary": {
+       "type": "list",
+       "length": 2,
+       "example": "68699.0"
+      },
+      "measures.students_per_teacher": {
+       "type": "list",
+       "length": 2,
+       "example": "13.6"
+      },
+      "measures.attendance_rate": {
+       "type": "list",
+       "length": 2,
+       "example": "92.4"
+      },
+      "measures.grad_rate_4yr": {
+       "type": "list",
+       "length": 2,
+       "example": "82.6"
+      },
+      "measures.test_all_meets": {
+       "type": "list",
+       "length": 2,
+       "example": "42.0"
+      },
+      "measures.test_all_approaches": {
+       "type": "list",
+       "length": 2,
+       "example": "70.0"
+      },
+      "measures.test_all_masters": {
+       "type": "list",
+       "length": 2,
+       "example": "16.0"
+      },
+      "spend_per_student": {
+       "type": "float",
+       "example": "15518.8"
+      },
+      "spend_peer_median": {
+       "type": "float",
+       "example": "12483.3"
+      },
+      "spend_state_median": {
+       "type": "float",
+       "example": "14416.4"
+      },
+      "border_keeps_teachers_better": {
+       "type": "NoneType",
+       "example": null
+      },
+      "expectation": {
+       "type": "object",
+       "keys": 4
+      },
+      "expectation.expected": {
+       "type": "float",
+       "example": "36.5"
+      },
+      "expectation.actual": {
+       "type": "float",
+       "example": "42.0"
+      },
+      "expectation.gap": {
+       "type": "float",
+       "example": "5.5"
+      },
+      "expectation.model_r2": {
+       "type": "float",
+       "example": "0.5005"
+      }
+     },
+     "top_level": [
+      "districts",
+      "meta"
+     ]
+    },
+    {
+     "file": "campus_performance.json",
+     "title": "STAAR by school, and by student group",
+     "what_it_is": "What students actually scored, by subject for 8,264 campuses, and by 15 student groups for every district. Plus per-campus teacher experience, tenure and degree mix.",
+     "bytes": 6656816,
+     "records": 1204,
+     "sample_district": "057905",
+     "source": "Texas Academic Performance Report (TAPR)",
+     "publisher": "Texas Education Agency",
+     "year": 2025,
+     "first_year": null,
+     "limits": [
+      "A masked cell is NOT a zero. TEA suppresses groups small enough to identify a student; those cells are omitted here, so a group missing from a campus or district had too few test-takers to report \u2014 it did not score nothing.",
+      "Rates are TEA's published percentages, never recomputed from the numerator and denominator: TEA rounds before publishing and dividing them back gives a different number from the one on TEA's own page.",
+      "Campus records carry SUBJECTS; student-group results are published at district grain only. Campus-by-group cells are mostly masked, and a table of blanks with a few identifiable children in it is worse than no table.",
+      "No campus is ranked against a campus in another district. The finding is the spread INSIDE a district; a statewide campus league table is a far more dangerous artefact.",
+      "Teacher CERTIFICATION is not published in TAPR's staff dataset and is not here. A degree is not a certificate, and the degree mix must not be presented as an answer to 'are the teachers certified'.",
+      "Two statewide figures are published per group and they are not interchangeable. `meets` is test-weighted \u2014 the share of TEXAS TESTS that met the bar. `meets_district_mean` is the unweighted average of district rates, which is what the equity layer reports. On all students they read about 49.7% and 46.5%: the first says how the typical student did, the second how the typical district did, and neither is wrong.",
+      "Campus-level teacher TURNOVER is likewise not in this dataset. Beginning-teacher share and average tenure are published instead, and they are related but not the same measure."
+     ],
+     "fields": {
+      "district_name": {
+       "type": "str",
+       "example": "DALLAS ISD"
+      },
+      "groups": {
+       "type": "object",
+       "keys": 15
+      },
+      "groups.all": {
+       "type": "object",
+       "keys": 4
+      },
+      "groups.all.tests": {
+       "type": "int",
+       "example": "189147"
+      },
+      "groups.all.approaches": {
+       "type": "float",
+       "example": "72.0"
+      },
+      "groups.all.meets": {
+       "type": "float",
+       "example": "46.0"
+      },
+      "groups.all.masters": {
+       "type": "float",
+       "example": "19.0"
+      },
+      "groups.african_american": {
+       "type": "object",
+       "keys": 4
+      },
+      "groups.african_american.tests": {
+       "type": "int",
+       "example": "33788"
+      },
+      "groups.african_american.approaches": {
+       "type": "float",
+       "example": "67.0"
+      },
+      "groups.african_american.meets": {
+       "type": "float",
+       "example": "39.0"
+      },
+      "groups.african_american.masters": {
+       "type": "float",
+       "example": "14.0"
+      },
+      "groups.white": {
+       "type": "object",
+       "keys": 4
+      },
+      "groups.white.tests": {
+       "type": "int",
+       "example": "10052"
+      },
+      "groups.white.approaches": {
+       "type": "float",
+       "example": "89.0"
+      },
+      "groups.white.meets": {
+       "type": "float",
+       "example": "76.0"
+      },
+      "groups.white.masters": {
+       "type": "float",
+       "example": "51.0"
+      },
+      "groups.hispanic": {
+       "type": "object",
+       "keys": 4
+      },
+      "groups.hispanic.tests": {
+       "type": "int",
+       "example": "139141"
+      },
+      "groups.hispanic.approaches": {
+       "type": "float",
+       "example": "72.0"
+      },
+      "groups.hispanic.meets": {
+       "type": "float",
+       "example": "45.0"
+      },
+      "groups.hispanic.masters": {
+       "type": "float",
+       "example": "18.0"
+      },
+      "groups.american_indian": {
+       "type": "object",
+       "keys": 4
+      },
+      "groups.american_indian.tests": {
+       "type": "int",
+       "example": "569"
+      },
+      "groups.american_indian.approaches": {
+       "type": "float",
+       "example": "62.0"
+      },
+      "groups.american_indian.meets": {
+       "type": "float",
+       "example": "34.0"
+      },
+      "groups.american_indian.masters": {
+       "type": "float",
+       "example": "13.0"
+      },
+      "groups.two_or_more": {
+       "type": "object",
+       "keys": 4
+      },
+      "groups.two_or_more.tests": {
+       "type": "int",
+       "example": "3180"
+      },
+      "groups.two_or_more.approaches": {
+       "type": "float",
+       "example": "79.0"
+      },
+      "groups.two_or_more.meets": {
+       "type": "float",
+       "example": "59.0"
+      },
+      "groups.two_or_more.masters": {
+       "type": "float",
+       "example": "33.0"
+      },
+      "groups.asian": {
+       "type": "object",
+       "keys": 4
+      },
+      "groups.asian.tests": {
+       "type": "int",
+       "example": "2335"
+      },
+      "groups.asian.approaches": {
+       "type": "float",
+       "example": "81.0"
+      },
+      "groups.asian.meets": {
+       "type": "float",
+       "example": "63.0"
+      },
+      "groups.asian.masters": {
+       "type": "float",
+       "example": "42.0"
+      },
+      "groups.pacific_islander": {
+       "type": "object",
+       "keys": 4
+      },
+      "groups.pacific_islander.tests": {
+       "type": "int",
+       "example": "82"
+      },
+      "groups.pacific_islander.approaches": {
+       "type": "float",
+       "example": "80.0"
+      },
+      "groups.pacific_islander.meets": {
+       "type": "float",
+       "example": "48.0"
+      },
+      "groups.pacific_islander.masters": {
+       "type": "float",
+       "example": "21.0"
+      },
+      "groups.male": {
+       "type": "object",
+       "keys": 4
+      },
+      "groups.male.tests": {
+       "type": "int",
+       "example": "97402"
+      },
+      "groups.male.approaches": {
+       "type": "float",
+       "example": "70.0"
+      },
+      "groups.male.meets": {
+       "type": "float",
+       "example": "44.0"
+      },
+      "groups.male.masters": {
+       "type": "float",
+       "example": "19.0"
+      },
+      "groups.female": {
+       "type": "object",
+       "keys": 4
+      },
+      "groups.female.tests": {
+       "type": "int",
+       "example": "91745"
+      },
+      "groups.female.approaches": {
+       "type": "float",
+       "example": "74.0"
+      },
+      "groups.female.meets": {
+       "type": "float",
+       "example": "47.0"
+      },
+      "groups.female.masters": {
+       "type": "float",
+       "example": "20.0"
+      },
+      "groups.special_ed": {
+       "type": "object",
+       "keys": 4
+      },
+      "groups.special_ed.tests": {
+       "type": "int",
+       "example": "29490"
+      },
+      "groups.special_ed.approaches": {
+       "type": "float",
+       "example": "51.0"
+      },
+      "groups.special_ed.meets": {
+       "type": "float",
+       "example": "29.0"
+      },
+      "groups.special_ed.masters": {
+       "type": "float",
+       "example": "11.0"
+      },
+      "groups.econ_disadv": {
+       "type": "object",
+       "keys": 4
+      },
+      "groups.econ_disadv.tests": {
+       "type": "int",
+       "example": "169722"
+      },
+      "groups.econ_disadv.approaches": {
+       "type": "float",
+       "example": "70.0"
+      },
+      "groups.econ_disadv.meets": {
+       "type": "float",
+       "example": "43.0"
+      },
+      "groups.econ_disadv.masters": {
+       "type": "float",
+       "example": "16.0"
+      },
+      "groups.at_risk": {
+       "type": "object",
+       "keys": 4
+      },
+      "groups.at_risk.tests": {
+       "type": "int",
+       "example": "143934"
+      },
+      "groups.at_risk.approaches": {
+       "type": "float",
+       "example": "65.0"
+      },
+      "groups.at_risk.meets": {
+       "type": "float",
+       "example": "36.0"
+      },
+      "groups.at_risk.masters": {
+       "type": "float",
+       "example": "12.0"
+      },
+      "groups.emergent_bilingual": {
+       "type": "object",
+       "keys": 4
+      },
+      "groups.emergent_bilingual.tests": {
+       "type": "int",
+       "example": "97699"
+      },
+      "groups.emergent_bilingual.approaches": {
+       "type": "float",
+       "example": "68.0"
+      },
+      "groups.emergent_bilingual.meets": {
+       "type": "float",
+       "example": "39.0"
+      },
+      "groups.emergent_bilingual.masters": {
+       "type": "float",
+       "example": "14.0"
+      },
+      "groups.gifted": {
+       "type": "object",
+       "keys": 4
+      },
+      "groups.gifted.tests": {
+       "type": "int",
+       "example": "48635"
+      },
+      "groups.gifted.approaches": {
+       "type": "float",
+       "example": "94.0"
+      },
+      "groups.gifted.meets": {
+       "type": "float",
+       "example": "78.0"
+      },
+      "groups.gifted.masters": {
+       "type": "float",
+       "example": "44.0"
+      },
+      "subjects": {
+       "type": "object",
+       "keys": 5
+      },
+      "subjects.all": {
+       "type": "object",
+       "keys": 4
+      },
+      "subjects.all.tests": {
+       "type": "int",
+       "example": "189147"
+      },
+      "subjects.all.approaches": {
+       "type": "float",
+       "example": "72.0"
+      },
+      "subjects.all.meets": {
+       "type": "float",
+       "example": "46.0"
+      },
+      "subjects.all.masters": {
+       "type": "float",
+       "example": "19.0"
+      },
+      "subjects.reading": {
+       "type": "object",
+       "keys": 4
+      },
+      "subjects.reading.tests": {
+       "type": "int",
+       "example": "79618"
+      },
+      "subjects.reading.approaches": {
+       "type": "float",
+       "example": "71.0"
+      },
+      "subjects.reading.meets": {
+       "type": "float",
+       "example": "49.0"
+      },
+      "subjects.reading.masters": {
+       "type": "float",
+       "example": "21.0"
+      },
+      "subjects.math": {
+       "type": "object",
+       "keys": 4
+      },
+      "subjects.math.tests": {
+       "type": "int",
+       "example": "63042"
+      },
+      "subjects.math.approaches": {
+       "type": "float",
+       "example": "71.0"
+      },
+      "subjects.math.meets": {
+       "type": "float",
+       "example": "43.0"
+      },
+      "subjects.math.masters": {
+       "type": "float",
+       "example": "19.0"
+      },
+      "subjects.social_studies": {
+       "type": "object",
+       "keys": 4
+      },
+      "subjects.social_studies.tests": {
+       "type": "int",
+       "example": "17788"
+      },
+      "subjects.social_studies.approaches": {
+       "type": "float",
+       "example": "76.0"
+      },
+      "subjects.social_studies.meets": {
+       "type": "float",
+       "example": "49.0"
+      },
+      "subjects.social_studies.masters": {
+       "type": "float",
+       "example": "26.0"
+      },
+      "subjects.science": {
+       "type": "object",
+       "keys": 4
+      },
+      "subjects.science.tests": {
+       "type": "int",
+       "example": "28699"
+      },
+      "subjects.science.approaches": {
+       "type": "float",
+       "example": "74.0"
+      },
+      "subjects.science.meets": {
+       "type": "float",
+       "example": "40.0"
+      },
+      "subjects.science.masters": {
+       "type": "float",
+       "example": "13.0"
+      }
+     },
+     "top_level": [
+      "campuses",
+      "campuses_by_district",
+      "districts",
+      "meta",
+      "texas"
+     ]
+    },
+    {
+     "file": "campus_data.json",
+     "title": "What the district rating hides",
+     "what_it_is": "Every rated campus with its letter grade and score, so a district's average can be checked against the schools inside it.",
+     "bytes": 1734909,
+     "records": 1195,
+     "sample_district": "057905",
+     "source": "tea_accountability",
+     "publisher": "Texas Education Agency",
+     "year": 2025,
+     "first_year": null,
+     "limits": [
+      "'Not Rated' is not a bad rating. 525 campuses carry it \u2014 too few students, a first year of operation, a data issue \u2014 and every one is excluded rather than counted as failure.",
+      "Alternative Education Accountability campuses are rated on a different scale and are excluded from the headline. Both figures are published so the choice is visible rather than trusted.",
+      "No campus is ranked against a campus in another district here. The claim is about the gap INSIDE a district, which is what a district rating conceals.",
+      "One year (2025). A single campus rating moves on small numbers of students and should not be read as a trend.",
+      "A rating is a measure of tested performance against state targets, not of a school."
+     ],
+     "fields": {
+      "district_name": {
+       "type": "str",
+       "example": "DALLAS ISD"
+      },
+      "district_rating": {
+       "type": "str",
+       "example": "B"
+      },
+      "district_score": {
+       "type": "int",
+       "example": "83"
+      },
+      "campuses": {
+       "type": "list",
+       "length": 233
+      },
+      "campuses[].campus_number": {
+       "type": "str",
+       "example": "057905264"
+      },
+      "campuses[].campus_name": {
+       "type": "str",
+       "example": "RONALD E MCNAIR EL"
+      },
+      "campuses[].school_type": {
+       "type": "str",
+       "example": "Elementary"
+      },
+      "campuses[].students": {
+       "type": "int",
+       "example": "500"
+      },
+      "campuses[].pct_poor": {
+       "type": "float",
+       "example": "98.2"
+      },
+      "campuses[].rating": {
+       "type": "str",
+       "example": "F"
+      },
+      "campuses[].score": {
+       "type": "int",
+       "example": "59"
+      },
+      "campuses[].is_alternative_education": {
+       "type": "bool",
+       "example": "False"
+      },
+      "best": {
+       "type": "str",
+       "example": "A"
+      },
+      "worst": {
+       "type": "str",
+       "example": "F"
+      },
+      "spans_grades": {
+       "type": "int",
+       "example": "4"
+      },
+      "students_below_a_d": {
+       "type": "int",
+       "example": "7786"
+      }
+     },
+     "top_level": [
+      "districts",
+      "meta",
+      "texas"
+     ]
+    },
+    {
+     "file": "equity_data.json",
+     "title": "How low-income students do",
+     "what_it_is": "District STAAR for economically disadvantaged students, benchmarked against poor students statewide rather than against the local gap.",
+     "bytes": 372493,
+     "records": 1090,
+     "sample_district": "057905",
+     "source": null,
+     "publisher": null,
+     "year": 2025,
+     "first_year": null,
+     "limits": [
+      "The headline is how economically disadvantaged students do, NOT the gap. The gap correlates about zero with how well poor students actually do (-0.024): the 30 narrowest-gap districts average 40.2% for poor students against 39.0% statewide, so ranking on the gap picks out districts that are merely average for poor children. A gap narrows just as easily when the top falls as when the bottom rises.",
+      "Results are at TEA's Meets grade level bar, not the lower Approaches.",
+      "District-group cells with fewer than 100 tests are not ranked; TEA's percentages there are noisy and disclosure-masked.",
+      "'Economically disadvantaged' is TEA's category, driven by free and reduced-price meal eligibility, and it is a blunt proxy for family circumstance."
+     ],
+     "fields": {
+      "district_number": {
+       "type": "str",
+       "example": "057905"
+      },
+      "district_name": {
+       "type": "str",
+       "example": "DALLAS ISD"
+      },
+      "year": {
+       "type": "int",
+       "example": "2025"
+      },
+      "poor": {
+       "type": "object",
+       "keys": 5
+      },
+      "poor.meets": {
+       "type": "float",
+       "example": "43.0"
+      },
+      "poor.approaches": {
+       "type": "float",
+       "example": "70.0"
+      },
+      "poor.masters": {
+       "type": "float",
+       "example": "16.0"
+      },
+      "poor.tests": {
+       "type": "int",
+       "example": "169722"
+      },
+      "poor.percentile": {
+       "type": "int",
+       "example": "66"
+      },
+      "not_poor_meets": {
+       "type": "float",
+       "example": "74.0"
+      },
+      "gap": {
+       "type": "float",
+       "example": "31.0"
+      },
+      "poor_by_subject": {
+       "type": "object",
+       "keys": 2
+      },
+      "poor_by_subject.reading": {
+       "type": "float",
+       "example": "46.0"
+      },
+      "poor_by_subject.math": {
+       "type": "float",
+       "example": "40.0"
+      },
+      "other_groups": {
+       "type": "object",
+       "keys": 2
+      },
+      "other_groups.emergent_bilingual": {
+       "type": "object",
+       "keys": 2
+      },
+      "other_groups.emergent_bilingual.meets": {
+       "type": "float",
+       "example": "39.0"
+      },
+      "other_groups.emergent_bilingual.tests": {
+       "type": "int",
+       "example": "97699"
+      },
+      "other_groups.special_ed": {
+       "type": "object",
+       "keys": 2
+      },
+      "other_groups.special_ed.meets": {
+       "type": "float",
+       "example": "29.0"
+      },
+      "other_groups.special_ed.tests": {
+       "type": "int",
+       "example": "29490"
+      },
+      "poor_change": {
+       "type": "float",
+       "example": "4.0"
+      }
+     },
+     "top_level": [
+      "districts",
+      "leaders",
+      "meta",
+      "state",
+      "state_by_subject"
+     ]
+    },
+    {
+     "file": "takeover_data.json",
+     "title": "Did the HISD takeover change results?",
+     "what_it_is": "Difference-in-differences against 13 districts matched on pre-takeover size and poverty.",
+     "bytes": 3915,
+     "records": 0,
+     "sample_district": null,
+     "source": null,
+     "publisher": null,
+     "year": null,
+     "first_year": null,
+     "limits": [
+      "One treated district. There is no meaningful p-value for a sample of one and none is claimed; the placebo rank across every Texas district is the honest substitute.",
+      "Two years of results is short.",
+      "'The takeover' bundles a new board, a new superintendent, a new curriculum, heavy staff turnover and school closures. This measures whether results moved, not which decision moved them.",
+      "Houston lost more enrolment than the comparison districts across the transition. Its poverty share held steady, so the leavers were not disproportionately poor, but a composition effect cannot be excluded."
+     ],
+     "fields": {},
+     "top_level": [
+      "by_group",
+      "comparison_districts",
+      "composition",
+      "headline",
+      "meta",
+      "parallel_trends",
+      "placebo",
+      "trajectory"
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Obligations",
+   "blurb": "What is owed, and what voters agreed to",
+   "files": [
+    {
+     "file": "debt_data.json",
+     "title": "What is still owed",
+     "what_it_is": "Principal and unpaid interest outstanding per district, the year it clears, and which districts carry capital appreciation bonds.",
+     "bytes": 485783,
+     "records": 917,
+     "sample_district": "057905",
+     "source": "bond_review_board_debt",
+     "publisher": "Texas Bond Review Board",
+     "year": 2025,
+     "first_year": null,
+     "limits": [
+      "Figures are as of fiscal 2025, the Board's most recent completed year. Years after it are the amortisation schedule for debt already sold, not a forecast of future borrowing \u2014 districts will issue more, so the schedule is a floor.",
+      "Excludes obligations maturing in under a year, commercial paper, and special obligations that do not require Attorney General approval, per the Board's own scope note.",
+      "Dollars repaid per dollar borrowed is reported at each district's PEAK year, not the current one. On outstanding balances the ratio rises on its own as principal is retired and is not a measure of anything.",
+      "No ratio is reported where CAB principal never reached $5m in any year on record. Below that the figure is dominated by a nearly-retired balance, and for districts whose bonds were sold before 2005, or whose reported years have a gap, the record never shows the deal at all. Their deferred interest is still reported \u2014 it is the ratio, not the debt, that is unknowable here.",
+      "Debt outstanding is not comparable to a district's operating budget: it is a stock owed over decades, and it sits outside TEA's operating total entirely.",
+      "68 of the Board's 1,035 listed school districts publish no series and carry no Board-tracked debt."
+     ],
+     "fields": {
+      "district_name": {
+       "type": "str",
+       "example": "DALLAS ISD"
+      },
+      "students": {
+       "type": "int",
+       "example": "139776"
+      },
+      "principal": {
+       "type": "int",
+       "example": "4613765000"
+      },
+      "interest": {
+       "type": "int",
+       "example": "2635128833"
+      },
+      "total": {
+       "type": "int",
+       "example": "7248893833"
+      },
+      "per_student": {
+       "type": "int",
+       "example": "51861"
+      },
+      "interest_share_pct": {
+       "type": "float",
+       "example": "36.4"
+      },
+      "clears_in": {
+       "type": "int",
+       "example": "2054"
+      },
+      "history": {
+       "type": "list",
+       "length": 21,
+       "example": "[2005, 2143606081]"
+      }
+     },
+     "top_level": [
+      "districts",
+      "meta",
+      "texas"
+     ]
+    },
+    {
+     "file": "bond_data.json",
+     "title": "Every school bond election since 1958",
+     "what_it_is": "4,992 decided propositions with dates, amounts, purpose and vote counts, matched to districts.",
+     "bytes": 1186692,
+     "records": 952,
+     "sample_district": "057905",
+     "source": null,
+     "publisher": null,
+     "year": 2026,
+     "first_year": 1958,
+     "limits": [
+      "Propositions bundle purposes. A proposition reading 'School Building & Gymnasium' is counted under athletics, so athletics dollars are an upper bound; the athletics-only figure is reported separately.",
+      "Amounts are as asked, in the dollars of their year, and are not inflation-adjusted \u2014 counts and pass rates are the comparable measures across eras.",
+      "Purpose is free text written by hundreds of districts over 66 years; the keyword rules used to classify it are published above.",
+      "About a fifth of records carry a vote tally under 20 (a multi-million-dollar bond recorded as '1 for, 0 against'). Those are placeholders rather than turnout, so the tally is shown as unreported. The carried/defeated result itself is unaffected."
+     ],
+     "fields": {
+      "district_number": {
+       "type": "str",
+       "example": "057905"
+      },
+      "district_name": {
+       "type": "str",
+       "example": "DALLAS ISD"
+      },
+      "match": {
+       "type": "object",
+       "keys": 3
+      },
+      "match.method": {
+       "type": "str",
+       "example": "name+county"
+      },
+      "match.exact": {
+       "type": "bool",
+       "example": "True"
+      },
+      "match.source_names": {
+       "type": "list",
+       "length": 1,
+       "example": "Dallas ISD"
+      },
+      "elections": {
+       "type": "list",
+       "length": 15
+      },
+      "elections[].date": {
+       "type": "str",
+       "example": "2002-01-19"
+      },
+      "elections[].year": {
+       "type": "int",
+       "example": "2002"
+      },
+      "elections[].amount": {
+       "type": "float",
+       "example": "1366300000.0"
+      },
+      "elections[].purpose": {
+       "type": "str",
+       "example": "Building"
+      },
+      "elections[].category": {
+       "type": "str",
+       "example": "buildings & other"
+      },
+      "elections[].passed": {
+       "type": "bool",
+       "example": "True"
+      },
+      "elections[].for": {
+       "type": "int",
+       "example": "78351"
+      },
+      "elections[].against": {
+       "type": "int",
+       "example": "21519"
+      },
+      "elections[].votes_reported": {
+       "type": "bool",
+       "example": "True"
+      },
+      "totals": {
+       "type": "object",
+       "keys": 9
+      },
+      "totals.props": {
+       "type": "int",
+       "example": "15"
+      },
+      "totals.passed": {
+       "type": "int",
+       "example": "12"
+      },
+      "totals.pass_rate": {
+       "type": "float",
+       "example": "80.0"
+      },
+      "totals.asked": {
+       "type": "float",
+       "example": "14442670000.0"
+      },
+      "totals.approved": {
+       "type": "float",
+       "example": "14289770000.0"
+      },
+      "totals.approved_share": {
+       "type": "float",
+       "example": "0.989"
+      },
+      "totals.first_year": {
+       "type": "int",
+       "example": "2002"
+      },
+      "totals.last_year": {
+       "type": "int",
+       "example": "2026"
+      },
+      "totals.athletics_asked": {
+       "type": "float",
+       "example": "86800000.0"
+      }
+     },
+     "top_level": [
+      "bundling",
+      "by_era",
+      "by_purpose",
+      "did_it_work",
+      "districts",
+      "meta",
+      "stadium"
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Context",
+   "blurb": "How a district compares, and what else reaches it",
+   "files": [
+    {
+     "file": "national_data.json",
+     "title": "Texas against the rest of the country",
+     "what_it_is": "Census F-33 per-pupil spending for every state and every US district with 500+ students, with each Texas district's national percentile.",
+     "bytes": 109784,
+     "records": 1048,
+     "sample_district": "057905",
+     "source": null,
+     "publisher": null,
+     "year": 2024,
+     "first_year": null,
+     "limits": [
+      "Census fiscal 2024 \u2014 one year behind the TEA fiscal 2025 figures elsewhere on this site. The two are never mixed in one figure.",
+      "Current spending only: the Census excludes construction, land, debt, and spending for students outside a district's fall membership, so this figure runs below the all-in per-student total shown elsewhere on this site.",
+      "The state ranking divides by average daily attendance, NCES's own denominator; dividing by fall membership instead moves Texas only from 44 to 45 of 51.",
+      "Texas charter schools have no Census F-33 row at all \u2014 the Census surveys governments, and charters are not independent governments \u2014 so they have no national percentile, by construction rather than by omission.",
+      "Districts under 500 students are shown but not ranked, the same rule used across this site."
+     ],
+     "fields": {
+      "enroll_f33": {
+       "type": "int",
+       "example": "139246"
+      },
+      "leaid": {
+       "type": "str",
+       "example": "4816230"
+      },
+      "pctile": {
+       "type": "int",
+       "example": "43"
+      },
+      "ppcs": {
+       "type": "int",
+       "example": "15160"
+      }
+     },
+     "top_level": [
+      "absent",
+      "districts",
+      "meta",
+      "national",
+      "states",
+      "texas_districts_ranked"
+     ]
+    },
+    {
+     "file": "erate_data.json",
+     "title": "Federal internet money",
+     "what_it_is": "E-Rate funding committed and disbursed per district \u2014 money paid to vendors, so it appears in no PEIMS file.",
+     "bytes": 908900,
+     "records": 1074,
+     "sample_district": "057905",
+     "source": null,
+     "publisher": null,
+     "year": 2026,
+     "first_year": 2017,
+     "limits": [
+      "E-Rate discounts are mostly paid by USAC straight to vendors, so this money buys a district connectivity without appearing as district spending in TEA's books \u2014 it is not comparable to, and never mixed with, the PEIMS figures elsewhere on this site.",
+      "Consortium applications are counted statewide and never attributed to member districts: the record does not say which member received how much. A district with no record here may still receive service through a consortium.",
+      "Disbursement lags commitment by design \u2014 invoicing for a funding year can run for years. A year marked invoicing_open has money still being drawn; its drawn percentage is a floor, not a finding.",
+      "The applicant-to-district match resolves USAC billed-entity numbers to TEA numbers by state code, campus-code prefix and audited name+county; where two roads disagree the entity is refused rather than guessed. Charter NETWORKS spanning several TEA districts under one applicant number are counted in the unresolved bucket, not misassigned to one of their districts.",
+      "Amounts are in the dollars of their own year and are not inflation-adjusted."
+     ],
+     "fields": {
+      "committed": {
+       "type": "int",
+       "example": "60252066"
+      },
+      "disbursed": {
+       "type": "int",
+       "example": "34641547"
+      },
+      "top_service": {
+       "type": "str",
+       "example": "Internal Connections"
+      },
+      "years": {
+       "type": "list",
+       "length": 9
+      },
+      "years[].committed": {
+       "type": "int",
+       "example": "3192171"
+      },
+      "years[].disbursed": {
+       "type": "int",
+       "example": "3192171"
+      },
+      "years[].year": {
+       "type": "int",
+       "example": "2017"
+      }
+     },
+     "top_level": [
+      "districts",
+      "meta",
+      "texas"
+     ]
+    },
+    {
+     "file": "forensic_data.json",
+     "title": "Four questions Texas answers in four incompatible files",
+     "what_it_is": "What sits outside the operating total, who pays, what the ballot promised, and where results landed against what need predicts.",
+     "bytes": 2417658,
+     "records": 1202,
+     "sample_district": "057905",
+     "source": null,
+     "publisher": null,
+     "year": 2025,
+     "first_year": null,
+     "limits": [
+      "Nothing here is a finding of wrongdoing. Every flag is a description of a published number against a published threshold, and the thresholds are above so you can disagree with them.",
+      "There is deliberately no combined score. Debt, recapture, ballot history and results measure four unrelated things, and adding them would invent a ranking the data cannot support.",
+      "Debt service sits outside TEA's operating total, so it is composed with it, never subtracted from it.",
+      "Local revenue is gross property collections before recapture is deducted. TEA reports it net, which understates how locally funded a paying district is.",
+      "Ballot amounts are as asked, in the dollars of their year, and are not inflation-adjusted.",
+      "Whether a passed bond changed results is a statewide test, not a district one, and it is fragile \u2014 see the bond section."
+     ],
+     "fields": {
+      "district_number": {
+       "type": "str",
+       "example": "057905"
+      },
+      "district_name": {
+       "type": "str",
+       "example": "Dallas ISD"
+      },
+      "absences": {
+       "type": "list",
+       "length": 0
+      },
+      "absence_summary": {
+       "type": "object",
+       "keys": 4
+      },
+      "absence_summary.count": {
+       "type": "int",
+       "example": "0"
+      },
+      "absence_summary.findings": {
+       "type": "int",
+       "example": "0"
+      },
+      "absence_summary.sections": {
+       "type": "list",
+       "length": 0
+      },
+      "absence_summary.kinds": {
+       "type": "list",
+       "length": 0
+      },
+      "students": {
+       "type": "int",
+       "example": "139776"
+      },
+      "year": {
+       "type": "int",
+       "example": "2025"
+      },
+      "outside_operating": {
+       "type": "object",
+       "keys": 8
+      },
+      "outside_operating.per_student": {
+       "type": "int",
+       "example": "3578"
+      },
+      "outside_operating.percentile": {
+       "type": "int",
+       "example": "83"
+      },
+      "outside_operating.state_median": {
+       "type": "int",
+       "example": "1538"
+      },
+      "outside_operating.cents_per_dollar_taught": {
+       "type": "int",
+       "example": "50"
+      },
+      "outside_operating.teachers_equivalent": {
+       "type": "int",
+       "example": "8826"
+      },
+      "outside_operating.operating_per_student": {
+       "type": "int",
+       "example": "14210"
+      },
+      "outside_operating.total_per_student": {
+       "type": "int",
+       "example": "17788"
+      },
+      "outside_operating.annual_total": {
+       "type": "int",
+       "example": "500118528"
+      },
+      "who_pays": {
+       "type": "object",
+       "keys": 13
+      },
+      "who_pays.local_pct": {
+       "type": "int",
+       "example": "79"
+      },
+      "who_pays.state_pct": {
+       "type": "int",
+       "example": "9"
+      },
+      "who_pays.federal_pct": {
+       "type": "int",
+       "example": "12"
+      },
+      "who_pays.local_percentile": {
+       "type": "int",
+       "example": "88"
+      },
+      "who_pays.state_local_pct": {
+       "type": "int",
+       "example": "54"
+      },
+      "who_pays.tax_bill_on_home": {
+       "type": "int",
+       "example": "3041"
+      },
+      "who_pays.home_value": {
+       "type": "int",
+       "example": "300000"
+      },
+      "who_pays.leaves_district": {
+       "type": "int",
+       "example": "88"
+      },
+      "who_pays.recapture_per_student": {
+       "type": "int",
+       "example": "376"
+      },
+      "who_pays.recapture_paid": {
+       "type": "int",
+       "example": "52538602"
+      },
+      "who_pays.recapture_share_of_local_mo": {
+       "type": "float",
+       "example": "0.0382"
+      },
+      "who_pays.recapture_percentile": {
+       "type": "int",
+       "example": "47"
+      },
+      "who_pays.basis": {
+       "type": "str",
+       "example": "local is gross property tax before recapture is deducted"
+      },
+      "ballot": {
+       "type": "object",
+       "keys": 14
+      },
+      "ballot.props": {
+       "type": "int",
+       "example": "15"
+      },
+      "ballot.passed": {
+       "type": "int",
+       "example": "12"
+      },
+      "ballot.pass_rate": {
+       "type": "float",
+       "example": "80.0"
+      },
+      "ballot.asked": {
+       "type": "float",
+       "example": "14442670000.0"
+      },
+      "ballot.approved": {
+       "type": "float",
+       "example": "14289770000.0"
+      },
+      "ballot.approved_per_student": {
+       "type": "int",
+       "example": "102233"
+      },
+      "ballot.refused": {
+       "type": "int",
+       "example": "152900000"
+      },
+      "ballot.first_year": {
+       "type": "int",
+       "example": "2002"
+      },
+      "ballot.last_year": {
+       "type": "int",
+       "example": "2026"
+      },
+      "ballot.athletics_asked": {
+       "type": "float",
+       "example": "86800000.0"
+      },
+      "ballot.athletics_share_pct": {
+       "type": "int",
+       "example": "1"
+      },
+      "ballot.match_method": {
+       "type": "str",
+       "example": "name+county"
+      },
+      "ballot.match_exact": {
+       "type": "bool",
+       "example": "True"
+      },
+      "ballot.last_election": {
+       "type": "object",
+       "keys": 9
+      },
+      "ballot.last_election.date": {
+       "type": "str",
+       "example": "2026-05-02"
+      },
+      "ballot.last_election.year": {
+       "type": "int",
+       "example": "2026"
+      },
+      "ballot.last_election.amount": {
+       "type": "float",
+       "example": "26250000.0"
+      },
+      "ballot.last_election.purpose": {
+       "type": "str",
+       "example": "Swimming Pool"
+      },
+      "ballot.last_election.category": {
+       "type": "str",
+       "example": "buildings & other"
+      },
+      "ballot.last_election.passed": {
+       "type": "bool",
+       "example": "True"
+      },
+      "ballot.last_election.for": {
+       "type": "int",
+       "example": "27216"
+      },
+      "ballot.last_election.against": {
+       "type": "int",
+       "example": "11095"
+      },
+      "ballot.last_election.votes_reported": {
+       "type": "bool",
+       "example": "True"
+      },
+      "where_it_landed": {
+       "type": "object",
+       "keys": 8
+      },
+      "where_it_landed.actual": {
+       "type": "float",
+       "example": "42.0"
+      },
+      "where_it_landed.expected": {
+       "type": "float",
+       "example": "36.5"
+      },
+      "where_it_landed.gap": {
+       "type": "float",
+       "example": "5.5"
+      },
+      "where_it_landed.model_r2": {
+       "type": "float",
+       "example": "0.5005"
+      },
+      "where_it_landed.spend_per_student": {
+       "type": "float",
+       "example": "15518.8"
+      },
+      "where_it_landed.spend_state_median": {
+       "type": "float",
+       "example": "14416.4"
+      },
+      "where_it_landed.need": {
+       "type": "object",
+       "keys": 3
+      },
+      "where_it_landed.need.pct_econ_disadv": {
+       "type": "float",
+       "example": "87.2"
+      },
+      "where_it_landed.need.pct_emergent_bilingual": {
+       "type": "float",
+       "example": "50.5"
+      },
+      "where_it_landed.need.pct_special_ed": {
+       "type": "float",
+       "example": "11.9"
+      },
+      "where_it_landed.year": {
+       "type": "int",
+       "example": "2024"
+      },
+      "flags": {
+       "type": "list",
+       "length": 4
+      },
+      "flags[].key": {
+       "type": "str",
+       "example": "debt_vs_instruction"
+      },
+      "flags[].tone": {
+       "type": "str",
+       "example": "watch"
+      },
+      "flags[].label": {
+       "type": "str",
+       "example": "Debt costs more than half of what instruction costs"
+      },
+      "flags[].detail": {
+       "type": "str",
+       "example": "50\u00a2 goes to debt for every dollar that reaches a classroom. "
+      }
+     },
+     "top_level": [
+      "districts",
+      "leaderboards",
+      "meta",
+      "statewide",
+      "table"
+     ]
+    },
+    {
+     "file": "forensic_quality.json",
+     "title": "Checks on the data itself",
+     "what_it_is": "Benford's-law tests, reconciliation identities, and districts paying debt service with no voter-approved bond on record.",
+     "bytes": 22928,
+     "records": 0,
+     "sample_district": null,
+     "source": "TEA Summarized PEIMS Actual Financial Data; ballot record compiled from county election returns",
+     "publisher": null,
+     "year": 2025,
+     "first_year": 2009,
+     "limits": [],
+     "fields": {},
+     "top_level": [
+      "benford",
+      "benford_per_district_refused",
+      "debt_without_a_ballot",
+      "meta",
+      "reconciliation"
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Plumbing",
+   "blurb": "Files the site needs but a reader never asks for",
+   "files": [
+    {
+     "file": "district_geo.json",
+     "title": "District boundaries",
+     "what_it_is": "Census TIGER polygons for 1,016 districts, joined to TEA numbers by the county the polygon physically sits in.",
+     "bytes": 535239,
+     "records": 1016,
+     "sample_district": "057905",
+     "source": "US Census TIGER/Line 2025, Unified School Districts, Texas (public domain)",
+     "publisher": null,
+     "year": null,
+     "first_year": null,
+     "limits": [],
+     "fields": {
+      "n": {
+       "type": "str",
+       "example": "DALLAS ISD"
+      },
+      "c": {
+       "type": "list",
+       "length": 2,
+       "example": "-96.7425"
+      },
+      "b": {
+       "type": "list",
+       "length": 4,
+       "example": "-96.97"
+      },
+      "r": {
+       "type": "list",
+       "length": 2,
+       "example": "[-969686, 326798, 178, 353, 198, 63, 63,"
+      },
+      "m": {
+       "type": "object",
+       "keys": 5
+      },
+      "m.t": {
+       "type": "float",
+       "example": "16.8"
+      },
+      "m.p": {
+       "type": "float",
+       "example": "87.2"
+      },
+      "m.s": {
+       "type": "float",
+       "example": "15518.8"
+      },
+      "m.g": {
+       "type": "float",
+       "example": "5.5"
+      },
+      "m.e": {
+       "type": "int",
+       "example": "139096"
+      }
+     },
+     "top_level": [
+      "d",
+      "meta"
+     ]
+    },
+    {
+     "file": "map_data.json",
+     "title": "Every district placed on two axes",
+     "what_it_is": "Coordinates for the seating-chart view, from a principal-components reduction of district characteristics.",
+     "bytes": 182057,
+     "records": 0,
+     "sample_district": null,
+     "source": null,
+     "publisher": null,
+     "year": 2025,
+     "first_year": null,
+     "limits": [],
+     "fields": {},
+     "top_level": [
+      "meta",
+      "nodes"
+     ]
+    },
+    {
+     "file": "fallback_index.json",
+     "title": "The site works with the database switched off",
+     "what_it_is": "District names, numbers and a dated statewide snapshot, so the picker, search and headline figure survive an outage.",
+     "bytes": 82314,
+     "records": 1216,
+     "sample_district": null,
+     "source": null,
+     "publisher": null,
+     "year": null,
+     "first_year": null,
+     "limits": [],
+     "fields": {
+      "district_number": {
+       "type": "str",
+       "example": "057816"
+      },
+      "district_name": {
+       "type": "str",
+       "example": "A W BROWN LEADERSHIP ACADEMY"
+      }
+     },
+     "top_level": [
+      "benchmarks",
+      "captured",
+      "districts",
+      "dollar_texas",
+      "meta",
+      "stats"
+     ]
+    },
+    {
+     "file": "source_fingerprint.json",
+     "title": "Proof of which file everything came from",
+     "what_it_is": "SHA-256, byte count and per-year statewide sums of the cleaned source CSV, so any figure can be traced to an exact file.",
+     "bytes": 1195,
+     "records": null,
+     "sample_district": null,
+     "source": null,
+     "publisher": null,
+     "year": null,
+     "first_year": null,
+     "limits": [],
+     "fields": {},
+     "top_level": [
+      "columns",
+      "districts",
+      "first_year",
+      "last_year",
+      "note",
+      "rows",
+      "source",
+      "source_bytes",
+      "source_sha256"
+     ]
+    },
+    {
+     "file": "isd_briefing.json",
+     "title": "District news",
+     "what_it_is": "Headlines resolved to districts, refreshed daily by a cron job.",
+     "bytes": 11816,
+     "records": 0,
+     "sample_district": null,
+     "source": null,
+     "publisher": null,
+     "year": null,
+     "first_year": null,
+     "limits": [],
+     "fields": {},
+     "top_level": [
+      "meta",
+      "review_queue",
+      "top_findings"
+     ]
+    }
+   ]
+  }
+ ]
+}
