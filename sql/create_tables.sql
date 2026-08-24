@@ -50,7 +50,38 @@ SELECT
     -- with OPERATING revenue calls every fast-growing district a deficit:
     -- Argyle ISD read "Deficit, $63.9M vs $193.8M" in a year its operations
     -- ran a $532k surplus — the $130M gap was voter-approved buildings.
-    all_funds_total_operating_expenditures_by_obj AS operating_spend
+    all_funds_total_operating_expenditures_by_obj AS operating_spend,
+    -- The other fourteen PEIMS function codes. They were in this table from
+    -- the first import (to_sql writes all 140 CSV columns) and reachable by
+    -- nobody: the view exposed one of the sixteen, and nlp_reader is granted
+    -- SELECT on this view and v_anomaly_flags and nothing else. So the agent
+    -- could report what a district spent in total and could not report what it
+    -- spent on buses. A coverage simulation on 2026-08-23 measured that single
+    -- omission at 8.9% of realistic questions.
+    --
+    -- Appended at the END on purpose: CREATE OR REPLACE VIEW permits adding
+    -- columns but not reordering or renaming existing ones, so this stays a
+    -- replace rather than a drop-and-recreate — which would silently discard
+    -- the GRANT to nlp_reader.
+    all_funds_instruc_resource_media_service_exp_fct12 AS library_media_spend,
+    all_funds_curriculum_staff_development_exp_fct13 AS curriculum_staff_dev_spend,
+    all_funds_instruc_leadership_expend_fct21 AS instructional_leadership_spend,
+    all_funds_campus_administration_expend_fct23 AS campus_admin_spend,
+    all_funds_guidance_counseling_services_exp_fct31 AS counseling_spend,
+    all_funds_social_work_services_exp_fct32 AS social_work_spend,
+    all_funds_health_services_exp_fct33 AS health_services_spend,
+    all_funds_transportation_expenditures_fct34 AS transportation_spend,
+    all_funds_food_service_expenditures_fct35 AS food_service_spend,
+    all_funds_extracurricular_expenditures_fct36 AS extracurricular_spend,
+    all_funds_general_administrat_expend_fct41_92 AS general_admin_spend,
+    all_funds_plant_maintenance_opera_expend_fct51 AS plant_maintenance_spend,
+    all_funds_security_monitoring_service_expend_fct52 AS security_spend,
+    all_funds_data_processing_services_expend_fct53 AS data_processing_spend,
+    all_funds_community_services_fct61 AS community_services_spend,
+    -- What the money was bought AS, rather than what it was bought FOR.
+    all_funds_total_payroll_expenditures AS payroll_spend,
+    all_funds_total_professional_contracted_services_expenditure AS contracted_services_spend,
+    all_funds_total_supplies_materials_expenditures AS supplies_spend
 FROM public.texas_school_finance;
 
 -- Create materialized view for anomaly detection

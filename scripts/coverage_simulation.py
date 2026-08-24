@@ -67,6 +67,8 @@ ARTIFACTS = {
     "erate": "erate_data.json",
     "national": "national_data.json",
     "geo": "district_geo.json",
+    "spend": "spending_detail.json",
+    "tax": "tax_history.json",
 }
 
 # Which absence sentence covers a missing district record, and what kind of
@@ -84,6 +86,8 @@ ABSENCE_KIND = {
     "eco": ("not_measured", "not_measured"),
     "forensic": ("not_measured", "not_measured"),
     "geo": ("not_applicable", "not_applicable"),       # charters have no boundary
+    "spend": ("not_measured", "not_measured"),
+    "tax": ("not_measured", "not_applicable"),   # a charter levies no tax
 }
 
 # Capabilities that are not a per-district field lookup. `state` is one of
@@ -131,27 +135,24 @@ CAPABILITIES: dict[str, dict[str, Any]] = {
         "evidence": "POST /query — LangChain agent over v_finance_summary + v_anomaly_flags",
     },
 
-    # --- Exists in the warehouse, reachable by nobody -----------------------
+    # --- Closed 2026-08-24: was held in the warehouse, exposed by nothing ---
     "function_level_spend": {
-        "state": "UNUSABLE",
-        "evidence": "16 function-code columns confirmed in the source CSV via "
-                    "build_trend_data.py:181 and meta.reclassification_check.functions=16, "
-                    "and they live in the 140-column texas_school_finance table. Only 2 are "
-                    "surfaced anywhere (instruction fct11_95, security fct52). "
-                    "v_finance_summary exposes 12 columns and the nlp_reader role can read "
-                    "nothing else, so administration, transportation, food service, "
-                    "counselling, health services and plant maintenance are held and "
-                    "unreadable by every published surface.",
-        "fix": "Add the remaining 14 function columns to v_finance_summary (or a sibling "
-               "view) and publish them per district.",
+        "state": "PRESENT",
+        "evidence": "CLOSED 2026-08-24. All 16 function codes now publish per district in "
+                    "spending_detail.json (/district/{n}/spending, /spending/texas) and "
+                    "v_finance_summary was widened from 12 to 30 columns so the agent can "
+                    "reach them too. Re-derived from TEA's own file by "
+                    "tests/test_provenance_layers.py with the csv module, no builder "
+                    "imported. Was UNUSABLE: held in the 140-column table, exposed by "
+                    "nothing.",
+        "fix": "Done.",
     },
     "object_level_spend": {
-        "state": "UNUSABLE",
-        "evidence": "payroll / contracted services / supplies totals exist as "
-                    "all_funds_total_*_expenditures columns in the table; only payroll "
-                    "reaches an artefact (economics allocation.payroll_per_student). "
-                    "Neither is in v_finance_summary.",
-        "fix": "Same view widening.",
+        "state": "PRESENT",
+        "evidence": "CLOSED 2026-08-24. payroll / contracted services / supplies now "
+                    "publish per district in spending_detail.json objects{} and in the "
+                    "widened v_finance_summary.",
+        "fix": "Done.",
     },
     "fund_balance": {
         "state": "ABSENT",
@@ -230,10 +231,13 @@ CAPABILITIES: dict[str, dict[str, Any]] = {
         "fix": "TEA Summary of Finance (SOF) reports.",
     },
     "tax_rate_history": {
-        "state": "ABSENT",
-        "evidence": "economics districts[*].tax holds ONE year. Rate history exists only as "
-                    "a statewide macro series, not per district.",
-        "fix": "Comptroller per-district rate history (already partly ingested statewide).",
+        "state": "PRESENT",
+        "evidence": "CLOSED 2026-08-24 from data already in the repo's own ingest. "
+                    "tax_history.json publishes mo/is/total rate and the taxable value "
+                    "roll per district 2009-2024 (1,015 districts), plus the rate-vs-value "
+                    "decomposition. The rates were always in data/tea_property.csv; only "
+                    "the latest row had ever been read.",
+        "fix": "Done.",
     },
     "parcel_tax": {
         "state": "ABSENT",
@@ -259,11 +263,15 @@ CAPABILITIES: dict[str, dict[str, Any]] = {
         "fix": "TEA discipline data.",
     },
     "special_ed_spend": {
-        "state": "ABSENT",
-        "evidence": "pct_special_ed is a NEED share (outcomes.need). No special-education "
-                    "spending, which is a PIC/program code, not a function code — a "
-                    "different PEIMS product from the one ingested.",
-        "fix": "PEIMS program-intent-code file.",
+        "state": "PRESENT",
+        "evidence": "CLOSED 2026-08-24, and the first reading of this gap was WRONG. It "
+                    "said special-education spending was 'a different PEIMS product'. It "
+                    "is not: all_funds_students_with_disabilities_pgm_expend_23 is in the "
+                    "same CSV, and sql/create_detail_view.sql had already exposed it "
+                    "through a DB-backed route. Now published DB-free per district in "
+                    "spending_detail.json programs{} — statewide $1,820/student, 14.1% of "
+                    "the programme total.",
+        "fix": "Done.",
     },
     "charter_comparison": {
         "state": "PARTIAL",
@@ -448,12 +456,14 @@ QUESTIONS = [
     Q("recapture", "How much of {d}'s money leaves under recapture?", "financial", HIGH,
       P_ALL, ["eco:recapture.per_student", "eco:tax.leaves_district"]),
     Q("tax_why_up", "Why did my school tax bill go up this year?", "root_cause", CRITICAL,
-      P_PUBLIC, ["cap:tax_rate_history", "cap:parcel_tax"],
-      note="Needs the district's own rate history and an appraisal roll."),
+      P_PUBLIC, ["tax:change.rate_change_pct", "tax:change.taxable_value_change_pct",
+                 "tax:change.reading"],
+      note="Answered as a decomposition — what the RATE did against what VALUES "
+           "did. A parcel-level answer would still need an appraisal roll."),
     Q("tax_my_house", "What will I pay on MY house in {d}?", "financial", HIGH,
       P_PUBLIC, ["cap:parcel_tax"]),
     Q("tax_rate_trend", "Has {d}'s tax rate gone up over the last ten years?", "trend", HIGH,
-      P_ALL, ["cap:tax_rate_history"]),
+      P_ALL, ["tax:series.total_rate", "tax:change.rate_change_pct"]),
 
     # ---- comparison -------------------------------------------------------
     Q("vs_peers", "Is {d} spending more than similar districts?", "comparison", CRITICAL,
@@ -475,7 +485,8 @@ QUESTIONS = [
     Q("rank_recapture", "Which districts pay the most recapture?", "exceptions", HIGH,
       P_PRO, ["cap:statewide_leaderboard"]),
     Q("rank_admin", "Which districts spend the most on administration?", "exceptions", HIGH,
-      P_PRO, ["cap:function_level_spend"]),
+      P_PRO, ["cap:statewide_leaderboard",
+              "spend:functions.general_admin.per_student"]),
 
     # ---- outcomes ---------------------------------------------------------
     Q("staar", "How are {d}'s students doing on STAAR?", "current_status", CRITICAL,
@@ -578,28 +589,33 @@ QUESTIONS = [
     Q("next_budget", "What is {d}'s budget for this year?", "current_status", CRITICAL,
       P_ALL, ["cap:budget_forward"]),
     Q("will_taxes_rise", "Will my school taxes go up next year?", "forecast", CRITICAL,
-      P_PUBLIC, ["cap:budget_forward", "cap:tax_rate_history"]),
+      P_PUBLIC, ["cap:budget_forward", "tax:change.rate_change_pct"], partial_ok=True,
+      note="The rate's direction is published; next year's adopted rate is not."),
     Q("what_should_i_do", "What should {d} do to improve results?", "recommendation",
       HIGH, ("district_leader", "board_trustee"),
       ["out:expectation.gap", "eco:who_does_better"], partial_ok=True,
       note="The site shows who does better and by how much; it deliberately makes no "
            "per-district causal claim."),
     Q("cut_where", "Where can {d} cut without touching the classroom?", "recommendation",
-      CRITICAL, ("district_leader", "board_trustee"), ["cap:function_level_spend"]),
+      CRITICAL, ("district_leader", "board_trustee"),
+      ["spend:functions.general_admin.per_student", "spend:functions.plant.per_student",
+       "spend:functions.instruction.share_of_operating"]),
 
     # ---- operations, the detail people assume is there --------------------
     Q("admin_spend", "How much does {d} spend on administration?", "financial", CRITICAL,
-      P_ALL, ["cap:function_level_spend"]),
+      P_ALL, ["spend:functions.general_admin.per_student"]),
     Q("transport_spend", "What does {d} spend on buses?", "financial", HIGH,
-      P_ALL, ["cap:function_level_spend"]),
+      P_ALL, ["spend:functions.transportation.per_student"]),
     Q("food_spend", "What does {d} spend on school meals?", "financial", NORMAL,
-      P_ALL, ["cap:function_level_spend"]),
+      P_ALL, ["spend:functions.food.per_student"]),
     Q("counseling_spend", "Does {d} spend enough on counsellors?", "financial", HIGH,
-      P_PUBLIC + ("board_trustee",), ["cap:function_level_spend"]),
+      P_PUBLIC + ("board_trustee",),
+      ["spend:functions.counseling.per_student", "spend:functions.counseling.percentile"]),
     Q("sped_spend", "How much does {d} spend on special education?", "financial",
-      CRITICAL, P_ALL, ["cap:special_ed_spend"]),
+      CRITICAL, P_ALL, ["spend:programs.special_ed.per_student"]),
     Q("athletics_spend", "How much does {d} spend on football?", "financial", HIGH,
-      P_PUBLIC + ("journalist",), ["cap:function_level_spend"]),
+      P_PUBLIC + ("journalist",),
+      ["spend:programs.athletics.per_student"]),
     Q("supt_salary", "What is {d}'s superintendent paid?", "current_status", CRITICAL,
       P_PUBLIC + ("journalist",), ["cap:salaries_named"]),
     Q("vendors", "Who does {d} pay the most money to?", "operations", HIGH,
@@ -607,7 +623,13 @@ QUESTIONS = [
     Q("reserves", "How much does {d} have in reserve?", "financial", CRITICAL,
       P_PRO + ("taxpayer_voter",), ["cap:fund_balance"]),
     Q("payroll_share", "How much of {d}'s spending is people versus things?",
-      "financial", NORMAL, P_PRO, ["cap:object_level_spend"]),
+      "financial", NORMAL, P_PRO,
+      ["spend:objects.payroll.share", "spend:objects.supplies.share"]),
+    Q("bilingual_spend", "What does {d} spend on bilingual and ESL students?",
+      "financial", HIGH, P_ALL, ["spend:programs.bilingual.per_student"]),
+    Q("compensatory_spend", "What does {d} spend on students at risk?", "financial",
+      HIGH, P_PRO + ("parent_resident",),
+      ["spend:programs.compensatory.per_student"]),
     Q("discipline", "How often are students suspended in {d}?", "operations", HIGH,
       P_PUBLIC + ("journalist",), ["cap:discipline_data"]),
     Q("under_investigation", "Is {d} under state investigation?", "current_status",
@@ -638,7 +660,7 @@ QUESTIONS = [
     Q("hidden_failing", "Does {d}'s rating hide failing campuses?", "exceptions",
       CRITICAL, P_ALL, ["campus:best", "campus:worst", "campus:spans_grades"]),
     Q("waste", "Is {d} wasting money?", "root_cause", CRITICAL, P_PUBLIC + ("journalist",),
-      ["forensic:flags", "cap:function_level_spend"], partial_ok=True,
+      ["forensic:flags", "spend:functions.general_admin.percentile"], partial_ok=True,
       note="Published flags name a number against a threshold; the spend detail that "
            "would substantiate 'waste' is unreachable."),
     Q("corruption", "Has anyone at {d} been caught misusing funds?", "exceptions",
@@ -658,7 +680,9 @@ QUESTIONS = [
     Q("ask_sql", "Which district had the biggest spending jump last year?",
       "exceptions", HIGH, P_PRO, ["cap:nl_query"]),
     Q("ask_sql_detail", "Which districts cut instruction while raising administration?",
-      "exceptions", HIGH, P_PRO, ["cap:nl_query", "cap:function_level_spend"]),
+      "exceptions", HIGH, P_PRO,
+      ["cap:nl_query", "spend:functions.general_admin.share_first_year",
+       "spend:functions.instruction.share_first_year"]),
     Q("charter_vs", "Do charters do better than {d} for less money?", "comparison",
       HIGH, P_ALL, ["cap:charter_comparison", "campus:district_rating"], partial_ok=True),
     Q("today", "What is happening at {d} right now?", "current_status", NORMAL,

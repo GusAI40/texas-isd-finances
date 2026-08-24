@@ -577,6 +577,22 @@ Available views:
      operating against $5,603,166 all-funds. Reporting one as the other
      overstates the cost of running a district by up to 75%.
 
+   The sixteen PEIMS function codes — what the money was spent ON. These sum
+   to operating_spend, so a share must be taken against operating_spend and
+   never against total_spend:
+   - instruction_spend (fct 11,95 — teachers and the classroom)
+   - library_media_spend (12), curriculum_staff_dev_spend (13)
+   - instructional_leadership_spend (21), campus_admin_spend (23 — principals)
+   - counseling_spend (31), social_work_spend (32), health_services_spend (33)
+   - transportation_spend (34 — buses), food_service_spend (35 — meals)
+   - extracurricular_spend (36 — athletics, band, UIL)
+   - general_admin_spend (41,92 — superintendent, business office, board)
+   - plant_maintenance_spend (51 — utilities, custodians, upkeep)
+   - security_spend (52), data_processing_spend (53), community_services_spend (61)
+
+   What the money was bought AS:
+   - payroll_spend, contracted_services_spend, supplies_spend
+
 2. v_anomaly_flags - Detected financial anomalies with columns:
    - All columns from v_finance_summary plus:
    - revenue_drop_flag (true if revenue dropped >15% YoY)
@@ -609,6 +625,16 @@ Rules:
   operating_spend column. Never answer one of those with total_spend, and
   never describe total_spend as operating. If a question is ambiguous
   between them, give the figure you used and name the column it came from.
+- A NULL function column means the district did not report that function,
+  which usually means it does not run it. Never report it as $0 and never
+  say a district "spends nothing on" it — say it reports none. Use
+  WHERE col IS NOT NULL when ranking, or the districts that report nothing
+  will rank as the thriftiest in Texas.
+- Any share or percentage of a function is a share of operating_spend. Never
+  divide a function by total_spend.
+- Per-student figures for a tiny district are noise: one bus in a 40-student
+  district reads as an extraordinary transport budget. When ranking on a
+  per-student function figure, require enrollment >= 100 and say you did.
 - For year ranges, use BETWEEN operator
 
 Be concise and clear in your responses. If asked for trends, calculate year-over-year changes.
