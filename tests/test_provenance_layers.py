@@ -438,6 +438,111 @@ def test_a_bill_is_never_presented_as_somebodys_actual_bill():
     assert art["meta"]["home_value"] == 300000
 
 
+TAPR_DISTRICT = DATA / "tapr_district_staar_2025.csv"
+TAPR_CAMPUS = DATA / "tapr_campus_staar_2025.csv"
+
+
+def _tapr(path: Path):
+    with path.open(encoding="iso-8859-1", newline="") as fh:
+        r = csv.reader(fh)
+        return next(r), next(r), list(r)
+
+
+def test_the_group_results_are_teas_own_published_rates():
+    """Re-read straight off TAPR, matching columns by TEA's prose header rather
+    than by decoding its column codes — the same way the builder does, but
+    written out again here so a mistake in one is not repeated in the other."""
+    art = _art("campus_performance.json")
+    _need(TAPR_DISTRICT)
+    labels, codes, rows = _tapr(TAPR_DISTRICT)
+    want = {"African American": "african_american", "Hispanic": "hispanic",
+            "White": "white", "Econ Disadv": "econ_disadv",
+            "All Students": "all"}
+    cols = {}
+    for i, lab in enumerate(labels):
+        parts = [p.strip() for p in lab.split(",")]
+        if (len(parts) >= 5 and parts[0].startswith("STAAR Performance")
+                and parts[1] == "All Subjects" and parts[3] in want
+                and parts[-1] == "% At Meets GL Standard or Above"):
+            cols[want[parts[3]]] = i
+    assert len(cols) == len(want), f"only found {sorted(cols)} in the TAPR header"
+    dn_i = codes.index("DISTRICT")
+    checked = 0
+    for row in rows:
+        dn = row[dn_i].strip()
+        rec = art["districts"].get(dn)
+        if not rec:
+            continue
+        for key, i in cols.items():
+            raw = row[i].strip() if i < len(row) else ""
+            published = rec["groups"].get(key, {}).get("meets")
+            if not raw:
+                # A masked cell must be ABSENT, never zero. This is the whole
+                # privacy rule, checked against the source rather than trusted.
+                assert published is None, (
+                    f"{dn} {key}: TEA masked this cell, the artefact publishes "
+                    f"{published}")
+                continue
+            if published is None:
+                continue
+            assert abs(published - float(raw)) < 0.05, (
+                f"{dn} {key}: artefact {published}, TAPR {raw}")
+            checked += 1
+    assert checked > 3000, f"only {checked} group rates checked"
+
+
+def test_no_masked_cell_became_a_zero():
+    """The refusal that protects identifiable children. TEA suppresses small
+    groups; a suppressed group rendered at 0% would publish a failing score for
+    a school that had four test-takers."""
+    art = _art("campus_performance.json")
+    for dn, rec in art["districts"].items():
+        for g, m in rec["groups"].items():
+            assert m.get("tests", 0) > 0, f"{dn}/{g} published with no tests"
+    for cn, rec in art["campuses"].items():
+        for s, m in rec["subjects"].items():
+            assert m.get("tests", 0) > 0, f"{cn}/{s} published with no tests"
+
+
+def test_no_campus_is_ranked_against_another_district():
+    """Same rule tests/test_campuses.py enforces for ratings. A statewide
+    campus league table is a far more dangerous artefact than the spread inside
+    one district, which is the finding."""
+    art = _art("campus_performance.json")
+    assert "leaderboards" not in art
+    for cnum, rec in art["campuses"].items():
+        assert "percentile" not in rec
+        assert "state_rank" not in rec
+        assert cnum.startswith(rec["district_number"]), (
+            f"campus {cnum} is filed under district {rec['district_number']}")
+
+
+def test_the_two_statewide_bases_are_both_published_and_differ():
+    """A test-weighted rate and a district-mean rate answer different
+    questions, and on White students they differ by ten points. Publishing one
+    alone would make the other look like an error."""
+    art = _art("campus_performance.json")
+    g = art["texas"]["groups"]
+    for key in ("all", "white", "hispanic", "african_american"):
+        assert g[key].get("meets") is not None
+        assert g[key].get("meets_district_mean") is not None
+    assert abs(g["white"]["meets"] - g["white"]["meets_district_mean"]) > 5, (
+        "the two bases should differ materially for White students; if they no "
+        "longer do, check that both are still computed the way they claim")
+    blob = " ".join(art["meta"]["limits"]).lower()
+    assert "test-weighted" in blob and "typical district" in blob
+
+
+def test_certification_is_never_answered_with_a_degree():
+    """TAPR's staff dataset does not publish certification. A degree is not a
+    certificate, and the degree mix must not stand in for it."""
+    art = _art("campus_performance.json")
+    blob = " ".join(art["meta"]["limits"]).lower()
+    assert "certification" in blob and "a degree is not a certificate" in blob
+    for rec in art["campuses"].values():
+        assert "certified_pct" not in rec.get("staff", {})
+
+
 def test_every_published_layer_has_a_provenance_test_here_or_upstream():
     """The gap this file was written to close, kept closed.
 
@@ -451,6 +556,7 @@ def test_every_published_layer_has_a_provenance_test_here_or_upstream():
         "national_data.json",                                     # test_national.py
         "erate_data.json",                                        # test_erate.py
         "spending_detail.json", "tax_history.json",                # this file
+        "campus_performance.json",                                 # this file
     }
     known_uncovered = {
         # Derived entirely from artefacts already covered above, so a wrong

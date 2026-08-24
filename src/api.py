@@ -204,7 +204,7 @@ _CACHEABLE_PATHS = frozenset({
     "/bonds/texas", "/debt/texas", "/campuses/texas", "/trends/texas",
     "/forensics/texas", "/economics/texas", "/equity/texas",
     "/national/texas", "/erate/texas", "/takeover/houston",
-    "/spending/texas", "/tax/texas",
+    "/spending/texas", "/tax/texas", "/performance/texas",
 })
 
 
@@ -2947,6 +2947,106 @@ async def get_district_tax_history(district_number: str):
                 "absence": absences.no_tax_figure(name, is_charter)}
     return {"district_number": district_number, "meta": data["meta"],
             "texas": data["texas"], **rec}
+
+
+_campus_perf_cache: Optional[Dict[str, Any]] = None
+
+
+def _campus_perf() -> Optional[Dict[str, Any]]:
+    global _campus_perf_cache
+    if _campus_perf_cache is None:
+        path = STATIC_DIR / "campus_performance.json"
+        if not path.exists():
+            return None
+        with path.open() as fh:
+            _campus_perf_cache = json.load(fh)
+    return _campus_perf_cache
+
+
+_PERF_HELP = ("Campus performance not built. Run scripts/ingest_tapr.py --download "
+              "then scripts/build_campus_performance.py")
+
+
+@app.get("/performance/texas", tags=["Statewide"])
+async def get_texas_performance():
+    """STAAR by student group, statewide, at the Meets bar.
+
+    Two figures per group, and they are not interchangeable. `meets` is
+    test-weighted — the share of Texas TESTS that met the bar, which is how the
+    typical STUDENT did. `meets_district_mean` averages district rates, which
+    is how the typical DISTRICT did, and is what the equity layer reports.
+
+    On all students they read 49.7% and 46.4%. On White students the gap is
+    wider still — 63.2% against 53.3% — because a district average counts a
+    150-student district the same as Houston. Neither is wrong; they answer
+    different questions, and publishing only one would hide that.
+
+    Serves with no database.
+    """
+    data = _campus_perf()
+    if data is None:
+        raise HTTPException(status_code=503, detail=_PERF_HELP)
+    return {"meta": data["meta"], **data["texas"]}
+
+
+@app.get("/district/{district_number}/performance", tags=["Districts"])
+async def get_district_performance(district_number: str):
+    """One district's STAAR results by student group and by subject.
+
+    Groups are published at DISTRICT grain deliberately: campus-by-group cells
+    are mostly masked by TEA to protect identifiable students, and a table of
+    blanks with a few children visible in it is worse than no table.
+
+    A group missing from the response had **too few test-takers to report** —
+    it did not score zero. TEA suppresses those cells and they are omitted here
+    rather than rendered as 0%.
+    """
+    data = _campus_perf()
+    if data is None:
+        raise HTTPException(status_code=503, detail=_PERF_HELP)
+    rec = data["districts"].get(district_number)
+    if rec is None:
+        name = _district_name(district_number) or district_number
+        return {"district_number": district_number, "district_name": name,
+                "meta": data["meta"],
+                "absence": absences.absence(
+                    "performance", absences.NOT_MEASURED,
+                    f"TAPR reports no STAAR results for {name} in "
+                    f"{data['meta']['school_year']}. That is missing "
+                    f"information, not a district whose students scored "
+                    f"nothing.")}
+    return {"district_number": district_number, "meta": data["meta"],
+            "texas": data["texas"]["groups"], **rec}
+
+
+@app.get("/district/{district_number}/campus-performance", tags=["Districts"])
+async def get_district_campus_performance(district_number: str):
+    """Every campus in one district with its own STAAR scores, by subject.
+
+    The campus layer publishes a LETTER per campus; this publishes what its
+    students actually scored, and in which subject — which is the question a
+    parent is really asking when they ask how a school is doing.
+
+    Campuses are returned for THIS district only. No campus is ranked against a
+    campus in another district: the finding is the spread inside a district,
+    and a statewide campus league table is a far more dangerous artefact.
+    """
+    data = _campus_perf()
+    if data is None:
+        raise HTTPException(status_code=503, detail=_PERF_HELP)
+    nums = data["campuses_by_district"].get(district_number, [])
+    if not nums:
+        name = _district_name(district_number) or district_number
+        return {"district_number": district_number, "district_name": name,
+                "meta": data["meta"],
+                "absence": absences.absence(
+                    "campus_performance", absences.NOT_MEASURED,
+                    f"No campus in {name} has reportable STAAR results for "
+                    f"{data['meta']['school_year']}.")}
+    rows = [{"campus_number": n, **data["campuses"][n]} for n in nums]
+    rows.sort(key=lambda r: -(r["subjects"].get("all", {}).get("meets") or -1))
+    return {"district_number": district_number, "meta": data["meta"],
+            "campuses": rows, "campus_count": len(rows)}
 
 
 @app.get("/provenance", tags=["General"])

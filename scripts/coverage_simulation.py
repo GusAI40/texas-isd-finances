@@ -69,6 +69,7 @@ ARTIFACTS = {
     "geo": "district_geo.json",
     "spend": "spending_detail.json",
     "tax": "tax_history.json",
+    "perf": "campus_performance.json",
 }
 
 # Which absence sentence covers a missing district record, and what kind of
@@ -88,6 +89,7 @@ ABSENCE_KIND = {
     "geo": ("not_applicable", "not_applicable"),       # charters have no boundary
     "spend": ("not_measured", "not_measured"),
     "tax": ("not_measured", "not_applicable"),   # a charter levies no tax
+    "perf": ("not_measured", "not_measured"),
 }
 
 # Capabilities that are not a per-district field lookup. `state` is one of
@@ -170,10 +172,18 @@ CAPABILITIES: dict[str, dict[str, Any]] = {
         "fix": "TAPR campus files (already the named next fountain in CLAUDE.md).",
     },
     "campus_staff": {
-        "state": "ABSENT",
-        "evidence": "Teacher turnover/experience/salary exist only at district level "
-                    "(outcomes measures); campus records hold no staff fields.",
+        "state": "PRESENT",
+        "evidence": "CLOSED 2026-08-24 via TAPR. Per-campus teacher FTE, average experience, tenure in district, "
+                    "beginning-teacher share, degree mix and average salary for 8,204 campuses. Campus-level TURNOVER "
+                    "is still not published by TAPR.",
         "fix": "TAPR campus files.",
+    },
+    "campus_turnover": {
+        "state": "ABSENT",
+        "evidence": "TAPR's staff dataset publishes campus teacher FTE, experience, "
+                    "tenure, beginning-teacher share and degree mix — but not turnover. "
+                    "Turnover exists at DISTRICT grain only (STURN).",
+        "fix": "No campus-grain turnover is published by TEA in this product.",
     },
     "teacher_certification": {
         "state": "ABSENT",
@@ -187,14 +197,17 @@ CAPABILITIES: dict[str, dict[str, Any]] = {
         "fix": "TEA STAAR district file at grade grain (currently login-gated).",
     },
     "staar_by_race": {
-        "state": "ABSENT",
-        "evidence": "other_groups covers emergent_bilingual and special_ed only.",
+        "state": "PRESENT",
+        "evidence": "CLOSED 2026-08-24 via TAPR. District results for 15 student groups including African American, "
+                    "Hispanic, White, Asian, American Indian, Pacific Islander and Two or More Races.",
         "fix": "Same STAAR ingest, more subgroups.",
     },
     "campus_staar": {
-        "state": "ABSENT",
-        "evidence": "Equity layer is district-grain; campus layer has ratings, not scores "
-                    "by subject.",
+        "state": "PRESENT",
+        "evidence": "CLOSED 2026-08-24 via TAPR. campus_performance.json publishes STAAR "
+                    "by subject for 8,264 campuses; "
+                    "the TEA SAS broker download that CLAUDE.md recorded as needing a human is mapped in "
+                    "scripts/ingest_tapr.py.",
         "fix": "TEA campus STAAR file.",
     },
     "salaries_named": {
@@ -503,11 +516,13 @@ QUESTIONS = [
     Q("my_school", "How is my child's specific school doing?", "current_status", CRITICAL,
       P_PUBLIC, ["cap:campus_ratings", "campus:campuses"]),
     Q("my_school_staar", "What are STAAR scores at my child's school?", "current_status",
-      CRITICAL, P_PUBLIC, ["cap:campus_staar"]),
+      CRITICAL, P_PUBLIC, ["perf:subjects.all.meets", "perf:subjects.reading.meets",
+                           "perf:subjects.math.meets"]),
     Q("staar_grade", "How did 4th graders in {d} do in math?", "current_status", HIGH,
       P_PUBLIC + ("journalist",), ["cap:staar_by_grade"]),
     Q("staar_race", "How do Black and Hispanic students do in {d}?", "comparison", HIGH,
-      P_PRO + ("parent_resident",), ["cap:staar_by_race"]),
+      P_PRO + ("parent_resident",),
+      ["perf:groups.african_american.meets", "perf:groups.hispanic.meets"]),
     Q("poor_students", "How do low-income students do in {d}?", "comparison", HIGH,
       P_ALL, ["equity:poor.meets"]),
     Q("sped_outcomes", "How do special education students do in {d}?", "comparison", HIGH,
@@ -515,9 +530,9 @@ QUESTIONS = [
     Q("beats_prediction", "Does {d} do better than its demographics predict?",
       "root_cause", HIGH, P_PRO, ["out:expectation.gap", "out:expectation.expected"]),
     Q("why_scores_low", "Why are {d}'s scores low?", "root_cause", HIGH, P_ALL,
-      ["out:expectation.gap", "out:need.pct_econ_disadv", "cap:campus_staar"],
-      partial_ok=True,
-      note="Gap vs prediction is available; the campus-level cause is not."),
+      ["out:expectation.gap", "out:need.pct_econ_disadv",
+       "perf:groups.econ_disadv.meets"],
+      note="Gap vs prediction, need, and how the largest group actually scored."),
 
     # ---- teachers ---------------------------------------------------------
     Q("teacher_pay", "What do teachers earn in {d}?", "current_status", HIGH,
@@ -531,7 +546,10 @@ QUESTIONS = [
     Q("teacher_certified", "Are the teachers at my child's school certified?",
       "current_status", CRITICAL, P_PUBLIC, ["cap:teacher_certification"]),
     Q("campus_turnover", "Which schools in {d} lose the most teachers?", "exceptions",
-      HIGH, P_PRO + ("parent_resident",), ["cap:campus_staff"]),
+      HIGH, P_PRO + ("parent_resident",),
+      ["cap:campus_staff", "cap:campus_turnover"], partial_ok=True,
+      note="Per-campus beginning-teacher share and tenure are published; TAPR "
+           "does not publish campus-level turnover itself."),
     Q("raise_cost", "What would a 3% raise cost {d}?", "recommendation", HIGH,
       ("district_leader", "board_trustee"),
       ["eco:allocation.payroll_per_student", "cap:budget_forward"], partial_ok=True,
