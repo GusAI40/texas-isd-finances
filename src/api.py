@@ -204,6 +204,7 @@ _CACHEABLE_PATHS = frozenset({
     "/bonds/texas", "/debt/texas", "/campuses/texas", "/trends/texas",
     "/forensics/texas", "/economics/texas", "/equity/texas",
     "/national/texas", "/erate/texas", "/takeover/houston",
+    "/spending/texas", "/tax/texas",
 })
 
 
@@ -2789,6 +2790,163 @@ async def get_district_campuses(district_number: str):
                 "meta": data["meta"],
                 "absence": absences.no_campus_ratings(name)}
     return {"district_number": district_number, "meta": data["meta"], **rec}
+
+
+_spending_detail_cache: Optional[Dict[str, Any]] = None
+
+
+def _spending_detail() -> Optional[Dict[str, Any]]:
+    global _spending_detail_cache
+    if _spending_detail_cache is None:
+        path = STATIC_DIR / "spending_detail.json"
+        if not path.exists():
+            return None
+        with path.open() as fh:
+            _spending_detail_cache = json.load(fh)
+    return _spending_detail_cache
+
+
+_SPENDING_HELP = ("Spending detail not built. Run scripts/prepare_data.py then "
+                  "scripts/build_spending_detail.py")
+
+
+@app.get("/spending/texas", tags=["Statewide"])
+async def get_texas_spending_detail():
+    """Where the operating dollar actually goes — all sixteen PEIMS functions.
+
+    Every other figure on this site sorts spending into three buckets:
+    instruction, security, and "operating". The other fourteen function codes
+    have been in the warehouse since the first import and were published
+    nowhere — so the site could say what a district spends in total and could
+    not say what it spends on **buses, meals, counsellors, nurses, sport, or
+    the superintendent's own office**.
+
+    Statewide in fiscal 2025, of every operating dollar: **54.5% instruction**,
+    5.3% school meals, 4.2% counsellors, 3.3% central administration, 3.1%
+    buses, 3.1% sport and band.
+
+    Two rules the figures obey. **Every share is of OPERATING spending**, never
+    of total disbursements — total also carries bond-funded construction and
+    debt service, so a share against it would make a district mid-build look
+    like it spends less on children. And **a percentile is over districts that
+    reported the function**, never over all 1,202: a district with no food
+    service line usually runs none, and scoring it a zero would rank every
+    other district up.
+
+    Serves with no database.
+    """
+    data = _spending_detail()
+    if data is None:
+        raise HTTPException(status_code=503, detail=_SPENDING_HELP)
+    return {"meta": data["meta"], **data["texas"],
+            "leaderboards": data["leaderboards"]}
+
+
+@app.get("/district/{district_number}/spending", tags=["Districts"])
+async def get_district_spending_breakdown(district_number: str):
+    """One district's operating dollar, split sixteen ways, against the state.
+
+    Each function carries what it is in plain English, the dollars, the
+    per-student figure, its share of operating spending, a percentile among
+    districts that reported it, and its share in the first year of the record
+    so a reader can see which way it has moved.
+
+    A function this district did not report is **left out rather than written
+    as zero** — a district with no food service line usually runs none, and a
+    zero would read as a finding about children's meals that nobody measured.
+
+    `reconciles` is the sixteen functions summed back against the district's own
+    operating total, published so a reader can check the arithmetic instead of
+    trusting it.
+    """
+    data = _spending_detail()
+    if data is None:
+        raise HTTPException(status_code=503, detail=_SPENDING_HELP)
+    rec = data["districts"].get(district_number)
+    if rec is None:
+        name = _district_name(district_number) or district_number
+        return {"district_number": district_number, "district_name": name,
+                "meta": data["meta"],
+                "absence": absences.absence(
+                    "spending_detail", absences.NOT_MEASURED,
+                    f"{name} does not report a function-code breakdown for "
+                    f"fiscal {data['meta']['year']}. That is missing "
+                    f"information, not a district that spends nothing.")}
+    return {"district_number": district_number, "meta": data["meta"],
+            "texas": data["texas"]["functions"], **rec}
+
+
+_tax_history_cache: Optional[Dict[str, Any]] = None
+
+
+def _tax_history() -> Optional[Dict[str, Any]]:
+    global _tax_history_cache
+    if _tax_history_cache is None:
+        path = STATIC_DIR / "tax_history.json"
+        if not path.exists():
+            return None
+        with path.open() as fh:
+            _tax_history_cache = json.load(fh)
+    return _tax_history_cache
+
+
+_TAX_HELP = ("Tax history not built. Run scripts/ingest_tea_property.py --download "
+             "then scripts/build_tax_history.py")
+
+
+@app.get("/tax/texas", tags=["Statewide"])
+async def get_texas_tax_history():
+    """What school tax rates have actually done since 2009.
+
+    The site could say what you pay now and not whether it had gone up, which
+    is the question people actually arrive with.
+
+    **The statewide median rate fell from $1.1951 to $0.9760 per $100 between
+    2009 and 2024 — and the rate fell in 930 of 1,015 districts.** Bills still
+    rose, because taxable values rose faster. A rate-only answer gets that
+    backwards, so both are published and the district payload separates them.
+
+    The bill quoted is the same $300,000 home priced under each year's rate. It
+    is not anyone's actual bill: no appraisal roll is used and exemptions are
+    not modelled. Serves with no database.
+    """
+    data = _tax_history()
+    if data is None:
+        raise HTTPException(status_code=503, detail=_TAX_HELP)
+    return {"meta": data["meta"], **data["texas"]}
+
+
+@app.get("/district/{district_number}/tax-history", tags=["Districts"])
+async def get_district_tax_history(district_number: str):
+    """One district's rate since 2009, and why a bill moved.
+
+    Carries the rate, its maintenance and debt halves, the taxable value roll,
+    and a `reading` that names which of the two moved — because a bill can rise
+    with the rate untouched, and across most of Texas that is exactly what
+    happened.
+
+    A charter returns an `absence`: it levies no property tax, which is not the
+    same as a missing figure.
+    """
+    data = _tax_history()
+    if data is None:
+        raise HTTPException(status_code=503, detail=_TAX_HELP)
+    rec = data["districts"].get(district_number)
+    if rec is None:
+        name = _district_name(district_number) or district_number
+        # Which of the two absences applies turns on charter status, and a
+        # charter is the common case here — it levies no property tax at all,
+        # which is NOT_APPLICABLE, not a figure we failed to find. Read from the
+        # national layer's own absence map rather than guessed from the district
+        # number: that map agrees with data/district_crosswalk.csv on all 270
+        # charters, and a digit heuristic agrees with nothing in particular.
+        nat = _national() or {}
+        is_charter = nat.get("absent", {}).get(district_number) == "charter"
+        return {"district_number": district_number, "district_name": name,
+                "meta": data["meta"],
+                "absence": absences.no_tax_figure(name, is_charter)}
+    return {"district_number": district_number, "meta": data["meta"],
+            "texas": data["texas"], **rec}
 
 
 @app.get("/provenance", tags=["General"])

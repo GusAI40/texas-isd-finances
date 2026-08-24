@@ -49,6 +49,7 @@ CHAIN = [
     ("trend_data.json", "build_trend_data.py", []),
     ("national_data.json", "build_national_data.py", []),
     ("erate_data.json", "build_erate_data.py", []),
+    ("spending_detail.json", "build_spending_detail.py", []),
 ]
 
 
@@ -96,6 +97,7 @@ def main() -> int:
         return 0
 
     drift = []
+    unbuildable = []
     with tempfile.TemporaryDirectory() as tmp:
         tmpdir = Path(tmp)
         # The chain reads earlier artifacts, so build into the temp dir but let
@@ -117,13 +119,32 @@ def main() -> int:
                         "--economics", str(tmpdir / "economics_data.json")]
             if builder == "build_trend_data.py":
                 cmd += ["--economics", str(tmpdir / "economics_data.json")]
+            if builder == "build_spending_detail.py":
+                cmd += ["--economics", str(tmpdir / "economics_data.json")]
             if builder == "build_national_data.py":
                 # Coverage counts are measured against the economics artifact,
                 # so measure against the freshly rebuilt one, not the committed.
                 cmd += ["--economics", str(tmpdir / "economics_data.json")]
             r = subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True)
             if r.returncode:
-                drift.append((name, "build failed", r.stderr.strip()[-300:]))
+                # A raw source that is not committed (they are far too large)
+                # means this artefact CANNOT be checked on this machine. That is
+                # not the same as the artefact having drifted, and reporting it
+                # as drift is how a check earns the reputation that gets it
+                # ignored. Report it as unverified and keep the exit code for
+                # real disagreement.
+                blob = (r.stderr + r.stdout).lower()
+                raw_missing = ("missing input" in blob or "missing data/" in blob
+                               or "no such file or directory" in blob
+                               or "not present" in blob or "run scripts/" in blob)
+                # Cascade: this builder reads an artefact that could not itself
+                # be built here. Its failure says nothing about ITS source.
+                cascade = any(str(tmpdir / dep) .lower() in blob
+                              for dep, _ in unbuildable)
+                if raw_missing or cascade:
+                    unbuildable.append((name, r.stderr.strip()[-200:]))
+                else:
+                    drift.append((name, "build failed", r.stderr.strip()[-300:]))
                 continue
             if sha(target) == sha(committed):
                 print(f"  OK        {name}")
@@ -134,8 +155,25 @@ def main() -> int:
             drift.append((name, "differs", changed or "content differs, headline figures identical"))
             shutil.copy(target, tmpdir / f"rebuilt-{name}")
 
+    if unbuildable:
+        print("\n  UNVERIFIED — a raw source this build needs is not on this "
+              "machine.\n  These artefacts were NOT checked; that is different "
+              "from checking them and finding them clean:")
+        for name, why in unbuildable:
+            print(f"    {name}: {why.splitlines()[-1] if why else 'missing input'}")
+
     if not drift:
-        print("\nevery committed artifact matches a fresh build from source.")
+        checked = len(CHAIN) - len(unbuildable)
+        if checked:
+            print(f"\n{checked} of {len(CHAIN)} committed artefacts match a fresh "
+                  f"build from source.")
+        else:
+            # Saying "everything matches" when nothing was rebuilt is the exact
+            # shape of a check that reassures without checking. It reports what
+            # it did, which here is nothing.
+            print("\nNOTHING WAS VERIFIED — no artefact could be rebuilt on this "
+                  "machine, because the raw sources are not committed. This is "
+                  "not a pass; run where the sources are present.")
         return 0
 
     print("\nDRIFT — a committed artifact is not what the source produces:")

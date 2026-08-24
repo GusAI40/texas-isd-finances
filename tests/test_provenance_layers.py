@@ -191,6 +191,253 @@ def test_the_crosswalk_counts_match_the_files_it_was_built_from():
                 assert ids.get(r["district_number"]) == r["brb_id"], r["district_number"]
 
 
+# --- spending detail: the sixteen function codes -----------------------------
+
+FINANCE = DATA / "texas_finance_clean.csv"
+
+# (artefact key, the column in TEA's own file). Re-listed here on purpose: if
+# the builder ever remaps a function to the wrong column, this file still holds
+# the right pairing and the test fails.
+_FUNCTION_COLUMNS = {
+    "instruction": "all_funds_instruction_transfer_expend_fct11_95",
+    "transportation": "all_funds_transportation_expenditures_fct34",
+    "food": "all_funds_food_service_expenditures_fct35",
+    "extracurricular": "all_funds_extracurricular_expenditures_fct36",
+    "general_admin": "all_funds_general_administrat_expend_fct41_92",
+    "counseling": "all_funds_guidance_counseling_services_exp_fct31",
+    "security": "all_funds_security_monitoring_service_expend_fct52",
+    "health": "all_funds_health_services_exp_fct33",
+}
+_OPERATING = "all_funds_total_operating_expenditures_by_obj"
+
+
+def _finance_year_rows(year: int):
+    return [r for r in _rows(FINANCE) if r.get("year") and int(float(r["year"])) == year]
+
+
+def test_the_statewide_function_shares_are_the_columns_summed():
+    """The headline split of the operating dollar, recomputed by hand.
+
+    Counted with the csv module straight off TEA's file. No builder is
+    imported, so a builder that sums the wrong column cannot make this pass.
+    """
+    art = _art("spending_detail.json")
+    _need(FINANCE)
+    year = art["meta"]["year"]
+    rows = _finance_year_rows(year)
+    assert rows, f"no rows for fiscal {year} in {FINANCE.name}"
+
+    def total(col):
+        return sum(float(r[col]) for r in rows if r.get(col) not in (None, "", "nan"))
+
+    operating = total(_OPERATING)
+    for key, col in _FUNCTION_COLUMNS.items():
+        published = art["texas"]["functions"][key]["share_of_operating"]
+        recomputed = total(col) / operating * 100
+        assert abs(published - recomputed) < 0.02, (
+            f"{key}: artefact says {published}% of operating, TEA's own file "
+            f"says {recomputed:.2f}%")
+
+
+def test_the_sixteen_functions_sum_to_the_operating_total():
+    """The whole layer rests on this identity: a share is only meaningful if
+    the parts add to the whole it is a share OF. Checked against the raw file
+    rather than against the builder's own reconciliation figure."""
+    art = _art("spending_detail.json")
+    _need(FINANCE)
+    rows = _finance_year_rows(art["meta"]["year"])
+    fcols = [c for c in rows[0] if c.startswith("all_funds_") and "fct" in c]
+    assert len(fcols) == 16, f"expected 16 function columns, found {len(fcols)}"
+
+    def num(r, c):
+        v = r.get(c)
+        return float(v) if v not in (None, "", "nan") else 0.0
+
+    parts = sum(sum(num(r, c) for c in fcols) for r in rows)
+    operating = sum(num(r, _OPERATING) for r in rows)
+    ratio = parts / operating
+    assert 0.999 <= ratio <= 1.001, (
+        f"the sixteen functions sum to {ratio:.4f} of operating spend; every "
+        f"share this layer publishes is taken against that total")
+
+
+def test_a_district_figure_is_the_districts_own_row():
+    """Spot-checks the largest districts end to end — dollars, per-student and
+    share — against their own row in TEA's file."""
+    art = _art("spending_detail.json")
+    _need(FINANCE)
+    year = art["meta"]["year"]
+    by_num = {r["district_number"]: r for r in _finance_year_rows(year)}
+    checked = 0
+    for dn in ("057905", "101912", "015907", "227901", "043910"):
+        rec = art["districts"].get(dn)
+        raw = by_num.get(dn)
+        if rec is None or raw is None:
+            continue
+        students = float(raw["fall_survey_enrollment"])
+        operating = float(raw[_OPERATING])
+        for key, col in _FUNCTION_COLUMNS.items():
+            v = raw.get(col)
+            if v in (None, "", "nan") or float(v) == 0:
+                assert key not in rec["functions"], (
+                    f"{dn} reports nothing for {key} but the artefact "
+                    f"publishes a figure — an absence must never become a zero")
+                continue
+            amount = float(v)
+            assert abs(rec["functions"][key]["amount"] - round(amount)) <= 1
+            assert abs(rec["functions"][key]["per_student"]
+                       - amount / students) < 0.01
+            assert abs(rec["functions"][key]["share_of_operating"]
+                       - amount / operating * 100) < 0.01
+            checked += 1
+    assert checked >= 20, f"only {checked} figures checked; the spot-check is too thin"
+
+
+def test_no_function_absence_was_written_as_a_zero():
+    """The refusal that keeps a ranking honest. A district reporting no food
+    service usually runs none; publishing a zero would rank every other
+    district up and invent a finding about children's meals."""
+    art = _art("spending_detail.json")
+    for dn, rec in art["districts"].items():
+        for key, f in rec["functions"].items():
+            assert f["amount"] != 0, (
+                f"{dn} publishes {key} as $0 — an absence must be omitted, "
+                f"not recorded as spending nothing")
+
+
+def test_percentiles_rank_only_districts_that_reported():
+    """A percentile over all 1,202 districts would score every non-reporter as
+    the thriftiest in Texas."""
+    art = _art("spending_detail.json")
+    floor = art["meta"]["min_students_for_percentile"]
+    for dn, rec in art["districts"].items():
+        if rec["students"] >= floor:
+            continue
+        for key, f in rec["functions"].items():
+            assert "percentile" not in f, (
+                f"{dn} has {rec['students']} students but {key} carries a "
+                f"percentile; below {floor} one purchase is an outlier")
+
+
+def test_the_program_figures_are_the_program_columns_summed():
+    """PROGRAM codes are a second cut of the same operating dollar — who the
+    money served, rather than what it was spent on. Re-derived from TEA's file
+    by hand, like the functions.
+
+    The first draft of the coverage report called special-education spending
+    "a different PEIMS product" that this repo did not hold. That was wrong —
+    the column is right here — so this test exists partly to keep the claim
+    honest in both directions.
+    """
+    art = _art("spending_detail.json")
+    _need(FINANCE)
+    rows = _finance_year_rows(art["meta"]["year"])
+    cols = {
+        "special_ed": "all_funds_students_with_disabilities_pgm_expend_23",
+        "bilingual": "all_funds_bilingual_program_exp_25_35",
+        "athletics": "all_funds_athletics_program_expend_91",
+        "gifted": "all_funds_gifted_talented_program_expend_21",
+        "career_tech": "all_funds_career_technology_pgm_expend_22",
+    }
+
+    def total(col):
+        return sum(float(r[col]) for r in rows if r.get(col) not in (None, "", "nan"))
+
+    enrolled = sum(float(r["fall_survey_enrollment"]) for r in rows
+                   if r.get("fall_survey_enrollment") not in (None, "", "nan"))
+    for key, col in cols.items():
+        published = art["texas"]["programs"][key]["per_student"]
+        recomputed = total(col) / enrolled
+        assert abs(published - recomputed) < 0.02, (
+            f"{key}: artefact says ${published}/student, TEA's file says "
+            f"${recomputed:.2f}")
+
+
+def test_a_program_share_is_never_taken_against_operating_spend():
+    """Programme codes do not tile operating spend — code 99 holds what TEA
+    does not attribute — so a share against operating would silently understate
+    every programme. Shares must be of TEA's own programme total."""
+    art = _art("spending_detail.json")
+    for dn, rec in art["districts"].items():
+        shares = [p["share_of_program_total"] for p in rec.get("programs", {}).values()
+                  if p.get("share_of_program_total") is not None]
+        if len(shares) < 5:
+            continue
+        assert sum(shares) <= 100.5, (
+            f"{dn}: programme shares sum to {sum(shares):.1f}%, so they are not "
+            f"shares of the programme total")
+    tx = art["texas"]["programs"]
+    assert "undistributed" in tx, (
+        "code 99 must be published, or the other programmes look like they "
+        "account for the whole dollar when they do not")
+
+
+PROPERTY = DATA / "tea_property.csv"
+
+
+def test_the_tax_rates_are_the_comptrollers_own_numbers():
+    """Rates recomputed off data/tea_property.csv by hand. The bill is a
+    multiplication the reader can redo: rate x $300,000 / 100."""
+    art = _art("tax_history.json")
+    _need(PROPERTY)
+    rows = [r for r in _rows(PROPERTY) if r.get("total_tax_rate") not in (None, "", "nan")]
+    by = {}
+    for r in rows:
+        by.setdefault(r["district_number"], {})[int(float(r["year"]))] = float(r["total_tax_rate"])
+    checked = 0
+    for dn in ("057905", "101912", "015907", "227901", "043910"):
+        rec, raw = art["districts"].get(dn), by.get(dn)
+        if not rec or not raw:
+            continue
+        for i, y in enumerate(rec["series"]["years"]):
+            assert abs(rec["series"]["total_rate"][i] - raw[y]) < 0.0001, (
+                f"{dn} {y}: artefact {rec['series']['total_rate'][i]}, "
+                f"Comptroller {raw[y]}")
+            assert rec["series"]["bill_on_fixed_home"][i] == round(
+                raw[y] * art["meta"]["home_value"] / 100)
+            checked += 1
+    assert checked >= 40, f"only {checked} rate-years checked"
+
+
+def test_the_headline_that_rates_fell_is_true_of_the_rate_file():
+    """The finding that makes this layer worth publishing — most districts'
+    RATES fell while bills rose — recounted from the source."""
+    art = _art("tax_history.json")
+    _need(PROPERTY)
+    rows = [r for r in _rows(PROPERTY) if r.get("total_tax_rate") not in (None, "", "nan")]
+    by = {}
+    for r in rows:
+        by.setdefault(r["district_number"], []).append(
+            (int(float(r["year"])), float(r["total_tax_rate"])))
+    fell = 0
+    total = 0
+    for dn, pairs in by.items():
+        if len(pairs) < 2:
+            continue
+        pairs.sort()
+        total += 1
+        if pairs[-1][1] < pairs[0][1]:
+            fell += 1
+    assert total > 900, f"only {total} districts have a rate series"
+    assert fell / total > 0.85, (
+        f"only {fell}/{total} districts' rates fell; the published reading says "
+        f"most of them did")
+    published = sum(1 for r in art["districts"].values()
+                    if (r["change"]["rate_change_pct"] or 0) < 0)
+    assert abs(published - fell) <= 2, (
+        f"artefact counts {published} falling rates, the source says {fell}")
+
+
+def test_a_bill_is_never_presented_as_somebodys_actual_bill():
+    """No appraisal roll is involved and exemptions are not modelled, so the
+    payload must keep saying so."""
+    art = _art("tax_history.json")
+    blob = " ".join(art["meta"]["limits"]).lower()
+    assert "not anyone's actual bill" in blob
+    assert "exemption" in blob
+    assert art["meta"]["home_value"] == 300000
+
+
 def test_every_published_layer_has_a_provenance_test_here_or_upstream():
     """The gap this file was written to close, kept closed.
 
@@ -203,6 +450,7 @@ def test_every_published_layer_has_a_provenance_test_here_or_upstream():
         "economics_data.json", "outcomes_data.json",              # ditto
         "national_data.json",                                     # test_national.py
         "erate_data.json",                                        # test_erate.py
+        "spending_detail.json", "tax_history.json",                # this file
     }
     known_uncovered = {
         # Derived entirely from artefacts already covered above, so a wrong
