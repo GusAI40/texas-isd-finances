@@ -8,7 +8,7 @@ import secrets
 import time
 import xml.sax.saxutils as saxutils
 from contextlib import asynccontextmanager
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -311,6 +311,31 @@ async def _record_visit(pool, path: str, device: str, ref_host: str) -> None:
                 path, device, ref_host)
     except Exception as exc:                       # table missing, DB asleep…
         _warn_exception("visit not counted", exc)
+
+
+async def _record_tokens(pool, usage: dict) -> None:
+    """Add one question's token spend to today's counters.
+
+    Written to the same nlp_usage row the rate limiter already maintains, so
+    the meter and the ceiling cannot disagree about which day it is. The
+    counters are additive, never set: two serverless instances answering at
+    once must sum, and a SET would let the slower write erase the faster one.
+    """
+    if pool is None:
+        return
+    day = datetime.now(timezone.utc).replace(
+        hour=0, minute=0, second=0, microsecond=0)
+    async with pool.acquire() as conn:
+        await conn.execute(
+            "INSERT INTO public.nlp_usage (window_kind, window_start, calls, "
+            "input_tokens, output_tokens, model_calls) "
+            "VALUES ('day', $1, 0, $2, $3, $4) "
+            "ON CONFLICT (window_kind, window_start) DO UPDATE SET "
+            "input_tokens = public.nlp_usage.input_tokens + EXCLUDED.input_tokens, "
+            "output_tokens = public.nlp_usage.output_tokens + EXCLUDED.output_tokens, "
+            "model_calls = public.nlp_usage.model_calls + EXCLUDED.model_calls",
+            day, int(usage.get("input_tokens") or 0),
+            int(usage.get("output_tokens") or 0), int(usage.get("calls") or 0))
 
 
 async def _log_question(pool, question: str, ok: bool, ms: int) -> None:
@@ -1028,6 +1053,18 @@ async def nlp_query(request: NLPQueryRequest, http_request: Request):
                 district_number=request.district_number)
         except Exception as exc:         # noqa: BLE001 — never lose an answer
             _warn_exception("could not structure the answer", exc)
+
+    # What the question actually cost. nlp_usage counted CALLS, which bounds
+    # the request rate and says nothing about the bill: one question can be
+    # twenty model calls in a tool-calling loop. Fails open — a meter that can
+    # fail a request is worse than a meter that misses a row.
+    usage = result.get("usage") or {}
+    if usage.get("total_tokens"):
+        try:
+            await _record_tokens(_pool_or_none(http_request), usage)
+        except Exception as exc:         # noqa: BLE001 — telemetry, not answer
+            _warn_exception("could not record token usage", exc)
+    result.pop("usage", None)
 
     # The conversation, in order. Two writes on purpose: `chat_turn` is the
     # anonymous content record, and the `question` event below is the only

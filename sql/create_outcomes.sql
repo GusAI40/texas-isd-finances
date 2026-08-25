@@ -149,3 +149,12 @@ END $$;
 -- already in the queue predates the ledger and must keep working.
 ALTER TABLE public.outreach_queue
     ADD COLUMN IF NOT EXISTS run_id text;
+
+-- Token telemetry. nlp_usage counted CALLS, which bounds the request rate and
+-- says nothing about the bill: one question can cost twenty model calls in a
+-- tool-calling loop, and a long context costs more than a short one at the same
+-- call count. Additive and nullable so every existing row keeps working.
+ALTER TABLE public.nlp_usage
+    ADD COLUMN IF NOT EXISTS input_tokens  bigint NOT NULL DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS output_tokens bigint NOT NULL DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS model_calls   bigint NOT NULL DEFAULT 0;

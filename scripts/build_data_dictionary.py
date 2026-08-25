@@ -127,12 +127,6 @@ PURPOSE = {
     "isd_briefing.json": (
         "District news",
         "Headlines resolved to districts, refreshed daily by a cron job."),
-    "similarity_graph.json": (
-        "Which districts resemble which",
-        "Structural neighbours used to pick peer groups."),
-    "outcomes_summary.json": (
-        "Compact outcomes index",
-        "A reduced view of the outcomes layer."),
 }
 
 SKIP_ROUTES = ("/ops/", "/api/outreach/", "/px/", "/feedback", "/track")
@@ -154,8 +148,7 @@ GROUPS = [
       "forensic_quality.json"]),
     ("Plumbing", "Files the site needs but a reader never asks for",
      ["district_geo.json", "map_data.json", "fallback_index.json",
-      "source_fingerprint.json", "isd_briefing.json", "similarity_graph.json",
-      "outcomes_summary.json"]),
+      "source_fingerprint.json", "isd_briefing.json"]),
 ]
 
 

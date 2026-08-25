@@ -32,6 +32,8 @@ from __future__ import annotations
 import re
 from typing import Any
 
+from src import answer_check
+
 # --- question classification ------------------------------------------------
 # The point of classifying is not cleverness; it is that a fact question and a
 # ranking question deserve different SHAPES, and that follow-up suggestions
@@ -523,7 +525,12 @@ def build(question: str, answer_text: str, *,
     facts = figures(ctx)
     district_name = facts.get("name") if facts else None
     lead_runs, rest = take_lead(blocks(answer_text))
+    # The model's prose is checked against the artefacts this site already
+    # serves. It annotates and never edits: a verifier that rewrites an answer
+    # is a second author, and the second author is unreviewable.
+    verification = answer_check.check(answer_text, ctx)
     return {
+        "verification": verification,
         "kind": kind,
         "lead": plain(lead_runs) if lead_runs else "",
         "lead_runs": lead_runs,

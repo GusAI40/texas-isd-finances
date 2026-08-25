@@ -266,3 +266,70 @@ def test_the_governance_tables_are_locked_down_like_every_other():
         assert f"ALTER TABLE public.{table} ENABLE ROW LEVEL SECURITY" in ddl
         assert f"REVOKE ALL ON public.{table} FROM PUBLIC" in ddl
     assert "nlp_reader" in ddl
+
+
+# --- cost telemetry ----------------------------------------------------------
+
+def test_tokens_are_summed_across_the_agent_loop_not_taken_from_the_last_call():
+    """A tool-calling agent makes several model calls per question. Reading
+    only the final message undercounts the expensive part — the loop — by
+    however many turns it took."""
+    from src.nlp_engine import _token_usage
+
+    class M:
+        def __init__(self, u):
+            self.usage_metadata = u
+
+    total = _token_usage([M({"input_tokens": 100, "output_tokens": 20}),
+                          M({"input_tokens": 300, "output_tokens": 50})])
+    assert total["total_tokens"] == 470
+    assert total["calls"] == 2
+
+
+def test_a_provider_that_reports_no_usage_gives_zero_not_a_guess():
+    """A meter that estimates is a meter that will be quoted as if it
+    measured."""
+    from src.nlp_engine import _token_usage
+
+    class Bare:
+        usage_metadata = None
+        response_metadata = {}
+
+    assert _token_usage([Bare()])["total_tokens"] == 0
+    assert _token_usage([])["total_tokens"] == 0
+
+
+def test_the_older_provider_shape_is_still_read():
+    from src.nlp_engine import _token_usage
+
+    class Legacy:
+        usage_metadata = None
+        response_metadata = {"token_usage": {"prompt_tokens": 7,
+                                             "completion_tokens": 3}}
+
+    assert _token_usage([Legacy()])["total_tokens"] == 10
+
+
+def test_token_counters_add_and_never_set():
+    """Two serverless instances answering at once must sum. A SET would let
+    the slower write erase the faster one."""
+    body = _code_of("_record_tokens")
+    assert "ON CONFLICT" in body
+    assert "public.nlp_usage.input_tokens + EXCLUDED.input_tokens" in body
+    assert "= EXCLUDED.input_tokens" not in body.replace(
+        "public.nlp_usage.input_tokens + EXCLUDED.input_tokens", "")
+
+
+def test_recording_tokens_can_never_fail_a_query():
+    src = (ROOT / "src" / "api.py").read_text()
+    assert "could not record token usage" in src
+    body = _code_of("_record_tokens")
+    assert "if pool is None:" in body
+
+
+def test_the_meter_and_the_ceiling_share_a_row():
+    """If the meter and the rate limiter disagreed about which day it is, the
+    bill and the ceiling would describe different windows."""
+    body = _code_of("_record_tokens")
+    assert "public.nlp_usage" in body
+    assert "'day'" in body
