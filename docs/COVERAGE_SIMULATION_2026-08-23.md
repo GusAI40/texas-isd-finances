@@ -1,5 +1,11 @@
 # 90-Day Monte Carlo Data Coverage & Answerability Test
 
+> **Update, 2026-08-24 — remeasured at 82.2%, grade B.** Everything below is the
+> original 2026-08-23 baseline of 67.1% (grade D) and is kept as written, because
+> a report that quietly rewrites its own findings is not a record of anything.
+> What changed, and what the remaining distance actually costs, is in
+> [§14](#14-what-was-closed-2026-08-24).
+
 **Run date** 2026-08-23 · **Simulator** `scripts/coverage_simulation.py` ·
 **Raw output** `data/coverage_simulation.json` (993 KB) ·
 **AI probe** `scripts/ai_performance_probe.py`
@@ -385,3 +391,96 @@ district that produced it.
   assumption that a named capability becomes fully available at current grain
   for all districts. Real ingests arrive with their own coverage gaps, so treat
   §8 as an upper bound.
+
+
+---
+
+## 14. What was closed (2026-08-24)
+
+Three waves of work, each measured by re-running the whole simulation rather
+than estimated.
+
+| | Coverage | Weighted | Grade |
+|---|---|---|:--:|
+| Baseline (2026-08-23) | 67.1% | 64.8% | D |
+| + function / program / object spend | 75.9% | 73.0% | C |
+| + tax rate history | 79.5% | 77.2% | C |
+| + TAPR campus STAAR and student groups | **82.2%** | **79.9%** | **B** |
+
+**The "held but unreachable" category is now empty.** It was 8.9% of all
+inquiries.
+
+### Category movement
+
+| Category | Was | Now |
+|---|---|---|
+| financial | 60.9% **D** | 94.1% **A** |
+| root_cause | 53.2% **F** | 93.7% **A** |
+| trend | 81.1% B | 99.3% **A** |
+| exceptions | 63.9% D | 81.9% **B** |
+| comparison | 75.6% C | 85.1% **B** |
+| operations | 63.5% D | 63.9% D |
+| forecast | 43.5% F | 43.8% F |
+
+`financial` was the largest category and the site's whole reason to exist. It
+went from the worst grade to the best.
+
+### Audience movement
+
+| Persona | Was | Now |
+|---|---|---|
+| parent_resident (42% of traffic) | 60.7% D | **76.7% C** |
+| taxpayer_voter | 62.2% D | 75.6% C |
+| journalist | 65.6% D | 82.5% B |
+| district_leader | 71.2% C | 85.4% B |
+
+Parents are still the worst-served group. They ask campus-level and
+forward-looking questions, and forward-looking is where the remaining wall is.
+
+### What was added
+
+1. **`spending_detail.json`** — all 16 PEIMS function codes, 8 program codes and
+   4 object codes per district. No new source: the columns were already in
+   `texas_school_finance`. `v_finance_summary` widened 12 → 30 columns so the
+   agent reaches them too.
+2. **`tax_history.json`** — per-district rate 2009–2024 with the taxable value
+   roll beside it. No new source: already in `data/tea_property.csv`, and only
+   the latest row had ever been read.
+3. **`campus_performance.json`** — STAAR by subject for 8,264 campuses and by
+   student group for 1,204 districts, via TAPR. `scripts/ingest_tapr.py` maps
+   the SAS-broker wizard this repo had recorded as needing a human.
+
+### Three defects the work surfaced
+
+- **`operating_spend` answered with `total_spend`.** The prompt's column list
+  never mentioned the column. Tioga ISD 2014 answered $5,603,166 against a true
+  $3,205,610 — a 75% overstatement. Fixed and test-locked.
+- **TAPR negative sentinels.** `-1` and `-3` parse as valid floats; the first
+  build published districts scoring "-1%". Caught by the provenance test.
+- **`verify_artifacts` reported missing raw sources as DRIFT.** A source that is
+  not on this machine means the artefact was *not checked*, which is different
+  from checking it and finding it clean.
+
+### The remaining 7.8 points, and what each would actually cost
+
+| Gap | Worth | What it needs |
+|---|---:|---|
+| bond_projects | +2.31 | **No statewide publisher exists.** 1,200 district project pages. |
+| budget_forward | +1.93 | TEA does not publish budgeted PEIMS on the downloads page. |
+| current_year | +1.75 | **Structural.** TEA publishes with a lag; nothing fixes this. |
+| charter_comparison | +1.26 | **Structural.** A charter is not a taxing government. |
+| conservatorship | +1.13 | TEA intervention list — obtainable. |
+| enrollment_forecast | +1.13 | **A projection this project has been right to refuse** without an error bar. |
+| campus_turnover | +0.96 | Not published by TEA at campus grain. |
+| fund_balance | +0.83 | TEA Actual Financial Report — obtainable. |
+
+**Honest conclusion: 90% is not reachable from public Texas data without either
+inventing figures or reversing an editorial position.** Two items (+1.96) are
+genuinely obtainable and would land around 84%. The rest are a source that does
+not exist, a publishing lag that cannot be argued with, or a forecast the site
+has been right to decline.
+
+An A on this scale would require publishing an enrollment projection and a
+current-year budget the state has not released. That is a decision about what
+the site is willing to assert, not a backlog item — and the case for refusing it
+is the same one that makes every other number here trustworthy.
