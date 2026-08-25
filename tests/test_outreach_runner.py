@@ -145,8 +145,23 @@ def test_identity_gate_catches_a_crossed_wire():
 # --- the drain: safe to fire any number of times -----------------------------
 
 def test_two_racing_drains_claim_disjoint_rows():
+    """The property that stops a superintendent getting two copies.
+
+    Vercel can run several instances of one cron, and a manual kick can land
+    while the scheduled firing is mid-batch. SKIP LOCKED makes the second
+    worker skip rows the first holds rather than wait for them, so two drains
+    take disjoint sets.
+
+    Asserted against the SQL because a real two-connection race needs a live
+    Postgres, which CI does not have. What CI CAN prove is that the clause
+    making the race safe has not been dropped — a plain SELECT ... LIMIT here
+    would read as correct in review and double-send under load.
+    """
     assert "FOR UPDATE SKIP LOCKED" in outreach_runner.CLAIM_SQL
     assert "status = 'queued'" in outreach_runner.CLAIM_SQL
+    assert "'sending'" in outreach_runner.CLAIM_SQL, (
+        "a claimed row must leave 'queued' in the same statement, or a third "
+        "worker selects it before the first has marked it")
 
 
 def test_the_sent_log_is_written_the_moment_resend_accepts():
@@ -486,3 +501,41 @@ def test_the_identity_gates_name_map_is_read_once_not_per_message():
         "_site_names lost its cache — 15 blocking 82KB JSON parses per drain")
     src = inspect.getsource(outreach_runner.identity_problems)
     assert "_site_names()" in src
+
+
+# --- concurrency -------------------------------------------------------------
+
+def test_the_claim_runs_inside_a_transaction():
+    """SKIP LOCKED only holds a lock for the life of its transaction. Outside
+    one, the lock is released the moment the statement ends and the guarantee
+    is gone."""
+    src = (ROOT / "src" / "outreach_runner.py").read_text()
+    body = src.split("async def drain(")[1]
+    claim_at = body.index("CLAIM_SQL, BATCH")
+    window = body[max(0, claim_at - 220): claim_at]
+    assert "async with conn.transaction():" in window, (
+        "the claim must be inside an explicit transaction")
+
+
+def test_the_batch_cannot_outrun_the_function_timeout():
+    """maxDuration is 60s in vercel.json. A batch that can spend longer than
+    that is killed mid-send, and a kill after Resend accepts is exactly the
+    ambiguity the failure policy exists to avoid."""
+    import json as _json
+    vercel = _json.loads((ROOT / "vercel.json").read_text())
+    limit = vercel["functions"]["api/index.py"]["maxDuration"]
+    worst = outreach_runner.WALL_BUDGET_S + outreach_runner.RESEND_TIMEOUT_S
+    assert worst < limit, (
+        f"worst case {worst}s against a {limit}s function limit — the wall "
+        f"budget plus one full Resend timeout must finish inside it")
+
+
+def test_a_stale_claim_is_recoverable():
+    """A worker killed mid-batch leaves rows in 'sending' with nothing coming
+    back for them. Without a recovery window those rows are stranded forever
+    and the wave silently stops short."""
+    assert outreach_runner.STALE_SENDING_S > 0
+    src = (ROOT / "src" / "outreach_runner.py").read_text()
+    assert "STALE_SENDING_S" in src.split("async def status(")[1], (
+        "the status endpoint must surface stale claims, or a stranded row is "
+        "invisible to the person who would fix it")

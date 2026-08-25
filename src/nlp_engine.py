@@ -473,6 +473,37 @@ class FinanceSQLDatabase:
         return "\n\n".join(sections)
 
 
+def _token_usage(messages: list) -> dict[str, int]:
+    """Tokens actually spent on one question, summed over the agent loop.
+
+    Summed, not taken from the last message: a tool-calling agent makes several
+    model calls per question, and reading only the final one undercounts the
+    expensive part — the loop — by however many turns it took.
+
+    Best-effort by construction. Providers disagree about where usage lives and
+    some omit it entirely, so an absent count is reported as zero rather than
+    guessed from message length. A meter that estimates is a meter that will be
+    quoted as if it measured.
+    """
+    total = {"input_tokens": 0, "output_tokens": 0, "calls": 0}
+    for m in messages:
+        usage = getattr(m, "usage_metadata", None)
+        if not isinstance(usage, dict):
+            meta = getattr(m, "response_metadata", None) or {}
+            usage = meta.get("token_usage") or meta.get("usage")
+        if not isinstance(usage, dict):
+            continue
+        got_in = usage.get("input_tokens", usage.get("prompt_tokens"))
+        got_out = usage.get("output_tokens", usage.get("completion_tokens"))
+        if got_in is None and got_out is None:
+            continue
+        total["input_tokens"] += int(got_in or 0)
+        total["output_tokens"] += int(got_out or 0)
+        total["calls"] += 1
+    total["total_tokens"] = total["input_tokens"] + total["output_tokens"]
+    return total
+
+
 def _message_text(message: Any) -> str:
     """Normalize LangChain message content without assuming one provider shape."""
 
@@ -736,6 +767,7 @@ class TexasFinanceNLPEngine:
                 "success": True,
                 "answer": output,
                 "question": question,
+                "usage": _token_usage(messages),
             }
 
         except Exception as exc:

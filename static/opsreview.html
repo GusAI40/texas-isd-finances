@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Review queue — TAG ai ops</title>
+<style>
+  :root{
+    --bg:#f6f7f9; --card:#fff; --ink:#14181f; --ink2:#3d4653; --muted:#6b7585;
+    --line:#dce0e7; --accent:#2c5a87; --warn:#8a5a24; --bad:#a33; --good:#2f6b4f;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:16px/1.6 ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+  .wrap{max-width:960px;margin:0 auto;padding:28px 20px 80px}
+  h1{font-size:24px;margin:0 0 6px;letter-spacing:-.01em}
+  .sub{color:var(--muted);font-size:14px;margin:0 0 22px;max-width:66ch}
+  .bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:18px}
+  .tab{font:12px/1 ui-monospace,monospace;letter-spacing:.05em;padding:8px 12px;
+    border:1px solid var(--line);background:#fff;border-radius:6px;cursor:pointer;
+    color:var(--ink2)}
+  .tab[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+  .count{margin-left:auto;font:12px/1 ui-monospace,monospace;color:var(--muted)}
+  .item{background:var(--card);border:1px solid var(--line);border-radius:9px;
+    padding:16px 18px;margin-bottom:12px}
+  .head{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;margin-bottom:6px}
+  .hl{font-weight:600;font-size:16px;flex:1 1 300px}
+  .meta{font:11px/1.5 ui-monospace,monospace;color:var(--muted)}
+  .why{background:#f5ede1;border-left:2px solid var(--warn);padding:8px 12px;
+    border-radius:0 5px 5px 0;font-size:13.5px;margin:8px 0}
+  .why b{color:var(--warn)}
+  a.src{color:var(--accent);font-size:13px;word-break:break-all}
+  details{margin-top:8px}
+  summary{cursor:pointer;font:12px/1 ui-monospace,monospace;color:var(--accent)}
+  pre{background:#f6f7f9;border:1px solid var(--line);border-radius:6px;
+    padding:10px;overflow-x:auto;font-size:11.5px;margin:8px 0 0}
+  .acts{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+  button.act{font:13px/1 inherit;padding:9px 14px;border-radius:6px;cursor:pointer;
+    border:1px solid var(--line);background:#fff;color:var(--ink)}
+  button.act:hover{border-color:var(--accent)}
+  button.act[data-d="approved"]{border-color:var(--good);color:var(--good)}
+  button.act[data-d="rejected"]{border-color:var(--bad);color:var(--bad)}
+  button.act:disabled{opacity:.45;cursor:default}
+  .done{font-size:13px;color:var(--good)}
+  .err{font-size:13px;color:var(--bad)}
+  .empty{background:var(--card);border:1px dashed var(--line);border-radius:9px;
+    padding:28px;text-align:center;color:var(--muted)}
+  input#by{padding:8px 10px;border:1px solid var(--line);border-radius:6px;
+    font:13px inherit;width:150px}
+  @media (prefers-color-scheme:dark){
+    :root{--bg:#101318;--card:#171b22;--ink:#e7eaef;--ink2:#b6becb;--muted:#8b95a5;
+      --line:#282e38;--accent:#7fa9d6;--warn:#cd9e5e;--bad:#e08a8a;--good:#6fb08d}
+    .tab,button.act,input#by{background:#171b22;color:var(--ink)}
+    .tab[aria-pressed="true"]{color:#101318}
+    .why{background:#2a2318}
+    pre{background:#1d222a}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Review queue</h1>
+  <p class="sub">Findings the news pipeline refused to publish on its own — the
+    district could not be resolved with confidence, or the claim contradicts a
+    figure this site already publishes. Resolving records that a human looked.
+    It does <b>not</b> publish anything.</p>
+
+  <div class="bar">
+    <button class="tab" data-s="open" aria-pressed="true">Open</button>
+    <button class="tab" data-s="approved" aria-pressed="false">Approved</button>
+    <button class="tab" data-s="rejected" aria-pressed="false">Rejected</button>
+    <button class="tab" data-s="all" aria-pressed="false">All</button>
+    <input id="by" placeholder="your name" aria-label="Reviewer name">
+    <span class="count" id="count"></span>
+  </div>
+
+  <div id="list"></div>
+</div>
+
+<script>
+const TOKEN = new URLSearchParams(location.search).get('token') || '';
+const $ = s => document.querySelector(s);
+let current = 'open';
+
+function esc(v){ const d=document.createElement('div'); d.textContent = v==null?'':String(v); return d.innerHTML; }
+
+async function load(){
+  const r = await fetch(`/ops/review-data?status=${current}&token=${encodeURIComponent(TOKEN)}`);
+  if(!r.ok){ $('#list').innerHTML = '<div class="empty">Not authorized, or the route is unavailable.</div>'; return; }
+  const d = await r.json();
+  if(d.available === false){
+    $('#list').innerHTML = '<div class="empty">Database not connected. The queue is intact; this page cannot read it right now.</div>';
+    return;
+  }
+  const c = d.counts || {};
+  $('#count').textContent =
+    `${d.open||0} open · ${c.approved||0} approved · ${c.rejected||0} rejected`
+    + (d.oldest_open ? ` · oldest open ${d.oldest_open}` : '');
+
+  if(!d.items.length){
+    $('#list').innerHTML = current === 'open'
+      ? '<div class="empty">Nothing is waiting. Every finding the pipeline flagged has been looked at.</div>'
+      : '<div class="empty">No items with this status.</div>';
+    return;
+  }
+  $('#list').innerHTML = d.items.map(render).join('');
+  document.querySelectorAll('button.act').forEach(b =>
+    b.addEventListener('click', decide));
+}
+
+function render(it){
+  const f = it.finding || {};
+  const why = f.comparison_status && f.comparison_status !== 'consistent'
+    ? `Contradicts published data — <b>${esc(f.comparison_status)}</b>. ${esc(f.comparison_detail||'')}`
+    : `District could not be resolved with confidence (<b>${esc(f.resolution_confidence||'unknown')}</b>${f.resolution_basis?', '+esc(f.resolution_basis):''}).`;
+  const resolved = it.status !== 'open';
+  return `<div class="item" data-id="${it.id}">
+    <div class="head">
+      <div class="hl">${esc(f.headline || '(no headline)')}</div>
+      <div class="meta">${esc(it.run_date)} · #${it.id}</div>
+    </div>
+    <div class="meta">${esc(f.district_name || 'district unresolved')}${f.district_number?' · '+esc(f.district_number):''}${f.source_name?' · '+esc(f.source_name):''}${f.source_tier?' · tier '+esc(f.source_tier):''}</div>
+    <div class="why">${why}</div>
+    ${f.summary ? `<div style="font-size:14px">${esc(f.summary)}</div>` : ''}
+    ${f.url ? `<div><a class="src" href="${esc(f.url)}" target="_blank" rel="noopener noreferrer nofollow">${esc(f.url)}</a></div>` : ''}
+    <details><summary>raw finding</summary><pre>${esc(JSON.stringify(f, null, 1))}</pre></details>
+    ${resolved
+      ? `<div class="done">${esc(it.status)}${it.resolved_by?' by '+esc(it.resolved_by):''}${it.resolved_at?' · '+esc(String(it.resolved_at).slice(0,16)):''}</div>`
+      : `<div class="acts">
+          <button class="act" data-d="approved">Looked — claim holds</button>
+          <button class="act" data-d="rejected">Looked — reject</button>
+          <button class="act" data-d="merged">Duplicate of another finding</button>
+          <span class="err" data-err></span>
+        </div>`}
+  </div>`;
+}
+
+async function decide(e){
+  const btn = e.currentTarget;
+  const item = btn.closest('.item');
+  const errSlot = item.querySelector('[data-err]');
+  item.querySelectorAll('button.act').forEach(b => b.disabled = true);
+  errSlot.textContent = '';
+  try{
+    const r = await fetch(`/ops/review-decide?token=${encodeURIComponent(TOKEN)}`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ id: Number(item.dataset.id),
+                             decision: btn.dataset.d,
+                             by: $('#by').value || 'ops' })});
+    const d = await r.json();
+    if(!r.ok || d.refused){
+      errSlot.textContent = d.refused
+        ? `Already ${d.current?.status || 'resolved'} — not overwritten.`
+        : (d.detail || 'Refused.');
+      item.querySelectorAll('button.act').forEach(b => b.disabled = false);
+      return;
+    }
+    load();
+  }catch(err){
+    errSlot.textContent = 'Network error — nothing was recorded.';
+    item.querySelectorAll('button.act').forEach(b => b.disabled = false);
+  }
+}
+
+document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => {
+  document.querySelectorAll('.tab').forEach(x =>
+    x.setAttribute('aria-pressed', String(x === t)));
+  current = t.dataset.s;
+  load();
+}));
+load();
+</script>
+</body>
+</html>
