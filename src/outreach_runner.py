@@ -36,6 +36,7 @@ import asyncio
 import hashlib
 import json
 import os
+import secrets
 import time
 from functools import lru_cache
 from pathlib import Path
@@ -186,6 +187,48 @@ RETURNING q.id, q.district_number, q.email, q.campaign
 """
 
 
+def _mint_run_id(kind: str, campaign: str) -> str:
+    """A run identifier that is readable in a log and unique without a clock.
+
+    Deliberately not a bare UUID: an operator reading `run_id` in a queue row
+    should be able to tell what it was and which wave it belonged to without a
+    second lookup. The random tail is what makes it unique — two enqueues of
+    the same campaign in one second are different runs.
+    """
+    return f"{kind}-{campaign}-{secrets.token_hex(4)}"
+
+
+async def _open_run(conn, run_id: str, kind: str, campaign: str,
+                    authorized_by: str) -> None:
+    """Record that a run began, before it does anything.
+
+    Written FIRST, not last. A run that dies mid-way is exactly the one whose
+    trace matters, and a ledger written on success only is a ledger of the
+    runs that did not need it.
+
+    `authorized_by` is the NAME of the gate, never a token value.
+    """
+    await conn.execute(
+        "INSERT INTO public.outreach_run (run_id, campaign, kind, "
+        "authorized_by) VALUES ($1, $2, $3, $4) "
+        "ON CONFLICT (run_id) DO NOTHING",
+        run_id, campaign, kind, authorized_by)
+
+
+async def _close_run(conn, run_id: str, **counts) -> None:
+    """Fail-open by design: a ledger write that raises must never turn a
+    successful send into an error. The audit trail is worth less than not
+    re-emailing a superintendent."""
+    try:
+        await conn.execute(
+            "UPDATE public.outreach_run SET queued = $2, sent = $3, "
+            "failed = $4, detail = $5 WHERE run_id = $1",
+            run_id, int(counts.get("queued", 0)), int(counts.get("sent", 0)),
+            int(counts.get("failed", 0)), counts.get("detail"))
+    except Exception:  # noqa: BLE001 — trace loss must not fail a send
+        pass
+
+
 async def enqueue(pool, limit: int, campaign: str,
                   write: bool = True) -> tuple[int, dict]:
     """State the wave. Returns (http_status, payload); sends nothing.
@@ -242,18 +285,25 @@ async def enqueue(pool, limit: int, campaign: str,
                                  "again with confirm=GO to queue exactly "
                                  "this selection"}
 
+        run_id = _mint_run_id("enq", campaign)
+        await _open_run(conn, run_id, "enqueue", campaign,
+                        "human with OUTREACH_TOKEN")
+
         # UNIQUE(email) makes a concurrent double-enqueue a no-op, not a
         # duplicate; executemany runs in one implicit transaction.
         await conn.executemany(
             "INSERT INTO public.outreach_queue "
-            "(district_number, email, campaign) VALUES ($1, $2, $3) "
+            "(district_number, email, campaign, run_id) VALUES ($1, $2, $3, $4) "
             "ON CONFLICT (email) DO NOTHING",
-            [(r["district_number"], r["email"], campaign) for r in take])
+            [(r["district_number"], r["email"], campaign, run_id)
+             for r in take])
         queued = await conn.fetchval(
             "SELECT count(*) FROM public.outreach_queue "
             "WHERE status = 'queued'")
+        await _close_run(conn, run_id, queued=len(take))
     return 200, {"enqueued": len(take), "eligible": eligible,
                  "campaign": campaign, "queued_total": int(queued),
+                 "run_id": run_id,
                  "first": take[0]["district_number"],
                  "last": take[-1]["district_number"],
                  "note": "nothing sent — the daily drain (or a manual kick "
@@ -335,6 +385,12 @@ async def drain(pool) -> tuple[int, dict]:
         optout = {r["email"].lower() for r in await conn.fetch(
             "SELECT email FROM public.outreach_optout")}
         bad = suppressed_digests()
+
+        run_campaign = str(claimed[0].get("campaign") or "unknown")
+        run_id = _mint_run_id("drain", run_campaign)
+        await _open_run(conn, run_id, "drain", run_campaign,
+                        "Vercel cron with CRON_SECRET, or a kick with "
+                        "OUTREACH_TOKEN")
 
         sent = failed = skipped = released = 0
         # The loop is guarded whole: an unexpected DB error mid-batch (the
@@ -482,16 +538,21 @@ async def drain(pool) -> tuple[int, dict]:
                       f"({type(exc).__name__}); {len(leftover)} unattempted "
                       "rows could not be released and will surface as stale "
                       "'sending'; no identifiers logged.")
+            await _close_run(conn, run_id, sent=sent, failed=failed,
+                             detail="aborted mid-batch")
             return 500, {"error": "drain aborted mid-batch",
                          "failure_type": type(exc).__name__,
+                         "run_id": run_id,
                          "sent": sent, "failed": failed,
                          "skipped": skipped, "released": released}
 
         remaining = await conn.fetchval(
             "SELECT count(*) FROM public.outreach_queue "
             "WHERE status = 'queued'")
+        await _close_run(conn, run_id, sent=sent, failed=failed)
     return 200, {"status": "drained", "sent": sent, "failed": failed,
                  "skipped": skipped, "released": released,
+                 "run_id": run_id,
                  "remaining": int(remaining),
                  "seconds": round(time.monotonic() - started, 1)}
 

@@ -493,6 +493,140 @@ async def _cron_log_privacy_current(conn) -> bool:
 _LOCK_KEY = 0x7B15D_000A            # arbitrary, just has to be ours alone
 
 
+# The governance layer: what a run was, who authorized it, and what business
+# result followed. Mirrors sql/create_outcomes.sql; tests/test_governance.py
+# fails the build if the two describe different objects.
+#
+# GOVERNANCE_SENTINEL is outreach_outcome and is created FIRST in this script,
+# so it cannot be the sentinel — the same lesson INTEL_SENTINEL and
+# OUTREACH_SENTINEL each learned. outreach_run is created last, so a database
+# that died halfway through still reports the work as unfinished.
+GOVERNANCE_DDL = """
+CREATE TABLE IF NOT EXISTS public.outreach_outcome (
+    id              bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+
+    -- Who it concerns. district_number rather than email: the district is the
+    -- durable party. A superintendent changes; the district does not, and an
+    -- outcome recorded against a person who has left is an outcome nobody can
+    -- find again.
+    district_number text NOT NULL,
+
+    -- Which attempt produced it, when that is known. Nullable on purpose: an
+    -- outcome can arrive long after a wave, by a route nobody traced, and
+    -- refusing to record it because the run_id is unknown would discard the
+    -- exact information this table exists to hold.
+    run_id          text,
+    campaign        text,
+
+    -- What happened. Ordered from weakest to strongest, so a report can ask
+    -- "how far did this district get" rather than only "did it convert".
+    --   replied            a human wrote back (not an auto-reply)
+    --   conversation       a real exchange, more than one turn
+    --   meeting_booked     a call or visit is on a calendar
+    --   meeting_held       it actually happened
+    --   scoped             we discussed specific work
+    --   proposal_sent      a proposal exists
+    --   engaged            they said yes
+    --   declined           they said no — a real outcome, and the most common
+    --   unsubscribed       they asked us to stop
+    --   bounced            it never arrived
+    kind            text NOT NULL CHECK (kind IN (
+        'replied', 'conversation', 'meeting_booked', 'meeting_held',
+        'scoped', 'proposal_sent', 'engaged', 'declined',
+        'unsubscribed', 'bounced')),
+
+    -- Money, only where money is real. NULL is the correct value for every
+    -- outcome that has not been invoiced, and a projected or "pipeline" figure
+    -- must never be entered here: a forecast in an outcome table becomes a
+    -- reported result the moment somebody sums the column.
+    value_usd       numeric(12, 2),
+
+    -- Who says so, and what they are going on. `evidence` is a pointer — a
+    -- thread subject, a calendar entry, an invoice number — not a narrative.
+    noted_by        text NOT NULL,
+    evidence        text,
+    occurred_at     timestamptz NOT NULL DEFAULT now(),
+    recorded_at     timestamptz NOT NULL DEFAULT now(),
+
+    -- One district can reach the same milestone once. Recording "meeting_held"
+    -- twice for one district double-counts the only number anyone will quote.
+    -- A genuine second meeting is a second engagement, which belongs to a new
+    -- campaign and therefore a different row.
+    UNIQUE (district_number, kind, campaign)
+);
+
+CREATE INDEX IF NOT EXISTS outreach_outcome_district_idx
+    ON public.outreach_outcome (district_number);
+CREATE INDEX IF NOT EXISTS outreach_outcome_kind_idx
+    ON public.outreach_outcome (kind, occurred_at DESC);
+
+-- Same lockdown as every table holding named officials' behaviour. nlp_reader
+-- especially: a prompt injection that reached the query role must not be able
+-- to read who TAG ai is talking to.
+ALTER TABLE public.outreach_outcome ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.outreach_outcome FROM PUBLIC;
+
+DO $$
+DECLARE
+    r text;
+BEGIN
+    FOREACH r IN ARRAY ARRAY['anon', 'authenticated', 'nlp_reader'] LOOP
+        IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = r) THEN
+            EXECUTE format(
+                'REVOKE ALL ON public.outreach_outcome FROM %I', r);
+        END IF;
+    END LOOP;
+END $$;
+
+-- The run ledger: one row per outreach run, so a send can be traced from the
+-- instruction that caused it to the outcome it produced.
+--
+-- cron_runs already records that a JOB fired. It cannot answer "which wave sent
+-- this email", because a wave spans an enqueue (a human, with a token) and many
+-- later drains (a cron, on a schedule). Nothing tied those together, so the
+-- audit's question — who authorized this specific message — had no answer.
+CREATE TABLE IF NOT EXISTS public.outreach_run (
+    run_id        text PRIMARY KEY,
+    campaign      text NOT NULL,
+    started_at    timestamptz NOT NULL DEFAULT now(),
+    -- 'enqueue' (a human staged a wave) or 'drain' (the cron sent a batch).
+    kind          text NOT NULL CHECK (kind IN ('enqueue', 'drain')),
+    -- How the run was authorized. Never a token value — the NAME of the gate
+    -- that let it through, so an audit can say "a human with OUTREACH_TOKEN"
+    -- or "the Vercel cron with CRON_SECRET" without storing either.
+    authorized_by text NOT NULL,
+    queued        integer NOT NULL DEFAULT 0,
+    sent          integer NOT NULL DEFAULT 0,
+    failed        integer NOT NULL DEFAULT 0,
+    detail        text
+);
+
+CREATE INDEX IF NOT EXISTS outreach_run_campaign_idx
+    ON public.outreach_run (campaign, started_at DESC);
+
+ALTER TABLE public.outreach_run ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.outreach_run FROM PUBLIC;
+
+DO $$
+DECLARE
+    r text;
+BEGIN
+    FOREACH r IN ARRAY ARRAY['anon', 'authenticated', 'nlp_reader'] LOOP
+        IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = r) THEN
+            EXECUTE format('REVOKE ALL ON public.outreach_run FROM %I', r);
+        END IF;
+    END LOOP;
+END $$;
+
+-- Link the queue to the run that created it. Additive and nullable: every row
+-- already in the queue predates the ledger and must keep working.
+ALTER TABLE public.outreach_queue
+    ADD COLUMN IF NOT EXISTS run_id text;
+"""
+
+GOVERNANCE_SENTINEL = "public.outreach_run"
+
+
 async def ensure_schema(pool) -> str:
     """Create the tracking schema if it is missing. Returns what happened.
 
@@ -517,7 +651,9 @@ async def ensure_schema(pool) -> str:
                 "SELECT to_regclass($1)", INTEL_SENTINEL) is not None
             have_outreach = await conn.fetchval(
                 "SELECT to_regclass($1)", OUTREACH_SENTINEL) is not None
-            if have_tracking and have_intel and have_outreach:
+            have_governance = await conn.fetchval(
+                "SELECT to_regclass($1)", GOVERNANCE_SENTINEL) is not None
+            if have_tracking and have_intel and have_outreach and have_governance:
                 journey_current = await _journey_view_current(conn)
                 cron_privacy_current = await _cron_log_privacy_current(conn)
                 if journey_current and cron_privacy_current:
@@ -553,6 +689,12 @@ async def ensure_schema(pool) -> str:
                 if await conn.fetchval(
                         "SELECT to_regclass($1)", OUTREACH_SENTINEL) is None:
                     await conn.execute(OUTREACH_DDL)
+                # After OUTREACH_DDL without exception: this script ALTERs
+                # outreach_queue, so it cannot run against a database that does
+                # not have it yet.
+                if await conn.fetchval(
+                        "SELECT to_regclass($1)", GOVERNANCE_SENTINEL) is None:
+                    await conn.execute(GOVERNANCE_DDL)
                 # The view refresh must ALSO run here, not only on the fast
                 # path: a database with the tracking sentinel but not the
                 # intel one takes this branch, skips VISITOR_TRACKING_DDL
@@ -563,7 +705,8 @@ async def ensure_schema(pool) -> str:
                 if not await _cron_log_privacy_current(conn):
                     await conn.execute(CRON_LOG_PRIVACY_DDL)
 
-            for name in (SENTINEL, INTEL_SENTINEL, OUTREACH_SENTINEL):
+            for name in (SENTINEL, INTEL_SENTINEL, OUTREACH_SENTINEL,
+                         GOVERNANCE_SENTINEL):
                 if await conn.fetchval("SELECT to_regclass($1)", name) is None:
                     return f"ERROR: ran the DDL but {name} is still missing"
             # Deliberately reports STATE, not authorship. Several workers can
@@ -583,7 +726,8 @@ async def ensure_schema(pool) -> str:
         try:
             async with pool.acquire() as conn:
                 sentinels_present = True
-                for name in (SENTINEL, INTEL_SENTINEL, OUTREACH_SENTINEL):
+                for name in (SENTINEL, INTEL_SENTINEL, OUTREACH_SENTINEL,
+                         GOVERNANCE_SENTINEL):
                     if await conn.fetchval(
                             "SELECT to_regclass($1)", name) is None:
                         sentinels_present = False

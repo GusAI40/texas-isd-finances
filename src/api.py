@@ -3212,6 +3212,244 @@ async def ops_intel_page(request: Request):
     raise HTTPException(status_code=404, detail="Not found")
 
 
+class OutcomeEntry(BaseModel):
+    district_number: str
+    kind: str
+    noted_by: str
+    campaign: str = ""
+    run_id: str = ""
+    value_usd: float | None = None
+    evidence: str = ""
+
+
+_OUTCOME_KINDS = ("replied", "conversation", "meeting_booked", "meeting_held",
+                  "scoped", "proposal_sent", "engaged", "declined",
+                  "unsubscribed", "bounced")
+
+
+@app.post("/ops/outcome", include_in_schema=False)
+async def ops_record_outcome(request: Request, body: OutcomeEntry):
+    """Record what actually happened after an email — entered by a human.
+
+    Nothing here is inferred. There is no rule that turns three page views into
+    a warm lead and no model that reads a reply and decides it went well; those
+    inventions are how a funnel begins reporting outcomes that never occurred.
+    An absent row means nobody knows, which is true and more useful than a
+    confident guess.
+
+    `value_usd` is for money that is real. A projected or pipeline figure must
+    never be entered: a forecast in an outcome table becomes a reported result
+    the moment somebody sums the column.
+    """
+    if not _ops_ok(request):
+        raise HTTPException(status_code=404, detail="Not found")
+    if body.kind not in _OUTCOME_KINDS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"kind must be one of: {', '.join(_OUTCOME_KINDS)}")
+    if not body.noted_by.strip():
+        raise HTTPException(
+            status_code=400,
+            detail="noted_by is required — an outcome with no author is a "
+                   "claim nobody stands behind")
+    pool = _pool_or_none(request)
+    if pool is None:
+        raise HTTPException(status_code=503, detail="database not connected")
+    async with pool.acquire() as conn:
+        row = await conn.fetchrow(
+            "INSERT INTO public.outreach_outcome (district_number, run_id, "
+            "campaign, kind, value_usd, noted_by, evidence) "
+            "VALUES ($1, NULLIF($2,''), NULLIF($3,''), $4, $5, $6, "
+            "NULLIF($7,'')) "
+            "ON CONFLICT (district_number, kind, campaign) DO NOTHING "
+            "RETURNING id, district_number, kind, occurred_at",
+            body.district_number, body.run_id, body.campaign, body.kind,
+            body.value_usd, body.noted_by.strip()[:120], body.evidence)
+    if row is None:
+        return JSONResponse({
+            "refused": "already recorded",
+            "note": "This district already reached this milestone in this "
+                    "campaign. Recording it twice would double-count the only "
+                    "number anyone will quote.",
+        }, status_code=409)
+    return JSONResponse(jsonable_encoder({"ok": True, **dict(row)}))
+
+
+@app.get("/ops/outcomes", include_in_schema=False)
+async def ops_outcomes(request: Request):
+    """Did the outreach produce business? The honest version.
+
+    Reports the funnel alongside **how much of it is unknown**, because the
+    unknown is the finding. 671 districts were emailed; if nine outcomes are
+    recorded, the answer is not "1.3% conversion" — it is "we know about nine
+    and have never checked the rest".
+    """
+    if not _ops_ok(request):
+        raise HTTPException(status_code=404, detail="Not found")
+    pool = _pool_or_none(request)
+    if pool is None:
+        return JSONResponse({"available": False})
+    async with pool.acquire() as conn:
+        by_kind = {r["kind"]: {"districts": r["n"], "value_usd": float(r["v"] or 0)}
+                   for r in await conn.fetch(
+                       "SELECT kind, count(DISTINCT district_number) AS n, "
+                       "sum(value_usd) AS v FROM public.outreach_outcome "
+                       "GROUP BY kind")}
+        known = await conn.fetchval(
+            "SELECT count(DISTINCT district_number) "
+            "FROM public.outreach_outcome") or 0
+        mailed = await conn.fetchval(
+            "SELECT count(DISTINCT district_number) FROM public.outreach_sent "
+            "WHERE district_number IS NOT NULL") or 0
+        runs = [dict(r) for r in await conn.fetch(
+            "SELECT run_id, campaign, kind, started_at, queued, sent, failed "
+            "FROM public.outreach_run ORDER BY started_at DESC LIMIT 20")]
+    return JSONResponse(jsonable_encoder({
+        "available": True,
+        "by_kind": by_kind,
+        "districts_with_a_recorded_outcome": int(known),
+        "districts_mailed": int(mailed),
+        "districts_never_followed_up": max(0, int(mailed) - int(known)),
+        "recent_runs": runs,
+        "limits": [
+            "Every row here was entered by a person. Nothing is inferred from "
+            "opens, clicks or dwell — those measure delivery, not business.",
+            "districts_never_followed_up is not a zero-conversion count. It is "
+            "the number nobody has checked, and it is the honest denominator "
+            "for any rate quoted from this table.",
+            "value_usd is invoiced money only. Pipeline and forecast figures "
+            "are deliberately not recordable here.",
+        ],
+    }))
+
+
+@app.get("/ops/review", include_in_schema=False)
+async def ops_review_page(request: Request):
+    """The human end of the news pipeline's approval gate.
+
+    This route exists because the gate did not have one. `isd_review_queue` has
+    been written on every cron firing since the intelligence layer shipped and
+    read by nothing — no route, no script, no page. A finding the machine says a
+    human must check went into a table no human could see, which is a gate in
+    name only: it refuses to publish and then loses the refusal.
+
+    Same 404-not-403 treatment as every /ops route. Reviewing means reading
+    unresolved district claims about named public bodies, so it is token-gated,
+    noindex and no-store.
+    """
+    if not _ops_ok(request):
+        raise HTTPException(status_code=404, detail="Not found")
+    page = STATIC_DIR / "opsreview.html"
+    if page.exists():
+        return FileResponse(page, headers={
+            "X-Robots-Tag": "noindex, nofollow",
+            "Cache-Control": "no-store"})
+    raise HTTPException(status_code=404, detail="Not found")
+
+
+@app.get("/ops/review-data", include_in_schema=False)
+async def ops_review_data(request: Request,
+                          status: str = Query("open"),
+                          limit: int = Query(100, ge=1, le=500)):
+    """What is waiting for a human, oldest first.
+
+    Oldest first on purpose: a review queue worked newest-first grows a tail of
+    items nobody ever reaches, which is the same failure as having no queue.
+    """
+    if not _ops_ok(request):
+        raise HTTPException(status_code=404, detail="Not found")
+    if status not in ("open", "approved", "rejected", "merged", "all"):
+        raise HTTPException(status_code=400, detail="unknown status")
+    pool = _pool_or_none(request)
+    if pool is None:
+        return JSONResponse({"available": False,
+                             "note": "database not connected"})
+    where = "" if status == "all" else "WHERE status = $1"
+    args = [] if status == "all" else [status]
+    async with pool.acquire() as conn:
+        rows = await conn.fetch(
+            f"SELECT id, run_date, content_hash, finding, status, "
+            f"resolved_by, resolved_at FROM public.isd_review_queue "
+            f"{where} ORDER BY run_date ASC, id ASC LIMIT {int(limit)}", *args)
+        counts = {r["status"]: r["n"] for r in await conn.fetch(
+            "SELECT status, count(*) AS n FROM public.isd_review_queue "
+            "GROUP BY status")}
+        oldest = await conn.fetchval(
+            "SELECT min(run_date) FROM public.isd_review_queue "
+            "WHERE status = 'open'")
+    items = []
+    for r in rows:
+        finding = r["finding"]
+        if isinstance(finding, str):
+            try:
+                finding = json.loads(finding)
+            except ValueError:
+                finding = {"unparseable": True}
+        items.append({**dict(r), "finding": finding})
+    return JSONResponse(jsonable_encoder({
+        "available": True,
+        "items": items,
+        "counts": counts,
+        "open": counts.get("open", 0),
+        "oldest_open": oldest,
+        "note": ("A finding is here because its district could not be resolved "
+                 "with confidence, or because it contradicts stored data. "
+                 "Approving does NOT publish it — it records that a human "
+                 "looked."),
+    }))
+
+
+class ReviewDecision(BaseModel):
+    id: int
+    decision: str
+    by: str = ""
+
+
+@app.post("/ops/review-decide", include_in_schema=False)
+async def ops_review_decide(request: Request, body: ReviewDecision):
+    """Record that a human resolved one queued finding.
+
+    Deliberately narrow authority. This writes a STATUS and who set it; it
+    publishes nothing, sends nothing and edits no briefing. A review surface
+    that could also publish would be a second, unaudited path into the feed —
+    the queue's job is to record the human judgement, and republishing is the
+    builder's job on the next run.
+
+    Resolving an already-resolved row is refused rather than silently
+    overwritten: two people reaching opposite conclusions must be visible, not
+    last-write-wins.
+    """
+    if not _ops_ok(request):
+        raise HTTPException(status_code=404, detail="Not found")
+    if body.decision not in ("approved", "rejected", "merged"):
+        raise HTTPException(
+            status_code=400,
+            detail="decision must be approved, rejected or merged")
+    pool = _pool_or_none(request)
+    if pool is None:
+        raise HTTPException(status_code=503, detail="database not connected")
+    who = (body.by or "ops").strip()[:120]
+    async with pool.acquire() as conn:
+        row = await conn.fetchrow(
+            "UPDATE public.isd_review_queue SET status = $2, resolved_by = $3, "
+            "resolved_at = now() WHERE id = $1 AND status = 'open' "
+            "RETURNING id, status, resolved_by, resolved_at",
+            body.id, body.decision, who)
+        if row is None:
+            current = await conn.fetchrow(
+                "SELECT status, resolved_by, resolved_at FROM "
+                "public.isd_review_queue WHERE id = $1", body.id)
+            if current is None:
+                raise HTTPException(status_code=404, detail="no such item")
+            return JSONResponse(jsonable_encoder({
+                "refused": "already resolved",
+                "current": dict(current),
+                "note": "Resolving twice is refused rather than overwritten: "
+                        "a disagreement must stay visible.",
+            }), status_code=409)
+    return JSONResponse(jsonable_encoder({"ok": True, **dict(row)}))
+
+
 @app.get("/ops/intel-data", include_in_schema=False)
 async def ops_intel_data(request: Request, days: int = Query(7, ge=1, le=365)):
     """Everything the dashboard draws, in one payload.
