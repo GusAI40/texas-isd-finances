@@ -136,7 +136,7 @@ To render *production* in a browser (Chromium can't TLS through the agent
 proxy), run `scratchpad/liveproxy.py` and point Playwright at
 `127.0.0.1:8799`.
 
-## Current Status (updated 2026-08-22 — keep this a snapshot, history goes in the log)
+## Current Status (updated 2026-08-25 — keep this a snapshot, history goes in the log)
 
 The newest bullets control. Dated bullets below retain useful engineering
 history and may contain superseded counts; never let them override the current
@@ -172,6 +172,61 @@ outreach item or `data/outreach_watermark.json`.
   Verified in a driven browser at 1280×900 and 390×844, light and dark: components draw, tables scroll inside their own box (page overflow 0), the lineage panel returns VERIFIED with its division, follow-up chips open the sheet. `--with-query` in `verify_live.py` now fails if a deployment answers correctly but ships no structured answer.
 - ✅ **Lineage wave 2 (2026-08-17)** — the spending dollar and the statewide headline are now clickable evidence, not just figures. The money clock's `$109.4B` opens `GET /lineage/texas/statewide_total_spend` (VERIFIED, arithmetic honestly **n/a** — it is a sum), the penny caption's per-student figure opens the division, and the allocation card's teaching/debt/operating figures open theirs (`allocation.lineage`). Second road `scripts/recompute_spending.py` (stdlib csv, AST-checked independent); build refuses on any of 8,416 disagreements; fixture now freezes `all_funds_total_disbursements` so CI re-derives the headline from the SHA-anchored sums. `district_lineage` MCP metric enum grew the three spend metrics. verify_live 36 checks (was 33).
 - ⏭️ **Fountains next**: TAPR campus files (TEA SAS broker CGI form POST, no login — old DownloadData.html is gone; needs a session to map form params), NPEFS history, SAIPE; E-Rate MCP tool if wanted.
+
+- ✅ **Answerability measured, and raised D→B** (2026-08-25) — `scripts/coverage_simulation.py`
+  runs a 90-day Monte Carlo over **60,042 inquiries** and resolves each one by probing the real
+  artefacts, never by asking a model. **67.1% → 82.2%** across three waves; `financial` moved
+  **D→A**, `root_cause` **F→A**, and the "held but unreachable" category is now **empty**.
+  `scripts/ai_performance_probe.py` measures the separate question — given data we hold, does the
+  agent return the right number (16/20 at last live run). Full report and the honest ceiling:
+  `docs/COVERAGE_SIMULATION_2026-08-23.md` §14. **90% is not reachable from public Texas data**
+  without publishing an enrollment projection and a current-year budget the state has not released.
+- ✅ **Three layers added, none needing a new source** (2026-08-25) — `spending_detail.json`
+  (all 16 PEIMS **function** codes — buses, meals, counsellors, administration — plus 8 **program**
+  codes incl. special education and 4 **object** codes; the columns were already in
+  `texas_school_finance`), `tax_history.json` (per-district rate + taxable value 2009–2024, already
+  in `data/tea_property.csv`, only the latest row ever read — **the rate FELL in 930 of 1,015
+  districts** while bills rose), and `campus_performance.json` (TAPR: STAAR by subject for 8,264
+  campuses, by 15 student groups for 1,204 districts). `v_finance_summary` widened **12 → 30
+  columns** so the agent reaches them too. ⚠️ **A share is of OPERATING, never total** — total
+  carries bond-funded construction. ⚠️ **An unreported function is omitted, never zero**, or every
+  non-reporter ranks as the thriftiest in Texas.
+- ⚠️ **TAPR is NOT blocked** — the earlier note saying its download needs a human is wrong.
+  `scripts/ingest_tapr.py` walks the SAS broker's stateless three-step wizard; `--list` shows all 33
+  datasets. **`var_type` (N/D/R) is the trap**: STAAR datasets require it, staff datasets do not, and
+  omitting it returns **HTTP 200 with a well-formed CSV holding only campus names** — 4 columns where
+  949 were expected, no error. The ingest refuses ≤6 columns. **TAPR also encodes missing data as
+  `-1` and `-3`, not blanks** (115,038 + 8,464 cells in one file); they parse as valid floats and the
+  first build published districts scoring "-1%".
+- ✅ **The governance loop is closed (PR #67, live)** — `isd_review_queue` had been written on every
+  cron firing and **read by nothing**. `/ops/review` + `/ops/review-data` + `/ops/review-decide` now
+  work it; first live read found **497 open items** accumulated invisibly. The surface records a
+  status and **nothing else** — it cannot publish, send, or edit a briefing — and resolving twice
+  returns **409, not an overwrite**, so a disagreement stays visible.
+  `public.outreach_outcome` records what actually happened, **entered by a person and never
+  inferred**: a test fails the build if the recorder touches `visitor_event`, `outreach_status`,
+  dwell, opens or clicks. `/ops/outcomes` publishes `districts_never_followed_up` (**671**) as the
+  honest denominator — nine outcomes against 671 mailed is not a conversion rate.
+  `public.outreach_run` ties a human's enqueue to the crons that drain it; `authorized_by` stores the
+  **name of the gate, never a token**.
+- ✅ **`/query` answers are now checked against published figures** (`src/answer_check.py`) — the
+  prompt never listed `operating_spend`, so the agent substituted `total_spend` four times out of
+  four (Tioga ISD 2014: $5,603,166 against a true $3,205,610). Four verdicts, and `unchecked` is
+  deliberately **not** `agrees`. It annotates and never edits. Token telemetry now lands on
+  `nlp_usage` (summed across the agent loop, zero rather than an estimate when a provider is silent).
+  `answer-quality.yml` holds the live agent to a floor **weekly** — cadence is the only thing
+  bounding its cost until a spend cap exists.
+- ✅ **`docs/DATA_DICTIONARY.md`** (2026-08-25) — 20 files, 617 fields, 78 routes, **generated** from
+  the real files by `scripts/build_data_dictionary.py`; a test fails the build if it drifts, if a new
+  artefact lacks a plain-English entry, or if the builder stops reading real files.
+- ⚠️ **`verify_artifacts` no longer cries wolf** — a raw source absent from this machine means the
+  artefact was **NOT CHECKED**, which is different from checking it and finding it clean. With
+  nothing rebuildable it prints `NOTHING WAS VERIFIED` rather than "every committed artefact matches".
+- 🔴 **OPEN — outreach still unarmed.** `RESEND_API_KEY`, `TAG_POSTAL_ADDRESS`, `OUTREACH_TOKEN` are
+  absent from the TAG-ai Vercel project; the drain has reported `skipped/unarmed` since 2026-08-20.
+  ⚠️ **Never send outreach through a Resend connector directly** — it bypasses the queue's
+  `UNIQUE(email)`, the watermark, the identity gate, opt-outs and the sent log. Set the three
+  variables in Vercel; the drain sends 15/day through every rail.
 
 - ✅ Live in production, all endpoints verified including end-to-end NLP.
 - ✅ Public portal is now the **Texas ISD Financial Resource Guide**: white-minimalist McKinsey/SWD design, penny-of-the-dollar visual, 6 audience lenses, share cards, Methods & citation section, AI disclosure + TAG footer.

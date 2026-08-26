@@ -17,6 +17,121 @@ Entry template:
 
 ---
 
+## 2026-08-25 — Coverage measured D→B, and the AI Employee gets its two missing ends
+
+**What changed.**
+
+*Measurement.* `scripts/coverage_simulation.py` — a 90-day Monte Carlo over
+60,042 inquiries from 105 question templates, resolved by probing real
+artefacts rather than asking a model. Baseline **67.1%, grade D**. Three waves
+of work took it to **82.2%, grade B**, each step re-simulated rather than
+estimated. `scripts/ai_performance_probe.py` measures the other thing
+separately: given data we hold, does the agent return the right number.
+
+*Three data layers, none needing a new source.* `spending_detail.json` (16 PEIMS
+function codes, 8 program codes, 4 object codes — the columns were already in
+`texas_school_finance`); `tax_history.json` (per-district rate 2009–2024, already
+in `data/tea_property.csv`, only the latest row ever read); `campus_performance.json`
+(TAPR — STAAR by subject for 8,264 campuses, by student group for 1,204
+districts). `v_finance_summary` widened 12 → 30 columns.
+
+*Governance (PR #67).* `/ops/review*` + `static/opsreview.html`;
+`public.outreach_outcome`; `public.outreach_run` with `run_id` threaded through
+enqueue → drain; `src/answer_check.py`; token telemetry on `nlp_usage`.
+
+*Reference.* `scripts/build_data_dictionary.py` → `docs/DATA_DICTIONARY.md`
+(20 files, 617 fields, 78 routes), generated from the real files.
+
+*Quality gate (PR #68).* Weekly `answer-quality.yml` holds the live agent to an
+accuracy floor.
+
+**Why.**
+
+The audit asked whether this is a production AI Employee. It is not — ~85% of
+`src/` is data publishing. The two outliers were missing ENDS of a loop, not
+missing middles, and both are now closed:
+
+- `isd_review_queue` was written on every cron firing and **read by nothing**.
+  A gate that refuses to publish and then loses the refusal. First read after
+  shipping the surface: **497 open items**, accumulated invisibly.
+- Nothing tied an action to a business result. 671 emails, every step
+  instrumented, and no table able to say whether one conversation happened.
+  `/ops/outcomes` now reports `districts_never_followed_up: 671` — the honest
+  denominator, because nine outcomes against 671 mailed is not a conversion
+  rate, it is "we know about nine and never checked the rest".
+
+Outcomes are recorded by a person and **never inferred**: a test fails the build
+if the recorder touches `visitor_event`, `outreach_status`, dwell, opens or
+clicks. An open is a mail scanner as often as a reader.
+
+**Gotchas.**
+
+- **TAPR is not blocked.** `CLAUDE.md` recorded the SAS-broker download as
+  needing a human. It does not — the broker is a stateless three-step wizard,
+  mapped in `scripts/ingest_tapr.py`. The costly part is `var_type` (N/D/R),
+  which STAAR datasets require and staff datasets do not: omit it and the
+  broker returns **HTTP 200 and a well-formed CSV holding only campus names** —
+  4 columns where 949 were expected, no error. `fetch()` now refuses ≤6 columns.
+- **TAPR encodes missing data as `-1` and `-3`**, not blanks — 115,038 and 8,464
+  cells in the district file alone. They parse as valid floats, so the first
+  build published districts scoring "-1%" at Meets. Anything below zero is a
+  code, not a measurement.
+- **The `/query` prompt never listed `operating_spend`.** The column was added
+  to the view with a SQL comment explaining why it must not be confused with
+  `total_spend`, and the prompt was never updated. The agent substituted, four
+  times out of four; Tioga ISD 2014 answered $5,603,166 against a true
+  $3,205,610. A column the prompt does not name cannot be selected.
+- **`verify_artifacts` reported missing raw sources as DRIFT.** A source that is
+  not on this machine means the artefact was NOT CHECKED, which is different
+  from checking it and finding it clean. It now says `NOTHING WAS VERIFIED`
+  rather than "every committed artefact matches".
+- **Three of my own tests passed against the bug they were written for.** The
+  prompt/column check scoped to everything after `"Available views:"` — which
+  includes the Rules section — so the new rule satisfied it while the column
+  list stayed empty. The authority check matched the handler's own docstring
+  (the sentence promising it never *sends* anything contains "sends"). Both now
+  parse with `ast` and drop the docstring. Caught only by reintroducing each
+  defect and watching the suite stay green.
+- **The cleaned CSV is reproducible.** TEA's workbook at `tea.texas.gov/media/423296`
+  → `prepare_data.py` → SHA-256 matches `source_fingerprint.json` byte for byte.
+
+**Corrections to earlier claims.**
+
+- The coverage report first said the OBJECT and PROGRAM spending cuts were
+  "reachable by nothing" and that special-education spending was "a different
+  PEIMS product". Both false — `sql/create_detail_view.sql` had exposed them
+  through a DB-backed route all along. That route needs a live database, is
+  absent from the artefact set, and `nlp_reader` cannot read the view, so the
+  agent could not reach them; "reachable by nothing" was still too strong.
+- The audit said there was no concurrency test for the drain. There was —
+  `test_two_racing_drains_claim_disjoint_rows`, two lines. Extended rather than
+  shadowed.
+
+**Open items.**
+
+- 🔴 **Outreach still unarmed.** `RESEND_API_KEY`, `TAG_POSTAL_ADDRESS` and
+  `OUTREACH_TOKEN` are absent from the TAG-ai Vercel project;
+  `/api/cron/runs?job=outreach-drain` has reported `skipped/unarmed` since
+  2026-08-20. Owner asked me to arm it programmatically on 2026-08-25; the
+  Resend and Supabase connectors appeared in this session and disconnected
+  before they could be loaded, and the Vercel connector exposes no
+  environment-variable write. **Sending via a Resend connector directly would
+  bypass the queue's `UNIQUE(email)`, the watermark, the identity gate,
+  opt-outs and the sent log — every rail — and must not be done.** The correct
+  path stays: set the three variables in Vercel; the drain sends 15/day.
+- 🔴 No provider-side DeepSeek spend cap. The meter bounds calls and tokens;
+  only the provider bounds dollars. `answer-quality.yml` is weekly for this
+  reason.
+- 🟡 497 open items in the review queue, now visible at `/ops/review`.
+- 🟡 Credential rotation: owner has explicitly deferred this.
+- ⏭️ 90% coverage is not reachable from public Texas data without publishing an
+  enrollment projection and a current-year budget the state has not released.
+  `conservatorship` (+1.13) and `fund_balance` (+0.83) are genuinely obtainable
+  and would land near 84%. See `docs/COVERAGE_SIMULATION_2026-08-23.md` §14.
+- ❓ What counts as success? The `outreach_outcome.kind` enum is a best guess at
+  the funnel. Worth settling before rows accumulate.
+
+
 ## 2026-08-23 — Repository close-out reconciles stale work and operator truth
 
 **What changed.** The close-out branch rebased the useful daily-intelligence
