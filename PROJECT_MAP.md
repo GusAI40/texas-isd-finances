@@ -124,3 +124,25 @@ private tours, and event rentals pay the bills.
 | Database | Supabase project `texas-isd-finances` (`zwhvabkvrexphlskubog`, us-east-1) — 20,587 records live |
 | Live site | **https://txisd.dev** (Vercel, production) |
 | Raw data source | Texas Education Agency (TEA) summarized financial data, 2009–2025 |
+| Every field, generated | [docs/DATA_DICTIONARY.md](docs/DATA_DICTIONARY.md) — 20 data files, 617 fields, 78 routes |
+| Can it answer X? | [docs/COVERAGE_SIMULATION_2026-08-23.md](docs/COVERAGE_SIMULATION_2026-08-23.md) — 82.2% measured over 60,042 inquiries |
+| Session memory | [docs/ENGINEERING_LOG.md](docs/ENGINEERING_LOG.md) — why every strange-looking thing looks that way |
+
+## The rooms added since this map was first drawn
+
+| Layer | What it answers | Built by |
+|---|---|---|
+| `spending_detail.json` | Where the operating dollar actually goes — all 16 PEIMS function codes (buses, meals, counsellors, administration), 8 program codes (special education, bilingual, athletics), 4 object codes | `scripts/build_spending_detail.py` |
+| `tax_history.json` | What the tax rate has done since 2009 — and whether a bill rose because of the rate or because property values did. The rate FELL in 930 of 1,015 districts | `scripts/build_tax_history.py` |
+| `campus_performance.json` | STAAR by subject for 8,264 campuses, and by 15 student groups for 1,204 districts | `scripts/ingest_tapr.py` → `scripts/build_campus_performance.py` |
+
+## The rooms that keep the town honest
+
+| Piece | Its job |
+|---|---|
+| `src/lineage.py` | The publication gate. VERIFIED requires an INDEPENDENT re-derivation — it structurally cannot pass a figure that only checked itself |
+| `src/answer_check.py` | Compares the model's prose against the published artifacts. `unchecked` is deliberately not `agrees` |
+| `src/absences.py` | Says what a blank MEANS: cannot exist here / could have happened and did not / we do not know. Three different sentences, never one blank box |
+| `/ops/review` | Where a human works the findings the pipeline refused to publish on its own |
+| `/ops/outcomes` | Whether any of the outreach produced business — entered by a person, never inferred |
+| `scripts/verify_live.py` | The only check that compares PRODUCTION against this repo |
