@@ -98,8 +98,13 @@ unavailable; it never falls back to the owner connection. See
 
 ## Endpoints
 
-Generated from `src/api.py`. "DB" means it needs Tier 2; "static" means it
-works at Tier 1.
+**Hand-maintained, so treat it as a guide rather than the contract.** The
+generated inventory is [DATA_DICTIONARY.md](DATA_DICTIONARY.md) — read out of
+the real files at build time and re-checked by a test — and `/docs` is the live
+OpenAPI contract. This table exists because a curated list with a sentence per
+route is easier to scan than either.
+
+"DB" means it needs Tier 2; "static" means it works at Tier 1.
 
 | Endpoint | Needs | What it returns |
 |---|---|---|
@@ -115,6 +120,22 @@ works at Tier 1.
 | `GET /district/{n}/equity` | static | How the district does for the students it actually serves |
 | `GET /equity/texas` | static | Statewide results by student group |
 | `GET /takeover/houston` | static | Did the 2023 state takeover change results? |
+| `GET /district/{n}/spending` | static | All 16 PEIMS function codes, 8 program codes, 4 object codes — buses, meals, counsellors, special education, athletics |
+| `GET /spending/texas` | static | The statewide split of the operating dollar |
+| `GET /district/{n}/tax-history` | static | Rate and taxable value 2009–2024, and which of the two moved a bill |
+| `GET /tax/texas` | static | Statewide rate history, median and enrollment-weighted |
+| `GET /district/{n}/performance` | static | STAAR by 15 student groups and by subject |
+| `GET /district/{n}/campus-performance` | static | Every campus in the district with its own STAAR scores |
+| `GET /performance/texas` | static | Statewide STAAR by group, on both bases |
+| `GET /district/{n}/campuses`, `GET /campuses/texas` | static | Campus letter grades — what the district rating hides |
+| `GET /district/{n}/debt`, `GET /debt/texas` | static | Principal and unpaid interest outstanding |
+| `GET /district/{n}/trends`, `GET /trends/texas` | static | Seventeen years, constant dollars |
+| `GET /district/{n}/forensics`, `GET /forensics/texas` | static | Four state files composed into four questions |
+| `GET /district/{n}/erate`, `GET /erate/texas` | static | Federal internet money, in no PEIMS file |
+| `GET /district/{n}/national` | static | This district against 9,294 US districts |
+| `GET /district/{n}/lineage/{metric}` | static | Why a figure is that figure: numerator, denominator, formula, verdict |
+| `GET /provenance`, `GET /sources` | static | Where every number came from, and how to check it |
+| `POST /mcp` | static | Model Context Protocol — 11 read-only tools |
 | `GET /fallback-index` | static | District picker + statewide snapshot, for when the DB is down |
 | `GET /district-geo` | static | Census TIGER boundaries joined to TEA numbers |
 | `GET /map-data` | static | Precomputed similarity-map coordinates |
@@ -189,6 +210,21 @@ grepping the HTML proves less** — parse the script.
 - `GET /api/cron/runs` exposes only aggregate job outcomes and controlled
   detail codes. Recipient addresses, provider/driver messages, and connection
   strings are not public telemetry.
+
+### Operator surfaces (token-gated, linked from nowhere)
+
+All require `OPS_TOKEN` and answer **404, not 403** when it is wrong or unset —
+a 403 would confirm the route exists, which is what the gate is for.
+
+| Route | What it is for |
+|---|---|
+| `/ops/review` | Work the intelligence pipeline's approval queue. Records a status and nothing else — it cannot publish, send or edit a briefing. Resolving an already-resolved item returns **409**, so a disagreement between reviewers stays visible. |
+| `/ops/outcomes` | What outreach actually produced, entered by a person and never inferred from opens or clicks. Publishes `districts_never_followed_up` beside every count as the honest denominator. |
+| `/ops/intel` | Recipient-only engagement: who read what, and one person's whole journey. |
+| `/ops/outreach` | Where the campaign landed, on real district boundaries. |
+
+`POST /ops/outcome` records one milestone. `POST /ops/review-decide` records one
+review decision. Neither can send anything.
 
 ## Deploying
 
