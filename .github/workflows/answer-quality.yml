@@ -1,0 +1,102 @@
+name: Answer quality
+
+# Does the live agent still return the right number?
+#
+# The suite proves the code is consistent with itself. It cannot prove the
+# deployed model answers correctly, because no test calls the model. On
+# 2026-08-23 a hand-built probe found /query answering operating_spend with
+# total_spend four times out of four — Tioga ISD 2014 came back 75% high — and
+# nothing in CI would ever have noticed. The prompt was fixed; the blind spot
+# was not.
+#
+# So the probe runs on a schedule against production, with ground truth taken
+# from the same endpoint the site serves. A wrong answer here is an agent
+# failure, never a data gap.
+#
+# No artifact upload. This repo pins every action to a verified SHA, and I
+# could not resolve one for upload-artifact from here — pinning a SHA I have
+# not verified is worse than not keeping the file, and the run log already
+# prints every wrong answer with its district, metric and both figures, which
+# is what somebody actually acts on. Re-running the job regenerates the JSON.
+#
+# WEEKLY, not nightly, and deliberately small. Each run spends real DeepSeek
+# tokens and there is still no provider-side spend ceiling on the account, so
+# the cadence is the only thing bounding this job's cost. Raise it to daily
+# once a cap exists.
+
+on:
+  schedule:
+    - cron: "40 12 * * 2"      # Tuesdays 12:40 UTC (7:40 AM Central)
+  workflow_dispatch:
+    inputs:
+      n:
+        description: "How many questions to ask"
+        default: "12"
+      floor:
+        description: "Fail below this accuracy (percent)"
+        default: "70"
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+
+      - name: Ask the live agent
+        id: probe
+        env:
+          N: ${{ github.event.inputs.n || '12' }}
+        run: |
+          python scripts/ai_performance_probe.py --n "$N" \
+            --out data/ai_probe_ci.json | tee /tmp/probe.txt
+
+      - name: Hold it to a floor
+        env:
+          FLOOR: ${{ github.event.inputs.floor || '70' }}
+        run: |
+          python - <<'PY'
+          import json, os, sys
+          from pathlib import Path
+
+          floor = float(os.environ["FLOOR"])
+          d = json.loads(Path("data/ai_probe_ci.json").read_text())
+          n, correct = d["n"], d["correct"]
+          pct = 100.0 * d["accuracy"]
+          lo, hi = (100 * x for x in d["accuracy_ci95_wilson"])
+
+          print(f"accuracy {correct}/{n} = {pct:.0f}%  "
+                f"(95% Wilson {lo:.0f}-{hi:.0f}%)  floor {floor:.0f}%")
+
+          # Every wrong answer is printed. A summary line that says only
+          # "83%" is a number nobody can act on; the district, the metric and
+          # both figures are what makes a failure fixable.
+          bad = [r for r in d["results"] if r["verdict"] != "correct"]
+          for r in bad:
+              print(f"  {r['verdict']:>8}  {r['name']} {r['year']} "
+                    f"{r['metric']}: expected {r['truth']}")
+              print(f"            answered: {(r.get('answer') or '')[:150]}")
+
+          # A probe that could not reach the site is not a quality failure, and
+          # reporting it as one trains everybody to ignore this job.
+          errored = sum(1 for r in d["results"]
+                        if r["verdict"] in ("error",)
+                        or str(r["verdict"]).startswith("http_"))
+          if errored == n:
+              print("::warning::every call failed to reach the site — this is "
+                    "an availability problem, not an answer-quality one")
+              sys.exit(0)
+
+          if pct < floor:
+              print(f"::error::live answer accuracy {pct:.0f}% is below the "
+                    f"{floor:.0f}% floor")
+              sys.exit(1)
+          PY
