@@ -98,8 +98,13 @@ unavailable; it never falls back to the owner connection. See
 
 ## Endpoints
 
-Generated from `src/api.py`. "DB" means it needs Tier 2; "static" means it
-works at Tier 1.
+**Hand-maintained, so treat it as a guide rather than the contract.** The
+generated inventory is [DATA_DICTIONARY.md](DATA_DICTIONARY.md) — read out of
+the real files at build time and re-checked by a test — and `/docs` is the live
+OpenAPI contract. This table exists because a curated list with a sentence per
+route is easier to scan than either.
+
+"DB" means it needs Tier 2; "static" means it works at Tier 1.
 
 | Endpoint | Needs | What it returns |
 |---|---|---|
