@@ -108,6 +108,17 @@ def test_without_pat_load_functions_are_local_only(local_state, monkeypatch):
     assert so.load_optout() == {"stop@local.example"}
 
 
+def test_real_send_requires_the_durable_ledger(monkeypatch):
+    """A local CSV is never enough authority to contact a superintendent."""
+    monkeypatch.delenv("SUPABASE_PAT", raising=False)
+    refusal = so.durable_ledger_ready()
+    assert "refusing" in refusal
+    assert "SUPABASE_PAT" in refusal
+
+    monkeypatch.setenv("SUPABASE_PAT", "sbp_fake")
+    assert so.durable_ledger_ready() == ""
+
+
 def test_remote_read_failure_fails_closed(local_state, monkeypatch):
     """PAT set but Supabase unreachable → refuse, loudly. An empty remote
     answer would silently shrink the skip-list and re-email opt-outs."""

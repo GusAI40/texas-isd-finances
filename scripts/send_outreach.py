@@ -32,8 +32,8 @@ Rails that hold even when excited
   files live in a disposable container, and container loss + a re-run would
   re-email everyone including opt-outs. When SUPABASE_PAT is set, a real
   send unions the remote tables into both skip-lists first and mirrors each
-  delivery up as it happens (best effort — a mirror failure never aborts the
-  send, it warns loudly instead).
+  delivery up as it happens. A real send requires that durable ledger to be
+  reachable; a local file alone is never authority to contact a person.
 - Throttled to ~1 message/second (Resend's public rate limit is 2/s).
 
 Environment
@@ -45,7 +45,7 @@ Environment
     TAG_BCC              defaults to gus@ubntag.com — every real send is
                          BCC'd here so the owner holds a copy; "" disables
     TAG_POSTAL_ADDRESS   required for --send (CAN-SPAM physical address)
-    SUPABASE_PAT         optional; when set, sent/opt-out state is merged
+    SUPABASE_PAT         required for --send; sent/opt-out state is merged
                          from and mirrored to Supabase (durable across
                          container loss)
 """
@@ -396,6 +396,22 @@ def skiplist_shrank(resolved: int) -> str:
         f"passing --ignore-watermark.")
 
 
+def durable_ledger_ready() -> str:
+    """Return a refusal when a real send cannot use the durable ledger.
+
+    The local CSV is a recovery cache, not authority to email a person. This
+    check deliberately lives in the sender, so an operator or an AI cannot
+    accidentally skip the preflight documented elsewhere.
+    """
+    if not os.environ.get("SUPABASE_PAT", "").strip():
+        return (
+            "refusing: --send requires SUPABASE_PAT so the durable Supabase "
+            "ledger can be read before anyone is contacted. Local outreach "
+            "files may be stale or absent; run from an environment with the "
+            "production outreach credentials instead.")
+    return ""
+
+
 def load_sent() -> set[str]:
     """Everyone already emailed: local CSV ∪ the Supabase mirror. Remote
     wins by union — an address in either place is never emailed again."""
@@ -602,6 +618,10 @@ def main() -> int:
     # ---- the real send ------------------------------------------------------
     if args.confirm != "GO":
         print("refusing: --send requires --confirm GO (the literal word).")
+        return 1
+    ledger_refusal = durable_ledger_ready()
+    if ledger_refusal:
+        print(ledger_refusal)
         return 1
     if not postal:
         print("refusing: TAG_POSTAL_ADDRESS is not set. CAN-SPAM requires a "
