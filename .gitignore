@@ -76,3 +76,8 @@ data/outreach_optout.txt
 # The watermark IS committed: it is the only send-state that survives a
 # fresh container, and it exists to stop a re-send. Contact data stays out.
 !data/outreach_watermark.json
+
+# Development-only browser/plugin tooling; evidence is saved under docs/evidence.
+node_modules/
+tests/browser/test-results/
+tests/browser/playwright-report/

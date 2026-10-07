@@ -109,6 +109,13 @@ not commands that already exist. No package needs GSD scaffolding.
 
 ### A. Correct the data contract before certifying new outputs
 
+**Execution refinement (2026-10-07):** use
+[DATA_TRUST_IMPLEMENTATION_PLAN.md](DATA_TRUST_IMPLEMENTATION_PLAN.md) for the
+bounded task ownership and acceptance IDs. It separates the additive summary
+repair from the newly confirmed anomaly-ratio repair, defines real PostgreSQL
+testing/recovery, and specifies Windows encoding fixes from reproduced failures.
+Its local implementation authority does not itself apply production SQL.
+
 1. **A1 — Reconcile arithmetic, schema, and grants.** Own
    `sql/create_tables.sql`, a focused replayable migration in
    `sql/reconcile_finance_summary.sql`, `tests/test_finance_contract.py`, and
