@@ -136,11 +136,13 @@ To render *production* in a browser (Chromium can't TLS through the agent
 proxy), run `scratchpad/liveproxy.py` and point Playwright at
 `127.0.0.1:8799`.
 
-## Current Status (updated 2026-08-25 — keep this a snapshot, history goes in the log)
+## Current Status (updated 2026-10-07 — keep this a snapshot, history goes in the log)
 
 The newest bullets control. Dated bullets below retain useful engineering
 history and may contain superseded counts; never let them override the current
 outreach item or `data/outreach_watermark.json`.
+
+- 🟡 **Documentation audit and execution plan; no fixes deployed (2026-10-07)** — [docs/AUDIT_2026-10-07.md](docs/AUDIT_2026-10-07.md) separates verified checks from failures and unknowns; [docs/VISUAL_PLUGIN_EXECUTION_PLAN.md](docs/VISUAL_PLUGIN_EXECUTION_PLAN.md) sequences data/UI/MCP-host proof before public visual/plugin release. Baseline was healthy at `73df1896ed0818020ec1c15c06f5ee823db7ec0f`; 11 MCP fixtures passed, but real ChatGPT/Inspector/listing compatibility, broad mobile testing, parent usability, and AI accuracy remain unverified. Production `v_finance_summary` has 12 columns while repository SQL describes 30, and selected FY2025 per-student values truncate due to integer division before cast. This supersedes the 2026-08-25 12→30 wording as a production-state claim without rewriting history. Reconcile unmerged PR #78 before SQL work.
 
 - 🟡 **Forensic hardening is repository-complete; production requires separate
   proof** (2026-08-22) — the change set explicitly monitors both Vercel crons,

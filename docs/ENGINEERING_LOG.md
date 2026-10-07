@@ -17,6 +17,18 @@ Entry template:
 
 ---
 
+## 2026-10-07 — Documentation audit establishes the proof boundary before visual/plugin work
+
+**What changed.** Added the dated audit, root navigation index, plain-language dictionary, and services/tools/source inventory. Copied public-only live, MCP, freshness, and finance check metadata into `docs/evidence/2026-10-07/`. No application, SQL, workflow, generated-data, deployment, or external-account change was made.
+
+**Why.** The proposed visual-first experience and ChatGPT plugin need a testable baseline. The audit distinguishes passing fixtures from actual-host compatibility, simulations from user research, and configured providers from certified answers.
+
+**Gotchas.** Production finance view state is 12 columns, not the 30 described by repository SQL; that corrects the 2026-08-25 snapshot as a current production statement. Integer division before cast truncates selected FY2025 per-student values, without evidence aggregate dollars are wrong. `src/mcp_protocol.py` says MRTR is not implemented while current tool behavior/docs implement input-required handling; repair this prose with MCP work. Windows artifact checks can falsely call missing raw `data\\` paths drift, and CRLF checkout changes byte-size metadata.
+
+**Open items.** Reconcile PR #78 before SQL work; repair precision and stale MCP protocol prose; establish raw rebuild inputs; conduct actual-host, visual/mobile, and user tests; review newer source signals before changing vintages or publishing a plugin.
+
+---
+
 ## 2026-08-25 — Coverage measured D→B, and the AI Employee gets its two missing ends
 
 **What changed.**
