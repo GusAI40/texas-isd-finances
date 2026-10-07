@@ -17,6 +17,18 @@ Entry template:
 
 ---
 
+## 2026-10-07 — Independent finance recovery gates pass; visual scoring remains strict
+
+**What changed.** Saved the focused finance implementation after fresh independent verification: 29 PostgreSQL 17.11 integration checks and four runner checks passed with owned-cluster cleanup. The v2 anomaly transition records a reviewed preimage and committed receipt; recovery verifies the current replacement identity before restoring prior semantics. API projection coverage, effective read-only grants, dependency rejection, arithmetic thresholds, fault rollback, contention and reapplication were exercised. Actual artifact checks in both Windows encoding modes correctly report seven unavailable chains as UNVERIFIED. No production SQL or source ingestion occurred.
+
+**Why.** A successful repair must also preserve public access and provide a tested recovery path. The earlier raw-source classification and post-commit identity gaps are now covered, without treating unavailable inputs as a clean rebuild.
+
+**Gotchas.** The stricter visual collector found real full-report ratio failures after replacing empty inventories and wrapper bounds with visible leaf inventories and painted marks. Animation frames had also produced partial counters in earlier screenshots. The widget's apparent message-bridge failure was a renderer replacing its own chart container. A new source audit found a 2024 outcome metric inheriting a 2025 finance year; its narrowly scoped refinement is pending. All eleven tools at preview checkpoint `0c0c0f3` passed authenticated HTTP and strict recursive schema checks, but those checks do not prove actual ChatGPT rendering or public publication.
+
+**Open items.** Complete the actual 95/5 report matrix, public user flows, outcome-period repair, encoding adversarial checks, plugin assets/package validation, fresh host/install checks and final source revision evidence. Production remains at `73df1896ed0818020ec1c15c06f5ee823db7ec0f`; live headline/source checks pass but known precision repair remains unapplied. GitHub Actions is disabled with CI-only restoration approval pending. Human participant, screen-reader, raw rebuild, independent-account and public-review evidence remain explicit external gates.
+
+---
+
 ## 2026-10-07 — Recover approved execution after the workstation crash
 
 **What changed.** Recovered the execution branch and opened draft PR #82. Preserved the detailed data, visual, and plugin plans in checkpoint `37ec5d2`. The production revision remains `73df1896ed0818020ec1c15c06f5ee823db7ec0f` and health/stats respond. Implementation and independent reviews remain in progress; this entry does not certify the working tree or record a release.

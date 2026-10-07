@@ -28,6 +28,7 @@ import argparse
 import hashlib
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -85,8 +86,23 @@ def is_known_missing_raw_input(output: str) -> bool:
     temporary chained artifact remains a failed build.
     """
     normalized = output.replace("\\", "/").lower()
-    return ("data/" in normalized and
-            ("filenotfounderror" in normalized or "no such file or directory" in normalized))
+    if "data/" not in normalized:
+        return False
+    if "filenotfounderror" in normalized or "no such file or directory" in normalized:
+        return True
+    repository_data = str((ROOT / "data").resolve()).replace("\\", "/").lower().rstrip("/") + "/"
+    if repository_data in normalized and any(
+        marker in normalized for marker in ("missing input:", "missing:", "is absent", "not found")
+    ):
+        return True
+    # Several existing builders fail closed with their own concise diagnostic
+    # instead of allowing Path.read_* to raise.  Accept only a line whose
+    # missing target is explicitly below repository data/.
+    return any(re.search(
+        r"(?:^|\s)(?:(?:missing|not found):?\s+data/\S+|data/\S+\s+(?:is\s+)?(?:absent|missing|not found))",
+        line,
+    )
+               for line in normalized.splitlines())
 
 
 def main() -> int:

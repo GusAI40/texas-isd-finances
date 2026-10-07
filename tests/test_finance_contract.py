@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
+import importlib.util
 import json
 import os
 import subprocess
 import sys
+import threading
+import time
 from decimal import ROUND_HALF_UP, Decimal
 from pathlib import Path
 
@@ -16,6 +19,12 @@ pytestmark = pytest.mark.skipif(
     not DSN, reason="requires scripts/run_finance_contract_tests.py"
 )
 ROOT = Path(__file__).parents[1]
+ANOMALY_SPEC = importlib.util.spec_from_file_location(
+    "reconcile_anomaly_flags", ROOT / "scripts" / "reconcile_anomaly_flags.py"
+)
+anomaly = importlib.util.module_from_spec(ANOMALY_SPEC)
+assert ANOMALY_SPEC.loader
+ANOMALY_SPEC.loader.exec_module(anomaly)
 FIXTURE = json.loads(
     (Path(__file__).parent / "fixtures" / "finance_contract.json").read_text(
         encoding="utf-8"
@@ -187,6 +196,7 @@ def setup_state(
     *,
     view_year_expression: str = "year",
     base_year_type: str = "bigint",
+    base_type_overrides: dict[str, str] | None = None,
     extra_view_column: bool = False,
 ) -> None:
     from psycopg2 import sql
@@ -200,7 +210,9 @@ def setup_state(
         columns = [
             sql.SQL("{} {}").format(
                 sql.Identifier(name),
-                sql.SQL(base_year_type if name == "year" else data_type),
+                sql.SQL((base_type_overrides or {}).get(
+                    name, base_year_type if name == "year" else data_type
+                )),
             )
             for name, data_type in catalog
         ]
@@ -263,6 +275,39 @@ def setup_state(
             cur.execute(f"CREATE VIEW public.{name} AS SELECT district_number FROM public.v_finance_summary")
             cur.execute(f"ALTER VIEW public.{name} OWNER TO finance_view_owner")
             cur.execute(f"GRANT SELECT ON public.{name} TO PUBLIC")
+
+
+def insert_source_rows(db, rows: list[dict[str, object]]) -> None:
+    from psycopg2 import sql
+
+    catalog = _base_catalog()
+    names = [name for name, _ in catalog]
+    with db.cursor() as cur:
+        for row in rows:
+            values = [
+                row.get(name, "" if data_type == "text" else 0)
+                for name, data_type in catalog
+            ]
+            cur.execute(
+                sql.SQL("INSERT INTO public.texas_school_finance ({}) VALUES ({})").format(
+                    sql.SQL(", ").join(map(sql.Identifier, names)),
+                    sql.SQL(", ").join(sql.Placeholder() for _ in names),
+                ),
+                values,
+            )
+        cur.execute("REFRESH MATERIALIZED VIEW public.v_anomaly_flags")
+
+
+def anomaly_snapshot(db) -> dict:
+    with db.cursor() as cur:
+        return anomaly.capture(cur)
+
+
+def anomaly_rows(cur):
+    return _fetchall(
+        cur,
+        "SELECT * FROM public.v_anomaly_flags ORDER BY district_number,year",
+    )
 
 
 def _fetchall(cur, query: str):
@@ -509,26 +554,427 @@ def test_anomaly_transition_is_explicit_and_preserves_read_contract(db, tmp_path
         allowed, definition = cur.fetchone()
         assert allowed and "::numeric / prev_revenue" in definition
         assert "::numeric / prev_spend" in definition
+        cur.execute((ROOT / "sql" / "harden_public_finance_read_contract.sql").read_text(encoding="utf-8"))
+    verify_env = os.environ | {"FINANCE_VERIFY_DSN": DSN}
+    verified = subprocess.run(
+        [sys.executable, "scripts/verify_finance_contract.py", "--dsn-env", "FINANCE_VERIFY_DSN"],
+        cwd=ROOT, env=verify_env, capture_output=True, text=True, encoding="utf-8",
+    )
+    assert verified.returncode == 0, verified.stderr
+    assert "ANOMALY STATUS: corrected" in verified.stdout
 
 
-def test_public_read_contract_and_readonly_verifier(db, tmp_path):
+def apply_anomaly_direct(guard: dict, *, failure_at=None, on_stage=None,
+                         lock_timeout="1500ms", statement_timeout="15s"):
+    import psycopg2
+
+    conn = psycopg2.connect(DSN)
+    try:
+        result = anomaly.transition(
+            conn, guard, guard, anomaly.corrected(guard["definition"]), "disposable-test",
+            failure_at=failure_at, on_stage=on_stage,
+            lock_timeout=lock_timeout, statement_timeout=statement_timeout,
+        )
+        conn.commit()
+        return result
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
+
+
+def test_anomaly_thresholds_null_safety_and_preserved_flags(db):
+    setup_state(db, 12)
+    reconcile(db)
+    pairs = [
+        ("REV84", 100, 100, 84, 100, 100, 100),
+        ("REV85", 100, 100, 85, 100, 100, 100),
+        ("SP121", 100, 100, 100, 121, 100, 109),
+        ("SP120", 100, 100, 100, 120, 100, 109),
+        ("DELTA10", 100, 100, 100, 121, 100, 110),
+        ("PERSTU", 100, 100, 100, 120, 10, 10),
+        ("ENROLL", 100, 100, 100, 100, 100, 89),
+        ("ZEROPREV", 0, 0, 84, 121, 0, 0),
+    ]
+    rows = []
+    for district, prev_rev, prev_spend, rev, spend, prev_enroll, enroll in pairs:
+        rows.extend([
+            {"district_number": district, "district_name": district, "year": 2200,
+             "all_funds_total_operating_revenue": prev_rev,
+             "all_funds_total_disbursements": prev_spend,
+             "fall_survey_enrollment": prev_enroll},
+            {"district_number": district, "district_name": district, "year": 2201,
+             "all_funds_total_operating_revenue": rev,
+             "all_funds_total_disbursements": spend,
+             "fall_survey_enrollment": enroll},
+        ])
+    insert_source_rows(db, rows)
+    guard = anomaly_snapshot(db)
+    changed, _ = apply_anomaly_direct(guard)
+    assert changed
+    with db.cursor() as cur:
+        cur.execute("""SELECT district_number,revenue_drop_flag,spend_spike_flag,
+          per_student_spike_flag,enrollment_decline_flag FROM public.v_anomaly_flags
+          WHERE year=2201 ORDER BY district_number""")
+        actual = {row[0]: row[1:] for row in cur.fetchall()}
+    expected = {
+        "REV84": (Decimal(84 - 100) / Decimal(100) < Decimal("-0.15"), False, False, False),
+        "REV85": (Decimal(85 - 100) / Decimal(100) < Decimal("-0.15"), False, False, False),
+        "SP121": (False, Decimal(121 - 100) / Decimal(100) > Decimal("0.20"), False, False),
+        "SP120": (False, Decimal(120 - 100) / Decimal(100) > Decimal("0.20"), False, False),
+        "DELTA10": (False, False, False, False),
+        "PERSTU": (False, False, Decimal(12 - 10) / Decimal(10) > Decimal("0.15"), False),
+        "ENROLL": (False, False, False, Decimal(89 - 100) / Decimal(100) < Decimal("-0.10")),
+        "ZEROPREV": (False, False, False, False),
+    }
+    assert actual == expected
+
+
+def test_anomaly_reapply_fresh_corrected_snapshot_is_exact_noop(db):
+    setup_state(db, 12)
+    reconcile(db)
+    apply_anomaly_direct(anomaly_snapshot(db))
+    before = anomaly_snapshot(db)
+    changed, returned = apply_anomaly_direct(before)
+    assert not changed
+    assert returned == before
+    assert anomaly_snapshot(db) == before
+
+
+@pytest.mark.parametrize(
+    "failure_at", ["after_lock", "after_drop", "after_create", "after_restore", "after_assertions"]
+)
+def test_each_anomaly_failure_rolls_back_old_oid_rows_acl_and_indexes(db, failure_at):
+    setup_state(db, 12)
+    reconcile(db)
+    guard = anomaly_snapshot(db)
+    with db.cursor() as cur:
+        before = full_snapshot(cur)
+    with pytest.raises(RuntimeError, match="injected failure"):
+        apply_anomaly_direct(guard, failure_at=failure_at)
+    with db.cursor() as cur:
+        assert full_snapshot(cur) == before
+    assert anomaly_snapshot(db) == guard
+
+
+def test_anomaly_receipt_recovery_uses_current_oids_then_allows_repair(db, tmp_path):
+    setup_state(db, 12)
+    reconcile(db)
+    env = os.environ | {"FINANCE_CONTRACT_DSN": DSN}
+    snapshot = tmp_path / "preimage.json"
+    receipt = tmp_path / "committed-receipt.json"
+    common = [sys.executable, "scripts/reconcile_anomaly_flags.py", "--dsn-env", "FINANCE_CONTRACT_DSN"]
+    inspect = subprocess.run([*common, "--inspect", "--snapshot", str(snapshot)], cwd=ROOT, env=env,
+                             capture_output=True, text=True, encoding="utf-8")
+    assert inspect.returncode == 0, inspect.stderr
+    preimage = anomaly.load_wrapper(snapshot, "anomaly-preimage")
+    applied = subprocess.run([*common, "--apply", "--snapshot", str(snapshot), "--receipt", str(receipt),
+                              "--maintenance-window", "disposable-test"], cwd=ROOT, env=env,
+                             capture_output=True, text=True, encoding="utf-8")
+    assert applied.returncode == 0, applied.stderr
+    corrected_state = anomaly_snapshot(db)
+    assert corrected_state["relation"]["oid"] != preimage["relation"]["oid"]
+    tampered_value = anomaly.load_wrapper(receipt, "anomaly-transition-receipt")
+    tampered_value["preimage"]["definition"] += "\nSELECT 1;"
+    tampered_value["preimage_digest"] = anomaly.fingerprint(tampered_value["preimage"])
+    tampered = tmp_path / "tampered-receipt.json"
+    tampered.write_text(
+        json.dumps(anomaly.make_wrapper("anomaly-transition-receipt", tampered_value)),
+        encoding="utf-8",
+    )
+    rejected = subprocess.run([*common, "--recover", "--receipt", str(tampered),
+                               "--maintenance-window", "disposable-test"], cwd=ROOT, env=env,
+                              capture_output=True, text=True, encoding="utf-8")
+    assert rejected.returncode == 1
+    assert "reviewed repair pair" in rejected.stderr
+    assert anomaly_snapshot(db) == corrected_state
+    recovered = subprocess.run([*common, "--recover", "--receipt", str(receipt),
+                                "--maintenance-window", "disposable-test"], cwd=ROOT, env=env,
+                               capture_output=True, text=True, encoding="utf-8")
+    assert recovered.returncode == 0, recovered.stderr
+    old_again = anomaly_snapshot(db)
+    assert old_again["relation"]["oid"] not in {
+        preimage["relation"]["oid"], corrected_state["relation"]["oid"]
+    }
+    assert "::numeric / prev_revenue" not in old_again["definition"]
+    assert anomaly.metadata_contract(old_again) == anomaly.metadata_contract(preimage)
+    apply_anomaly_direct(old_again)
+    repaired = anomaly_snapshot(db)
+    assert repaired["relation"]["oid"] != old_again["relation"]["oid"]
+    assert "::numeric / prev_revenue" in repaired["definition"]
+
+
+@pytest.mark.parametrize("dependency_kind", ["relation", "rowtype", "arraytype"])
+def test_anomaly_dependency_is_rejected_before_drop(db, dependency_kind):
+    setup_state(db, 12)
+    reconcile(db)
+    with db.cursor() as cur:
+        if dependency_kind == "relation":
+            cur.execute("CREATE VIEW public.anomaly_consumer AS SELECT district_number FROM public.v_anomaly_flags")
+        elif dependency_kind == "rowtype":
+            cur.execute("CREATE FUNCTION public.consume_anomaly(public.v_anomaly_flags) RETURNS int "
+                        "LANGUAGE sql IMMUTABLE AS 'SELECT 1'")
+        else:
+            cur.execute("CREATE FUNCTION public.consume_anomaly_array(public.v_anomaly_flags[]) RETURNS int "
+                        "LANGUAGE sql IMMUTABLE AS 'SELECT 1'")
+        before = full_snapshot(cur)
+    guard = anomaly_snapshot(db)
+    with pytest.raises(RuntimeError, match="unsupported dependency"):
+        apply_anomaly_direct(guard)
+    with db.cursor() as cur:
+        assert full_snapshot(cur) == before
+
+
+def test_anomaly_rejects_column_acl_and_security_label_contract_before_drop(db):
+    setup_state(db, 12)
+    reconcile(db)
+    with db.cursor() as cur:
+        cur.execute("REVOKE SELECT ON public.v_anomaly_flags FROM anon")
+        cur.execute("GRANT SELECT(district_number) ON public.v_anomaly_flags TO anon")
+        before = full_snapshot(cur)
+    guard = anomaly_snapshot(db)
+    with pytest.raises(RuntimeError, match="column ACL"):
+        apply_anomaly_direct(guard)
+    with db.cursor() as cur:
+        assert full_snapshot(cur) == before
+    synthetic = json.loads(json.dumps(guard))
+    synthetic["columns"][0][5] = "{anon=r/finance_view_owner}"
+    with pytest.raises(RuntimeError, match="column ACL"):
+        anomaly.validate_supported(synthetic)
+    synthetic = json.loads(json.dumps(guard))
+    synthetic["security_labels"] = [["pg_class", guard["relation"]["oid"], 0, "provider", "label"]]
+    with pytest.raises(RuntimeError, match="security labels"):
+        anomaly.validate_supported(synthetic)
+
+
+def test_anomaly_metadata_comments_defaults_and_grant_options_survive(db):
+    setup_state(db, 12)
+    reconcile(db)
+    with db.cursor() as cur:
+        cur.execute("COMMENT ON MATERIALIZED VIEW public.v_anomaly_flags IS 'reviewed relation'")
+        cur.execute("COMMENT ON COLUMN public.v_anomaly_flags.district_number IS 'reviewed column'")
+        cur.execute("COMMENT ON INDEX public.anomaly_year_idx IS 'reviewed index'")
+        cur.execute("COMMENT ON TYPE public.v_anomaly_flags IS 'reviewed row type'")
+        cur.execute("GRANT SELECT ON public.v_anomaly_flags TO nlp_reader WITH GRANT OPTION")
+        cur.execute("ALTER DEFAULT PRIVILEGES FOR ROLE finance_view_owner IN SCHEMA public "
+                    "GRANT SELECT ON TABLES TO PUBLIC")
+    before = anomaly_snapshot(db)
+    apply_anomaly_direct(before)
+    after = anomaly_snapshot(db)
+    assert anomaly.metadata_contract(after) == anomaly.metadata_contract(before)
+    assert before["default_privileges"] == after["default_privileges"]
+
+
+def test_anomaly_reader_contention_and_tool_serialization_roll_back(db):
+    import psycopg2
+
+    setup_state(db, 12)
+    reconcile(db)
+    guard = anomaly_snapshot(db)
+    with db.cursor() as cur:
+        before = full_snapshot(cur)
+
+    reader = psycopg2.connect(DSN)
+    try:
+        reader.cursor().execute("SELECT count(*) FROM public.v_anomaly_flags")
+        with pytest.raises(Exception) as reader_error:
+            apply_anomaly_direct(guard, lock_timeout="250ms", statement_timeout="2s")
+        assert "lock timeout" in str(reader_error.value).lower()
+    finally:
+        reader.rollback()
+        reader.close()
+
+    holder = psycopg2.connect(DSN)
+    try:
+        holder.cursor().execute("SELECT pg_advisory_xact_lock(hashtextextended(%s,0))", (anomaly.LOCK_KEY,))
+        with pytest.raises(Exception) as tool_error:
+            apply_anomaly_direct(guard, lock_timeout="250ms", statement_timeout="500ms")
+        assert "lock timeout" in str(tool_error.value).lower()
+    finally:
+        holder.rollback()
+        holder.close()
+    with db.cursor() as cur:
+        assert full_snapshot(cur) == before
+
+
+def test_reads_and_late_dependency_wait_behind_exclusive_transition_lock(db):
+    import psycopg2
+
+    setup_state(db, 12)
+    reconcile(db)
+    guard = anomaly_snapshot(db)
+    locked = threading.Event()
+    release = threading.Event()
+    outcome: list[object] = []
+
+    def barrier(stage):
+        if stage == "after_lock":
+            locked.set()
+            assert release.wait(5)
+
+    def worker():
+        try:
+            outcome.append(apply_anomaly_direct(guard, on_stage=barrier, statement_timeout="10s"))
+        except Exception as exc:  # surfaced by the assertion below
+            outcome.append(exc)
+
+    thread = threading.Thread(target=worker)
+    thread.start()
+    assert locked.wait(5)
+    for statement in (
+        "SELECT count(*) FROM public.v_anomaly_flags",
+        "CREATE VIEW public.late_anomaly_consumer AS SELECT district_number FROM public.v_anomaly_flags",
+    ):
+        contender = psycopg2.connect(DSN)
+        try:
+            with contender.cursor() as cur:
+                cur.execute("SET lock_timeout='250ms'")
+                with pytest.raises(Exception, match="lock timeout"):
+                    cur.execute(statement)
+            contender.rollback()
+        finally:
+            contender.close()
+    release.set()
+    thread.join(10)
+    assert not thread.is_alive()
+    assert outcome and not isinstance(outcome[0], Exception), outcome
+    with db.cursor() as cur:
+        cur.execute("SELECT count(*) FROM public.v_anomaly_flags")
+        assert cur.fetchone()[0] >= 0
+        cur.execute("SELECT to_regclass('public.late_anomaly_consumer')")
+        assert cur.fetchone()[0] is None
+
+
+def test_owner_drift_committed_while_waiting_is_detected_after_lock(db):
+    import psycopg2
+
+    setup_state(db, 12)
+    reconcile(db)
+    guard = anomaly_snapshot(db)
+    reader = psycopg2.connect(DSN)
+    reader.cursor().execute("SELECT count(*) FROM public.v_anomaly_flags")
+    drift_conn = psycopg2.connect(DSN)
+    transition_conn = psycopg2.connect(DSN)
+    drift_pid = drift_conn.get_backend_pid()
+    transition_pid = transition_conn.get_backend_pid()
+    results: list[tuple[str, object]] = []
+    inspected = threading.Event()
+    allow_owner_lock = threading.Event()
+
+    def drift_worker():
+        try:
+            drift_conn.cursor().execute("ALTER MATERIALIZED VIEW public.v_anomaly_flags OWNER TO postgres")
+            drift_conn.commit()
+            results.append(("drift", "committed"))
+        except Exception as exc:
+            drift_conn.rollback()
+            results.append(("drift", exc))
+
+    def transition_worker():
+        try:
+            def barrier(stage):
+                if stage == "before_owner_lock":
+                    inspected.set()
+                    assert allow_owner_lock.wait(5)
+            anomaly.transition(transition_conn, guard, guard, anomaly.corrected(guard["definition"]),
+                               "disposable-test", statement_timeout="8s", on_stage=barrier)
+            transition_conn.commit()
+            results.append(("transition", "committed"))
+        except Exception as exc:
+            transition_conn.rollback()
+            results.append(("transition", exc))
+
+    def wait_for_lock(pid):
+        deadline = time.monotonic() + 5
+        while time.monotonic() < deadline:
+            with db.cursor() as cur:
+                cur.execute("SELECT wait_event_type FROM pg_stat_activity WHERE pid=%s", (pid,))
+                row = cur.fetchone()
+            if row and row[0] == "Lock":
+                return
+            time.sleep(0.02)
+        raise AssertionError(f"backend {pid} did not enter a lock wait")
+
+    transition_thread = threading.Thread(target=transition_worker)
+    transition_thread.start()
+    assert inspected.wait(5)
+    drift_thread = threading.Thread(target=drift_worker)
+    drift_thread.start()
+    wait_for_lock(drift_pid)
+    allow_owner_lock.set()
+    wait_for_lock(transition_pid)
+    reader.rollback()
+    reader.close()
+    drift_thread.join(5)
+    transition_thread.join(5)
+    drift_conn.close()
+    transition_conn.close()
+    assert ("drift", "committed") in results
+    transition_result = next(value for name, value in results if name == "transition")
+    assert isinstance(transition_result, RuntimeError)
+    assert "catalog drift while acquiring relation lock" in str(transition_result)
+    with db.cursor() as cur:
+        cur.execute("SELECT pg_get_userbyid(relowner) FROM pg_class WHERE oid='public.v_anomaly_flags'::regclass")
+        assert cur.fetchone()[0] == "postgres"
+
+
+def test_public_read_contract_and_readonly_verifier(db):
     setup_state(db, 12)
     reconcile(db)
     contract = (ROOT / "sql" / "harden_public_finance_read_contract.sql").read_text(encoding="utf-8")
     with db.cursor() as cur:
+        # Start from the permissive legacy state that the reviewed PR repaired.
+        cur.execute("GRANT ALL ON public.texas_school_finance TO PUBLIC,anon,authenticated,nlp_reader")
+        cur.execute("GRANT ALL ON public.v_finance_summary,public.v_spending_detail,"
+                    "public.v_spending_breakdown,public.v_district_similarity,"
+                    "public.v_anomaly_flags TO PUBLIC,anon,authenticated,nlp_reader")
         cur.execute(contract)
         cur.execute(contract)  # The ACL repair is safely re-applicable.
+        objects = [name for name, _ in (
+            ("v_finance_summary", "v"), ("v_spending_detail", "v"),
+            ("v_spending_breakdown", "v"), ("v_district_similarity", "v"),
+            ("v_anomaly_flags", "m"),
+        )]
+        expected_counts = {}
+        for name in objects:
+            cur.execute(f"SELECT count(*) FROM public.{name}")
+            expected_counts[name] = cur.fetchone()[0]
         for role in ("anon", "authenticated"):
-            cur.execute("SELECT has_table_privilege(%s, 'public.v_spending_detail', 'SELECT')", (role,))
-            assert cur.fetchone()[0]
-            cur.execute("SELECT has_table_privilege(%s, 'public.texas_school_finance', 'SELECT')", (role,))
+            for name in objects:
+                for privilege in ("SELECT", "INSERT", "UPDATE", "DELETE", "TRUNCATE", "REFERENCES", "TRIGGER"):
+                    cur.execute("SELECT has_table_privilege(%s,%s,%s)",
+                                (role, f"public.{name}", privilege))
+                    assert cur.fetchone()[0] is (privilege == "SELECT")
+                cur.execute(f"SET ROLE {role}")
+                cur.execute(f"SELECT count(*) FROM public.{name}")
+                assert cur.fetchone()[0] == expected_counts[name]
+                cur.execute("RESET ROLE")
+            for privilege in ("SELECT", "INSERT", "UPDATE", "DELETE", "TRUNCATE", "REFERENCES", "TRIGGER"):
+                cur.execute("SELECT has_table_privilege(%s,'public.texas_school_finance',%s)", (role, privilege))
+                assert not cur.fetchone()[0]
+            cur.execute("SELECT has_schema_privilege(%s,'public','CREATE')", (role,))
             assert not cur.fetchone()[0]
-        cur.execute("SELECT has_table_privilege('nlp_reader', 'public.v_spending_detail', 'SELECT')")
+            cur.execute(f"SET ROLE {role}")
+            with pytest.raises(Exception, match="permission denied"):
+                cur.execute(f"CREATE TABLE public.forbidden_{role}(id int)")
+            cur.execute("RESET ROLE")
+        for name in objects:
+            cur.execute("SELECT has_table_privilege('nlp_reader',%s,'SELECT')", (f"public.{name}",))
+            assert cur.fetchone()[0] is (name in {"v_finance_summary", "v_anomaly_flags"})
+        cur.execute("SELECT has_schema_privilege('nlp_reader','public','CREATE')")
+        assert not cur.fetchone()[0]
+        cur.execute(
+            "SELECT has_table_privilege('nlp_reader','public.texas_school_finance',"
+            "'SELECT,INSERT,UPDATE,DELETE')"
+        )
         assert not cur.fetchone()[0]
     env = os.environ | {"FINANCE_VERIFY_DSN": DSN}
     result = subprocess.run([sys.executable, "scripts/verify_finance_contract.py", "--dsn-env", "FINANCE_VERIFY_DSN"],
                             cwd=ROOT, env=env, text=True, encoding="utf-8", capture_output=True)
     assert result.returncode == 0, result.stderr
+    assert "ENROLLMENT EXCEPTIONS: nonpositive_or_null=6; populated_values=0" in result.stdout
+    assert "ANOMALY STATUS: DEFERRED" in result.stdout
 
 
 def test_readonly_verifier_reports_broken_grants_without_mutating(db):
@@ -541,4 +987,43 @@ def test_readonly_verifier_reports_broken_grants_without_mutating(db):
     result = subprocess.run([sys.executable, "scripts/verify_finance_contract.py", "--dsn-env", "FINANCE_VERIFY_DSN"],
                             cwd=ROOT, env=env, text=True, encoding="utf-8", capture_output=True)
     assert result.returncode == 1
-    assert "base-table or mutation privilege" in result.stderr
+    assert "anon has SELECT on base table" in result.stderr
+
+
+def test_readonly_verifier_detects_latest_year_arithmetic(db):
+    setup_state(db, 30)
+    with db.cursor() as cur:
+        cur.execute((ROOT / "sql" / "harden_public_finance_read_contract.sql").read_text(encoding="utf-8"))
+    env = os.environ | {"FINANCE_VERIFY_DSN": DSN}
+    result = subprocess.run(
+        [sys.executable, "scripts/verify_finance_contract.py", "--dsn-env", "FINANCE_VERIFY_DSN"],
+        cwd=ROOT, env=env, text=True, encoding="utf-8", capture_output=True,
+    )
+    assert result.returncode == 1
+    assert "latest eligible arithmetic mismatches" in result.stderr
+    assert "ENROLLMENT EXCEPTIONS:" in result.stdout
+
+
+def test_readonly_verifier_detects_exact_suffix_types_math_and_redacts_connection_details(db):
+    setup_state(
+        db,
+        30,
+        base_type_overrides={"all_funds_total_supplies_materials_expenditures": "numeric"},
+    )
+    with db.cursor() as cur:
+        cur.execute((ROOT / "sql" / "harden_public_finance_read_contract.sql").read_text(encoding="utf-8"))
+    env = os.environ | {"FINANCE_VERIFY_DSN": DSN}
+    result = subprocess.run([sys.executable, "scripts/verify_finance_contract.py", "--dsn-env", "FINANCE_VERIFY_DSN"],
+                            cwd=ROOT, env=env, text=True, encoding="utf-8", capture_output=True)
+    assert result.returncode == 1
+    assert "summary columns/types unexpected" in result.stderr
+
+    secret = "TOP-SECRET-PASSWORD-4931"
+    bad_dsn = f"postgresql://secret-user:{secret}@127.0.0.1:1/secret-database?application_name=secret-app"
+    env["FINANCE_VERIFY_DSN"] = bad_dsn
+    result = subprocess.run([sys.executable, "scripts/verify_finance_contract.py", "--dsn-env", "FINANCE_VERIFY_DSN"],
+                            cwd=ROOT, env=env, text=True, encoding="utf-8", capture_output=True)
+    combined = result.stdout + result.stderr
+    assert result.returncode == 1
+    for fragment in (bad_dsn, secret, "secret-user", "secret-database", "secret-app"):
+        assert fragment not in combined

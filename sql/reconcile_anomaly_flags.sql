@@ -3,8 +3,10 @@
 -- This file intentionally contains no executable replacement transaction. A
 -- materialized view cannot be LOCK TABLE'd in PostgreSQL 17. Use
 -- scripts/reconcile_anomaly_flags.py: inspect creates a digest-bound catalog
--- preimage; apply/recover require that preimage and a maintenance-window
--- acknowledgement. The script takes a transaction advisory lock, uses ALTER
+-- preimage; apply requires that preimage and writes a committed receipt.
+-- Recovery requires the receipt, which guards current replacement OIDs
+-- separately from the old semantic preimage. Both actions require a
+-- maintenance-window acknowledgement. The script takes a transaction advisory lock, uses ALTER
 -- MATERIALIZED VIEW OWNER TO same-owner to obtain AccessExclusiveLock, rechecks
 -- pg_class.xmin and all captured metadata, then uses a plain restrictive DROP
 -- (never CASCADE) and restores reviewed indexes and grants atomically.

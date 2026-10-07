@@ -1,0 +1,9 @@
+{
+  "checked_role": "nlp_reader",
+  "transaction_read_only": "on",
+  "summary_select": true,
+  "anomaly_select": true,
+  "base_select": false,
+  "public_schema_create": false,
+  "status": "PASS"
+}
