@@ -561,3 +561,127 @@ body:has(#masthead) .btn-theme, body:has(#masthead) #btn-theme { display: none; 
   #masthead .m-brand { margin-right: auto; }
   #masthead .m-tabs { flex: 1 1 100%; order: 10; margin: 0 -1rem; padding: 0 1rem; }
 }
+
+/* Public report visual ledger ------------------------------------------------
+   Dense numeric evidence leads; explanations remain adjacent native
+   disclosures. These are content-sized marks, never padded score boxes. */
+.hero-kpis,
+.metric-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: .45rem;
+  margin: .65rem 0 .8rem;
+}
+.hero-kpis > span {
+  flex: 1 1 9rem;
+  min-width: 0;
+  border-top: 2px solid var(--accent);
+  padding: .55rem 0 .35rem;
+}
+.hero-kpis b {
+  display: block;
+  font-family: var(--font-serif);
+  font-size: clamp(1.3rem, 2.5vw, 2rem);
+  line-height: 1;
+  letter-spacing: var(--tracking-tight);
+  font-variant-numeric: tabular-nums;
+}
+.hero-kpis i {
+  display: block;
+  margin-top: .25rem;
+  color: var(--ink-3);
+  font-size: var(--fs-micro);
+  font-style: normal;
+  font-weight: var(--fw-bold);
+  letter-spacing: .055em;
+  text-transform: uppercase;
+}
+.metric-meta {
+  gap: .3rem .4rem;
+  margin: .35rem 0 .8rem;
+}
+.metric-meta > span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.55rem;
+  padding: .16rem .48rem;
+  border: 1px solid var(--rule);
+  border-radius: var(--r-pill);
+  background: var(--surface-2);
+  color: var(--ink-2);
+  font-size: var(--fs-micro);
+  font-weight: var(--fw-medium);
+  letter-spacing: .025em;
+  white-space: nowrap;
+}
+.metric-meta > span:first-child {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-soft);
+  font-weight: var(--fw-bold);
+}
+.ledger-detail {
+  margin: .2rem 0 .65rem;
+  color: var(--ink-3);
+  font-size: var(--fs-xs);
+}
+.ledger-detail > summary,
+.trust > summary {
+  width: max-content;
+  max-width: 100%;
+  cursor: pointer;
+  color: var(--ink-2);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-medium);
+  text-underline-offset: .15em;
+}
+.ledger-detail > summary:hover,
+.trust > summary:hover { color: var(--ink); }
+.ledger-detail-body {
+  max-width: var(--measure);
+  padding: .55rem 0 .15rem .85rem;
+  border-left: 2px solid var(--rule);
+  line-height: var(--lh-relaxed);
+}
+.ledger-detail-body p { margin: 0 0 .45rem; }
+.trust {
+  max-width: 46rem;
+  margin: .45rem 0 .8rem;
+  padding: .65rem .8rem;
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 var(--r-md) var(--r-md) 0;
+  background: var(--surface-2);
+}
+.trust[open] > summary { margin-bottom: .55rem; }
+.trust ol { margin: 0; }
+
+@media (max-width: 600px) {
+  .hero-left, .hero-row, .finder { width: 100%; max-width: 100%; min-width: 0; }
+  .hero-left { display: flex; flex-direction: column; }
+  html:not(.has-district) #picker-section .hero-kpis { order: -3; margin-top: 0; }
+  html:not(.has-district) #picker-section .hero-row { order: -2; }
+  html:not(.has-district) #picker-section .hero-h { order: -1; }
+  .finder .row { flex-wrap: nowrap; }
+  .finder .row input { min-width: 0; width: auto; }
+  .finder .row button { flex: 0 0 auto; }
+  .hero-kpis { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .hero-kpis > span { min-width: 0; }
+  .metric-meta { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .metric-meta > span { white-space: normal; line-height: 1.25; }
+  .chips { flex-wrap: nowrap; overflow-x: auto; padding-bottom: .2rem; scrollbar-width: thin; }
+  .chips button, .chips .chip-sep { flex: 0 0 auto; }
+  .finder-ask { margin-top: .45rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ticker, .newsticker { min-height: 2.2rem; margin-bottom: .25rem; }
+  .newsticker { flex-wrap: nowrap; margin-top: -.3rem; }
+  .newsticker .ticker-view { order: initial; flex-basis: auto; border-top: 0; min-width: 0; }
+  .newsticker .ticker-all { display: none; }
+  .ticker-track { white-space: nowrap; text-overflow: ellipsis; padding: .32rem .5rem; }
+  .ticker-tag { padding: .32rem .45rem; }
+  .warnbar { margin-top: .45rem; padding: .45rem .65rem; font-size: var(--fs-xs); }
+  .warnbar .status-chip { display: inline; }
+  .warnbar details { display: inline; margin-left: .35rem; }
+  .warnbar summary { display: inline; cursor: pointer; color: var(--accent); }
+  .warnbar details div { margin-top: .4rem; }
+}

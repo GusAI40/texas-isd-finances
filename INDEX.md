@@ -6,6 +6,12 @@ This is the short route through the public-data portal documentation. It does no
 |---|---|
 | Dated audit: evidence, defects, and unknowns | [Audit](docs/AUDIT_2026-10-07.md) |
 | Ordered work before UI or plugin changes | [Visual/plugin execution plan](docs/VISUAL_PLUGIN_EXECUTION_PLAN.md) |
+| Testable database repairs and recovery | [Data integrity plan](docs/DATA_TRUST_IMPLEMENTATION_PLAN.md) |
+| Exact release revision, passing checks, and pending external gates | [Release evidence](docs/RELEASE_EVIDENCE.md) |
+| Safe finance migration and recovery instructions | [Finance reconciliation runbook](docs/FINANCE_SUMMARY_RECONCILIATION.md) |
+| Measured 95% visual / 5% prose rule | [Visual implementation plan](docs/VISUAL_IMPLEMENTATION_PLAN.md), [design contract](docs/VISUAL_DESIGN_CONTRACT.md) |
+| ChatGPT connection, visual resource, and portable package | [Plugin implementation plan](docs/MCP_PLUGIN_IMPLEMENTATION_PLAN.md), [ChatGPT guide](docs/CHATGPT_PLUGIN.md) |
+| Reviewed source refresh findings | [Source refresh review](docs/SOURCE_REFRESH_REVIEW.md) |
 | Plain-language concepts and comparison rules | [Dictionary](DICTIONARY.md) |
 | Libraries, services, tools, protocols, and sources | [Third-party services](THIRD_PARTY_SERVICES.md) |
 | Every generated field and route | [Generated data dictionary](docs/DATA_DICTIONARY.md) |
@@ -19,4 +25,4 @@ This is the short route through the public-data portal documentation. It does no
 
 The portal is for parents, taxpayers, and the general public. A number must retain its source, fiscal year, denominator, and limitation wherever it is shown.
 
-The 2026-10-07 audit is documentation only. It does not certify a visual redesign, ChatGPT listing, real-host plugin compatibility, broad mobile usability, or AI-answer accuracy.
+The dated audit records the baseline. Execution evidence is kept separately under `docs/evidence/`: database verification, visual measurements, and real ChatGPT/Inspector results. A connected development plugin is distinct from a publicly reviewed listing. Missing participant, screen-reader, source-rebuild, or release evidence must remain explicit rather than becoming a certification.

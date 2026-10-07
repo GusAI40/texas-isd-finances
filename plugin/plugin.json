@@ -1,0 +1,22 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "texas-isd-finances",
+  "version": "1.0.0",
+  "description": "Read-only public Texas school district finance research.",
+  "homepage": "https://txisd.dev/",
+  "repository": "https://github.com/GusAI40/texas-isd-finances",
+  "license": "MIT",
+  "extensions": {
+    "com.openai": {
+      "apps": "./.app.json",
+      "interface": {
+        "displayName": "Texas ISD Finances",
+        "shortDescription": "Read-only public Texas school district finance research.",
+        "developerName": "Texas ISD Finances",
+        "capabilities": ["Read"],
+        "websiteURL": "https://txisd.dev/",
+        "privacyPolicyURL": "https://txisd.dev/about#privacy"
+      }
+    }
+  }
+}

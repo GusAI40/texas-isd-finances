@@ -1,0 +1,20 @@
+{
+  "checked_utc": "2026-10-07 20:51:31 UTC",
+  "client": "@modelcontextprotocol/inspector@2.9.0",
+  "endpoint": "https://txisd.dev/mcp",
+  "deployed_revision": "73df1896ed0818020ec1c15c06f5ee823db7ec0f",
+  "arguments": [
+    "--transport",
+    "http",
+    "--protocol-era",
+    "modern",
+    "--method",
+    "tools/list",
+    "--format",
+    "json",
+    "--strict"
+  ],
+  "exit_code": 0,
+  "warning": "Warning: tool \"find_district\"\n  Path: outputSchema.properties.matches.items.properties.students\n  Issue: `type` is an array ([\"integer\",\"null\"]). This is legal JSON Schema, and some model providers recommend it for nullable fields, but it is less portable: a client that maps tool schemas onto a single-`type` dialect (such as the OpenAPI subset used for Gemini function declarations) may reject the tool or drop the constraint.\n  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{\"anyOf\": [{\"type\": \"integer\"}, {\"type\": \"null\"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.) A dialect with no `null` type, such as OpenAPI 3.0, still cannot express the `null` branch directly; there nullability is written `nullable: true`, which is not JSON Schema, so no single spelling is portable to both.\n\n0 errors, 1 warning across 1 tool.",
+  "disposition": "Retain null as distinct from absent. Use anyOf single-type branches in the implementation output schemas, then repeat strict Inspector against the implemented deployment. Existing live warning is legal JSON Schema, not a failed call."
+}

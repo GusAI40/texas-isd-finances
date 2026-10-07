@@ -5,7 +5,7 @@ A hand-written dictionary is accurate the day it is written and wrong by
 the next release, and a dictionary that is wrong is worse than none.
 Everything here is read out of the real files at build time.
 
-20 data files · 25.7 MB · 617 fields · 78 public routes
+20 data files · 25.7 MB · 617 fields · 79 public routes
 
 ## What each file holds
 
@@ -862,6 +862,7 @@ Fields (from district `057905`):
 | `GET /static/design.css` | The shared design system, linked by every page. |
 | `GET /static/tag-pipeline.png` | The TAG ai intelligence-layer graphic, hot-linked by the superintendent |
 | `GET /static/track.js` | The dwell beacon. Inert for everyone except a mailed recipient — it |
+| `GET /static/visual-components.js` | Shared public visual semantics; explicit like every browser asset. |
 | `GET /stats` | Get database statistics |
 | `GET /takeover/houston` | Did the June 2023 state takeover of Houston ISD change results? |
 | `GET /tax/texas` | What school tax rates have actually done since 2009. |

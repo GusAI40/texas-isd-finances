@@ -1,0 +1,6 @@
+{
+  "status": "UNVERIFIED",
+  "reason": "No actual participant sessions have been conducted; simulated or administrator sessions are not evidence.",
+  "participants": [],
+  "tasks": ["find district", "interpret trend", "compare measures", "distinguish tax rate and bill", "find source/year and modeled retention"]
+}

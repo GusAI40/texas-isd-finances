@@ -1,0 +1,97 @@
+{
+  "checked_at": "2026-10-07T21:21:20.904Z",
+  "project": "prj_Q86h3ZufDMLk7bsyYOj7FP3S9Wqg",
+  "team": "tag-ai-projects",
+  "cli_version": "60.1.3",
+  "method": "Vercel connector metadata plus CLI 60.1.3 production environment pull to an ignored, local-only file; values are absent from this evidence",
+  "database_connection": {
+    "mode": "read-only transaction, 10-second timeout",
+    "expected_project_pooler": "PASS",
+    "server_version": "17.6",
+    "database": "postgres",
+    "rows": 20587,
+    "districts": 1310,
+    "latest_year": 2025,
+    "status": "PASS"
+  },
+  "credentials_persisted_in_project": true,
+  "checks": [
+    {
+      "key": "OPS_TOKEN",
+      "target": [
+        "preview",
+        "production"
+      ],
+      "valueAvailable": false,
+      "empty": null,
+      "trailingNewline": null,
+      "embeddedNewline": null
+    },
+    {
+      "key": "RESEND_FROM",
+      "target": [
+        "production"
+      ],
+      "valueAvailable": false,
+      "empty": null,
+      "trailingNewline": null,
+      "embeddedNewline": null
+    },
+    {
+      "key": "RESEND_API_KEY",
+      "target": [
+        "production"
+      ],
+      "valueAvailable": false,
+      "empty": null,
+      "trailingNewline": null,
+      "embeddedNewline": null
+    },
+    {
+      "key": "DEEPSEEK_API_KEY",
+      "target": [
+        "production"
+      ],
+      "valueAvailable": true,
+      "empty": false,
+      "trailingNewline": false,
+      "embeddedNewline": false
+    },
+    {
+      "key": "CRON_SECRET",
+      "target": [
+        "production"
+      ],
+      "valueAvailable": true,
+      "empty": false,
+      "trailingNewline": false,
+      "embeddedNewline": false
+    },
+    {
+      "key": "NLP_DB_URL",
+      "target": [
+        "production",
+        "preview"
+      ],
+      "valueAvailable": true,
+      "empty": false,
+      "trailingNewline": false,
+      "embeddedNewline": false
+    },
+    {
+      "key": "SUPABASE_DB_URL",
+      "target": [
+        "production",
+        "preview"
+      ],
+      "valueAvailable": true,
+      "empty": false,
+      "trailingNewline": false,
+      "embeddedNewline": false
+    }
+  ],
+  "limits": [
+    "Sensitive variables OPS_TOKEN, RESEND_FROM and RESEND_API_KEY were not returned by the connector, so their formatting is UNVERIFIED.",
+    "No project environment variables were changed. Infrastructure presence does not prove all capabilities work."
+  ]
+}

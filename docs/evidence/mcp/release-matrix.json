@@ -1,0 +1,13 @@
+{
+  "D-HOST-01": "PASS: dated Inspector and owner-connector evidence retained; legacy failure explicit.",
+  "D-PARITY-01": "PASS locally: exact eleven tool registry and existing public-artifact tool suite; host fixture evidence retained.",
+  "D-SCHEMA-01": "PASS locally: every listed tool has a bounded success schema requiring limits; package schemas validate.",
+  "D-BOUNDARY-01": "PASS locally: existing no DB/LLM/write checks and read-only annotations remain green.",
+  "D-RESOURCE-01": "PASS locally: exact versioned resource, unknown URI rejection, composition, helper reuse and empty CSP tested.",
+  "E-VISUAL-01": "PASS locally for no-bridge frame and visual payload shape; actual ChatGPT render UNVERIFIED.",
+  "E-BRIDGE-01": "PASS static/local bridge safety checks; actual ChatGPT bridge rendering UNVERIFIED.",
+  "E-PACKAGE-01": "PASS local official-schema/reference validation and actual creator-generated mapping shape.",
+  "E-LISTING-01": "PASS draft materials; public listing remains UNVERIFIED.",
+  "E-INSTALL-01": "UNVERIFIED: endpoint registration is not an install test.",
+  "E-PUBLIC-01": "UNVERIFIED pending authorized publication and independent eligible-account confirmation."
+}

@@ -1,0 +1,14 @@
+{
+  "name": "@txisd/plugin",
+  "version": "1.0.0",
+  "description": "Development-only Texas ISD plugin schema validator",
+  "scripts": {
+    "validate": "node validate.mjs",
+    "validate:tool-outputs": "node validate-tool-outputs.mjs"
+  },
+  "private": true,
+  "type": "module",
+  "devDependencies": {
+    "ajv": "8.20.0"
+  }
+}

@@ -3378,6 +3378,11 @@
   },
   {
    "method": "GET",
+   "path": "/static/visual-components.js",
+   "summary": "Shared public visual semantics; explicit like every browser asset."
+  },
+  {
+   "method": "GET",
    "path": "/stats",
    "summary": "Get database statistics"
   },

@@ -1,0 +1,30 @@
+{
+  "district": {
+    "schemaVersion": 1, "view": "district", "districts": [{"district_number": "057905", "district_name": "Dallas ISD"}],
+    "websiteUrl": "https://txisd.dev/?d=057905",
+    "metrics": [
+      {"id":"total","label":"Operating plus debt service per student","value":17788,"unit":"USD per student","period":"2025","population":"Dallas ISD","denominator":"fall survey enrollment","status":"observed","source":{"label":"TEA public artifact","url":"https://txisd.dev/transparency","period":"2025"},"limits":["Public artifact vintage."]},
+      {"id":"instruction","label":"Instruction per student","value":8100,"unit":"USD per student","period":"2025","population":"Dallas ISD","denominator":"fall survey enrollment","status":"observed","source":{"label":"TEA public artifact","url":"https://txisd.dev/transparency","period":"2025"},"limits":["Public artifact vintage."]}
+    ]
+  },
+  "comparison": {
+    "schemaVersion": 1, "view": "comparison", "districts": [{"district_number":"057905","district_name":"Dallas ISD"},{"district_number":"101912","district_name":"Houston ISD"}], "websiteUrl":"https://txisd.dev/",
+    "metrics": [
+      {"district_name":"Dallas ISD","values":[
+        {"id":"operating","label":"Operating spending per student","value":15200,"unit":"USD per student","period":"2025","status":"observed","source":{"label":"TEA","url":"https://txisd.dev/transparency","period":"2025"},"limits":[]},
+        {"id":"local","label":"Local revenue share","value":62.4,"unit":"percent","period":"2025","status":"observed","source":{"label":"TEA","url":"https://txisd.dev/transparency","period":"2025"},"limits":[]}
+      ]},
+      {"district_name":"Houston ISD","values":[
+        {"id":"operating","label":"Operating spending per student","value":14100,"unit":"USD per student","period":"2025","status":"observed","source":{"label":"TEA","url":"https://txisd.dev/transparency","period":"2025"},"limits":[]},
+        {"id":"points","label":"Points vs predicted","value":null,"unit":"percentage points","period":"2025","status":"modeled","source":{"label":"TEA","url":"https://txisd.dev/transparency","period":"2025"},"limits":["Modeled estimate."]}
+      ]}
+    ]
+  },
+  "statewide": {
+    "schemaVersion": 1, "view":"statewide", "districts":[], "websiteUrl":"https://txisd.dev/",
+    "metrics":[
+      {"id":"debt","label":"Annual debt service","value":5500000000,"unit":"USD per fiscal year","period":"2025","status":"observed","source":{"label":"TEA","url":"https://txisd.dev/transparency","period":"2025"},"limits":[]},
+      {"id":"median","label":"Median debt service per student","value":1220,"unit":"USD per student","period":"2025","status":"observed","source":{"label":"TEA","url":"https://txisd.dev/transparency","period":"2025"},"limits":[]}
+    ]
+  }
+}

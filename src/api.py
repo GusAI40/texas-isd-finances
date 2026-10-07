@@ -34,6 +34,7 @@ from . import (
     intel,
     lineage,
     llm_config,
+    mcp_apps,
     mcp_protocol,
     mcp_tools,
     migrations,
@@ -2393,6 +2394,16 @@ async def ask_script():
                         headers={"Cache-Control": "public, max-age=3600, must-revalidate"})
 
 
+@app.get("/static/visual-components.js", include_in_schema=False)
+async def visual_components_script():
+    """Shared public visual semantics; explicit like every browser asset."""
+    js = STATIC_DIR / "visual-components.js"
+    if not js.exists():
+        raise HTTPException(status_code=404, detail="Visual components not found")
+    return FileResponse(js, media_type="application/javascript",
+                        headers={"Cache-Control": "public, max-age=3600, must-revalidate"})
+
+
 @app.get("/static/tag-pipeline.png", include_in_schema=False)
 async def tag_pipeline_graphic():
     """The TAG ai intelligence-layer graphic, hot-linked by the superintendent
@@ -2610,6 +2621,8 @@ async def mcp_endpoint(request: Request):
         list_tools=mcp_tools.list_tools,
         instructions=mcp_tools.instructions(),
         allowed_origins=MCP_ALLOWED_ORIGINS,
+        list_resources=mcp_apps.list_resources,
+        read_resource=mcp_apps.read_resource,
     )
     if body is None:                      # a notification: 202, no content
         return Response(status_code=status)

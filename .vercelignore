@@ -26,6 +26,8 @@ scripts/*
 !scripts/isd_intel.py
 !scripts/freshness_vintages.json
 tests/
+design/
+plugin/
 sql/
 .github/
 .claude/

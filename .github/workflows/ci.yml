@@ -40,6 +40,12 @@ jobs:
       - name: Lint with ruff
         run: uv run --locked --no-sync ruff check .
 
+      - name: Install plugin validation dependencies
+        run: |
+          node --version
+          npm --version
+          npm ci --ignore-scripts --prefix tests/plugin
+
       # The test suite parses these too, but it SKIPS when node is missing.
       # A skipped accessibility-critical check reads as a pass, so run it here
       # as its own step where an absent node is a hard failure. A const

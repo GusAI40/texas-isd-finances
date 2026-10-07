@@ -186,7 +186,7 @@ def test_monitor_workflow_exists_and_runs_every_watchdog():
     """The audit finding was not that the checks were missing — it was that
     nothing RAN them. This pins the wiring."""
     assert MONITOR.exists(), "monitor workflow is gone — nothing watches production"
-    y = MONITOR.read_text()
+    y = MONITOR.read_text(encoding="utf-8")
     assert "schedule" in y and re.search(r"cron:\s*'0 12 \* \* \*'", y), \
         "monitor must run on a daily schedule"
     assert "workflow_dispatch" in y, "monitor must be runnable by hand"
@@ -202,7 +202,7 @@ def test_monitor_workflow_exists_and_runs_every_watchdog():
 def test_monitor_workflow_needs_no_secrets():
     """Every endpoint the monitor hits is public by design; a secret reference
     appearing here would mean that stopped being true."""
-    assert "secrets." not in MONITOR.read_text()
+    assert "secrets." not in MONITOR.read_text(encoding="utf-8")
 
 
 if __name__ == "__main__":
@@ -261,7 +261,7 @@ def test_every_page_year_source_either_proves_itself_or_says_why():
     import json
     from pathlib import Path
     d = json.loads((Path(__file__).resolve().parents[1] / "scripts"
-                    / "freshness_vintages.json").read_text())
+                    / "freshness_vintages.json").read_text(encoding="utf-8"))
     for name, spec in d["sources"].items():
         if spec.get("method") != "page_year":
             continue
@@ -372,12 +372,12 @@ def test_the_balance_check_has_its_own_workflow():
     Monday. Its own file states the dependency at the top."""
     from pathlib import Path as _P
     wf_dir = _P(__file__).resolve().parents[1] / ".github" / "workflows"
-    own = (wf_dir / "llm-balance.yml").read_text()
+    own = (wf_dir / "llm-balance.yml").read_text(encoding="utf-8")
     assert "check_llm_balance.py" in own
     assert "DEEPSEEK_API_KEY" in own
     assert "NOT CONFIGURED" in own
     assert "github.event_name == 'schedule'" in own
     assert "exit 1" in own, \
         "an unconfigured scheduled monitor must notify instead of going green"
-    assert "check_llm_balance" not in (wf_dir / "monitor.yml").read_text(), \
+    assert "check_llm_balance" not in (wf_dir / "monitor.yml").read_text(encoding="utf-8"), \
         "monitor.yml must stay secret-free"

@@ -17,6 +17,20 @@ Entry template:
 
 ---
 
+## 2026-10-07 — Recover approved execution after the workstation crash
+
+**What changed.** Recovered the execution branch and opened draft PR #82. Preserved the detailed data, visual, and plugin plans in checkpoint `37ec5d2`. The production revision remains `73df1896ed0818020ec1c15c06f5ee823db7ec0f` and health/stats respond. Implementation and independent reviews remain in progress; this entry does not certify the working tree or record a release.
+
+**Why.** The user requires the actual public UI to satisfy a measured 95% visual / 5% prose rule. Finder/cohort fixes and prototype screenshots do not establish it. Recorded public endpoint fixtures now allow deterministic populated reports; current Dallas measurements still fail, and the redesign must continue.
+
+**Gotchas.** Actual ChatGPT owner connection and all eleven normalized tool calls succeeded. Downloading the generated plugin ZIP recovered the real `.app.json` mapping; its management page explicitly says DEVELOPMENT. Inspector's exact warning concerns a nullable `students` type array, not a failed call. Strict recursive schema validation exposed a duplicate required field that shallow tests missed. PostgreSQL 17 rejects matview `LOCK TABLE`; Astra revised the bounded replacement mechanism rather than treating a syntax pass as database proof. Use `.venv` tools: default Python produced misleading missing-dependency failures.
+
+**Open items.** Finish independently verified 95/5 initial/full report geometry and public workflows; complete disposable PostgreSQL 17 grant, dependency, rollback, and recovery coverage; validate actual host visuals and package installation; record exact-revision CI/release evidence. Human participant, assistive-technology, full raw-rebuild, independent-account and public-review gates remain explicit. No private contact data or production secrets entered the package/evidence, and synced project sources remain untouched.
+
+**Checkpoint notes.** Fresh T2 verification passed A-DB-02/03/04 on PostgreSQL 17.11 (9 tests). Full remaining data verification still failed its coverage gates despite 11 passing harness cases; the Sol escalation continues. Recursive AJV and actual Inspector now accept all eleven success schemas; actual Inspector also reads the self-contained visual resource after correcting its modern cache fields. Generated dictionary checks passed with 20 artifacts, 617 fields and 79 routes. A read-only production pooler connection independently confirmed PostgreSQL 17.6, 20,587 rows, 1,310 districts and FY2025; no database change occurred. CLI-pulled configuration stays in a local file outside Git, with sensitive placeholders never treated as verified values. GitHub Actions is disabled; restore-CI-only approval is pending, so Linux evidence stays UNVERIFIED. This implementation checkpoint remains a draft and does not establish the 95/5 target or a production release.
+
+---
+
 ## 2026-10-07 — Documentation audit establishes the proof boundary before visual/plugin work
 
 **What changed.** Added the dated audit, root navigation index, plain-language dictionary, and services/tools/source inventory. Copied public-only live, MCP, freshness, and finance check metadata into `docs/evidence/2026-10-07/`. No application, SQL, workflow, generated-data, deployment, or external-account change was made.

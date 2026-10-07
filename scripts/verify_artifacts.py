@@ -27,6 +27,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -61,7 +62,7 @@ def summarise(p: Path) -> dict:
     """A few figures to print when a hash differs, so the diff is legible
     rather than 'the bytes changed'."""
     try:
-        d = json.loads(p.read_text())
+        d = json.loads(p.read_text(encoding="utf-8"))
     except Exception:
         return {}
     m = d.get("meta", {})
@@ -77,6 +78,17 @@ def summarise(p: Path) -> dict:
     return out
 
 
+def is_known_missing_raw_input(output: str) -> bool:
+    """Only classify an explicit repository data-path OS error as unverified.
+
+    Builder prose is not evidence.  In particular, a traceback or a missing
+    temporary chained artifact remains a failed build.
+    """
+    normalized = output.replace("\\", "/").lower()
+    return ("data/" in normalized and
+            ("filenotfounderror" in normalized or "no such file or directory" in normalized))
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -85,11 +97,13 @@ def main() -> int:
     args = ap.parse_args()
 
     static = ROOT / "static"
+    child_env = os.environ | {"PYTHONIOENCODING": "utf-8", "PYTHONUTF8": "1"}
     if args.update:
         for name, builder, extra in CHAIN:
             print(f"rebuilding {name} ...", flush=True)
             r = subprocess.run([sys.executable, f"scripts/{builder}", *extra],
-                               cwd=ROOT, capture_output=True, text=True)
+                               cwd=ROOT, capture_output=True, text=True, encoding="utf-8",
+                               errors="backslashreplace", env=child_env)
             if r.returncode:
                 print(r.stderr, file=sys.stderr)
                 return 1
@@ -125,7 +139,8 @@ def main() -> int:
                 # Coverage counts are measured against the economics artifact,
                 # so measure against the freshly rebuilt one, not the committed.
                 cmd += ["--economics", str(tmpdir / "economics_data.json")]
-            r = subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True)
+            r = subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True, encoding="utf-8",
+                               errors="backslashreplace", env=child_env)
             if r.returncode:
                 # A raw source that is not committed (they are far too large)
                 # means this artefact CANNOT be checked on this machine. That is
@@ -134,12 +149,14 @@ def main() -> int:
                 # ignored. Report it as unverified and keep the exit code for
                 # real disagreement.
                 blob = (r.stderr + r.stdout).lower()
-                raw_missing = ("missing input" in blob or "missing data/" in blob
-                               or "no such file or directory" in blob
-                               or "not present" in blob or "run scripts/" in blob)
+                # Only a missing path inside repository data/ is a known absent
+                # raw-input condition. Generic “not present” prose and arbitrary
+                # missing files are failures that need engineering attention.
+                raw_missing = is_known_missing_raw_input(blob)
                 # Cascade: this builder reads an artefact that could not itself
                 # be built here. Its failure says nothing about ITS source.
-                cascade = any(str(tmpdir / dep) .lower() in blob
+                normalized_blob = blob.replace("\\", "/")
+                cascade = any(str(tmpdir / dep).replace("\\", "/").lower() in normalized_blob
                               for dep, _ in unbuildable)
                 if raw_missing or cascade:
                     unbuildable.append((name, r.stderr.strip()[-200:]))

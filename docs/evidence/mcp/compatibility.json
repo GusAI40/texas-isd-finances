@@ -1,0 +1,7 @@
+{
+  "date": "2026-10-07",
+  "revision": "37ec5d23c7e8380531db7507bb15c3950ea1d9f1",
+  "inspector": {"version": "2.9.0", "modern": "PASS: eleven tools; strict warning retained in inspector-portability.json", "legacy": "HTTP 400 / -32601 expected", "rawEvidence": "../mcp-host/inspector-results.json", "strictEvidence": "../mcp-host/inspector-portability.json", "disposition": "The legal multi-type nullable find_district.students schema was changed to single-type anyOf branches; repeat strict Inspector after preview deployment.", "sha256": "6FDEF1B1BC9203008551137EDD1430401260F930326973DB9DC137F8EC1609BD"},
+  "chatgptCustomConnector": {"registration": "PASS", "toolCalls": "11/11 fulfilled", "evidence": "../mcp-host/connector-results.json", "limit": "Host-normalized results, not raw per-tool wire frames."},
+  "unverified": ["implemented visual resource rendering in ChatGPT", "plugin install in a fresh supported test channel", "independent eligible-account install", "public directory review/listing"]
+}

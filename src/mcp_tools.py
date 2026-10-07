@@ -26,11 +26,12 @@ costs DeepSeek tokens against a global ceiling, and exposing it would let any
 text in any chat reach a SQL agent. The tools below are deterministic lookups;
 there is nothing to inject and nothing to spend.
 """
+
 from __future__ import annotations
 
 from typing import Any, Callable
 
-from . import absences
+from . import absences, mcp_apps
 from . import format as fmt
 
 # What an assistant is told this server is for, returned by server/discover.
@@ -61,11 +62,13 @@ def instructions() -> str:
     meta = {}
     try:
         meta = (_api()._bonds() or {}).get("meta") or {}
-    except Exception:                     # noqa: BLE001 — never block a connect
+    except Exception:  # noqa: BLE001 — never block a connect
         pass
     return _INSTRUCTIONS.format(
         bonds=f"{meta.get('propositions'):,}" if meta.get("propositions") else "all",
-        first=meta.get("first_year", 1958), last=meta.get("last_year", "today"))
+        first=meta.get("first_year", 1958),
+        last=meta.get("last_year", "today"),
+    )
 
 
 def _api():
@@ -76,6 +79,7 @@ def _api():
     duplicating a second in-memory copy of a 2.8 MB artefact.
     """
     from . import api
+
     return api
 
 
@@ -121,9 +125,12 @@ class NeedsInput(Exception):
         self.key, self.message, self.schema = key, message, schema
 
     def as_input_request(self) -> dict:
-        return {self.key: {"method": "elicitation/create",
-                           "params": {"mode": "form", "message": self.message,
-                                      "requestedSchema": self.schema}}}
+        return {
+            self.key: {
+                "method": "elicitation/create",
+                "params": {"mode": "form", "message": self.message, "requestedSchema": self.schema},
+            }
+        }
 
 
 def _candidates(name: str) -> list[dict]:
@@ -131,16 +138,23 @@ def _candidates(name: str) -> list[dict]:
     identically-named districts apart."""
     q = str(name or "").strip().lower()
     data = _need(_api()._fallback_index, "district index")
-    rows = [r for r in data.get("districts", [])
-            if str(r["district_name"]).lower() == q
-            or str(r["district_name"]).lower().startswith(q)]
+    rows = [
+        r
+        for r in data.get("districts", [])
+        if str(r["district_name"]).lower() == q or str(r["district_name"]).lower().startswith(q)
+    ]
     sizes = {}
     forensic = _api()._forensics()
     if forensic:
         sizes = {r["n"]: r.get("students") for r in forensic.get("table", [])}
-    return [{"district_number": r["district_number"],
-             "district_name": _title(r["district_name"]),
-             "students": sizes.get(r["district_number"])} for r in rows]
+    return [
+        {
+            "district_number": r["district_number"],
+            "district_name": _title(r["district_name"]),
+            "students": sizes.get(r["district_number"]),
+        }
+        for r in rows
+    ]
 
 
 def _resolve(number: str) -> str:
@@ -161,32 +175,41 @@ def _resolve(number: str) -> str:
     if len(hits) == 1:
         return hits[0]["district_number"]
     if len(hits) > 1:
-        labels = {h["district_number"]:
-                  f"{h['district_name']} ({h['students']:,} students)"
-                  if h["students"] else h["district_name"]
-                  for h in hits}
+        labels = {
+            h["district_number"]: f"{h['district_name']} ({h['students']:,} students)"
+            if h["students"]
+            else h["district_name"]
+            for h in hits
+        }
         raise NeedsInput(
             "district_number",
             f"{n!r} matches {len(hits)} Texas districts. They are different "
             f"districts with the same name, and their figures are not "
-            f"interchangeable — choose which one is meant:\n"
-            + "\n".join(f"  {k}  {v}" for k, v in labels.items()),
-            {"type": "object",
-             "properties": {"district_number": {
-                 "type": "string",
-                 "enum": sorted(labels),
-                 "description": "; ".join(f"{k} = {v}" for k, v in labels.items())}},
-             "required": ["district_number"],
-             "additionalProperties": False})
+            f"interchangeable — choose which one is meant:\n" + "\n".join(f"  {k}  {v}" for k, v in labels.items()),
+            {
+                "type": "object",
+                "properties": {
+                    "district_number": {
+                        "type": "string",
+                        "enum": sorted(labels),
+                        "description": "; ".join(f"{k} = {v}" for k, v in labels.items()),
+                    }
+                },
+                "required": ["district_number"],
+                "additionalProperties": False,
+            },
+        )
     raise ToolError(
         f"{number!r} is not a TEA district number and matches no Texas "
         "district. Numbers are six digits, e.g. 057905 for Dallas ISD. Use "
-        "find_district to look one up.")
+        "find_district to look one up."
+    )
 
 
 # --------------------------------------------------------------------------
 # tools
 # --------------------------------------------------------------------------
+
 
 def find_district(args: dict) -> tuple[str, dict]:
     q = str(args.get("name") or "").strip().lower()
@@ -195,8 +218,7 @@ def find_district(args: dict) -> tuple[str, dict]:
     data = _need(_api()._fallback_index, "district index")
     rows = data.get("districts", [])
     starts = [r for r in rows if str(r["district_name"]).lower().startswith(q)]
-    contains = [r for r in rows if q in str(r["district_name"]).lower()
-                and r not in starts]
+    contains = [r for r in rows if q in str(r["district_name"]).lower() and r not in starts]
     hits = (starts + contains)[:12]
     if not hits:
         raise ToolError(f"No Texas district matches {args.get('name')!r}.")
@@ -207,21 +229,31 @@ def find_district(args: dict) -> tuple[str, dict]:
     forensic = _api()._forensics()
     if forensic:
         sizes = {r["n"]: r.get("students") for r in forensic.get("table", [])}
-    out = [{"district_number": r["district_number"],
+    out = [
+        {
+            "district_number": r["district_number"],
             "district_name": _title(r["district_name"]),
-            "students": sizes.get(r["district_number"])} for r in hits]
+            "students": sizes.get(r["district_number"]),
+        }
+        for r in hits
+    ]
     lines = "\n".join(
-        f"  {r['district_number']}  {r['district_name']}"
-        + (f"  ({r['students']:,} students)" if r["students"] else "")
-        for r in out)
-    text = (f"{len(out)} district(s) matching {args.get('name')!r}:\n{lines}\n\n"
-            "Texas has thirteen pairs of districts sharing a name (two Wylie ISDs, "
-            "two Highland Park ISDs, two Northside ISDs and more), so confirm which "
-            "one is meant before quoting figures.")
-    return text, {"matches": out, "limits": [
-        "A district name is not an identifier in Texas — thirteen names are "
-        "shared by two districts each. Use the district_number.",
-    ]}
+        f"  {r['district_number']}  {r['district_name']}" + (f"  ({r['students']:,} students)" if r["students"] else "")
+        for r in out
+    )
+    text = (
+        f"{len(out)} district(s) matching {args.get('name')!r}:\n{lines}\n\n"
+        "Texas has thirteen pairs of districts sharing a name (two Wylie ISDs, "
+        "two Highland Park ISDs, two Northside ISDs and more), so confirm which "
+        "one is meant before quoting figures."
+    )
+    return text, {
+        "matches": out,
+        "limits": [
+            "A district name is not an identifier in Texas — thirteen names are "
+            "shared by two districts each. Use the district_number.",
+        ],
+    }
 
 
 def district_money(args: dict) -> tuple[str, dict]:
@@ -242,10 +274,17 @@ def district_money(args: dict) -> tuple[str, dict]:
         f"Revenue: {r.get('local_pct')}% local, {r.get('state_pct')}% state, "
         f"{r.get('federal_pct')}% federal — local measured on GROSS property "
         f"collections before recapture is deducted.\n"
-        + (f"School tax on a $300,000 home: {_usd(t.get('bill_on_home'))}"
-           + (f", of which {_usd(t.get('leaves_district'))} leaves the district "
-              "under recapture.\n" if t.get("leaves_district") else ".\n")
-           if t.get("bill_on_home") else "This district levies no property tax.\n"))
+        + (
+            f"School tax on a $300,000 home: {_usd(t.get('bill_on_home'))}"
+            + (
+                f", of which {_usd(t.get('leaves_district'))} leaves the district under recapture.\n"
+                if t.get("leaves_district")
+                else ".\n"
+            )
+            if t.get("bill_on_home")
+            else "This district levies no property tax.\n"
+        )
+    )
     return text, {**rec, "limits": data["meta"].get("limits", [])}
 
 
@@ -281,24 +320,30 @@ def district_lineage(args: dict) -> tuple[str, dict]:
     metric = args.get("metric") or "total_per_student"
     lin = alloc_lin if metric in (alloc_lin.get("figures") or {}) else rev_lin
     figures = lin.get("figures") or {}
-    available = sorted((set(rev_lin.get("figures") or {})
-                        | set(alloc_lin.get("figures") or {})) & set(templates))
+    available = sorted((set(rev_lin.get("figures") or {}) | set(alloc_lin.get("figures") or {})) & set(templates))
     if metric not in available:
         raise ToolError(
             f"No published working for {metric!r}. This district publishes "
             f"working for: {', '.join(available) or 'nothing yet'}. Figures "
             "without an emitted numerator and denominator cannot have one "
-            "reconstructed from the rounded result.")
+            "reconstructed from the rounded result."
+        )
 
     raw = {**templates[metric], **figures[metric], "denominator": lin.get("denominator")}
     ev = _lin.Evidence(
-        metric=raw["metric"], value=raw["value"], numerator=raw.get("numerator"),
+        metric=raw["metric"],
+        value=raw["value"],
+        numerator=raw.get("numerator"),
         denominator=raw.get("denominator"),
         denominator_type=raw.get("denominator_type", ""),
-        formula=raw.get("formula", ""), unit=raw.get("unit", ""),
-        rounding=raw.get("rounding", 0.5), fiscal_year=raw.get("fiscal_year"),
-        district_number=num, source=raw.get("source", ""),
-        artifact=raw.get("artifact", ""), source_vintage=str(meta.get("year", "")),
+        formula=raw.get("formula", ""),
+        unit=raw.get("unit", ""),
+        rounding=raw.get("rounding", 0.5),
+        fiscal_year=raw.get("fiscal_year"),
+        district_number=num,
+        source=raw.get("source", ""),
+        artifact=raw.get("artifact", ""),
+        source_vintage=str(meta.get("year", "")),
         notes=[raw["source_note"]] if raw.get("source_note") else [],
         recomputed_value=raw.get("recomputed_value"),
         recomputed_from=lin.get("recomputed_from", "") if "recomputed_value" in raw else "",
@@ -318,18 +363,21 @@ def district_lineage(args: dict) -> tuple[str, dict]:
         f"({ev.denominator_type}). Formula: {ev.formula}.\n"
         f"Published by {ev.source}.\n"
         f"Publication gate: {g['verdict']}. "
-        + "; ".join(f"{k}={v}" for k, v in g["checks"].items()) + ".\n"
+        + "; ".join(f"{k}={v}" for k, v in g["checks"].items())
+        + ".\n"
         + (" ".join(g["why"]) + "\n" if g["why"] else "")
         + (f"Caveat: {' '.join(ev.notes)}\n" if ev.notes else "")
-        + ("This figure is VERIFIED: a second, independent re-read of the source "
-           "data by different code produced the same number. That means two roads "
-           "agree. It does NOT mean the figure is true — both roads read the same "
-           "cleaned CSV, and neither can make TEA's filing right, because districts "
-           "file PEIMS and it is corrected for years afterwards.\n"
-           if g["verdict"] == _lin.VERIFIED else
-           "This figure did NOT pass every check. Say so if you quote it.\n"))
-    return text, {**out, "available_metrics": available,
-                  "limits": data["meta"].get("limits", [])}
+        + (
+            "This figure is VERIFIED: a second, independent re-read of the source "
+            "data by different code produced the same number. That means two roads "
+            "agree. It does NOT mean the figure is true — both roads read the same "
+            "cleaned CSV, and neither can make TEA's filing right, because districts "
+            "file PEIMS and it is corrected for years afterwards.\n"
+            if g["verdict"] == _lin.VERIFIED
+            else "This figure did NOT pass every check. Say so if you quote it.\n"
+        )
+    )
+    return text, {**out, "available_metrics": available, "limits": data["meta"].get("limits", [])}
 
 
 def district_forensics(args: dict) -> tuple[str, dict]:
@@ -352,28 +400,38 @@ def district_forensics(args: dict) -> tuple[str, dict]:
         f"(state median {_usd(o.get('state_median'))}).\n"
         f"2. WHO PAYS: {p.get('local_pct')}c of every revenue dollar is raised locally "
         f"against {p.get('state_local_pct')}c statewide, on gross collections.\n"
-        + (f"3. THE BALLOT: {_big(b.get('approved'))} approved by voters across "
-           f"{b.get('props')} propositions since {b.get('first_year')}; "
-           f"{b.get('athletics_share_pct')}% of what was asked named athletics — an "
-           f"UPPER BOUND, because propositions bundle purposes.\n"
-           if b else "3. THE BALLOT: no bond election on record.\n")
-        + (f"4. WHERE IT LANDED: {land.get('actual')}% at Meets against "
-           f"{land.get('expected')}% predicted by this district's own student need "
-           f"({land.get('gap'):+.1f} points).\n" if land else "")
-        + ("\nWhat stands out:\n" + "\n".join(
-            f"  - {f['label']}: {f['detail']}" for f in flags) if flags else "")
-        + ("\n\nWhat did NOT happen (these are findings, not missing data):\n"
-           + "\n".join(f"  - {a['sentence']}" for a in absent_findings)
-           if absent_findings else "")
-        + ("\n\nNot shown, and why:\n"
-           + "\n".join(f"  - {a['sentence']}" for a in absent_context)
-           if absent_context else "")
+        + (
+            f"3. THE BALLOT: {_big(b.get('approved'))} approved by voters across "
+            f"{b.get('props')} propositions since {b.get('first_year')}; "
+            f"{b.get('athletics_share_pct')}% of what was asked named athletics — an "
+            f"UPPER BOUND, because propositions bundle purposes.\n"
+            if b
+            else "3. THE BALLOT: no bond election on record.\n"
+        )
+        + (
+            f"4. WHERE IT LANDED: {land.get('actual')}% at Meets against "
+            f"{land.get('expected')}% predicted by this district's own student need "
+            f"({land.get('gap'):+.1f} points).\n"
+            if land
+            else ""
+        )
+        + ("\nWhat stands out:\n" + "\n".join(f"  - {f['label']}: {f['detail']}" for f in flags) if flags else "")
+        + (
+            "\n\nWhat did NOT happen (these are findings, not missing data):\n"
+            + "\n".join(f"  - {a['sentence']}" for a in absent_findings)
+            if absent_findings
+            else ""
+        )
+        + (
+            "\n\nNot shown, and why:\n" + "\n".join(f"  - {a['sentence']}" for a in absent_context)
+            if absent_context
+            else ""
+        )
         + "\n\nThese are descriptions of published numbers against published "
-          "thresholds, not findings of wrongdoing, and there is deliberately no "
-          "combined score."
+        "thresholds, not findings of wrongdoing, and there is deliberately no "
+        "combined score."
     )
-    return text, {**rec, "thresholds": data["meta"].get("thresholds", {}),
-                  "limits": data["meta"].get("limits", [])}
+    return text, {**rec, "thresholds": data["meta"].get("thresholds", {}), "limits": data["meta"].get("limits", [])}
 
 
 def district_trends(args: dict) -> tuple[str, dict]:
@@ -383,7 +441,8 @@ def district_trends(args: dict) -> tuple[str, dict]:
     if rec is None:
         raise ToolError(
             f"District {num} has no trend. Districts reporting fewer than eight of "
-            "the seventeen years are excluded — too little to call a trend.")
+            "the seventeen years are excluded — too little to call a trend."
+        )
     m = data["meta"]["measures"]
     name = _title(rec.get("district_name", num))
     lines = []
@@ -393,18 +452,22 @@ def district_trends(args: dict) -> tuple[str, dict]:
             continue
         unit = cfg["unit"]
         fmt = (lambda v: f"{v:.1f}%") if unit == "%" else _usd
-        steep = (" — moving that way faster than Texas as a whole"
-                 if vs and vs.get("steeper_than_state") else "")
+        steep = " — moving that way faster than Texas as a whole" if vs and vs.get("steeper_than_state") else ""
         lines.append(f"  {cfg['label']}: {fmt(ch['first'])} -> {fmt(ch['last'])}{steep}")
-    text = (f"{name} ({num}), fiscal {data['meta']['first_year']}-"
-            f"{data['meta']['last_year']}, constant 2024 dollars:\n"
-            + "\n".join(lines)
-            + ("\n\nNOTE: fewer than 500 students, so per-student figures swing on a "
-               "single hire or retirement. Read the direction, not the size."
-               if rec.get("small_district") else "")
-            + "\n\nA trend is a direction, not a cause: a falling instruction share "
-              "can be a district cutting classrooms or opening them, and this data "
-              "cannot tell the two apart.")
+    text = (
+        f"{name} ({num}), fiscal {data['meta']['first_year']}-"
+        f"{data['meta']['last_year']}, constant 2024 dollars:\n"
+        + "\n".join(lines)
+        + (
+            "\n\nNOTE: fewer than 500 students, so per-student figures swing on a "
+            "single hire or retirement. Read the direction, not the size."
+            if rec.get("small_district")
+            else ""
+        )
+        + "\n\nA trend is a direction, not a cause: a falling instruction share "
+        "can be a district cutting classrooms or opening them, and this data "
+        "cannot tell the two apart."
+    )
     return text, {**rec, "limits": data["meta"].get("limits", [])}
 
 
@@ -415,7 +478,8 @@ def district_bonds(args: dict) -> tuple[str, dict]:
     if rec is None:
         raise ToolError(
             f"District {num} has no bond election on record. Districts that never "
-            "went to voters for building debt have no entry.")
+            "went to voters for building debt have no entry."
+        )
     t = rec["totals"]
     name = _title(rec.get("district_name", num))
     recent = rec["elections"][-5:]
@@ -424,12 +488,13 @@ def district_bonds(args: dict) -> tuple[str, dict]:
         f"{t['first_year']} and {t['last_year']}; {t['passed']} carried "
         f"({t['pass_rate']}%). Asked {_usd(t['asked'])}, approved "
         f"{_usd(t['approved'])}.\nMost recent:\n"
-        + "\n".join(f"  {e['date']}  {_big(e['amount'])}  "
-                    f"{'carried' if e['passed'] else 'defeated'}  {e['purpose']}"
-                    for e in recent)
+        + "\n".join(
+            f"  {e['date']}  {_big(e['amount'])}  {'carried' if e['passed'] else 'defeated'}  {e['purpose']}"
+            for e in recent
+        )
         + "\n\nThe ballot is the only public record of what school debt was FOR — TEA "
-          "does not itemise facilities. Amounts are as asked, in the dollars of their "
-          "own year, and are not inflation-adjusted."
+        "does not itemise facilities. Amounts are as asked, in the dollars of their "
+        "own year, and are not inflation-adjusted."
     )
     return text, {**rec, "limits": data["meta"].get("limits", [])}
 
@@ -442,7 +507,8 @@ def district_debt(args: dict) -> tuple[str, dict]:
         raise ToolError(
             f"The Texas Bond Review Board tracks no outstanding bonded debt for "
             f"district {num}. It owes no principal and no interest on bonds — that "
-            f"is a finding about the district, not missing data.")
+            f"is a finding about the district, not missing data."
+        )
     name = _title(rec.get("district_name", num))
     fy = data["meta"]["fiscal_year"]
     lines = [
@@ -458,7 +524,8 @@ def district_debt(args: dict) -> tuple[str, dict]:
         lines.append(
             f"It carries capital appreciation bonds, which pay nothing until "
             f"maturity: {_big(cab['deferred_interest'])} of interest is deferred "
-            f"against {_big(cab['principal_outstanding'])} of principal outstanding.")
+            f"against {_big(cab['principal_outstanding'])} of principal outstanding."
+        )
         # The ratio only ever travels attached to the year it was taken at, so a
         # model quoting it cannot present a peak-year figure as a current one.
         lines.append(
@@ -466,15 +533,21 @@ def district_debt(args: dict) -> tuple[str, dict]:
             f"{peak['repaid_per_dollar_borrowed']}x repaid per dollar borrowed on "
             f"{_big(peak['principal'])}. The ratio is quoted at the peak year and "
             f"nowhere else — on a balance being paid off it rises by itself."
-            if peak else
-            "No dollars-repaid-per-dollar-borrowed figure is published for it: its "
+            if peak
+            else "No dollars-repaid-per-dollar-borrowed figure is published for it: its "
             "reported years are incomplete, so the terms it signed are not in the "
-            "record. The deferred interest above is known; the ratio is not.")
+            "record. The deferred interest above is known; the ratio is not."
+        )
     lines.append(
         "Borrowing to build schools is lawful and ordinary, and this is a balance "
         "sheet rather than a budget — it sits outside TEA's operating total "
-        "entirely and is not comparable to it.")
-    return "\n".join(lines), {**rec, "limits": data["meta"].get("limits", [])}
+        "entirely and is not comparable to it."
+    )
+    return "\n".join(lines), {
+        **rec,
+        "fiscal_year": fy,
+        "limits": data["meta"].get("limits", []),
+    }
 
 
 def district_campuses(args: dict) -> tuple[str, dict]:
@@ -486,22 +559,23 @@ def district_campuses(args: dict) -> tuple[str, dict]:
             f"TEA published no campus rating for district {num} in "
             f"{data['meta']['year']}. That is missing data, not a verdict on its "
             f"schools — a campus goes unrated when it has too few tested "
-            f"students or is in its first year.")
+            f"students or is in its first year."
+        )
     name = _title(rec.get("district_name", num))
-    worst = [c for c in rec["campuses"] if c["rating"] in ("D", "F")
-             and not c["is_alternative_education"]]
+    worst = [c for c in rec["campuses"] if c["rating"] in ("D", "F") and not c["is_alternative_education"]]
     lines = [
         f"{name} ({num}) is rated {rec['district_rating']} by Texas. Its "
         f"{len(rec['campuses'])} rated campuses run from {rec['worst']} to "
-        f"{rec['best']}" + (f", spanning {rec['spans_grades']} letter grades."
-                            if rec["spans_grades"] else ".")]
+        f"{rec['best']}" + (f", spanning {rec['spans_grades']} letter grades." if rec["spans_grades"] else ".")
+    ]
     if worst:
         lines.append(
-            f"{rec['students_below_a_d']:,} of its students attend one of the "
-            f"{len(worst)} campuses rated D or F:")
-        lines += [f"  {c['rating']}  {_title(c['campus_name'])} "
-                  f"({c['students']:,} students, {c['pct_poor']}% low-income)"
-                  for c in worst[:8]]
+            f"{rec['students_below_a_d']:,} of its students attend one of the {len(worst)} campuses rated D or F:"
+        )
+        lines += [
+            f"  {c['rating']}  {_title(c['campus_name'])} ({c['students']:,} students, {c['pct_poor']}% low-income)"
+            for c in worst[:8]
+        ]
     else:
         lines.append("No campus of its is rated D or F.")
     lines.append(
@@ -509,8 +583,13 @@ def district_campuses(args: dict) -> tuple[str, dict]:
         "this is the spread inside one district and is not a comparison with "
         "campuses elsewhere. Unrated campuses are excluded — that is missing "
         "data, not failure. A rating measures tested performance against state "
-        "targets, not a school.")
-    return "\n".join(lines), {**rec, "limits": data["meta"].get("limits", [])}
+        "targets, not a school."
+    )
+    return "\n".join(lines), {
+        **rec,
+        "year": data["meta"].get("year"),
+        "limits": data["meta"].get("limits", []),
+    }
 
 
 def district_national(args: dict) -> tuple[str, dict]:
@@ -525,8 +604,7 @@ def district_national(args: dict) -> tuple[str, dict]:
     # serves the same sentences, so a correction lands in both places.
     if rec is None:
         why = data.get("absent", {}).get(num)
-        raise ToolError(absences.no_national_row(
-            name, is_charter=why == "charter")["sentence"])
+        raise ToolError(absences.no_national_row(name, is_charter=why == "charter")["sentence"])
     if rec.get("ppcs") is None:
         # A handful of rows resolve to a TEA number but carry no usable
         # figure (the Census reports no positive spending or enrolment).
@@ -534,36 +612,43 @@ def district_national(args: dict) -> tuple[str, dict]:
             f"The Census fiscal {fy} file has a row for {name} ({num}) but "
             f"no usable per-pupil spending figure — it reports no positive "
             f"spending or enrolment for it. That is missing information, "
-            f"not a verdict.")
-    lines = [
-        f"{name} ({num}) spent {_usd(rec['ppcs'])} per student in Census "
-        f"current spending, fiscal {fy}."]
+            f"not a verdict."
+        )
+    lines = [f"{name} ({num}) spent {_usd(rec['ppcs'])} per student in Census current spending, fiscal {fy}."]
     if rec.get("pctile") is not None:
         lines.append(
             f"That is more per student than {rec['pctile']}% of the "
             f"{nat['districts_in_pool']:,} U.S. districts with 500+ students "
-            f"(the middle one spends {_usd(nat['median_ppcs'])}).")
+            f"(the middle one spends {_usd(nat['median_ppcs'])})."
+        )
     else:
         lines.append(
             "It is shown but not ranked: under 500 students, per-student "
             "figures swing on a single hire — the same rule used across the "
-            "site.")
+            "site."
+        )
     lines.append(
         f"Texas as a whole ranks {tx['rank']} of {tx['of']} ({tx['who']}) at "
         f"{_usd(tx['ppe'])} per student in average daily attendance, NPEFS "
         f"fiscal {fy}. Dividing by fall membership instead moves Texas only "
         f"to {data['states']['denominator_check']['rank_by_membership']}, so "
-        f"the denominator choice is not the story.")
+        f"the denominator choice is not the story."
+    )
     lines.append(
         "Current spending is the Census's own figure and EXCLUDES "
         "construction, land and debt — it is smaller than, and never mixed "
         f"with, the TEA all-funds figures other tools here report. Fiscal "
         f"{fy} is an earlier year than the TEA data on this site; never "
-        f"blend the two in one number.")
+        f"blend the two in one number."
+    )
     return "\n".join(lines), {
-        "district_number": num, **rec,
-        "states": {"texas": tx}, "national": nat,
-        "limits": data["meta"].get("limits", [])}
+        "district_number": num,
+        "fiscal_year": fy,
+        **rec,
+        "states": {"texas": tx},
+        "national": nat,
+        "limits": data["meta"].get("limits", []),
+    }
 
 
 def texas_overview(args: dict) -> tuple[str, dict]:
@@ -583,14 +668,24 @@ def texas_overview(args: dict) -> tuple[str, dict]:
         f"\nSeventeen years (fiscal {t['meta']['first_year']}-{t['meta']['last_year']}, "
         f"constant 2024 dollars):\n"
         + "\n".join(f"  {x['headline']}: {x['figure']}" for x in findings)
-        + (f"\n\nDid passing a bond change results? {w.get('difference'):+.2f} points, "
-           f"CI {w.get('ci_low'):+.2f} to {w.get('ci_high'):+.2f}, p={w.get('p_value')}"
-           + (" — SUGGESTIVE, NOT SETTLED. It crossed the conventional line only when "
-              "a district-matching bug was fixed. Do not report it as proof that bonds "
-              "raise test scores." if w.get("fragile") else ".") if w else "")
+        + (
+            f"\n\nDid passing a bond change results? {w.get('difference'):+.2f} points, "
+            f"CI {w.get('ci_low'):+.2f} to {w.get('ci_high'):+.2f}, p={w.get('p_value')}"
+            + (
+                " — SUGGESTIVE, NOT SETTLED. It crossed the conventional line only when "
+                "a district-matching bug was fixed. Do not report it as proof that bonds "
+                "raise test scores."
+                if w.get("fragile")
+                else "."
+            )
+            if w
+            else ""
+        )
     )
     return text, {
-        "statewide": s, "trend_findings": findings,
+        "year": f["meta"].get("year"),
+        "statewide": s,
+        "trend_findings": findings,
         "trend_change": t["statewide"]["change"],
         "deficit_by_year": t["statewide"]["deficit_by_year"],
         "balanced_panel_check": t["meta"]["balanced_panel_check"],
@@ -617,38 +712,45 @@ def compare_districts(args: dict) -> tuple[str, dict]:
         o = rec.get("outside_operating") or {}
         p = rec.get("who_pays") or {}
         land = rec.get("where_it_landed") or {}
-        rows.append({
-            "district_number": n, "district_name": _title(rec.get("district_name", n)),
-            "students": rec.get("students"),
-            "debt_per_student": o.get("per_student"),
-            "operating_per_student": o.get("operating_per_student"),
-            "local_pct": p.get("local_pct"),
-            "tax_on_300k_home": p.get("tax_bill_on_home"),
-            "recapture_per_student": p.get("recapture_per_student"),
-            "points_vs_predicted": land.get("gap"),
-        })
+        rows.append(
+            {
+                "district_number": n,
+                "district_name": _title(rec.get("district_name", n)),
+                "year": rec.get("year"),
+                "students": rec.get("students"),
+                "debt_per_student": o.get("per_student"),
+                "operating_per_student": o.get("operating_per_student"),
+                "local_pct": p.get("local_pct"),
+                "tax_on_300k_home": p.get("tax_bill_on_home"),
+                "recapture_per_student": p.get("recapture_per_student"),
+                "points_vs_predicted": land.get("gap"),
+            }
+        )
     if not rows:
-        raise ToolError("None of those district numbers are in the dataset: "
-                        + ", ".join(missing))
+        raise ToolError("None of those district numbers are in the dataset: " + ", ".join(missing))
+
     def _gap(v: Any) -> str:
         return "—" if v is None else f"{v:+.1f}"
 
-    head = (f"{'District':28}{'Students':>9}{'Debt/stu':>10}"
-            f"{'Oper/stu':>10}{'Local%':>8}{'vs pred':>9}")
+    head = f"{'District':28}{'Students':>9}{'Debt/stu':>10}{'Oper/stu':>10}{'Local%':>8}{'vs pred':>9}"
     body = "\n".join(
         f"{r['district_name'][:27]:28}{(r['students'] or 0):>9,}"
         f"{_usd(r['debt_per_student']):>10}{_usd(r['operating_per_student']):>10}"
         f"{(r['local_pct'] if r['local_pct'] is not None else 0):>7}%"
         f"{_gap(r['points_vs_predicted']):>9}"
-        for r in rows)
-    text = (head + "\n" + body
-            + ("\n\nNot found: " + ", ".join(missing) if missing else "")
-            + "\n\n'vs pred' is percentage points at the Meets bar against what each "
-              "district's OWN poverty, emergent-bilingual and special-education rates "
-              "predict — not against the state, which mostly measures poverty. Debt "
-              "per student sits outside TEA's operating total.")
-    return text, {"districts": rows, "not_found": missing,
-                  "limits": data["meta"].get("limits", [])}
+        for r in rows
+    )
+    text = (
+        head
+        + "\n"
+        + body
+        + ("\n\nNot found: " + ", ".join(missing) if missing else "")
+        + "\n\n'vs pred' is percentage points at the Meets bar against what each "
+        "district's OWN poverty, emergent-bilingual and special-education rates "
+        "predict — not against the state, which mostly measures poverty. Debt "
+        "per student sits outside TEA's operating total."
+    )
+    return text, {"districts": rows, "not_found": missing, "limits": data["meta"].get("limits", [])}
 
 
 # --------------------------------------------------------------------------
@@ -660,8 +762,10 @@ def compare_districts(args: dict) -> tuple[str, dict]:
 # which is why the compare tool's array argument carries no annotation.
 _DISTRICT_ARG = {
     "type": "string",
-    "description": ("Six-digit TEA district number, e.g. 057905 for Dallas ISD. "
-                    "Leading zeros matter. Use find_district to look one up."),
+    "description": (
+        "Six-digit TEA district number, e.g. 057905 for Dallas ISD. "
+        "Leading zeros matter. Use find_district to look one up."
+    ),
     "pattern": "^[0-9]{6}$",
     "x-mcp-header": "District",
 }
@@ -670,26 +774,40 @@ TOOLS: list[dict] = [
     {
         "name": "find_district",
         "title": "Find a Texas school district",
-        "description": ("Turn a district name into its six-digit TEA district number. "
-                        "Call this first: Texas has thirteen pairs of districts that "
-                        "share a name, so a name alone cannot identify one."),
+        "description": (
+            "Turn a district name into its six-digit TEA district number. "
+            "Call this first: Texas has thirteen pairs of districts that "
+            "share a name, so a name alone cannot identify one."
+        ),
         "inputSchema": {
             "type": "object",
-            "properties": {"name": {
-                "type": "string", "minLength": 2,
-                "description": "Part of a district name, e.g. 'Dallas' or 'Wylie'."}},
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "minLength": 2,
+                    "description": "Part of a district name, e.g. 'Dallas' or 'Wylie'.",
+                }
+            },
             "required": ["name"],
             "additionalProperties": False,
         },
         "outputSchema": {
             "type": "object",
             "properties": {
-                "matches": {"type": "array", "items": {
-                    "type": "object",
-                    "properties": {"district_number": {"type": "string"},
-                                   "district_name": {"type": "string"},
-                                   "students": {"type": ["integer", "null"]}},
-                    "required": ["district_number", "district_name"]}},
+                "matches": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "district_number": {"type": "string"},
+                            "district_name": {"type": "string"},
+                            # Keep null distinct from absence while avoiding the
+                            # multi-type spelling rejected by some tool mappers.
+                            "students": {"anyOf": [{"type": "integer"}, {"type": "null"}]},
+                        },
+                        "required": ["district_number", "district_name"],
+                    },
+                },
                 "limits": {"type": "array", "items": {"type": "string"}},
             },
             "required": ["matches", "limits"],
@@ -700,43 +818,58 @@ TOOLS: list[dict] = [
     {
         "name": "district_money",
         "title": "What a district raises and spends",
-        "description": ("Per-student spending split between operations and debt "
-                        "service, the local/state/federal revenue mix measured on "
-                        "GROSS property collections, and the school tax on a $300,000 "
-                        "home including what leaves under recapture."),
-        "inputSchema": {"type": "object", "properties": {"district_number": _DISTRICT_ARG},
-                        "required": ["district_number"], "additionalProperties": False},
+        "description": (
+            "Per-student spending split between operations and debt "
+            "service, the local/state/federal revenue mix measured on "
+            "GROSS property collections, and the school tax on a $300,000 "
+            "home including what leaves under recapture."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {"district_number": _DISTRICT_ARG},
+            "required": ["district_number"],
+            "additionalProperties": False,
+        },
         "annotations": {"readOnlyHint": True, "openWorldHint": False},
         "handler": district_money,
     },
     {
         "name": "district_lineage",
         "title": "Why is this number this number",
-        "description": ("The working behind a published per-student revenue figure: "
-                        "numerator, denominator, which student count the denominator "
-                        "IS, the formula, the publisher, and the verdict of the "
-                        "publication gate — whether an independent re-read of TEA's "
-                        "own file agreed, whether the source is current, and whether "
-                        "the source check was aimed at the file actually published "
-                        "from. Call this before quoting a figure as settled. The "
-                        "verdict may be UNVERIFIED, STALE or REFUSED, and those are "
-                        "returned as plainly as VERIFIED."),
+        "description": (
+            "The working behind a published per-student revenue figure: "
+            "numerator, denominator, which student count the denominator "
+            "IS, the formula, the publisher, and the verdict of the "
+            "publication gate — whether an independent re-read of TEA's "
+            "own file agreed, whether the source is current, and whether "
+            "the source check was aimed at the file actually published "
+            "from. Call this before quoting a figure as settled. The "
+            "verdict may be UNVERIFIED, STALE or REFUSED, and those are "
+            "returned as plainly as VERIFIED."
+        ),
         "inputSchema": {
             "type": "object",
             "properties": {
                 "district_number": _DISTRICT_ARG,
-                "metric": {"type": "string",
-                           "enum": ["total_per_student", "local_per_student",
-                                    "state_per_student", "federal_per_student",
-                                    "spend_instruction_per_student",
-                                    "spend_debt_per_student",
-                                    "spend_operating_per_student"],
-                           "description": "Which published figure to open up: "
-                                          "the four revenue figures or the "
-                                          "three spending divisions. Defaults "
-                                          "to total_per_student."},
+                "metric": {
+                    "type": "string",
+                    "enum": [
+                        "total_per_student",
+                        "local_per_student",
+                        "state_per_student",
+                        "federal_per_student",
+                        "spend_instruction_per_student",
+                        "spend_debt_per_student",
+                        "spend_operating_per_student",
+                    ],
+                    "description": "Which published figure to open up: "
+                    "the four revenue figures or the "
+                    "three spending divisions. Defaults "
+                    "to total_per_student.",
+                },
             },
-            "required": ["district_number"], "additionalProperties": False,
+            "required": ["district_number"],
+            "additionalProperties": False,
         },
         "annotations": {"readOnlyHint": True, "openWorldHint": False},
         "handler": district_lineage,
@@ -744,94 +877,132 @@ TOOLS: list[dict] = [
     {
         "name": "district_forensics",
         "title": "The four money questions Texas reports separately",
-        "description": ("What sits OUTSIDE TEA's operating total (debt service), who "
-                        "actually pays before recapture is deducted, what the ballot "
-                        "said the debt was for, and where results landed against what "
-                        "the district's own student need predicts. Returns descriptive "
-                        "flags with the published threshold behind each one."),
-        "inputSchema": {"type": "object", "properties": {"district_number": _DISTRICT_ARG},
-                        "required": ["district_number"], "additionalProperties": False},
+        "description": (
+            "What sits OUTSIDE TEA's operating total (debt service), who "
+            "actually pays before recapture is deducted, what the ballot "
+            "said the debt was for, and where results landed against what "
+            "the district's own student need predicts. Returns descriptive "
+            "flags with the published threshold behind each one."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {"district_number": _DISTRICT_ARG},
+            "required": ["district_number"],
+            "additionalProperties": False,
+        },
         "annotations": {"readOnlyHint": True, "openWorldHint": False},
         "handler": district_forensics,
     },
     {
         "name": "district_trends",
         "title": "Seventeen years, and which way a district is moving",
-        "description": ("Fiscal 2009-2025 in constant 2024 dollars: instruction's "
-                        "share of the operating dollar, instruction per student, debt "
-                        "service, security, operating balance and federal revenue — "
-                        "each against the statewide line, with a flag when the "
-                        "district is moving the worrying way faster than Texas."),
-        "inputSchema": {"type": "object", "properties": {"district_number": _DISTRICT_ARG},
-                        "required": ["district_number"], "additionalProperties": False},
+        "description": (
+            "Fiscal 2009-2025 in constant 2024 dollars: instruction's "
+            "share of the operating dollar, instruction per student, debt "
+            "service, security, operating balance and federal revenue — "
+            "each against the statewide line, with a flag when the "
+            "district is moving the worrying way faster than Texas."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {"district_number": _DISTRICT_ARG},
+            "required": ["district_number"],
+            "additionalProperties": False,
+        },
         "annotations": {"readOnlyHint": True, "openWorldHint": False},
         "handler": district_trends,
     },
     {
         "name": "district_bonds",
         "title": "Every bond a district put on a ballot",
-        "description": ("All decided bond propositions 1958-2024 with date, stated "
-                        "purpose, amount, and whether voters carried or defeated it. "
-                        "The ballot is the only public record of what school debt was "
-                        "for — TEA does not itemise facilities."),
-        "inputSchema": {"type": "object", "properties": {"district_number": _DISTRICT_ARG},
-                        "required": ["district_number"], "additionalProperties": False},
+        "description": (
+            "All decided bond propositions 1958-2024 with date, stated "
+            "purpose, amount, and whether voters carried or defeated it. "
+            "The ballot is the only public record of what school debt was "
+            "for — TEA does not itemise facilities."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {"district_number": _DISTRICT_ARG},
+            "required": ["district_number"],
+            "additionalProperties": False,
+        },
         "annotations": {"readOnlyHint": True, "openWorldHint": False},
         "handler": district_bonds,
     },
     {
         "name": "district_debt",
         "title": "What a district still owes, and the year it clears",
-        "description": ("Principal and interest still outstanding as the Texas Bond "
-                        "Review Board reports it — the balance, not the yearly "
-                        "payment every other figure here describes. Includes the "
-                        "interest share, the per-student balance, the year the debt "
-                        "clears, and any capital appreciation bonds, which pay "
-                        "nothing until maturity."),
-        "inputSchema": {"type": "object", "properties": {"district_number": _DISTRICT_ARG},
-                        "required": ["district_number"], "additionalProperties": False},
+        "description": (
+            "Principal and interest still outstanding as the Texas Bond "
+            "Review Board reports it — the balance, not the yearly "
+            "payment every other figure here describes. Includes the "
+            "interest share, the per-student balance, the year the debt "
+            "clears, and any capital appreciation bonds, which pay "
+            "nothing until maturity."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {"district_number": _DISTRICT_ARG},
+            "required": ["district_number"],
+            "additionalProperties": False,
+        },
         "annotations": {"readOnlyHint": True, "openWorldHint": False},
         "handler": district_debt,
     },
     {
         "name": "district_campuses",
         "title": "The campuses inside a district, and what the district rating hides",
-        "description": ("Every campus TEA rated in this district, worst first, "
-                        "against the district's own A-F rating. A district "
-                        "rating is an average and hides its tails: 138,664 Texas "
-                        "students attend a campus rated D or F inside a district "
-                        "rated A or B. Unrated campuses are excluded as missing "
-                        "data, not failure."),
-        "inputSchema": {"type": "object", "properties": {"district_number": _DISTRICT_ARG},
-                        "required": ["district_number"], "additionalProperties": False},
+        "description": (
+            "Every campus TEA rated in this district, worst first, "
+            "against the district's own A-F rating. A district "
+            "rating is an average and hides its tails: 138,664 Texas "
+            "students attend a campus rated D or F inside a district "
+            "rated A or B. Unrated campuses are excluded as missing "
+            "data, not failure."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {"district_number": _DISTRICT_ARG},
+            "required": ["district_number"],
+            "additionalProperties": False,
+        },
         "annotations": {"readOnlyHint": True, "openWorldHint": False},
         "handler": district_campuses,
     },
     {
         "name": "district_national",
         "title": "A district against every other U.S. district",
-        "description": ("The Census Bureau's own per-pupil current spending for "
-                        "this district and its percentile among the U.S. "
-                        "districts with 500+ students, plus where Texas ranks "
-                        "among the states. The fiscal year travels in the "
-                        "result — it is earlier than the TEA data here, and "
-                        "current spending excludes construction and debt, so "
-                        "never mix it with the all-funds figures other tools "
-                        "report. Charters have no Census row anywhere in the "
-                        "country, by construction."),
-        "inputSchema": {"type": "object", "properties": {"district_number": _DISTRICT_ARG},
-                        "required": ["district_number"], "additionalProperties": False},
+        "description": (
+            "The Census Bureau's own per-pupil current spending for "
+            "this district and its percentile among the U.S. "
+            "districts with 500+ students, plus where Texas ranks "
+            "among the states. The fiscal year travels in the "
+            "result — it is earlier than the TEA data here, and "
+            "current spending excludes construction and debt, so "
+            "never mix it with the all-funds figures other tools "
+            "report. Charters have no Census row anywhere in the "
+            "country, by construction."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {"district_number": _DISTRICT_ARG},
+            "required": ["district_number"],
+            "additionalProperties": False,
+        },
         "annotations": {"readOnlyHint": True, "openWorldHint": False},
         "handler": district_national,
     },
     {
         "name": "texas_overview",
         "title": "Statewide Texas school finance and the seventeen-year trend",
-        "description": ("Statewide totals plus the six measured trends: instruction's "
-                        "falling share of the operating dollar, rising debt service "
-                        "and security, the federal funding cliff, the first statewide "
-                        "operating deficit in the window, and stalled enrolment "
-                        "growth. Includes the balanced-panel robustness check."),
+        "description": (
+            "Statewide totals plus the six measured trends: instruction's "
+            "falling share of the operating dollar, rising debt service "
+            "and security, the federal funding cliff, the first statewide "
+            "operating deficit in the window, and stalled enrolment "
+            "growth. Includes the balanced-panel robustness check."
+        ),
         "inputSchema": {"type": "object", "additionalProperties": False},
         "annotations": {"readOnlyHint": True, "openWorldHint": False},
         "handler": texas_overview,
@@ -839,17 +1010,25 @@ TOOLS: list[dict] = [
     {
         "name": "compare_districts",
         "title": "Compare districts side by side",
-        "description": ("Two to six districts on students, debt service per student, "
-                        "operating spend per student, local revenue share, the tax on "
-                        "a $300,000 home, and points above or below what each "
-                        "district's own student need predicts."),
+        "description": (
+            "Two to six districts on students, debt service per student, "
+            "operating spend per student, local revenue share, the tax on "
+            "a $300,000 home, and points above or below what each "
+            "district's own student need predicts."
+        ),
         "inputSchema": {
             "type": "object",
-            "properties": {"district_numbers": {
-                "type": "array", "minItems": 2, "maxItems": 6,
-                "items": {"type": "string", "pattern": "^[0-9]{6}$"},
-                "description": "Six-digit TEA district numbers."}},
-            "required": ["district_numbers"], "additionalProperties": False,
+            "properties": {
+                "district_numbers": {
+                    "type": "array",
+                    "minItems": 2,
+                    "maxItems": 6,
+                    "items": {"type": "string", "pattern": "^[0-9]{6}$"},
+                    "description": "Six-digit TEA district numbers.",
+                }
+            },
+            "required": ["district_numbers"],
+            "additionalProperties": False,
         },
         "annotations": {"readOnlyHint": True, "openWorldHint": False},
         "handler": compare_districts,
@@ -858,11 +1037,729 @@ TOOLS: list[dict] = [
 
 _BY_NAME = {t["name"]: t for t in TOOLS}
 
+_STRING = {"type": "string"}
+_NONEMPTY_STRING = {"type": "string", "minLength": 1}
+_NUMBER = {"type": "number"}
+_NONNEGATIVE_NUMBER = {"type": "number", "minimum": 0}
+_INTEGER = {"type": "integer"}
+_NONNEGATIVE_INTEGER = {"type": "integer", "minimum": 0}
+_YEAR = {"type": "integer", "minimum": 1900, "maximum": 3000}
+_PERCENT = {"type": "number", "minimum": 0, "maximum": 100}
+_BOOLEAN = {"type": "boolean"}
+_DISTRICT_NUMBER = {"type": "string", "pattern": "^[0-9]{6}$"}
+_LIMITS = {"type": "array", "items": _NONEMPTY_STRING}
+
+
+def _nullable(schema: dict) -> dict:
+    return {"anyOf": [schema, {"type": "null"}]}
+
+
+def _array(items: dict, *, minimum: int | None = None, maximum: int | None = None) -> dict:
+    schema: dict[str, Any] = {"type": "array", "items": items}
+    if minimum is not None:
+        schema["minItems"] = minimum
+    if maximum is not None:
+        schema["maxItems"] = maximum
+    return schema
+
+
+def _object(properties: dict[str, dict], required: tuple[str, ...] = ()) -> dict:
+    schema: dict[str, Any] = {"type": "object", "properties": properties}
+    if required:
+        schema["required"] = list(required)
+    return schema
+
+
+def _success(required: tuple[str, ...], properties: dict[str, dict]) -> dict:
+    """Build one success-only contract without duplicating its limits key."""
+    required_once = list(dict.fromkeys((*required, "limits")))
+    return {
+        "type": "object",
+        "properties": {**properties, "limits": _LIMITS},
+        "required": required_once,
+    }
+
+
+_DISTRICT_IDENTITY = _object(
+    {"district_number": _DISTRICT_NUMBER, "district_name": _NONEMPTY_STRING},
+    ("district_number", "district_name"),
+)
+_SOURCE = _object(
+    {
+        "label": _NONEMPTY_STRING,
+        "url": {"type": "string", "pattern": "^https://txisd\\.dev/"},
+        "period": _NONEMPTY_STRING,
+    },
+    ("label", "url", "period"),
+)
+_METRIC = _object(
+    {
+        "id": _NONEMPTY_STRING,
+        "key": _NONEMPTY_STRING,
+        "label": _NONEMPTY_STRING,
+        "value": _nullable(_NUMBER),
+        "unit": _NONEMPTY_STRING,
+        "period": _NONEMPTY_STRING,
+        "population": _NONEMPTY_STRING,
+        "denominator": _NONEMPTY_STRING,
+        "status": {
+            "enum": ["observed", "modeled", "missing", "not_applicable", "unverified"]
+        },
+        "source": _SOURCE,
+        "limits": _LIMITS,
+    },
+    (
+        "id",
+        "key",
+        "label",
+        "value",
+        "unit",
+        "period",
+        "population",
+        "denominator",
+        "status",
+        "source",
+        "limits",
+    ),
+)
+_COMPARISON_METRICS = _object(
+    {
+        "district_number": _DISTRICT_NUMBER,
+        "district_name": _NONEMPTY_STRING,
+        "values": _array(_METRIC, minimum=4, maximum=4),
+    },
+    ("district_number", "district_name", "values"),
+)
+
+
+def _visual(view: str, metric_items: dict, *, minimum: int, maximum: int) -> dict:
+    return _object(
+        {
+            "schemaVersion": {"const": 1},
+            "view": {"const": view},
+            "districts": _array(_DISTRICT_IDENTITY, maximum=6),
+            "metrics": _array(metric_items, minimum=minimum, maximum=maximum),
+            "limits": _LIMITS,
+            "websiteUrl": {"type": "string", "pattern": "^https://txisd\\.dev/"},
+        },
+        ("schemaVersion", "view", "districts", "metrics", "limits", "websiteUrl"),
+    )
+
+
+_DISTRICT_VISUAL = _visual("district", _METRIC, minimum=4, maximum=4)
+_COMPARISON_VISUAL = _visual("comparison", _COMPARISON_METRICS, minimum=1, maximum=6)
+_STATEWIDE_VISUAL = _visual("statewide", _METRIC, minimum=2, maximum=2)
+
+_FIGURE = _object(
+    {"value": _NUMBER, "numerator": _NUMBER, "recomputed_value": _NUMBER},
+    ("value", "numerator", "recomputed_value"),
+)
+_LINEAGE = _object(
+    {
+        "denominator": _NONNEGATIVE_NUMBER,
+        "recomputed_from": _NONEMPTY_STRING,
+        "figures": {
+            "type": "object",
+            "additionalProperties": _FIGURE,
+        },
+    },
+    ("denominator", "recomputed_from", "figures"),
+)
+_TAX = _object(
+    {
+        "mo_rate": _nullable(_NONNEGATIVE_NUMBER),
+        "is_rate": _nullable(_NONNEGATIVE_NUMBER),
+        "total_rate": _nullable(_NONNEGATIVE_NUMBER),
+        "bill_on_home": _nullable(_NONNEGATIVE_NUMBER),
+        "leaves_district": _nullable(_NONNEGATIVE_NUMBER),
+        "home_value": _nullable(_NONNEGATIVE_NUMBER),
+        "tax_price": _nullable(_NONNEGATIVE_NUMBER),
+    },
+    ("mo_rate", "is_rate", "total_rate", "bill_on_home", "leaves_district", "home_value", "tax_price"),
+)
+_ALLOCATION = _object(
+    {
+        "instruction_per_student": _NONNEGATIVE_NUMBER,
+        "debt_per_student": _NONNEGATIVE_NUMBER,
+        "other_operating_per_student": _NONNEGATIVE_NUMBER,
+        "operating_per_student": _NONNEGATIVE_NUMBER,
+        "total_per_student": _NONNEGATIVE_NUMBER,
+        "payroll_per_student": _NONNEGATIVE_NUMBER,
+        "cents_on_debt_per_dollar_taught": _NONNEGATIVE_NUMBER,
+        "teachers_equivalent_of_debt": _NONNEGATIVE_NUMBER,
+        "lineage": _LINEAGE,
+    },
+    ("instruction_per_student", "debt_per_student", "operating_per_student", "total_per_student", "lineage"),
+)
+_REVENUE = _object(
+    {
+        "local_per_student": _NONNEGATIVE_NUMBER,
+        "state_per_student": _NONNEGATIVE_NUMBER,
+        "federal_per_student": _NONNEGATIVE_NUMBER,
+        "total_per_student": _NONNEGATIVE_NUMBER,
+        "local_pct": _PERCENT,
+        "state_pct": _PERCENT,
+        "federal_pct": _PERCENT,
+        "note": _NONEMPTY_STRING,
+        "lineage": _LINEAGE,
+    },
+    ("local_per_student", "state_per_student", "federal_per_student", "total_per_student", "lineage"),
+)
+_PEER = _object(
+    {
+        "district_number": _DISTRICT_NUMBER,
+        "name": _NONEMPTY_STRING,
+        "students": _NONNEGATIVE_INTEGER,
+        "pct_poor": _PERCENT,
+        "beats_by": _NUMBER,
+        "turnover": _PERCENT,
+        "spend_per_student": _NONNEGATIVE_NUMBER,
+    },
+    ("district_number", "name", "students", "pct_poor", "beats_by", "turnover", "spend_per_student"),
+)
+_ELECTION = _object(
+    {
+        "date": _NONEMPTY_STRING,
+        "year": _YEAR,
+        "amount": _NONNEGATIVE_NUMBER,
+        "purpose": _STRING,
+        "category": _NONEMPTY_STRING,
+        "passed": _BOOLEAN,
+        "for": _NONNEGATIVE_INTEGER,
+        "against": _NONNEGATIVE_INTEGER,
+        "votes_reported": _BOOLEAN,
+    },
+    ("date", "year", "amount", "purpose", "category", "passed", "for", "against", "votes_reported"),
+)
+_CHANGE = _object(
+    {
+        "first_year": _YEAR,
+        "first": _NUMBER,
+        "last_year": _YEAR,
+        "last": _NUMBER,
+        "change": _NUMBER,
+        "pct_change": _nullable(_NUMBER),
+    },
+    ("first_year", "first", "last_year", "last", "change", "pct_change"),
+)
+_VS_STATE = _object(
+    {"gap_vs_state": _NUMBER, "steeper_than_state": _BOOLEAN},
+    ("gap_vs_state", "steeper_than_state"),
+)
+_CHANGE_FIELDS = {
+    key: _CHANGE
+    for key in (
+        "instruction_share",
+        "instruction_ps",
+        "debt_ps",
+        "security_ps",
+        "operating_balance_ps",
+        "federal_ps",
+    )
+}
+_VS_STATE_FIELDS = {key: _VS_STATE for key in _CHANGE_FIELDS}
+_TREND_CHANGE = _object(_CHANGE_FIELDS, tuple(_CHANGE_FIELDS))
+
+_ABSENCE = _object(
+    {
+        "section": _NONEMPTY_STRING,
+        "kind": _NONEMPTY_STRING,
+        "sentence": _NONEMPTY_STRING,
+        "is_finding": _BOOLEAN,
+    },
+    ("section", "kind", "sentence", "is_finding"),
+)
+_FLAG = _object(
+    {"key": _NONEMPTY_STRING, "tone": _NONEMPTY_STRING, "label": _NONEMPTY_STRING, "detail": _NONEMPTY_STRING},
+    ("key", "tone", "label", "detail"),
+)
+_CAMPUS = _object(
+    {
+        "campus_number": {"type": "string", "pattern": "^[0-9]{9}$"},
+        "campus_name": _NONEMPTY_STRING,
+        "school_type": _NONEMPTY_STRING,
+        "students": _NONNEGATIVE_INTEGER,
+        "pct_poor": _PERCENT,
+        "rating": {"enum": ["A", "B", "C", "D", "F"]},
+        "score": {"type": "integer", "minimum": 0, "maximum": 100},
+        "is_alternative_education": _BOOLEAN,
+    },
+    (
+        "campus_number",
+        "campus_name",
+        "school_type",
+        "students",
+        "pct_poor",
+        "rating",
+        "score",
+        "is_alternative_education",
+    ),
+)
+_COMPARE_ROW = _object(
+    {
+        "district_number": _DISTRICT_NUMBER,
+        "district_name": _NONEMPTY_STRING,
+        # Added with the visual source-vintage mapping. It remains optional in
+        # the schema so saved, pre-addition host evidence still validates.
+        "year": _YEAR,
+        "students": _nullable(_NONNEGATIVE_INTEGER),
+        "debt_per_student": _nullable(_NONNEGATIVE_NUMBER),
+        "operating_per_student": _nullable(_NONNEGATIVE_NUMBER),
+        "local_pct": _nullable(_PERCENT),
+        "tax_on_300k_home": _nullable(_NONNEGATIVE_NUMBER),
+        "recapture_per_student": _nullable(_NONNEGATIVE_NUMBER),
+        "points_vs_predicted": _nullable(_NUMBER),
+    },
+    (
+        "district_number",
+        "district_name",
+        "students",
+        "debt_per_student",
+        "operating_per_student",
+        "local_pct",
+        "tax_on_300k_home",
+        "recapture_per_student",
+        "points_vs_predicted",
+    ),
+)
+
+OUTPUT_SCHEMAS = {
+    "find_district": _success(
+        ("matches",),
+        {
+            "matches": _array(
+                _object(
+                    {
+                        "district_number": _DISTRICT_NUMBER,
+                        "district_name": _NONEMPTY_STRING,
+                        "students": _nullable(_NONNEGATIVE_INTEGER),
+                    },
+                    ("district_number", "district_name", "students"),
+                ),
+                minimum=1,
+                maximum=12,
+            )
+        },
+    ),
+    "district_money": _success(
+        ("district_number", "district_name", "year", "students", "allocation", "revenue", "tax"),
+        {
+            "district_number": _DISTRICT_NUMBER,
+            "district_name": _NONEMPTY_STRING,
+            "year": _YEAR,
+            "students": _NONNEGATIVE_INTEGER,
+            "tax": _nullable(_TAX),
+            "allocation": _ALLOCATION,
+            "revenue": _REVENUE,
+            "recapture": _object(
+                {"paid": _NONNEGATIVE_NUMBER, "per_student": _NONNEGATIVE_NUMBER, "share_of_local_mo": _NONNEGATIVE_NUMBER},
+                ("paid", "per_student", "share_of_local_mo"),
+            ),
+            "own": _object(
+                {"pct_poor": _nullable(_PERCENT), "turnover": _nullable(_PERCENT)},
+                ("pct_poor", "turnover"),
+            ),
+            "reliability": _object(
+                {
+                    "score": _nullable(_NUMBER),
+                    "years_measured": _nullable(_NONNEGATIVE_INTEGER),
+                    "percentile": _nullable(_PERCENT),
+                },
+                ("score", "years_measured", "percentile"),
+            ),
+            "who_does_better": _array(_PEER, maximum=5),
+            "visual": _DISTRICT_VISUAL,
+        },
+    ),
+    "district_lineage": _success(
+        ("metric", "value", "gate", "available_metrics"),
+        {
+            "metric": _NONEMPTY_STRING,
+            "value": _NUMBER,
+            "numerator": _nullable(_NUMBER),
+            "denominator": _nullable(_NUMBER),
+            "denominator_type": _NONEMPTY_STRING,
+            "formula": _NONEMPTY_STRING,
+            "unit": _NONEMPTY_STRING,
+            "fiscal_year": _nullable(_YEAR),
+            "district_number": _DISTRICT_NUMBER,
+            "source": _NONEMPTY_STRING,
+            "source_url": _NONEMPTY_STRING,
+            "source_vintage": _STRING,
+            "calculation_version": _NONEMPTY_STRING,
+            "rounding": _NONNEGATIVE_NUMBER,
+            "recomputed_value": _nullable(_NUMBER),
+            "recomputed_from": _STRING,
+            "artifact": _NONEMPTY_STRING,
+            "independent_test": _NONEMPTY_STRING,
+            "fresh": _BOOLEAN,
+            "aim_ok": _BOOLEAN,
+            "refused_because": _STRING,
+            "notes": _array(_STRING),
+            "gate": _object(
+                {
+                    "verdict": _NONEMPTY_STRING,
+                    "checks": {"type": "object", "additionalProperties": _NONEMPTY_STRING},
+                    "why": _array(_STRING),
+                },
+                ("verdict", "checks", "why"),
+            ),
+            "available_metrics": _array(_NONEMPTY_STRING, minimum=1),
+        },
+    ),
+    "district_forensics": _success(
+        ("district_number", "district_name", "year", "outside_operating", "who_pays"),
+        {
+            "district_number": _DISTRICT_NUMBER,
+            "district_name": _NONEMPTY_STRING,
+            "students": _NONNEGATIVE_INTEGER,
+            "year": _YEAR,
+            "absences": _array(_ABSENCE),
+            "absence_summary": _object(
+                {
+                    "count": _NONNEGATIVE_INTEGER,
+                    "findings": _NONNEGATIVE_INTEGER,
+                    "sections": _array(_NONEMPTY_STRING),
+                    "kinds": _array(_NONEMPTY_STRING),
+                },
+                ("count", "findings", "sections", "kinds"),
+            ),
+            "outside_operating": _object(
+                {
+                    "per_student": _NONNEGATIVE_NUMBER,
+                    "percentile": _PERCENT,
+                    "state_median": _NONNEGATIVE_NUMBER,
+                    "cents_per_dollar_taught": _NONNEGATIVE_NUMBER,
+                    "teachers_equivalent": _NONNEGATIVE_NUMBER,
+                    "operating_per_student": _NONNEGATIVE_NUMBER,
+                    "total_per_student": _NONNEGATIVE_NUMBER,
+                    "annual_total": _NONNEGATIVE_NUMBER,
+                },
+                ("per_student", "percentile", "state_median"),
+            ),
+            "who_pays": _object(
+                {
+                    "local_pct": _PERCENT,
+                    "state_pct": _PERCENT,
+                    "federal_pct": _PERCENT,
+                    "local_percentile": _PERCENT,
+                    "state_local_pct": _PERCENT,
+                    "tax_bill_on_home": _nullable(_NONNEGATIVE_NUMBER),
+                    "home_value": _nullable(_NONNEGATIVE_NUMBER),
+                    "leaves_district": _nullable(_NONNEGATIVE_NUMBER),
+                    "recapture_per_student": _NONNEGATIVE_NUMBER,
+                    "recapture_paid": _NONNEGATIVE_NUMBER,
+                    "recapture_share_of_local_mo": _NONNEGATIVE_NUMBER,
+                    "recapture_percentile": _PERCENT,
+                    "basis": _NONEMPTY_STRING,
+                },
+                ("local_pct", "state_pct", "federal_pct", "basis"),
+            ),
+            "ballot": _object(
+                {
+                    "props": _NONNEGATIVE_INTEGER,
+                    "passed": _NONNEGATIVE_INTEGER,
+                    "pass_rate": _PERCENT,
+                    "asked": _NONNEGATIVE_NUMBER,
+                    "approved": _NONNEGATIVE_NUMBER,
+                    "approved_per_student": _NONNEGATIVE_NUMBER,
+                    "refused": _NONNEGATIVE_NUMBER,
+                    "first_year": _YEAR,
+                    "last_year": _YEAR,
+                    "athletics_asked": _NONNEGATIVE_NUMBER,
+                    "athletics_share_pct": _PERCENT,
+                    "match_method": _NONEMPTY_STRING,
+                    "match_exact": _BOOLEAN,
+                    "last_election": _ELECTION,
+                }
+            ),
+            "where_it_landed": _object(
+                {
+                    "actual": _PERCENT,
+                    "expected": _PERCENT,
+                    "gap": _NUMBER,
+                    "model_r2": _NUMBER,
+                    "spend_per_student": _NONNEGATIVE_NUMBER,
+                    "spend_state_median": _NONNEGATIVE_NUMBER,
+                    "need": _object(
+                        {
+                            "pct_econ_disadv": _PERCENT,
+                            "pct_emergent_bilingual": _PERCENT,
+                            "pct_special_ed": _PERCENT,
+                        },
+                        ("pct_econ_disadv", "pct_emergent_bilingual", "pct_special_ed"),
+                    ),
+                    "year": _YEAR,
+                }
+            ),
+            "flags": _array(_FLAG),
+            "thresholds": {"type": "object", "additionalProperties": _NUMBER},
+        },
+    ),
+    "district_trends": _success(
+        ("district_number", "district_name", "years", "series", "change", "vs_state", "small_district", "note"),
+        {
+            "district_number": _DISTRICT_NUMBER,
+            "district_name": _NONEMPTY_STRING,
+            "years": _array(_YEAR, minimum=8, maximum=17),
+            "series": _object(
+                {
+                    "enrollment": _array(_nullable(_NUMBER), minimum=8, maximum=17),
+                    "debt_share": _array(_nullable(_NUMBER), minimum=8, maximum=17),
+                    "instruction_share": _array(_nullable(_NUMBER), minimum=8, maximum=17),
+                    "instruction_ps": _array(_nullable(_NUMBER), minimum=8, maximum=17),
+                    "debt_ps": _array(_nullable(_NUMBER), minimum=8, maximum=17),
+                    "security_ps": _array(_nullable(_NUMBER), minimum=8, maximum=17),
+                    "operating_balance_ps": _array(_nullable(_NUMBER), minimum=8, maximum=17),
+                    "federal_ps": _array(_nullable(_NUMBER), minimum=8, maximum=17),
+                },
+                ("enrollment", "debt_share", "instruction_share", "instruction_ps", "debt_ps", "security_ps", "operating_balance_ps", "federal_ps"),
+            ),
+            "change": _TREND_CHANGE,
+            "vs_state": _object(_VS_STATE_FIELDS, tuple(_VS_STATE_FIELDS)),
+            "small_district": _BOOLEAN,
+            "note": _nullable(_STRING),
+        },
+    ),
+    "district_bonds": _success(
+        ("district_number", "district_name", "match", "totals", "elections"),
+        {
+            "district_number": _DISTRICT_NUMBER,
+            "district_name": _NONEMPTY_STRING,
+            "match": _object(
+                {"method": _NONEMPTY_STRING, "exact": _BOOLEAN, "source_names": _array(_NONEMPTY_STRING, minimum=1)},
+                ("method", "exact", "source_names"),
+            ),
+            "totals": _object(
+                {
+                    "props": _NONNEGATIVE_INTEGER,
+                    "passed": _NONNEGATIVE_INTEGER,
+                    "pass_rate": _PERCENT,
+                    "asked": _NONNEGATIVE_NUMBER,
+                    "approved": _NONNEGATIVE_NUMBER,
+                    "approved_share": _PERCENT,
+                    "first_year": _YEAR,
+                    "last_year": _YEAR,
+                    "athletics_asked": _NONNEGATIVE_NUMBER,
+                },
+                ("props", "passed", "pass_rate", "asked", "approved", "first_year", "last_year"),
+            ),
+            "elections": _array(_ELECTION, minimum=1),
+        },
+    ),
+    "district_debt": _success(
+        ("district_name", "students", "total", "principal", "interest", "per_student", "clears_in", "history"),
+        {
+            # Additive public-source vintage; optional so historical host
+            # payloads captured before this field remain valid evidence.
+            "fiscal_year": _YEAR,
+            "district_name": _NONEMPTY_STRING,
+            "students": _NONNEGATIVE_INTEGER,
+            "total": _NONNEGATIVE_NUMBER,
+            "principal": _NONNEGATIVE_NUMBER,
+            "interest": _NONNEGATIVE_NUMBER,
+            "per_student": _NONNEGATIVE_NUMBER,
+            "interest_share_pct": _PERCENT,
+            "clears_in": _nullable(_YEAR),
+            "history": _array(
+                {
+                    "type": "array",
+                    "prefixItems": [_YEAR, _NONNEGATIVE_NUMBER],
+                    # Inspector 2.9's portable schema mapper requires an
+                    # object here. This is exactly equivalent to JSON Schema
+                    # `false`: no item after the two prefix items can match.
+                    "items": {"not": {}},
+                    "minItems": 2,
+                    "maxItems": 2,
+                },
+                minimum=1,
+            ),
+            "cab": _object(
+                {
+                    "principal_outstanding": _NONNEGATIVE_NUMBER,
+                    "deferred_interest": _NONNEGATIVE_NUMBER,
+                    "peak": _nullable(
+                        _object(
+                            {"year": _YEAR, "repaid_per_dollar_borrowed": _NONNEGATIVE_NUMBER, "principal": _NONNEGATIVE_NUMBER},
+                            ("year", "repaid_per_dollar_borrowed", "principal"),
+                        )
+                    ),
+                },
+                ("principal_outstanding", "deferred_interest", "peak"),
+            ),
+        },
+    ),
+    "district_campuses": _success(
+        ("district_name", "district_rating", "district_score", "campuses", "best", "worst", "spans_grades"),
+        {
+            "year": _YEAR,
+            "district_name": _NONEMPTY_STRING,
+            "district_rating": {"enum": ["A", "B", "C", "D", "F"]},
+            "district_score": {"type": "integer", "minimum": 0, "maximum": 100},
+            "campuses": _array(_CAMPUS, minimum=1),
+            "best": {"enum": ["A", "B", "C", "D", "F"]},
+            "worst": {"enum": ["A", "B", "C", "D", "F"]},
+            "spans_grades": {"type": "integer", "minimum": 0, "maximum": 4},
+            "students_below_a_d": _NONNEGATIVE_INTEGER,
+        },
+    ),
+    "district_national": _success(
+        ("district_number", "leaid", "ppcs", "states", "national"),
+        {
+            "district_number": _DISTRICT_NUMBER,
+            "fiscal_year": _YEAR,
+            "enroll_f33": _NONNEGATIVE_INTEGER,
+            "leaid": _NONEMPTY_STRING,
+            "ppcs": _NONNEGATIVE_NUMBER,
+            "pctile": _nullable(_PERCENT),
+            "states": _object(
+                {
+                    "texas": _object(
+                        {
+                            "denominator_ada": _NONNEGATIVE_NUMBER,
+                            "numerator_current_expenditure": _NONNEGATIVE_NUMBER,
+                            "of": _NONNEGATIVE_INTEGER,
+                            "ppe": _NONNEGATIVE_NUMBER,
+                            "rank": _NONNEGATIVE_INTEGER,
+                            "who": _NONEMPTY_STRING,
+                        },
+                        ("denominator_ada", "numerator_current_expenditure", "of", "ppe", "rank", "who"),
+                    )
+                },
+                ("texas",),
+            ),
+            "national": _object(
+                {
+                    "districts_in_pool": _NONNEGATIVE_INTEGER,
+                    "median_ppcs": _NONNEGATIVE_NUMBER,
+                    "pool_rule": _NONEMPTY_STRING,
+                },
+                ("districts_in_pool", "median_ppcs", "pool_rule"),
+            ),
+        },
+    ),
+    "texas_overview": _success(
+        ("statewide", "trend_findings", "trend_change", "deficit_by_year", "balanced_panel_check"),
+        {
+            # Additive source period for current payloads; optional for saved
+            # owner-host payloads captured before the field was introduced.
+            "year": _YEAR,
+            "statewide": _object(
+                {
+                    "districts": _NONNEGATIVE_INTEGER,
+                    "revenue": _object(
+                        {
+                            "local_pct": _PERCENT,
+                            "state_pct": _PERCENT,
+                            "federal_pct": _PERCENT,
+                            "local": _NONNEGATIVE_NUMBER,
+                            "state": _NONNEGATIVE_NUMBER,
+                            "federal": _NONNEGATIVE_NUMBER,
+                        },
+                        ("local_pct", "state_pct", "federal_pct", "local", "state", "federal"),
+                    ),
+                    "recapture": _object(
+                        {
+                            "districts_ever_paying": _NONNEGATIVE_INTEGER,
+                            "total": _NONNEGATIVE_NUMBER,
+                            "top10_share": {"type": "number", "minimum": 0, "maximum": 1},
+                            "top25_share": {"type": "number", "minimum": 0, "maximum": 1},
+                            "top100_share": {"type": "number", "minimum": 0, "maximum": 1},
+                        },
+                        ("districts_ever_paying", "total", "top10_share", "top25_share", "top100_share"),
+                    ),
+                    "debt_median": _NONNEGATIVE_NUMBER,
+                    "debt_p90": _NONNEGATIVE_NUMBER,
+                    "debt_total": _NONNEGATIVE_NUMBER,
+                    "recapture_payers": _NONNEGATIVE_INTEGER,
+                    "ballot": _object(
+                        {
+                            "propositions": _NONNEGATIVE_INTEGER,
+                            "districts": _NONNEGATIVE_INTEGER,
+                            "asked": _NONNEGATIVE_NUMBER,
+                            "approved": _NONNEGATIVE_NUMBER,
+                            "matched_pct": _PERCENT,
+                        },
+                        ("propositions", "districts", "asked", "approved", "matched_pct"),
+                    ),
+                    "did_it_work": _object(
+                        {
+                            "bonds_tested": _NONNEGATIVE_INTEGER,
+                            "districts": _NONNEGATIVE_INTEGER,
+                            "passed_n": _NONNEGATIVE_INTEGER,
+                            "passed_change": _NUMBER,
+                            "defeated_n": _NONNEGATIVE_INTEGER,
+                            "defeated_change": _NUMBER,
+                            "difference": _NUMBER,
+                            "ci_low": _NUMBER,
+                            "ci_high": _NUMBER,
+                            "p_value": {"type": "number", "minimum": 0, "maximum": 1},
+                            "distinguishable_from_zero": _BOOLEAN,
+                            "fragile": _BOOLEAN,
+                            "window": _NONEMPTY_STRING,
+                            "caveat": _NONEMPTY_STRING,
+                        },
+                        ("difference", "ci_low", "ci_high", "p_value", "fragile", "window", "caveat"),
+                    ),
+                },
+                ("districts", "revenue", "recapture", "debt_total", "ballot", "did_it_work"),
+            ),
+            "trend_findings": _array(
+                _object(
+                    {"key": _NONEMPTY_STRING, "headline": _NONEMPTY_STRING, "figure": _NONEMPTY_STRING, "detail": _NONEMPTY_STRING},
+                    ("key", "headline", "figure", "detail"),
+                ),
+                minimum=1,
+            ),
+            "trend_change": _TREND_CHANGE,
+            "deficit_by_year": _array(
+                _object(
+                    {
+                        "year": _YEAR,
+                        "districts": _NONNEGATIVE_INTEGER,
+                        "in_deficit": _NONNEGATIVE_INTEGER,
+                        "pct": _PERCENT,
+                        "students_pct": _PERCENT,
+                        "statewide_margin": _NUMBER,
+                    },
+                    ("year", "districts", "in_deficit", "pct", "students_pct", "statewide_margin"),
+                ),
+                minimum=1,
+                maximum=17,
+            ),
+            "balanced_panel_check": _object(
+                {
+                    "districts": _NONNEGATIVE_INTEGER,
+                    "instruction_share_all": _NUMBER,
+                    "instruction_share_panel": _NUMBER,
+                    "instruction_ps_all": _NUMBER,
+                    "instruction_ps_panel": _NUMBER,
+                },
+                ("districts", "instruction_share_all", "instruction_share_panel", "instruction_ps_all", "instruction_ps_panel"),
+            ),
+            "visual": _STATEWIDE_VISUAL,
+        },
+    ),
+    "compare_districts": _success(
+        ("districts", "not_found"),
+        {
+            "districts": _array(_COMPARE_ROW, minimum=1, maximum=6),
+            "not_found": _array(_STRING, maximum=6),
+            "visual": _COMPARISON_VISUAL,
+        },
+    ),
+}
+
 
 def list_tools() -> list[dict]:
     """The wire form: same order every time, so clients can cache the list and
     model prompt caches keep hitting."""
-    return [{k: v for k, v in t.items() if k != "handler"} for t in TOOLS]
+    wire = [{k: v for k, v in t.items() if k != "handler"} for t in TOOLS]
+    for tool in wire:
+        tool["outputSchema"] = OUTPUT_SCHEMAS[tool["name"]]
+        if tool["name"] in mcp_apps.VISUAL_TOOL_NAMES:
+            tool.setdefault("_meta", {})["ui"] = {"resourceUri": mcp_apps.RESOURCE_URI}
+    return wire
 
 
 def call_tool(name: str, args: dict, input_responses: dict = None) -> dict:
@@ -882,10 +1779,18 @@ def call_tool(name: str, args: dict, input_responses: dict = None) -> dict:
             # Declined or cancelled. Nothing was done, and saying so plainly is
             # better than proceeding with a guess — guessing between two
             # same-named districts is the failure this whole path exists for.
-            return {"content": [{"type": "text", "text": (
-                f"No district was chosen, so nothing was looked up. "
-                f"Call {name} again with a six-digit district_number.")}],
-                "isError": True}
+            return {
+                "content": [
+                    {
+                        "type": "text",
+                        "text": (
+                            f"No district was chosen, so nothing was looked up. "
+                            f"Call {name} again with a six-digit district_number."
+                        ),
+                    }
+                ],
+                "isError": True,
+            }
         args = {**args, **(reply.get("content") or {})}
         del key
     try:
@@ -897,9 +1802,9 @@ def call_tool(name: str, args: dict, input_responses: dict = None) -> dict:
     except ToolError as e:
         return {"content": [{"type": "text", "text": str(e)}], "isError": True}
     except Exception as e:  # a bug here must not look like a data finding
-        return {"content": [{"type": "text",
-                             "text": f"{name} failed: {type(e).__name__}"}],
-                "isError": True}
+        return {"content": [{"type": "text", "text": f"{name} failed: {type(e).__name__}"}], "isError": True}
+    if name in mcp_apps.VISUAL_TOOL_NAMES:
+        structured = {**structured, "visual": mcp_apps.visual_payload(name, structured)}
     return {
         "content": [{"type": "text", "text": text}],
         "structuredContent": structured,

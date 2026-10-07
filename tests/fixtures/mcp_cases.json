@@ -1,0 +1,157 @@
+{
+  "sources": {
+    "fallback_index.json": {
+      "sha256": "488DED54FF8036E7C88B7C3A1E395A7D233E684B6ACF7A86ABEFA884F124021C",
+      "vintages": {"meta.figures_captured": "2026-07-31"}
+    },
+    "economics_data.json": {
+      "sha256": "2970D968E0D0CB4A4E0A497A4F6F7955E254064AC1904DC5C5292C72F373B33D",
+      "vintages": {"meta.year": 2025}
+    },
+    "forensic_data.json": {
+      "sha256": "6AA71793F5AF7E9E3739399919492AA38C32B42BDF26BF0E20C54864F92B1378",
+      "vintages": {"meta.year": 2025}
+    },
+    "trend_data.json": {
+      "sha256": "EF12AD388B9673C1D58A20F40F6B46295A553CAB648E7BD9783C38E93533F450",
+      "vintages": {"meta.first_year": 2009, "meta.last_year": 2025, "meta.years": 17}
+    },
+    "bond_data.json": {
+      "sha256": "88CFCA298413CF76A1EFEEEC7693D07D0C6253DBB6201E52E9BC525996038412",
+      "vintages": {"meta.first_year": 1958, "meta.last_year": 2026}
+    },
+    "debt_data.json": {
+      "sha256": "387B27ED3BD4AC2ACBE4B37D51F62AB3C791D360CEEB18084C7B2C19F2983A95",
+      "vintages": {"meta.fiscal_year": 2025}
+    },
+    "campus_data.json": {
+      "sha256": "6F0642B148D8CCD09598216E4B3927C9D71CE2654266B0DEFB619FED0284053D",
+      "vintages": {"meta.year": 2025}
+    },
+    "national_data.json": {
+      "sha256": "211A43689D2F9354C5D7AF1B9A4AFE664ADAE1D10FAAC505FC9C9A7C73A3BA66",
+      "vintages": {"meta.fiscal_year": 2024}
+    }
+  },
+  "districts": {
+    "dallas": "057905",
+    "houston": "101912",
+    "tioga": "091907",
+    "pineywoods": "003801",
+    "charter": "014802"
+  },
+  "contracts": {
+    "find_district": {
+      "artifacts": ["fallback_index.json", "forensic_data.json"],
+      "field_paths": {
+        "matches[]": "fallback_index.json:districts[?district_number=057905]",
+        "matches[].students": "forensic_data.json:table[?n=057905].students"
+      }
+    },
+    "district_money": {
+      "artifacts": ["economics_data.json"],
+      "field_paths": {
+        "all artifact fields": "economics_data.json:districts.057905",
+        "limits": "economics_data.json:meta.limits",
+        "year": "economics_data.json:meta.year"
+      }
+    },
+    "district_lineage": {
+      "artifacts": ["economics_data.json"],
+      "field_paths": {
+        "value/numerator": "economics_data.json:districts.057905.revenue.lineage.figures.total_per_student",
+        "denominator": "economics_data.json:districts.057905.revenue.lineage.denominator",
+        "definition/year/unit": "economics_data.json:meta.lineage_templates.total_per_student",
+        "limits": "economics_data.json:meta.limits"
+      }
+    },
+    "district_forensics": {
+      "artifacts": ["forensic_data.json"],
+      "field_paths": {
+        "all artifact fields": "forensic_data.json:districts.057905",
+        "thresholds": "forensic_data.json:meta.thresholds",
+        "limits": "forensic_data.json:meta.limits",
+        "year": "forensic_data.json:meta.year"
+      }
+    },
+    "district_trends": {
+      "artifacts": ["trend_data.json"],
+      "field_paths": {
+        "all artifact fields": "trend_data.json:districts.057905",
+        "limits": "trend_data.json:meta.limits",
+        "years/units": "trend_data.json:meta.measures"
+      }
+    },
+    "district_bonds": {
+      "artifacts": ["bond_data.json"],
+      "field_paths": {
+        "all artifact fields": "bond_data.json:districts.057905",
+        "limits": "bond_data.json:meta.limits",
+        "years": "bond_data.json:districts.057905.elections[].year"
+      }
+    },
+    "district_debt": {
+      "artifacts": ["debt_data.json"],
+      "field_paths": {
+        "all artifact fields": "debt_data.json:districts.057905",
+        "limits": "debt_data.json:meta.limits",
+        "fiscal year": "debt_data.json:meta.fiscal_year"
+      }
+    },
+    "district_campuses": {
+      "artifacts": ["campus_data.json"],
+      "field_paths": {
+        "all artifact fields": "campus_data.json:districts.057905",
+        "limits": "campus_data.json:meta.limits",
+        "year": "campus_data.json:meta.year"
+      }
+    },
+    "district_national": {
+      "artifacts": ["national_data.json"],
+      "field_paths": {
+        "district fields": "national_data.json:districts.057905",
+        "states.texas": "national_data.json:states.texas",
+        "national": "national_data.json:national",
+        "limits": "national_data.json:meta.limits",
+        "fiscal year/definition": "national_data.json:meta"
+      }
+    },
+    "texas_overview": {
+      "artifacts": ["forensic_data.json", "trend_data.json"],
+      "field_paths": {
+        "statewide": "forensic_data.json:statewide",
+        "trend_findings": "trend_data.json:findings",
+        "trend_change/deficit_by_year": "trend_data.json:statewide",
+        "balanced_panel_check": "trend_data.json:meta.balanced_panel_check",
+        "limits": "forensic_data.json:meta.limits + trend_data.json:meta.limits",
+        "year": "forensic_data.json:meta.year"
+      }
+    },
+    "compare_districts": {
+      "artifacts": ["forensic_data.json"],
+      "field_paths": {
+        "districts[]": "forensic_data.json:districts.057905 + districts.101912",
+        "limits": "forensic_data.json:meta.limits",
+        "year": "forensic_data.json:meta.year"
+      }
+    }
+  },
+  "visual_metrics": {
+    "district_money": {
+      "total_per_student": {"path": "districts.057905.allocation.total_per_student", "label": "Operating plus debt service per student", "unit": "USD per student", "denominator": "fall survey enrollment", "status": "observed"},
+      "operating_per_student": {"path": "districts.057905.allocation.operating_per_student", "label": "Operating spending per student", "unit": "USD per student", "denominator": "fall survey enrollment", "status": "observed"},
+      "debt_per_student": {"path": "districts.057905.allocation.debt_per_student", "label": "Debt service per student", "unit": "USD per student", "denominator": "fall survey enrollment", "status": "observed"},
+      "instruction_per_student": {"path": "districts.057905.allocation.instruction_per_student", "label": "Instruction per student", "unit": "USD per student", "denominator": "fall survey enrollment", "status": "observed"}
+    },
+    "compare_districts": {
+      "operating_per_student": {"path": "outside_operating.operating_per_student", "label": "Operating spending per student", "unit": "USD per student", "denominator": "fall survey enrollment", "status": "observed"},
+      "debt_per_student": {"path": "outside_operating.per_student", "label": "Debt service per student", "unit": "USD per student", "denominator": "fall survey enrollment", "status": "observed"},
+      "local_pct": {"path": "who_pays.local_pct", "label": "Local revenue share", "unit": "percent", "denominator": "gross local + state + federal revenue", "status": "observed"},
+      "points_vs_predicted": {"path": "where_it_landed.gap", "label": "Points vs predicted", "unit": "percentage points", "denominator": "predicted Meets rate from the district need model", "status": "modeled"}
+    },
+    "texas_overview": {
+      "debt_total": {"path": "statewide.debt_total", "label": "Annual debt service", "unit": "USD per fiscal year", "denominator": "sum across Texas districts reporting enrollment and debt service", "status": "observed"},
+      "debt_median": {"path": "statewide.debt_median", "label": "Median debt service per student", "unit": "USD per student", "denominator": "fall survey enrollment", "status": "observed"}
+    }
+  }
+}

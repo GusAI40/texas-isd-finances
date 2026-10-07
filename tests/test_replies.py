@@ -117,7 +117,7 @@ def test_the_idempotency_key_is_the_recipient_and_the_message():
 
 
 def test_the_insert_is_conflict_tolerant():
-    src = (ROOT / "scripts" / "ingest_replies.py").read_text()
+    src = (ROOT / "scripts" / "ingest_replies.py").read_text(encoding="utf-8")
     assert "ON CONFLICT DO NOTHING" in src
     assert "event_key" in src
 
@@ -125,7 +125,7 @@ def test_the_insert_is_conflict_tolerant():
 def test_nothing_but_the_fact_and_the_time_is_stored():
     """What a superintendent wrote to us is correspondence, not telemetry.
     visitor_event has nowhere to put a body and it should stay that way."""
-    src = (ROOT / "scripts" / "ingest_replies.py").read_text()
+    src = (ROOT / "scripts" / "ingest_replies.py").read_text(encoding="utf-8")
     insert = src[src.index("INSERT INTO public.visitor_event"):]
     insert = insert[:insert.index(")")]
     for banned in ("subject", "body", "text", "snippet", "message_text"):
@@ -329,7 +329,7 @@ def test_persistence_failure_blocks_event_write_and_redacts_logs(
 
 
 def test_workflow_cannot_dump_the_ignored_optout_file():
-    workflow = (ROOT / ".github" / "workflows" / "replies.yml").read_text()
+    workflow = (ROOT / ".github" / "workflows" / "replies.yml").read_text(encoding="utf-8")
     assert "git diff" not in workflow
     assert "data/outreach_optout.txt" not in workflow
 
@@ -339,12 +339,12 @@ def test_workflow_cannot_dump_the_ignored_optout_file():
 def test_the_mailbox_is_opened_read_only():
     """Marking a superintendent's message as read from a cron job would edit
     the owner's inbox to measure it."""
-    src = (ROOT / "scripts" / "ingest_replies.py").read_text()
+    src = (ROOT / "scripts" / "ingest_replies.py").read_text(encoding="utf-8")
     assert 'box.select("INBOX", readonly=True)' in src
 
 
 def test_writing_is_opt_in():
-    src = (ROOT / "scripts" / "ingest_replies.py").read_text()
+    src = (ROOT / "scripts" / "ingest_replies.py").read_text(encoding="utf-8")
     assert '"--write", action="store_true"' in src
     assert "Dry run. Re-run with --write" in src
 
@@ -352,7 +352,7 @@ def test_writing_is_opt_in():
 def test_an_empty_result_is_reported_as_a_finding_not_a_failure():
     """'No replies' and 'the pipe is broken' look identical in a log unless
     one of them says so."""
-    src = (ROOT / "scripts" / "ingest_replies.py").read_text()
+    src = (ROOT / "scripts" / "ingest_replies.py").read_text(encoding="utf-8")
     assert "That is a finding, not a failure" in src
 
 
@@ -363,7 +363,7 @@ def test_missing_config_is_reported_all_at_once_and_before_any_network_call():
     which runs AFTER the send log has been fetched — so a stale token produced
     a urllib stack trace, and an operator who had simply not set IMAP_USER
     never reached the message telling them to."""
-    src = (ROOT / "scripts" / "ingest_replies.py").read_text()
+    src = (ROOT / "scripts" / "ingest_replies.py").read_text(encoding="utf-8")
     main_body = src[src.index("def main("):]
     check = main_body.index("missing_config()")
     fetch = main_body.index("fetch_sends(")
@@ -391,6 +391,6 @@ def test_a_configured_run_reports_nothing_missing(monkeypatch):
 def test_an_expired_token_reads_as_an_expired_token():
     """401 is an operator action, not a bug, and a cron log has one chance to
     say so."""
-    src = (ROOT / "scripts" / "ingest_replies.py").read_text()
+    src = (ROOT / "scripts" / "ingest_replies.py").read_text(encoding="utf-8")
     assert "exc.code in (401, 403)" in src
     assert "wrong or expired" in src

@@ -34,12 +34,12 @@ SELECT
     fall_survey_enrollment AS enrollment,
     CASE
         WHEN fall_survey_enrollment > 0
-        THEN ROUND((all_funds_total_disbursements / fall_survey_enrollment)::numeric, 2)
+        THEN ROUND((all_funds_total_disbursements::numeric / fall_survey_enrollment), 2)
         ELSE NULL
     END AS spend_per_student,
     CASE
         WHEN fall_survey_enrollment > 0
-        THEN ROUND((all_funds_total_operating_revenue / fall_survey_enrollment)::numeric, 2)
+        THEN ROUND((all_funds_total_operating_revenue::numeric / fall_survey_enrollment), 2)
         ELSE NULL
     END AS revenue_per_student,
     all_funds_instruction_transfer_expend_fct11_95 AS instruction_spend,
@@ -109,13 +109,13 @@ SELECT
     year,
     -- Revenue drop > 15%
     CASE
-        WHEN prev_revenue > 0 AND (total_revenue - prev_revenue) / prev_revenue < -0.15
+        WHEN prev_revenue > 0 AND (total_revenue - prev_revenue)::numeric / prev_revenue < -0.15
         THEN true ELSE false
     END AS revenue_drop_flag,
     -- Spending increase > 20% with flat enrollment
     CASE
         WHEN prev_spend > 0
-        AND (total_spend - prev_spend) / prev_spend > 0.20
+        AND (total_spend - prev_spend)::numeric / prev_spend > 0.20
         AND ABS(COALESCE(enrollment, 0) - COALESCE(prev_enrollment, 0)) < 10
         THEN true ELSE false
     END AS spend_spike_flag,

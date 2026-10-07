@@ -176,7 +176,7 @@ def walk(node: Any, prefix: str = "", depth: int = 0, out: dict | None = None) -
 
 
 def describe_artifact(path: Path) -> dict:
-    blob = json.loads(path.read_text())
+    blob = json.loads(path.read_text(encoding="utf-8"))
     meta = blob.get("meta", {}) if isinstance(blob, dict) else {}
     records = blob.get("districts") or blob.get("d") or {}
     sample_key = None
@@ -192,7 +192,7 @@ def describe_artifact(path: Path) -> dict:
         "file": path.name,
         "title": title,
         "what_it_is": blurb,
-        "bytes": path.stat().st_size,
+        "bytes": len(path.read_text(encoding="utf-8").replace("\r\n", "\n").replace("\r", "\n").encode("utf-8")),
         "records": len(records) if hasattr(records, "__len__") else None,
         "sample_district": sample_key,
         "source": meta.get("source"),
@@ -207,7 +207,7 @@ def describe_artifact(path: Path) -> dict:
 
 def routes() -> list[dict]:
     """Public GET routes, parsed from the source rather than listed by hand."""
-    src = (ROOT / "src" / "api.py").read_text()
+    src = (ROOT / "src" / "api.py").read_text(encoding="utf-8")
     tree = ast.parse(src)
     out = []
     for node in ast.walk(tree):
@@ -233,7 +233,7 @@ def routes() -> list[dict]:
 
 
 def view_columns() -> dict[str, list[str]]:
-    sql = (ROOT / "sql" / "create_tables.sql").read_text()
+    sql = (ROOT / "sql" / "create_tables.sql").read_text(encoding="utf-8")
     out: dict[str, list[str]] = {}
     for name in ("v_finance_summary",):
         if f"VIEW public.{name} AS" not in sql:
@@ -243,7 +243,7 @@ def view_columns() -> dict[str, list[str]]:
         out[name] = [c for c in cols if not c.startswith("all_funds")]
     detail = ROOT / "sql" / "create_detail_view.sql"
     if detail.exists():
-        body = detail.read_text().split("AS\nSELECT")[-1].split("FROM public.")[0]
+        body = detail.read_text(encoding="utf-8").split("AS\nSELECT")[-1].split("FROM public.")[0]
         out["v_spending_detail"] = re.findall(r"AS\s+([a-z_]+)", body)
     return out
 
@@ -357,13 +357,13 @@ def main() -> int:
 
     d = build()
     d["groups"] = grouped(d)
-    (ROOT / args.json).write_text(json.dumps(d, indent=1))
-    (ROOT / args.markdown).write_text(markdown(d))
+    (ROOT / args.json).write_text(json.dumps(d, indent=1), encoding="utf-8", newline="\n")
+    (ROOT / args.markdown).write_text(markdown(d), encoding="utf-8", newline="\n")
     if args.html:
-        tpl = (ROOT / "scripts" / "data_dictionary_template.html").read_text()
+        tpl = (ROOT / "scripts" / "data_dictionary_template.html").read_text(encoding="utf-8")
         payload = json.dumps(d, separators=(",", ":"))
         (ROOT / args.html).write_text(
-            tpl.replace("/*__DATA__*/null", payload))
+            tpl.replace("/*__DATA__*/null", payload), encoding="utf-8", newline="\n")
         print(f"wrote {args.html}")
     t = d["totals"]
     print(f"wrote {args.markdown} and {args.json}")

@@ -179,9 +179,9 @@ Implement a read-only default inspection mode that captures the exact old
 definition, column names/order/types, owner, reloptions/tablespace, effective ACLs
 including grant options, comments, index definitions, and dependency inventory.
 The separate apply mode must be explicitly selected and target-verified; this
-task exercises it only on the disposable database. Inside one timeout-bounded
-transaction, lock the matview exclusively, repeat preconditions, and reject
-changes from the reviewed snapshot. Replace it using a plain targeted
+task exercises it only on the disposable database. The supported transaction
+protocol below replaces the original unsupported `LOCK TABLE` instruction.
+After its locked reinspection succeeds, replace it using a plain targeted
 `DROP MATERIALIZED VIEW public.v_anomaly_flags` without CASCADE, then recreate
 the same name/column contract with only the two numerators cast before division.
 Restore captured owner/options/ACLs/comments and both index definitions; revoke
@@ -212,6 +212,106 @@ in the actual release target; passing a local replacement test is not deployment
 and NLP queries before/after, synthetic boundary cases, real Dallas samples, and
 all rollback/recovery/dependency-rejection cases. Run on PostgreSQL 17 before
 production application; 18.3 evidence may support development only.
+
+#### T3b revision — supported PG17 locking and bounded concurrency
+
+**Reason for revision:** independent PG17.11 and PG18.3 execution both reject
+`LOCK TABLE` on a materialized view. Do not retry that statement, replace it with
+an advisory lock alone, or refresh/discard the old data merely to obtain a lock.
+Use the following precise protocol for apply and post-commit recovery; ownership
+remains limited to T3b's existing files. No production application is authorized.
+
+1. Inspection stays read-only. Save a versioned, deterministic JSON snapshot and
+   digest, explicitly supplied back to apply, containing target identity (server
+   endpoint/database and database OID, server major, and cluster identifier when
+   accessible), relation/rowtype/array/index OIDs, and all metadata described
+   above. Include relation `pg_class.xmin::text` as an additional drift token,
+   column ACLs and grant options, relation/column/index/type comments, access
+   method, populated state, and relevant default privileges. Include registered
+   dependencies on each allowlisted internal object as well as the three root
+   objects; do not whitelist every `i` or `a` dependency by category alone.
+   Check extension membership in the outgoing direction too. Restore supported
+   metadata or reject its nondefault presence explicitly before replacement;
+   never silently omit it (including security labels or special column/index
+   properties). Reject unreviewed DDL event triggers that could change the
+   operation's effects. A capture is evidence, not executable arbitrary SQL.
+
+2. Open one `READ COMMITTED` transaction, set local bounded lock, statement, and
+   idle-in-transaction timeouts, and acquire a stable, documented
+   `pg_advisory_xact_lock` key for this database/object name. All invocations of
+   this tool, including recovery, use the same key before object locks. Verify
+   target identity and compare the current snapshot to the supplied one; reject
+   any drift or unexpected dependency. Quote identifiers through the database
+   driver's identifier facility and bind data values. Do not interpolate owners
+   or metadata into SQL using string formatting.
+
+3. Execute `ALTER MATERIALIZED VIEW public.v_anomaly_flags OWNER TO <captured
+   owner>` with the safely quoted captured owner. PG17's supported owner action
+   acquires `AccessExclusiveLock`; its same-owner path leaves the object intact.
+   Immediately assert in `pg_locks` that this backend holds that lock on the
+   captured OID. Reinspect in a **new statement after the lock has been acquired**
+   and compare the entire reviewed snapshot, including OIDs and `pg_class.xmin`.
+   The xmin check is necessary: if ownership changed while waiting, the owner
+   statement might otherwise restore the captured owner and conceal that drift.
+   Any changed tuple token, identity, metadata, or dependency aborts the whole
+   transaction, undoing that tentative owner action as well. Do not use a stale
+   repeatable-read snapshot for this check. Do not release the lock through a
+   savepoint rollback and continue. This step must be demonstrated on actual
+   PG17; source inspection alone is not a passing execution result.
+
+4. Only after successful reinspection may the existing plain, non-CASCADE DROP
+   and recreation proceed. Keep the native restrictive DROP as a final dependency
+   guard, even after the inventory passes. Any error, timeout, dependency race,
+   failed restoration, or failed assertion rolls back the **entire** transaction;
+   do not catch it and commit partial work. Restore exact allowed metadata and
+   effective grants (including grant options), clearing unexpected grants from
+   default privileges; validate public/NLP name-based queries and independent
+   arithmetic before transactional notification and commit. Capture a committed
+   result receipt separately from the preimage used for recovery. A newly
+   inspected, already-correct object is an idempotent no-op only after all the
+   same identity, dependency, metadata, and access checks; an old preimage is
+   never silently accepted as authority for a different replacement OID.
+
+**Guarantees and release constraint:** the relation lock waits for conflicting
+readers and prevents ordinary relation reads/refreshes/DDL from interleaving
+with replacement. The transaction exposes no committed half-replacement. It
+does not promise uninterrupted requests: queued or cached-OID queries may
+require normal client retry after replacement. The advisory lock serializes
+cooperating migration tools only. It does not freeze role membership, default
+privileges, independently addressed type/index metadata, other administrative
+DDL, or base data writes. Release therefore requires a documented maintenance
+window with those administrative writers quiesced; source ingestion must also
+be quiesced for deterministic before/after arithmetic and consumer comparisons.
+Do not infer that condition from a momentarily empty `pg_stat_activity`, disable
+roles, terminate sessions, or take broad catalog locks. The apply interface must
+record an explicit maintenance-window acknowledgement and fail closed when it
+is absent. This is an operator-supplied condition, not a claimed database-level
+guarantee against arbitrary privileged changes. If that condition cannot be met,
+return to planning; do not claim this protocol makes unrestricted online DDL safe.
+
+**Additional acceptance evidence (existing IDs retained):** A-ANOM-01 now requires
+the real held-lock assertion, relation/rowtype/array dependency fixtures, rejected
+metadata/OID/owner drift including a change committed while the lock waits, and
+the maintenance-window guard. A-ANOM-02 requires a freshly inspected corrected
+state to no-op without changing OIDs/data/metadata. A-ANOM-03 additionally requires
+two-connection tests showing (a) a held reader causes a bounded timeout with no
+change, (b) a competing tool cannot enter the guarded section, (c) reads during
+replacement wait or time out and fresh name-based reads succeed after commit,
+and (d) a late registered type dependency either blocks or causes restrictive
+DROP failure with full rollback, never cascade. Use deterministic barriers and
+bounded waits, not sleep-based race assertions. Existing arithmetic, metadata,
+failure-injection, recovery, and PG17 requirements remain in force.
+
+**Primary basis:** PostgreSQL documents the supported
+[materialized-view owner action](https://www.postgresql.org/docs/17/sql-altermaterializedview.html).
+PG17's [table command implementation](https://github.com/postgres/postgres/blob/REL_17_STABLE/src/backend/commands/tablecmds.c)
+assigns `AccessExclusiveLock` to `AT_ChangeOwner` and skips catalog owner changes
+when the owner matches; the [utility dispatcher](https://github.com/postgres/postgres/blob/REL_17_STABLE/src/backend/tcop/utility.c)
+obtains that lock before execution. The protocol's concurrency limits follow
+the documented [lock semantics](https://www.postgresql.org/docs/17/explicit-locking.html),
+[statement snapshots](https://www.postgresql.org/docs/17/transaction-iso.html), and
+[restrictive materialized-view DROP](https://www.postgresql.org/docs/17/sql-dropmaterializedview.html).
+This is the selected implementation design, to be confirmed by the tests above.
 
 ### T4 — Make artifact verification classify evidence truthfully
 
@@ -321,9 +421,9 @@ product matches; inspected source/schema/content evidence is required.
 | A-DB-05 | All five public projections retain equivalent row coverage and SELECT-only effective access for both API roles; no base reads/writes are enabled; NLP retains only its two finance reads and existing restrictions. PR #78 is reconciled without a production write or merge. |
 | A-DB-06 | The read-only verifier detects wrong columns/types, privileges, and arithmetic; it reports enrollment exceptions and deferred anomaly defects distinctly. Its SQL transaction cannot mutate data and logs contain no DSN/password. |
 | A-SCOPE-01 | Summary reconciliation/recovery never uses DROP; no migration uses CASCADE. Only the separately guarded T3b transaction may replace the anomaly matview. No startup migration or unrelated application changes occur, and target anomaly claims stay blocked until actual correction. |
-| A-ANOM-01 | T3b rejects any unexpected relation/type dependency before mutation; successful replacement retains column/consumer contract, owner/options/comments, effective public/NLP ACLs, and both index definitions, while explicitly recording expected new matview/index OIDs. |
-| A-ANOM-02 | All revenue/spend threshold and enrollment-delta fixtures match independent arithmetic; NULL/zero cases are safe; original per-student/enrollment flags preserve their definitions. Reapplication is an idempotent no-op. |
-| A-ANOM-03 | Each injected in-transaction failure restores the old object/data/ACLs/index OIDs. Post-commit guarded recovery restores old semantics/metadata with explicitly new OIDs and supports repair reapplication. |
+| A-ANOM-01 | T3b's supported PG17 guard proves its exclusive lock, requires the stated maintenance condition, and rejects snapshot drift or unexpected relation/rowtype/array dependencies before DROP; any tentative owner action rolls back on rejection. Successful replacement retains column/consumer contract, owner/options/comments, effective public/NLP ACLs, and both index definitions, while explicitly recording expected new matview/index OIDs. |
+| A-ANOM-02 | All revenue/spend threshold and enrollment-delta fixtures match independent arithmetic; NULL/zero cases are safe; original per-student/enrollment flags preserve their definitions. Reapplication against a freshly inspected correct state is an idempotent no-op, preserving OIDs/data/metadata. |
+| A-ANOM-03 | Each injected in-transaction failure restores the old object/data/ACLs/index OIDs. Bounded two-connection tests prove reader contention, tool serialization, wait-time drift rejection, and late-dependency rollback. Post-commit guarded recovery restores old semantics/metadata with explicitly new OIDs and supports repair reapplication. |
 | A-PG17-01 | The full summary, grants, anomaly, and recovery harness passes on actual PostgreSQL 17 before production SQL. Until then PostgreSQL 17 execution remains UNVERIFIED, irrespective of PostgreSQL 18 results. |
 | A-ART-01 | Both separator styles and known dependency cascades produce UNVERIFIED; real builder errors and byte drift still fail; zero verified inputs produces the explicit zero-check result in both Windows encoding modes. |
 | A-ENC-01 | Dictionary generation produces identical UTF-8/LF output and canonical byte metadata for equivalent LF/CRLF input; changed working files change results; invalid UTF-8 is a visible error. Generated outputs have no manual edits. |

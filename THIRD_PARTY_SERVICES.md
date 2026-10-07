@@ -28,7 +28,12 @@ The 11 public MCP artifact tools are `find_district`, `district_money`, `distric
 | Runtime libraries | FastAPI, Pydantic, SQLAlchemy, asyncpg, psycopg2-binary, LangChain, langchain-openai, OpenAI SDK, SQLGlot, python-dotenv | `pyproject.toml`, `uv.lock`. |
 | Offline libraries | pandas, numpy, openpyxl, xlrd, matplotlib, seaborn, plotly, pyshp, Pillow | `pyproject.toml` `offline` extra. |
 | Dev tools | uv, pytest, httpx, Ruff, Node.js, Git, GitHub CLI | `pyproject.toml`, CI/scripts. |
-| GitHub Actions | Configured CI/automation workflows; observed states require per-workflow review | `.github/workflows/{ci,deploy,monitor,answer-quality,llm-balance,replies,outreach-kpi}.yml`. |
+| Playwright 1.56.1 | Development-only Chromium/Firefox visual and public workflow tests; no runtime dependency | `tests/browser/package.json` and its lockfile. |
+| MCP Inspector 2.9.0 | Actual modern-protocol public-tool compatibility checks | `docs/evidence/mcp-host/inspector-results.json`; legacy protocol failure is recorded separately. |
+| AJV 8.20.0 / Agent Plugins schemas | Development-only portable plugin manifest validation | `tests/plugin/`; validation cannot prove installation or directory approval. |
+| PostgreSQL 17.11 / 18.3 | Isolated disposable contract tests; separate from Supabase's observed PostgreSQL 17.6.1 | `scripts/run_finance_contract_tests.py`; no globally installed service is changed. |
+| ChatGPT development plugin | Actual public MCP connection and 11 successful host-normalized calls; generated registration package downloaded | `docs/evidence/mcp-host/connector-results.json`, [ChatGPT guide](docs/CHATGPT_PLUGIN.md). Public listing and new visual-frame compatibility require separate evidence. |
+| GitHub Actions | Repository Actions were disabled at the audit checkpoint; configured workflow files do not establish executed CI | `.github/workflows/{ci,deploy,monitor,answer-quality,llm-balance,replies,outreach-kpi}.yml`; exact-revision evidence belongs in [release evidence](docs/RELEASE_EVIDENCE.md). |
 
 ## Public data and discovery sources
 

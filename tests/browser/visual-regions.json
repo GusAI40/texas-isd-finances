@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "rubric": "Tight Range/SVG bounds only; no card padding. Navigation, controls, footer, source details and accessible table alternatives are exclusions.",
+  "regions": [
+    { "selector": "#welcome-fig", "kind": "visual" },
+    { "selector": "#hero-fig", "kind": "visual" },
+    { "selector": "#picker-section .hero-sub", "kind": "prose" },
+    { "selector": "#masthead", "kind": "excluded", "reason": "global navigation" },
+    { "selector": "#search", "kind": "excluded", "reason": "input control" },
+    { "selector": "#ai-note", "kind": "excluded", "reason": "legal disclosure" }
+  ]
+}

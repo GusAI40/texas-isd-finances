@@ -188,6 +188,8 @@ def handle(
     list_tools: Callable[[], list[dict]],
     instructions: str = "",
     allowed_origins: tuple[str, ...] = (),
+    list_resources: Callable[[], list[dict]] | None = None,
+    read_resource: Callable[[str], dict] | None = None,
 ) -> tuple[int, dict | None]:
     """Process one POST. Returns (http_status, json body or None for 202).
 
@@ -272,9 +274,12 @@ def handle(
 
     # --- dispatch -----------------------------------------------------------
     if method == "server/discover":
+        capabilities: dict[str, Any] = {"tools": {}}
+        if list_resources is not None and read_resource is not None:
+            capabilities["resources"] = {}
         return 200, result(rid, {
             "supportedVersions": SUPPORTED_VERSIONS,
-            "capabilities": {"tools": {}},
+            "capabilities": capabilities,
             "instructions": instructions,
             "ttlMs": DAY_MS,
             "cacheScope": "public",
@@ -313,6 +318,30 @@ def handle(
             # by retrying with different arguments.
             return 200, error(rid, INVALID_PARAMS, f"Unknown tool: {tool}")
         return 200, result(rid, payload)
+
+    if method == "resources/list":
+        if list_resources is None:
+            return 404, error(rid, METHOD_NOT_FOUND, "Method not found: resources/list")
+        return 200, result(rid, {
+            "resources": list_resources(), "ttlMs": DAY_MS, "cacheScope": "public",
+        })
+
+    if method == "resources/read":
+        if read_resource is None:
+            return 404, error(rid, METHOD_NOT_FOUND, "Method not found: resources/read")
+        uri = params.get("uri")
+        if not isinstance(uri, str):
+            return 400, error(rid, INVALID_PARAMS, "params.uri must be a string")
+        try:
+            payload = read_resource(uri)
+            # Resources are committed public assets.  Keep their result-level
+            # cache contract as explicit as discovery/list responses so strict
+            # MCP clients do not have to infer it from HTTP headers.
+            payload.setdefault("ttlMs", DAY_MS)
+            payload.setdefault("cacheScope", "public")
+            return 200, result(rid, payload)
+        except KeyError:
+            return 400, error(rid, INVALID_PARAMS, "Unknown resource URI")
 
     # 404 rather than 200, so a client can tell a modern server that lacks the
     # method from a legacy server that has no MCP endpoint at all.

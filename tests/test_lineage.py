@@ -184,7 +184,7 @@ def test_the_files_the_running_service_reads_actually_ship():
     This is the same shape as the cron import that ImportError'd in production
     for the same reason, which is why that re-include has a warning above it.
     """
-    ignore = (ROOT / ".vercelignore").read_text().splitlines()
+    ignore = (ROOT / ".vercelignore").read_text(encoding="utf-8").splitlines()
     for needed in ("scripts/freshness_vintages.json", "scripts/isd_intel.py",
                    "scripts/__init__.py"):
         assert f"!{needed}" in ignore, (
@@ -194,7 +194,7 @@ def test_the_files_the_running_service_reads_actually_ship():
 
 def test_every_source_the_lineage_can_cite_is_in_both_registers():
     vintages = json.loads(
-        (ROOT / "scripts" / "freshness_vintages.json").read_text())["sources"]
+        (ROOT / "scripts" / "freshness_vintages.json").read_text(encoding="utf-8"))["sources"]
     assert set(vintages) <= set(sources.SOURCES), (
         "a vintage record names a source the register does not know")
 
@@ -213,7 +213,7 @@ def test_the_recomputation_shares_no_code_with_the_builder(script):
     this file exists to catch.
     """
     import ast
-    tree = ast.parse((ROOT / "scripts" / script).read_text())
+    tree = ast.parse((ROOT / "scripts" / script).read_text(encoding="utf-8"))
     imported = set()
     for node in ast.walk(tree):
         if isinstance(node, ast.Import):
@@ -234,7 +234,7 @@ def test_the_second_road_reaches_the_published_figure_for_dallas():
     table = recompute_revenue.recompute()
     row = table[DALLAS]
     per_student = round(row["total"] / row["enrollment"])
-    published = json.loads(ECON.read_text())["districts"][DALLAS]
+    published = json.loads(ECON.read_text(encoding="utf-8"))["districts"][DALLAS]
     assert per_student == published["revenue"]["total_per_student"]
 
 
@@ -244,7 +244,7 @@ def test_the_spending_second_road_reaches_the_published_figures():
     """Dallas's card figures and the front page's statewide headline, each
     re-derived by the standard-library road and compared to what shipped."""
     import recompute_spending
-    econ = json.loads(ECON.read_text())
+    econ = json.loads(ECON.read_text(encoding="utf-8"))
     row = recompute_spending.recompute()[DALLAS]
     alloc = econ["districts"][DALLAS]["allocation"]
     for fld, key in (("instruction", "instruction_per_student"),
@@ -268,7 +268,7 @@ def test_the_spending_second_road_reaches_the_published_figures():
 class TestPublishedArtifact:
     @pytest.fixture(scope="class")
     def econ(self):
-        return json.loads(ECON.read_text())
+        return json.loads(ECON.read_text(encoding="utf-8"))
 
     def test_the_recomputation_record_proves_the_check_ran(self, econ):
         """A check that ran and found nothing must not be indistinguishable from
@@ -458,7 +458,7 @@ class TestLineageOverMCP:
         from src import mcp_tools
         words = {9: "nine", 10: "ten", 11: "eleven", 12: "twelve", 13: "thirteen"}
         n = len(mcp_tools.list_tools())
-        doc = (ROOT / "docs" / "MCP.md").read_text()
+        doc = (ROOT / "docs" / "MCP.md").read_text(encoding="utf-8")
         assert f"{words[n]} read-only tools" in doc, (
             f"docs/MCP.md does not say there are {n} ({words[n]}) tools")
         for tool in mcp_tools.list_tools():
@@ -471,7 +471,7 @@ def test_the_number_on_the_page_is_actually_clickable():
     """An endpoint nobody can reach from the page is documentation, not lineage.
     This locks the affordance itself: the button, the handler that fetches the
     evidence, and the verdict badge that shows a result other than VERIFIED."""
-    page = (ROOT / "static" / "index.html").read_text()
+    page = (ROOT / "static" / "index.html").read_text(encoding="utf-8")
     assert "function linBtn(" in page, "no way to render a clickable figure"
     assert 'data-lineage' in page, "nothing on the page carries a metric to look up"
     assert "/lineage/" in page, "the page never calls the lineage endpoint"
@@ -487,7 +487,7 @@ def test_the_statewide_headline_and_the_spending_card_are_clickable():
     per-student figure, and the allocation card's two real divisions all carry
     lineage buttons, and the page knows statewide metrics resolve against
     /lineage/texas rather than a district path."""
-    page = (ROOT / "static" / "index.html").read_text()
+    page = (ROOT / "static" / "index.html").read_text(encoding="utf-8")
     assert "statewide_total_spend" in page, "the clock's total is not clickable"
     assert "statewide_spend_per_student" in page
     assert "spend_instruction_per_student" in page

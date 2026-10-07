@@ -6,6 +6,7 @@ and it is generated from those files rather than typed.
 """
 import ast
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -45,7 +46,7 @@ def test_every_published_file_is_placed_in_a_group():
 def test_the_dictionary_is_generated_and_not_typed():
     """Parsed with ast, because grepping for 'open(' matches the docstring's
     own explanation of why it is generated."""
-    src = (ROOT / "scripts" / "build_data_dictionary.py").read_text()
+    src = (ROOT / "scripts" / "build_data_dictionary.py").read_text(encoding="utf-8")
     tree = ast.parse(src)
     reads = set()
     for node in ast.walk(tree):
@@ -59,18 +60,19 @@ def test_the_dictionary_is_generated_and_not_typed():
         "become a hand-written document wearing a script's name")
 
 
-def test_the_committed_dictionary_matches_a_fresh_run():
+def test_the_committed_dictionary_matches_a_fresh_run(tmp_path):
     """A dictionary that drifted from the files it describes is the failure
     mode this whole file exists to prevent."""
     if not (ROOT / "docs" / "DATA_DICTIONARY.md").exists():
         pytest.skip("dictionary not built")
+    env = os.environ | {"PYTHONIOENCODING": "utf-8", "PYTHONUTF8": "1"}
     r = subprocess.run(
         [sys.executable, "scripts/build_data_dictionary.py",
-         "--json", "/tmp/dd_check.json", "--markdown", "/tmp/dd_check.md"],
-        cwd=ROOT, capture_output=True, text=True, timeout=300)
+         "--json", str(tmp_path / "dd_check.json"), "--markdown", str(tmp_path / "dd_check.md")],
+        cwd=ROOT, capture_output=True, text=True, encoding="utf-8", errors="strict", timeout=300, env=env)
     assert r.returncode == 0, r.stderr
-    fresh = Path("/tmp/dd_check.md").read_text()
-    committed = (ROOT / "docs" / "DATA_DICTIONARY.md").read_text()
+    fresh = (tmp_path / "dd_check.md").read_text(encoding="utf-8")
+    committed = (ROOT / "docs" / "DATA_DICTIONARY.md").read_text(encoding="utf-8")
     assert fresh == committed, (
         "docs/DATA_DICTIONARY.md is stale. Re-run "
         "scripts/build_data_dictionary.py and commit the result.")
@@ -81,7 +83,7 @@ def test_the_field_counts_are_real():
     p = ROOT / "data" / "data_dictionary.json"
     if not p.exists():
         pytest.skip("dictionary not built")
-    d = json.loads(p.read_text())
+    d = json.loads(p.read_text(encoding="utf-8"))
     assert d["totals"]["fields_documented"] > 300
     assert len(d["routes"]) > 40
     for a in d["artifacts"]:

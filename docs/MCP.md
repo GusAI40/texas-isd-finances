@@ -103,7 +103,7 @@ that the standard library is the smaller risk. `src/mcp_protocol.py` is the wire
 - **Sampling or open-ended elicitation** — every answer here is a lookup. The
   only request for user input is the closed-enum, same-name district choice in
   the MRTR path above; arbitrary questions and model calls are not exposed.
-- **Resources, prompts, subscriptions, tasks** — no state, nothing long-running.
+- **Prompts, subscriptions, tasks** — no state, nothing long-running.
 - **Authentication** — everything served is already public.
 - **`/query`, the natural-language SQL endpoint.** This is the important one. It is the
   single path with a prompt-injection history (closed 2026-07-31 by running as
@@ -189,3 +189,14 @@ no opaque token anyone has to validate.
 Declining returns `isError` and looks nothing up. A name matching no district
 stays an ordinary `isError` too: a typo is something a model can fix by itself,
 and only a genuine ambiguity — where both answers are real — becomes a question.
+
+## Optional visual report resource
+
+Hosts that support MCP Apps can discover exactly one allowlisted resource:
+`ui://txisd/report/v1.html` (`text/html;profile=mcp-app`). It is associated only
+with `district_money`, `compare_districts`, and `texas_overview`. These tools
+retain their sourced text and structured result for hosts that ignore UI metadata.
+The self-contained frame makes no network requests and declares empty connect,
+resource, and frame CSP allowlists. It accepts only bridge messages from its
+parent and renders the tool result it receives; it never fetches a URL supplied
+by a tool result.
