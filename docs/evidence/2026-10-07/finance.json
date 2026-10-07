@@ -1,0 +1,84 @@
+{
+  "audited_at": "2026-10-07",
+  "baseline_revision": "73df1896ed0818020ec1c15c06f5ee823db7ec0f",
+  "method": "Read-only production catalog and public finance aggregate SQL",
+  "query": "SELECT jsonb_build_object(\n  'summary_columns', (SELECT jsonb_agg(jsonb_build_object('name',column_name,'type',data_type) ORDER BY ordinal_position) FROM information_schema.columns WHERE table_schema='public' AND table_name='v_finance_summary'),\n  'registry', (SELECT jsonb_build_object('rows',count(*),'districts',count(DISTINCT district_number),'first_year',min(year),'last_year',max(year),'invalid_district_ids',count(*) FILTER (WHERE district_number !~ '^[0-9]{6}$'),'nonpositive_or_missing_enrollment',count(*) FILTER (WHERE fall_survey_enrollment IS NULL OR fall_survey_enrollment <=0)) FROM public.texas_school_finance),\n  'duplicate_district_year_keys', (SELECT count(*) FROM (SELECT district_number,year FROM public.texas_school_finance GROUP BY district_number,year HAVING count(*)>1) duplicates),\n  'latest_finance', (SELECT jsonb_build_object('year',2025,'rows',count(*),'total_spend',sum(total_spend),'enrollment',sum(enrollment),'spend_per_student_mismatches',count(*) FILTER (WHERE spend_per_student IS DISTINCT FROM round(total_spend::numeric/NULLIF(enrollment,0),2))) FROM public.v_finance_summary WHERE year=2025),\n  'dallas_2025', (SELECT jsonb_build_object('district_number',district_number,'year',year,'total_spend',total_spend,'enrollment',enrollment,'stored_spend_per_student',spend_per_student,'correct_spend_per_student',round(total_spend::numeric/NULLIF(enrollment,0),2),'stored_revenue_per_student',revenue_per_student,'correct_revenue_per_student',round(total_revenue::numeric/NULLIF(enrollment,0),2)) FROM public.v_finance_summary WHERE district_number='057905' AND year=2025)\n) AS audit;",
+  "result": {
+    "registry": {
+      "rows": 20587,
+      "districts": 1310,
+      "last_year": 2025,
+      "first_year": 2009,
+      "invalid_district_ids": 0,
+      "nonpositive_or_missing_enrollment": 3
+    },
+    "dallas_2025": {
+      "year": 2025,
+      "enrollment": 139776,
+      "total_spend": 3319208715,
+      "district_number": "057905",
+      "stored_spend_per_student": 23746,
+      "correct_spend_per_student": 23746.63,
+      "stored_revenue_per_student": 13529,
+      "correct_revenue_per_student": 13529.52
+    },
+    "latest_finance": {
+      "rows": 1202,
+      "year": 2025,
+      "enrollment": 5528915,
+      "total_spend": 109448637486,
+      "spend_per_student_mismatches": 1195
+    },
+    "summary_columns": [
+      {
+        "name": "district_number",
+        "type": "text"
+      },
+      {
+        "name": "district_name",
+        "type": "text"
+      },
+      {
+        "name": "year",
+        "type": "bigint"
+      },
+      {
+        "name": "total_revenue",
+        "type": "bigint"
+      },
+      {
+        "name": "total_spend",
+        "type": "bigint"
+      },
+      {
+        "name": "enrollment",
+        "type": "bigint"
+      },
+      {
+        "name": "spend_per_student",
+        "type": "numeric"
+      },
+      {
+        "name": "revenue_per_student",
+        "type": "numeric"
+      },
+      {
+        "name": "instruction_spend",
+        "type": "bigint"
+      },
+      {
+        "name": "debt_service",
+        "type": "bigint"
+      },
+      {
+        "name": "capital_projects",
+        "type": "bigint"
+      },
+      {
+        "name": "operating_spend",
+        "type": "bigint"
+      }
+    ],
+    "duplicate_district_year_keys": 0
+  }
+}

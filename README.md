@@ -27,6 +27,7 @@ or endorse any district.
 | looking for a specific number or field | **[docs/DATA_DICTIONARY.md](docs/DATA_DICTIONARY.md)** — every file, all 617 fields, generated from the real data |
 | asking "can it answer X?" | [docs/COVERAGE_SIMULATION_2026-08-23.md](docs/COVERAGE_SIMULATION_2026-08-23.md) — 82.2% measured, and what the other 18% needs |
 | auditing the stack or choosing Agent Skills | [docs/TECH_STACK_AND_AGENT_SKILLS.md](docs/TECH_STACK_AND_AGENT_SKILLS.md) — evidence-backed inventory, official sources, and adoption rules |
+| navigating the current audit, plan, concepts, and services | [INDEX.md](INDEX.md) — dated audit and execution-plan entry point |
 | deploying it | [DEPLOYMENT.md](DEPLOYMENT.md) — full runbook |
 
 ---

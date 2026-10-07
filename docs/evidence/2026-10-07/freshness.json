@@ -1,0 +1,106 @@
+{
+ "recorded": "2026-08-12",
+ "results": [
+  {
+   "id": "tea_peims",
+   "method": "page_year",
+   "state": "OK",
+   "detail": "latest advertised release is 2025, which we have"
+  },
+  {
+   "id": "tea_snapshot",
+   "method": "page_year",
+   "state": "NEWER",
+   "detail": "page now advertises 2025; we have 2024"
+  },
+  {
+   "id": "tea_staar_district",
+   "method": "page_year",
+   "state": "NEWER",
+   "detail": "page now advertises 2026; we have 2025"
+  },
+  {
+   "id": "tea_property",
+   "method": "page_year",
+   "state": "OK",
+   "detail": "latest advertised release is 2025, which we have"
+  },
+  {
+   "id": "tea_recapture",
+   "method": "etag",
+   "state": "OK",
+   "detail": "Last-Modified unchanged since our ingest"
+  },
+  {
+   "id": "bond_elections",
+   "method": "socrata",
+   "state": "NEWER",
+   "detail": "portal says data updated 2026-10-06 19:25 UTC; our vintage is 2026-08-14T04:02:26Z"
+  },
+  {
+   "id": "tea_accountability",
+   "method": "next_url",
+   "state": "OK",
+   "detail": "next release (2026-enhanced-statewide-summary.xlsx) is not published yet"
+  },
+  {
+   "id": "brb_debt_outstanding",
+   "method": "etag",
+   "state": "NEWER",
+   "detail": "file changed upstream: ETag 'e8af0b3e06bc7cb4931b4fbc5aca1cfa' vs recorded '4bd6e99944bde968dc2f1369269e4696'"
+  },
+  {
+   "id": "census_f33",
+   "method": "next_url",
+   "state": "OK",
+   "detail": "next release (elsec25t.xlsx) is not published yet"
+  },
+  {
+   "id": "nces_npefs",
+   "method": "next_url",
+   "state": "OK",
+   "detail": "next release (stfis25_1a.txt) is not published yet"
+  },
+  {
+   "id": "ccd_lea_directory",
+   "method": "etag",
+   "state": "OK",
+   "detail": "ETag unchanged since our ingest"
+  },
+  {
+   "id": "census_tiger",
+   "method": "next_url",
+   "state": "NEWER",
+   "detail": "next release exists upstream (application/zip): https://www2.census.gov/geo/tiger/TIGER2026/UNSD/tl_2026_48_unsd.zip"
+  },
+  {
+   "id": "usac_erate",
+   "method": "socrata",
+   "state": "NEWER",
+   "detail": "portal says data updated 2026-10-07 09:37 UTC; our vintage is 2026-08-17T00:00:00Z"
+  },
+  {
+   "id": "usac_entities",
+   "method": "socrata",
+   "state": "NEWER",
+   "detail": "portal says data updated 2026-10-07 09:37 UTC; our vintage is 2026-08-17T00:00:00Z"
+  },
+  {
+   "id": "bls_cpi",
+   "method": "unverifiable",
+   "state": "UNVERIF",
+   "detail": "Dynamic page: no Last-Modified, no ETag, no dataset metadata API. CPI-U annual averages change once a year in mid-January; the constant-dollar base year (2024) is pinned deliberately and does not track releases."
+  }
+ ],
+ "newer": [
+  "tea_snapshot",
+  "tea_staar_district",
+  "bond_elections",
+  "brb_debt_outstanding",
+  "census_tiger",
+  "usac_erate",
+  "usac_entities"
+ ],
+ "uncovered": [],
+ "errors": []
+}
