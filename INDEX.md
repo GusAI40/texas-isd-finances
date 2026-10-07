@@ -10,7 +10,13 @@ This is the short route through the public-data portal documentation. It does no
 | Exact release revision, passing checks, and pending external gates | [Release evidence](docs/RELEASE_EVIDENCE.md) |
 | Safe finance migration and recovery instructions | [Finance reconciliation runbook](docs/FINANCE_SUMMARY_RECONCILIATION.md) |
 | Measured 95% visual / 5% prose rule | [Visual implementation plan](docs/VISUAL_IMPLEMENTATION_PLAN.md), [design contract](docs/VISUAL_DESIGN_CONTRACT.md) |
+| Honest historical and prototype visual evidence | [Evidence scope refinement](docs/VISUAL_EVIDENCE_REFINEMENT.md) |
+| Financial framing and keyboard/map repairs | [Framing refinement](docs/FRAMING_TEST_REFINEMENT.md), [workflow repair refinement](docs/PUBLIC_WORKFLOW_REPAIR_REFINEMENT.md) |
 | ChatGPT connection, visual resource, and portable package | [Plugin implementation plan](docs/MCP_PLUGIN_IMPLEMENTATION_PLAN.md), [ChatGPT guide](docs/CHATGPT_PLUGIN.md) |
+| Downloadable plugin and archive integrity | [Portable ZIP](docs/artifacts/texas-isd-finances-plugin.zip), [archive validation](docs/evidence/mcp/portable-archive.json) |
+| Captured source hashes across Windows/Git line endings | [Hash provenance](docs/evidence/end-of-line-provenance.md) |
+| Finance and outcome periods in district comparisons | [Source-period refinement](docs/COMPARISON_PERIOD_REFINEMENT.md), [independent checks](docs/evidence/mcp/comparison-period-verification.md) |
+| Metric periods, populations, missing values, and plugin package checks | [Metadata refinement](docs/METRIC_METADATA_REFINEMENT.md), [independent checks](docs/evidence/mcp/metadata-package-independent-verification.md) |
 | Reviewed source refresh findings | [Source refresh review](docs/SOURCE_REFRESH_REVIEW.md) |
 | Plain-language concepts and comparison rules | [Dictionary](DICTIONARY.md) |
 | Libraries, services, tools, protocols, and sources | [Third-party services](THIRD_PARTY_SERVICES.md) |

@@ -11,8 +11,24 @@ body { padding: 16px; }
 .mcp-bars { display: grid; gap: 16px; margin: 16px 0; }
 .mcp-bar-group { display: grid; gap: 8px; }
 .mcp-bar-label { display: flex; justify-content: space-between; gap: 12px; font-weight: 600; }
-.mcp-bar-track { height: 12px; background: var(--surface-2); border-radius: 999px; overflow: hidden; }
-.mcp-bar { height: 100%; background: var(--accent); }
+.mcp-bar-track { position: relative; height: 12px; background: var(--surface-2); border-radius: 999px; overflow: hidden; }
+.mcp-bar { position: absolute; top: 0; height: 100%; background: var(--accent); }
+.mcp-bar[data-direction="negative"] { background: var(--ink-2); }
+.mcp-bar-zero { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--ink); transform: translateX(-1px); }
+.mcp-report .visual-table { table-layout: fixed; }
+.mcp-report .visual-table th, .mcp-report .visual-table td { overflow-wrap: anywhere; }
+.mcp-table-scroll { max-width: 100%; overflow-x: auto; }
+.mcp-context { color: var(--ink-2); }
+.mcp-limits { border-left: 3px solid var(--accent); padding-left: 16px; }
+.mcp-frame { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 16px; }
+.mcp-frame-item { display: inline-grid; grid-template-columns: auto auto; gap: 6px; align-items: baseline; padding: 6px 9px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--surface-2); }
+.mcp-frame-item dt { color: var(--ink-2); font-size: .8rem; font-weight: 700; letter-spacing: .02em; text-transform: uppercase; }
+.mcp-frame-item dd { margin: 0; font-weight: 650; }
+.mcp-limits ul { margin-bottom: 0; }
+.mcp-metric-card { padding: 12px; background: var(--surface-2); border-radius: var(--radius-sm); }
+@media (max-width: 520px) {
+  .mcp-table-scroll .visual-table { min-width: 560px; }
+}
   </style>
 </head>
 <body>
@@ -31,28 +47,64 @@ body { padding: 16px; }
   const status = document.querySelector('#status');
   const report = document.querySelector('#report');
   const website = document.querySelector('#website');
-  const display = value => value == null ? 'Not available' : typeof value === 'number'
-    ? value.toLocaleString(undefined, { maximumFractionDigits: 1 }) : String(value);
+  const hasOwn = (object, key) => Object.prototype.hasOwnProperty.call(object, key);
+  const display = value => value == null || (typeof value === 'number' && !Number.isFinite(value))
+    ? 'Not available' : typeof value === 'number'
+      ? value.toLocaleString(undefined, { maximumFractionDigits: 1 }) : String(value);
   const safeUrl = value => { try {
     const url = new URL(value); return url.protocol === 'https:' && url.hostname === 'txisd.dev' ? url.href : null;
   } catch (_) { return null; } };
   const notify = (method, params) => parent.postMessage({ jsonrpc: '2.0', method, params }, '*');
   function request(method, params) {
     const id = ++nextId;
-    parent.postMessage({ jsonrpc: '2.0', id, method, params }, '*');
     return new Promise((resolve, reject) => {
       const timeout = setTimeout(() => { pending.delete(id); reject(new Error('The host did not respond in time.')); }, 8000);
       pending.set(id, { resolve, reject, timeout });
+      parent.postMessage({ jsonrpc: '2.0', id, method, params }, '*');
     });
   }
   function metricRows(visual) {
     if (visual.view !== 'comparison') return visual.metrics;
     return visual.metrics.flatMap(row => (row.values || []).map(metric => Object.assign({}, metric, {
+      measureLabel: metric.label,
       label: row.district_name + ': ' + metric.label,
     })));
   }
+  function districtContext(visual) {
+    const districts = Array.isArray(visual.districts) ? visual.districts : [];
+    const labels = districts.filter(district => district && typeof district === 'object').map(district => {
+      const name = district.district_name || 'Unnamed district';
+      return district.district_number ? `${name} (${district.district_number})` : name;
+    });
+    return labels.length ? labels.join(' compared with ') : 'Texas statewide public school districts';
+  }
+  function sourceLimits(visual, metrics) {
+    const limits = Array.isArray(visual.limits) ? [...visual.limits] : [];
+    metrics.forEach(metric => {
+      if (Array.isArray(metric.limits)) limits.push(...metric.limits);
+    });
+    return [...new Set(limits.filter(limit => typeof limit === 'string' && limit.trim()).map(limit => limit.trim()))];
+  }
+  function frameFacts(visual, metrics) {
+    const periods = [...new Set(metrics.map(metric => metric.period).filter(period => period && period !== 'Not reported'))];
+    const statuses = [...new Set(metrics.map(metric => metric.status).filter(value => typeof value === 'string' && value.trim()))];
+    const facts = [];
+    if (periods.length) facts.push(['Period', periods.join(' / ')]);
+    if (statuses.length) facts.push(['Status', statuses.join(' / ')]);
+    if (visual.view === 'comparison') {
+      facts.push(['Compare', 'Matching definition / period / unit / denominator']);
+      facts.push(['Model', 'Noncausal']);
+      return facts;
+    }
+    facts.push(['Frame', 'Operating + annual debt service']);
+    facts.push(['Scope', 'Excludes construction']);
+    facts.push(['Total', 'Not all funds']);
+    return facts;
+  }
   function render(visual) {
-    if (!visual || visual.schemaVersion !== 1 || !Array.isArray(visual.metrics)) {
+    if (!visual || visual.schemaVersion !== 1 || !['district', 'comparison', 'statewide'].includes(visual.view) || !Array.isArray(visual.metrics)) {
+      report.replaceChildren();
+      website.href = 'https://txisd.dev/';
       status.textContent = 'A sourced text answer is available above; this visual report was not supplied.'; return;
     }
     report.replaceChildren();
@@ -61,53 +113,112 @@ body { padding: 16px; }
       : visual.view === 'statewide' ? 'Statewide summary' : 'District finance';
     report.append(title);
     const metrics = metricRows(visual).filter(metric => metric && typeof metric === 'object');
+    const context = document.createElement('p'); context.className = 'mcp-context';
+    context.textContent = districtContext(visual); report.append(context);
+    const frame = document.createElement('dl'); frame.className = 'mcp-frame';
+    frame.setAttribute('aria-label', 'Metric frame and scope');
+    frameFacts(visual, metrics).forEach(([label, value]) => {
+      const item = document.createElement('div'); item.className = 'mcp-frame-item';
+      const term = document.createElement('dt'); term.textContent = label;
+      const description = document.createElement('dd'); description.textContent = value;
+      item.append(term, description); frame.append(item);
+    });
+    report.append(frame);
+    const limits = sourceLimits(visual, metrics);
+    if (limits.length) {
+      const aside = document.createElement('aside'); aside.className = 'mcp-limits'; aside.setAttribute('aria-label', 'Source limitations');
+      const details = document.createElement('details');
+      const summary = document.createElement('summary'); summary.textContent = 'Full source limitations'; details.append(summary);
+      const list = document.createElement('ul');
+      limits.forEach(limit => { const item = document.createElement('li'); item.textContent = limit; list.append(item); });
+      details.append(list); aside.append(details);
+      report.append(aside);
+    }
     const bars = document.createElement('div'); bars.className = 'mcp-bars';
     const unitGroups = new Map();
     metrics.forEach(metric => {
       const unit = metric.unit || 'Unit not reported';
-      if (!unitGroups.has(unit)) unitGroups.set(unit, []);
-      unitGroups.get(unit).push(metric);
+      const key = visual.view === 'comparison'
+        ? [metric.id || metric.measureLabel, metric.period, unit, metric.denominator].join('\u0000')
+        : unit;
+      if (!unitGroups.has(key)) unitGroups.set(key, { unit, metrics: [] });
+      unitGroups.get(key).metrics.push(metric);
     });
-    unitGroups.forEach((group, unit) => {
+    unitGroups.forEach(({ unit, metrics: group }) => {
       const section = document.createElement('section'); section.className = 'mcp-bar-group';
-      const heading = document.createElement('h3'); heading.textContent = unit; section.append(heading);
-      const max = Math.max(1, ...group.map(metric => Number.isFinite(metric.value) ? Math.abs(metric.value) : 0));
+      const heading = document.createElement('h3');
+      heading.textContent = visual.view === 'comparison'
+        ? `${group[0].measureLabel || group[0].label} · ${unit} · ${group[0].period || 'Period not reported'}`
+        : unit;
+      section.append(heading);
+      const values = group.map(metric => metric.value).filter(Number.isFinite);
+      const min = Math.min(0, ...values), max = Math.max(0, ...values), range = max - min || 1;
+      const zero = Math.abs(min) / range * 100;
       group.forEach(metric => {
         const item = document.createElement('div');
         const label = document.createElement('div'); label.className = 'mcp-bar-label';
-        label.textContent = metric.label + ': ' + display(metric.value) + ' ' + (metric.unit || '');
+        label.textContent = (metric.label || 'Unlabeled measure') + ': ' + display(metric.value) + ' ' + (metric.unit || '');
+        if (group.length < 2) {
+          item.className = 'mcp-metric-card'; item.append(label); section.append(item); return;
+        }
         const track = document.createElement('div'); track.className = 'mcp-bar-track';
         track.setAttribute('role', 'img'); track.setAttribute('aria-label', label.textContent);
         const fill = document.createElement('div'); fill.className = 'mcp-bar';
-        fill.style.width = (Number.isFinite(metric.value) ? Math.min(100, Math.abs(metric.value) / max * 100) : 0) + '%';
-        track.append(fill); item.append(label, track); section.append(item);
+        const point = Number.isFinite(metric.value) ? (metric.value - min) / range * 100 : zero;
+        fill.dataset.direction = !Number.isFinite(metric.value) ? 'missing' : metric.value < 0 ? 'negative' : metric.value > 0 ? 'positive' : 'zero';
+        fill.style.left = Math.min(zero, point) + '%';
+        fill.style.width = Math.abs(point - zero) + '%';
+        track.append(fill);
+        if (min < 0) {
+          const marker = document.createElement('span'); marker.className = 'mcp-bar-zero'; marker.style.left = zero + '%';
+          marker.setAttribute('aria-hidden', 'true'); track.append(marker);
+        }
+        item.append(label, track); section.append(item);
       });
       bars.append(section);
     });
     report.append(bars);
+    const table = document.createElement('div'); table.className = 'mcp-table-scroll'; table.tabIndex = 0;
+    table.setAttribute('aria-label', 'Scrollable public finance data table');
+    report.append(table);
     window.TxisdVisual.renderAccessibleTable(
-      report, ['Measure', 'Value', 'Unit', 'Status'],
-      metrics.map(metric => [metric.label, display(metric.value), metric.unit || 'Not reported', metric.status || 'unverified']),
+      table, ['Measure', 'Value', 'Unit', 'Status'],
+      metrics.map(metric => [metric.label || 'Unlabeled measure', display(metric.value), metric.unit || 'Not reported', metric.status || 'unverified']),
       'Public finance figures'
     );
     metrics.forEach(metric => {
-      const meta = document.createElement('div'); window.TxisdVisual.renderMetricMeta(meta, metric); report.append(meta);
+      const meta = document.createElement('div');
+      window.TxisdVisual.renderMetricMeta(meta, Object.assign({}, metric, { limits: [] })); report.append(meta);
     });
-    const href = safeUrl(visual.websiteUrl); if (href) website.href = href;
+    const href = safeUrl(visual.websiteUrl); website.href = href || 'https://txisd.dev/';
     rendered = true; status.textContent = 'Public report data loaded.';
   }
   window.addEventListener('message', event => {
     if (event.source !== parent || !event.data || event.data.jsonrpc !== '2.0') return;
     const message = event.data;
-    if (Number.isInteger(message.id) && pending.has(message.id)) {
+    if (hasOwn(message, 'id')) {
+      if (!Number.isInteger(message.id) || hasOwn(message, 'method')) return;
+      const hasResult = hasOwn(message, 'result'), hasError = hasOwn(message, 'error');
+      if (hasResult === hasError || !pending.has(message.id)) return;
       const job = pending.get(message.id); pending.delete(message.id); clearTimeout(job.timeout);
       if (message.error) job.reject(new Error(message.error.message || 'Host error')); else job.resolve(message.result);
       return;
     }
     if (message.method === 'ui/notifications/tool-result') {
-      const content = message.params && message.params.structuredContent; render(content && content.visual);
+      if (!message.params || typeof message.params !== 'object') return;
+      if (message.params.isError) {
+        report.replaceChildren();
+        website.href = 'https://txisd.dev/';
+        status.textContent = 'The host returned a tool error. The public website remains available.';
+        return;
+      }
+      const content = message.params.structuredContent; render(content && content.visual);
     }
   });
+  if (parent === window) {
+    status.textContent = 'This visual report needs a compatible host. The public website remains available.';
+    return;
+  }
   request('ui/initialize', {
     appInfo: { name: 'Texas ISD Finance Report', version: '1.0.0' }, appCapabilities: {}, protocolVersion: '2026-01-26',
   }).then(() => {

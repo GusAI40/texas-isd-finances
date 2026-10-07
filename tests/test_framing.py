@@ -23,15 +23,67 @@ framing rules directly:
 They are deliberately string-level assertions on the shipped HTML/SQL: crude,
 but the failure mode is a sentence, so the test has to read sentences.
 """
+import json
 import re
+import subprocess
 import sys
 from pathlib import Path
+
+import pytest
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-INDEX = (ROOT / "static" / "index.html").read_text()
-SQL = (ROOT / "sql" / "create_tables.sql").read_text()
+INDEX = (ROOT / "static" / "index.html").read_text(encoding="utf-8")
+SQL = (ROOT / "sql" / "create_tables.sql").read_text(encoding="utf-8")
+
+
+def _renderer_source(name):
+    start = INDEX.index(f"function {name}")
+    end = INDEX.find("\nfunction ", start + 1)
+    return INDEX[start:] if end == -1 else INDEX[start:end]
+
+
+def _render(functions, call, payload):
+    """Run the shipped renderers in a bounded DOM stub, then return their output."""
+    script = r"""
+const fs = require('fs'), vm = require('vm');
+const input = JSON.parse(fs.readFileSync(0, 'utf8'));
+const elements = {};
+for (const id of ['hero-kpis', 'picker-title', 'hero-sub', 'hero-why', 'kpis', 'tx-pennies', 'tx-cap']) {
+  elements[id] = { innerHTML: '', textContent: '', hidden: false, style: {}, dataset: {} };
+}
+const context = {
+  state: input.payload.state || {},
+  $: id => elements[id] || (elements[id] = { innerHTML: '', textContent: '', hidden: false, style: {}, dataset: {} }),
+  titleCase: value => value,
+  fmtMoney: value => '$' + Math.round(Number(value)).toLocaleString('en-US'),
+  fmtBig: value => '$' + Math.round(Number(value)).toLocaleString('en-US'),
+  fmtNum: value => Number(value).toLocaleString('en-US'),
+  xb: () => '',
+  ordSuf: () => 'th',
+  latestOf: rows => [rows && rows.length ? rows[rows.length - 1] : null, null],
+  consecutiveEnrollmentDeclines: () => 0,
+  opsPerStudentNote: () => '',
+  balanceCard: () => '',
+  applyVisualLedger: () => {},
+  dollarParts: () => input.payload.dollar,
+  liveStatus: { hidden: false, textContent: '' },
+  console,
+};
+vm.createContext(context);
+for (const source of input.functions) vm.runInContext(source, context);
+const value = vm.runInContext(input.call, context);
+process.stdout.write(JSON.stringify({ elements, value }));
+"""
+    completed = subprocess.run(
+        ["node", "-e", script],
+        input=json.dumps({"functions": functions, "call": call, "payload": payload}),
+        text=True,
+        capture_output=True,
+        check=True,
+    )
+    return json.loads(completed.stdout)["elements"]
 
 
 # --- the view carries both frames, so the page can compare like with like ----
@@ -86,8 +138,23 @@ def test_the_spend_card_names_the_operating_figure():
 
 
 def test_the_statewide_rank_names_its_frame():
-    assert "counting construction & debt" in INDEX, (
-        "the percentile card ranks on all-funds and must say so")
+    output = _render(
+        [_renderer_source("renderKPIs")],
+        "renderKPIs()",
+        {
+            "state": {
+                "summary": [{"year": 2025, "spend_per_student": 23_746, "enrollment": 139_776}],
+                "peers": {"statewide": {"spend_percentile": 81, "statewide_median_spend": 17_095}},
+            }
+        },
+    )["kpis"]["innerHTML"].lower()
+    assert "all funds" in output
+    assert "construction" in output
+    assert "debt" in output
+    with pytest.raises(AssertionError):
+        assert "construction" in output.replace("construction", "")
+    with pytest.raises(AssertionError):
+        assert "debt" in output.replace("debt", "")
 
 
 def test_the_reporter_lens_gives_both_frames():
@@ -133,11 +200,40 @@ def test_the_deep_link_hero_does_not_lead_with_an_unqualified_all_funds_figure()
     """The headline a shared link opens on. It said "spends $31,704 per
     student" about Argyle with no qualifier — the exact sentence the forensic
     audit corrected on the cards below it."""
-    body = INDEX.split("function renderWelcomeFor", 1)[1].split("\nfunction ", 1)[0]
-    assert "nonOpShare" in body and "operating_spend" in body, (
-        "the hero no longer checks the construction share before leading with "
-        "the all-funds figure")
-    assert "building them" in body
+    public = json.loads(
+        (ROOT / "tests" / "browser" / "fixtures" / "public-endpoints.json").read_text(encoding="utf-8")
+    )
+    dallas = public["payloads"]["dallas_summary"][-1]
+    argyle = json.loads(
+        (ROOT / "docs" / "evidence" / "mcp" / "framing-argyle-public.json").read_text(encoding="utf-8")
+    )["row"]
+
+    for row in (dallas, argyle):
+        name = row["district_name"]
+        output = _render(
+            [_renderer_source("renderHeroMetrics"), _renderer_source("renderWelcomeFor")],
+            "renderWelcomeFor({num: state.district.num, name: state.district.name})",
+            {
+                "state": {
+                    "district": {"num": row["district_number"], "name": name},
+                    "summary": [row],
+                }
+            },
+        )
+        markup = output["hero-kpis"]["innerHTML"].lower()
+        assert f"fy {row['year']}" in markup
+        assert "all funds / student" in markup
+        assert "operations / student" in markup
+        assert "construction" in markup and "debt" in markup
+        title = output["picker-title"]["textContent"]
+        assert title.startswith(f"{name} financial report")
+        assert title.endswith(f"FY {row['year']}")
+        with pytest.raises(AssertionError):
+            assert "all funds / student" in markup.replace("all funds / student", "")
+        with pytest.raises(AssertionError):
+            assert "operations / student" in markup.replace("operations / student", "")
+        with pytest.raises(AssertionError):
+            assert "construction" in markup.replace("construction", "")
 
 
 def test_the_hero_penny_caption_keeps_both_frames():
@@ -145,10 +241,74 @@ def test_the_hero_penny_caption_keeps_both_frames():
     the OWNER misread it as classroom spending — the exact Argyle failure, on
     a surface built weeks after the rule. The caption must carry the
     operating figure wherever construction is material."""
-    body = INDEX.split("function updateHeroDollar", 1)[1].split("\nfunction ", 1)[0]
-    assert "operating_spend" in body, "caption no longer computes the operating frame"
-    assert "runs schools" in body
-    assert "everything spent" in body, "the all-funds figure must say it is everything"
+    dallas = json.loads(
+        (ROOT / "tests" / "browser" / "fixtures" / "public-endpoints.json").read_text(encoding="utf-8")
+    )["payloads"]["dallas_summary"][-1]
+    dollar = {
+        "year": dallas["year"],
+        "perStudent": dallas["spend_per_student"],
+        "enrollment": dallas["enrollment"],
+        "total": dallas["total_spend"],
+        "parts": [{"key": "classroom", "cents": 52, "color": "#123"}],
+    }
+    output = _render(
+        [_renderer_source("renderHeroMetrics"), _renderer_source("updateHeroDollar")],
+        "updateHeroDollar()",
+        {
+            "dollar": dollar,
+            "state": {
+                "district": {"name": dallas["district_name"]},
+                "summary": [
+                    {**dallas, "year": 2024, "operating_spend": 1, "enrollment": 1},
+                    dallas,
+                    {**dallas, "year": 2026, "operating_spend": 1, "enrollment": 1},
+                ],
+            },
+        },
+    )
+    caption = output["tx-cap"]["innerHTML"].lower()
+    ledger = output["hero-kpis"]["innerHTML"].lower()
+    expected_ops = round(dallas["operating_spend"] / dallas["enrollment"])
+    assert f"fy {dallas['year']}" in caption
+    assert f"${expected_ops:,}" in caption
+    assert "operations / student" in caption
+    assert "all funds / student" in caption
+    assert "construction" in caption and "debt" in caption
+    assert f"${expected_ops:,}" in ledger
+    with pytest.raises(AssertionError):
+        assert f"${expected_ops:,}" in caption.replace(f"${expected_ops:,}", "$1")
+
+    zero = _render(
+        [_renderer_source("renderHeroMetrics"), _renderer_source("updateHeroDollar")],
+        "updateHeroDollar()",
+        {
+            "dollar": dollar,
+            "state": {
+                "district": {"name": dallas["district_name"]},
+                "summary": [{**dallas, "operating_spend": 0}],
+            },
+        },
+    )["tx-cap"]["innerHTML"].lower()
+    assert "$0" in zero and "operations / student" in zero
+
+    unavailable = _render(
+        [_renderer_source("renderHeroMetrics"), _renderer_source("updateHeroDollar")],
+        "updateHeroDollar()",
+        {
+            "dollar": dollar,
+            "state": {
+                "district": {"name": dallas["district_name"]},
+                "summary": [
+                    {**dallas, "year": 2024, "operating_spend": 1, "enrollment": 1},
+                    {**dallas, "operating_spend": None},
+                ],
+            },
+        },
+    )
+    unavailable_caption = unavailable["tx-cap"]["innerHTML"].lower()
+    unavailable_ledger = unavailable["hero-kpis"]["innerHTML"].lower()
+    assert f"operations / student unavailable for fy {dallas['year']}" in unavailable_caption
+    assert f"operations / student unavailable for fy {dallas['year']}" in unavailable_ledger
 
 
 def test_the_equity_headline_states_its_school_year():

@@ -1,4 +1,4 @@
-/* ==========================================================================
+/* ========================================================================== 
    Texas ISD Financial Resource Guide — design system
    --------------------------------------------------------------------------
    One source of truth for tokens, type, spacing and components.
@@ -477,6 +477,13 @@ hr, .rule {
   .no-print, nav, .btn, .chip { display: none !important; }
   .card { border: 1px solid #ccc; break-inside: avoid; }
   a[href^="http"]::after { content: " (" attr(href) ")"; font-size: 9pt; color: #555; }
+  #econ-macro, #econ-levers, #eq-bars,
+  #bond-timeline, #bond-purpose, #bond-era {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    height: auto;
+  }
 }
 
 
@@ -560,6 +567,38 @@ body:has(#masthead) .btn-theme, body:has(#masthead) #btn-theme { display: none; 
   #masthead .m-in { gap: .3rem .55rem; padding: .5rem 1rem .4rem; }
   #masthead .m-brand { margin-right: auto; }
   #masthead .m-tabs { flex: 1 1 100%; order: 10; margin: 0 -1rem; padding: 0 1rem; }
+  .hero-grid { grid-template-columns: minmax(0, 1fr); }
+  .hero-left, .hero-row, .finder, .hero-kpis { min-width: 0; max-width: 100%; }
+  #picker-section .hero-num { white-space: normal; overflow-wrap: anywhere; }
+  .hero-kpis { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .hero-kpis > span, .proof > span { min-width: 0; overflow-wrap: anywhere; }
+  .proof { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .finder .row { flex-wrap: nowrap; }
+  .finder .row input { min-width: 0; width: auto; }
+  .finder .row button { flex: 0 0 auto; }
+  #t-years { white-space: normal; overflow-wrap: anywhere; }
+  .welcome-h, .collab-h, .pipe-head, .pipe-list li, .trust li { overflow-wrap: anywhere; }
+  .drivers, .econ-grid { grid-template-columns: minmax(0, 1fr); }
+  .driver, .econ-card, .lever, .lever .lrow { min-width: 0; }
+  .driver .dcmp .nb { white-space: normal; overflow-wrap: anywhere; }
+  .lever .lrow {
+    grid-template-columns: minmax(0, 1fr) minmax(2rem, 1fr) auto;
+  }
+  .lever .lrow > span, .lever .lrow > b,
+  .econ-card, .econ-card a, .econ-card button { overflow-wrap: anywhere; }
+  .econ-card .nowrap { white-space: normal; }
+  #outcomes-drivers,
+  #econ-section .econ-grid,
+  #onechild .beats { grid-template-columns: minmax(0, 1fr); }
+  #outcomes-drivers .driver,
+  #econ-bill, #econ-alloc, #econ-who, #econ-national, #econ-erate { min-width: 0; max-width: 100%; }
+  #outcomes-drivers .nb { white-space: normal; overflow-wrap: anywhere; }
+  #outcomes-lever .lrow {
+    min-width: 0;
+    grid-template-columns: minmax(0, 1fr) minmax(2rem, 1fr) auto;
+  }
+  #outcomes-lever .lrow > span,
+  #outcomes-lever .lrow > b { min-width: 0; width: auto; overflow-wrap: anywhere; }
 }
 
 /* Public report visual ledger ------------------------------------------------
@@ -684,4 +723,18 @@ body:has(#masthead) .btn-theme, body:has(#masthead) #btn-theme { display: none; 
   .warnbar details { display: inline; margin-left: .35rem; }
   .warnbar summary { display: inline; cursor: pointer; color: var(--accent); }
   .warnbar details div { margin-top: .4rem; }
+}
+@media (max-width: 360px) {
+  .hero-kpis, .proof { grid-template-columns: minmax(0, 1fr); }
+}
+.live-status {
+  margin: .7rem 0 1rem;
+  padding: .7rem .85rem;
+  border-left: 4px solid var(--bad);
+  border-radius: var(--r-sm);
+  background: var(--wash);
+  color: var(--ink);
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  line-height: 1.35;
 }

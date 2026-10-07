@@ -31,19 +31,28 @@ def _metric(
     status: str | None = None,
     source_label: str = "Texas Education Agency public artifacts",
 ) -> dict[str, Any]:
+    normalized_period = str(period) if period is not None else "Not reported"
     return {
         "id": key,
         "key": key,
         "label": label,
         "value": value,
         "unit": unit,
-        "period": str(period) if period is not None else "Not reported",
+        "period": normalized_period,
         "population": population or "Texas public school districts",
         "denominator": denominator or "Not reported",
         "status": status or ("missing" if value is None else "observed"),
-        "source": {"label": source_label, "url": "https://txisd.dev/transparency", "period": str(period)},
+        "source": {"label": source_label, "url": "https://txisd.dev/transparency", "period": normalized_period},
         "limits": [str(limit) for limit in limits if limit],
     }
+
+
+def _district_population(name: Any, number: Any) -> str:
+    if isinstance(name, str) and name.strip():
+        return name.strip()
+    if isinstance(number, str) and len(number) == 6 and number.isdigit():
+        return f"District {number}"
+    return "District not reported"
 
 
 def visual_payload(tool_name: str, data: dict[str, Any]) -> dict[str, Any]:
@@ -61,6 +70,7 @@ def visual_payload(tool_name: str, data: dict[str, Any]) -> dict[str, Any]:
                 year,
                 limits,
                 denominator="fall survey enrollment",
+                population=_district_population(name, number),
             ),
             _metric(
                 "operating_per_student",
@@ -70,6 +80,7 @@ def visual_payload(tool_name: str, data: dict[str, Any]) -> dict[str, Any]:
                 year,
                 limits,
                 denominator="fall survey enrollment",
+                population=_district_population(name, number),
             ),
             _metric(
                 "debt_per_student",
@@ -79,6 +90,7 @@ def visual_payload(tool_name: str, data: dict[str, Any]) -> dict[str, Any]:
                 year,
                 limits,
                 denominator="fall survey enrollment",
+                population=_district_population(name, number),
             ),
             _metric(
                 "instruction_per_student",
@@ -88,6 +100,7 @@ def visual_payload(tool_name: str, data: dict[str, Any]) -> dict[str, Any]:
                 year,
                 limits,
                 denominator="fall survey enrollment",
+                population=_district_population(name, number),
             ),
         ]
         return {
@@ -112,37 +125,41 @@ def visual_payload(tool_name: str, data: dict[str, Any]) -> dict[str, Any]:
                             "Operating spending per student",
                             row.get("operating_per_student"),
                             "USD per student",
-                            row.get("year"),
+                            row.get("year") if row.get("year") is not None else "Not reported",
                             limits,
                             denominator="fall survey enrollment",
+                            population=_district_population(row.get("district_name"), row.get("district_number")),
                         ),
                         _metric(
                             "debt_per_student",
                             "Debt service per student",
                             row.get("debt_per_student"),
                             "USD per student",
-                            row.get("year"),
+                            row.get("year") if row.get("year") is not None else "Not reported",
                             limits,
                             denominator="fall survey enrollment",
+                            population=_district_population(row.get("district_name"), row.get("district_number")),
                         ),
                         _metric(
                             "local_pct",
                             "Local revenue share",
                             row.get("local_pct"),
                             "percent",
-                            row.get("year"),
+                            row.get("year") if row.get("year") is not None else "Not reported",
                             limits,
                             denominator="gross local + state + federal revenue",
+                            population=_district_population(row.get("district_name"), row.get("district_number")),
                         ),
                         _metric(
                             "points_vs_predicted",
                             "Points vs predicted",
                             row.get("points_vs_predicted"),
                             "percentage points",
-                            row.get("year"),
+                            row.get("outcomes_year") if row.get("outcomes_year") is not None else "Not reported",
                             limits,
                             denominator="predicted Meets rate from the district need model",
-                            status="modeled",
+                            status="modeled" if row.get("points_vs_predicted") is not None else "missing",
+                            population=_district_population(row.get("district_name"), row.get("district_number")),
                         ),
                     ],
                 }

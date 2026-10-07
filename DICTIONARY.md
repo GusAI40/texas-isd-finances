@@ -35,6 +35,25 @@ PEIMS finance covers fiscal 2009–2025; the national F-33 comparison is FY2024.
 
 Use lineage where available for numerator, denominator, formula, source, and limitations. MCP results carry a `limits` array; see [docs/MCP.md](docs/MCP.md). Current limitations are in the [2026 audit](docs/AUDIT_2026-10-07.md).
 
+## Visual report fields
+
+The optional MCP `visual` result reshapes the tool's existing public artifact;
+it does not fetch another source. Its district, comparison, and statewide views
+carry the following metric meanings in [the adapter](src/mcp_apps.py).
+
+| Field | Meaning and reading rule |
+|---|---|
+| `id`, `key`, `label` | Stable measure identity and readable name. Similar names alone do not establish comparable numerators. |
+| `value`, `unit` | The reported number and its unit. A null value is missing; a reported zero remains zero. |
+| `period`, `source.period` | The measure's actual source period. Both say `Not reported` when unavailable. A comparison's outcome period can differ from its finance period. |
+| `population`, `denominator` | The district or statewide universe and the stated basis, such as fall-survey enrollment. An unavailable denominator says `Not reported`. |
+| `status` | The adapter distinguishes observed, missing, and modeled figures. The website also labels not-applicable and unverified states explicitly. |
+| `source`, `limits` | Source identity, safe link, source period, and qualifications that travel with the value. A source link is not a claim that newer releases have been ingested. |
+
+Dallas/Houston comparisons retain FY2025 finance and 2024 outcome-model measures
+separately. The modeled difference from predicted performance describes an
+association; it does not show that a spending change caused a result.
+
 ## Visual rule and ChatGPT access
 
 | Term | Meaning | Evidence boundary |

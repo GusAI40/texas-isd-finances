@@ -1,0 +1,51 @@
+{
+  "checked_at": "2026-10-07T23:35:59.395916+00:00",
+  "archive": "docs/artifacts/texas-isd-finances-plugin.zip",
+  "sha256": "b90e20e5abe4f39cec2bef5614e5d30060e51d1f7b131de994d2af7d78689da4",
+  "bytes": 148772,
+  "entries": [
+    {
+      "path": ".app.json",
+      "bytes": 128,
+      "sha256": "fce0876a789726b7bd7276e11086f828cc3fb5c60674b0fd0ea130b08d0098ee"
+    },
+    {
+      "path": "LISTING.md",
+      "bytes": 1427,
+      "sha256": "6427fdcb949248a3a761860a297dd09d586df25f7747913f1c7e2a7189d307d3"
+    },
+    {
+      "path": "assets/comparison.png",
+      "bytes": 91266,
+      "sha256": "c31e6f58903b6ed438db89f77f8aad1215a3f60b39e29e3ec7aed63829a221a4"
+    },
+    {
+      "path": "assets/district-report.png",
+      "bytes": 64908,
+      "sha256": "c90cd99859fe17da1df78f1974395c42f0e0aa2b614bc340f7fb6ad0d570384a"
+    },
+    {
+      "path": "assets/icon.svg",
+      "bytes": 335,
+      "sha256": "ded4b3a8264358e6c68ce66d7d313c61369bf28541779c7aec63e671b0250012"
+    },
+    {
+      "path": "mcp.json",
+      "bytes": 202,
+      "sha256": "0b6e01c619337d169274d4a3c50938a3ef8ff6ad14730a7c8e574be7e158c8b8"
+    },
+    {
+      "path": "plugin.json",
+      "bytes": 923,
+      "sha256": "6e6316034ae14027d3e02b9e83ef22e8861521e725e90ec4fca9b3d4e81d08b4"
+    },
+    {
+      "path": "skills/district-report/SKILL.md",
+      "bytes": 1067,
+      "sha256": "1977dc15767bc254662980bf68e06591dc01458da4a4d92f0c09e13da934bd1e"
+    }
+  ],
+  "source_and_extracted_schema_reference_validation": "PASS",
+  "actual_host_installation": "UNVERIFIED",
+  "public_listing": "UNVERIFIED"
+}

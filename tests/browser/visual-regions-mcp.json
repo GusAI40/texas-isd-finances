@@ -1,0 +1,25 @@
+{
+  "rubric_version": "semantic-painted-marks-v2-mcp",
+  "analytic_roots": [
+    { "selector": "#report", "required": true }
+  ],
+  "visual_text": [
+    ".mcp-context",
+    ".mcp-frame-item",
+    ".mcp-bar-group h3",
+    ".mcp-bar-label",
+    ".visual-table th",
+    ".visual-table td",
+    ".visual-table caption",
+    ".visual-metric-meta"
+  ],
+  "prose": [],
+  "html_marks": [
+    ".mcp-bar"
+  ],
+  "graphic_roots": [],
+  "exclusions": [
+    { "selector": ".mcp-limits", "reason": "expanded source disclosure is outside the default compact analytic answer" },
+    { "selector": "#report > h2", "reason": "view title is product context, not a plotted or metric value" }
+  ]
+}

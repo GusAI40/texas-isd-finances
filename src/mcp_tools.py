@@ -717,6 +717,7 @@ def compare_districts(args: dict) -> tuple[str, dict]:
                 "district_number": n,
                 "district_name": _title(rec.get("district_name", n)),
                 "year": rec.get("year"),
+                "outcomes_year": land.get("year"),
                 "students": rec.get("students"),
                 "debt_per_student": o.get("per_student"),
                 "operating_per_student": o.get("operating_per_student"),
@@ -734,9 +735,9 @@ def compare_districts(args: dict) -> tuple[str, dict]:
 
     head = f"{'District':28}{'Students':>9}{'Debt/stu':>10}{'Oper/stu':>10}{'Local%':>8}{'vs pred':>9}"
     body = "\n".join(
-        f"{r['district_name'][:27]:28}{(r['students'] or 0):>9,}"
+        f"{r['district_name'][:27]:28}{(r['students'] if r['students'] is not None else 'Not reported'):>9}"
         f"{_usd(r['debt_per_student']):>10}{_usd(r['operating_per_student']):>10}"
-        f"{(r['local_pct'] if r['local_pct'] is not None else 0):>7}%"
+        f"{(str(r['local_pct']) + '%' if r['local_pct'] is not None else 'Not reported'):>8}"
         f"{_gap(r['points_vs_predicted']):>9}"
         for r in rows
     )
@@ -749,6 +750,11 @@ def compare_districts(args: dict) -> tuple[str, dict]:
         "district's OWN poverty, emergent-bilingual and special-education rates "
         "predict — not against the state, which mostly measures poverty. Debt "
         "per student sits outside TEA's operating total."
+    )
+    text += "\n\n" + "\n".join(
+        f"{r['district_name']}: Finance year {r['year'] if r['year'] is not None else 'Not reported'}; "
+        f"outcome year {r['outcomes_year'] if r['outcomes_year'] is not None else 'Not reported'}."
+        for r in rows
     )
     return text, {"districts": rows, "not_found": missing, "limits": data["meta"].get("limits", [])}
 
@@ -1221,6 +1227,7 @@ _ELECTION = _object(
     {
         "date": _NONEMPTY_STRING,
         "year": _YEAR,
+        "outcomes_year": _nullable(_YEAR),
         "amount": _NONNEGATIVE_NUMBER,
         "purpose": _STRING,
         "category": _NONEMPTY_STRING,
@@ -1302,6 +1309,7 @@ _COMPARE_ROW = _object(
         # Added with the visual source-vintage mapping. It remains optional in
         # the schema so saved, pre-addition host evidence still validates.
         "year": _YEAR,
+        "outcomes_year": _nullable(_YEAR),
         "students": _nullable(_NONNEGATIVE_INTEGER),
         "debt_per_student": _nullable(_NONNEGATIVE_NUMBER),
         "operating_per_student": _nullable(_NONNEGATIVE_NUMBER),
@@ -1352,7 +1360,11 @@ OUTPUT_SCHEMAS = {
             "allocation": _ALLOCATION,
             "revenue": _REVENUE,
             "recapture": _object(
-                {"paid": _NONNEGATIVE_NUMBER, "per_student": _NONNEGATIVE_NUMBER, "share_of_local_mo": _NONNEGATIVE_NUMBER},
+                {
+                    "paid": _NONNEGATIVE_NUMBER,
+                    "per_student": _NONNEGATIVE_NUMBER,
+                    "share_of_local_mo": _NONNEGATIVE_NUMBER,
+                },
                 ("paid", "per_student", "share_of_local_mo"),
             ),
             "own": _object(
@@ -1513,7 +1525,16 @@ OUTPUT_SCHEMAS = {
                     "operating_balance_ps": _array(_nullable(_NUMBER), minimum=8, maximum=17),
                     "federal_ps": _array(_nullable(_NUMBER), minimum=8, maximum=17),
                 },
-                ("enrollment", "debt_share", "instruction_share", "instruction_ps", "debt_ps", "security_ps", "operating_balance_ps", "federal_ps"),
+                (
+                    "enrollment",
+                    "debt_share",
+                    "instruction_share",
+                    "instruction_ps",
+                    "debt_ps",
+                    "security_ps",
+                    "operating_balance_ps",
+                    "federal_ps",
+                ),
             ),
             "change": _TREND_CHANGE,
             "vs_state": _object(_VS_STATE_FIELDS, tuple(_VS_STATE_FIELDS)),
@@ -1580,7 +1601,11 @@ OUTPUT_SCHEMAS = {
                     "deferred_interest": _NONNEGATIVE_NUMBER,
                     "peak": _nullable(
                         _object(
-                            {"year": _YEAR, "repaid_per_dollar_borrowed": _NONNEGATIVE_NUMBER, "principal": _NONNEGATIVE_NUMBER},
+                            {
+                                "year": _YEAR,
+                                "repaid_per_dollar_borrowed": _NONNEGATIVE_NUMBER,
+                                "principal": _NONNEGATIVE_NUMBER,
+                            },
                             ("year", "repaid_per_dollar_borrowed", "principal"),
                         )
                     ),
@@ -1706,7 +1731,12 @@ OUTPUT_SCHEMAS = {
             ),
             "trend_findings": _array(
                 _object(
-                    {"key": _NONEMPTY_STRING, "headline": _NONEMPTY_STRING, "figure": _NONEMPTY_STRING, "detail": _NONEMPTY_STRING},
+                    {
+                        "key": _NONEMPTY_STRING,
+                        "headline": _NONEMPTY_STRING,
+                        "figure": _NONEMPTY_STRING,
+                        "detail": _NONEMPTY_STRING,
+                    },
                     ("key", "headline", "figure", "detail"),
                 ),
                 minimum=1,
@@ -1735,7 +1765,13 @@ OUTPUT_SCHEMAS = {
                     "instruction_ps_all": _NUMBER,
                     "instruction_ps_panel": _NUMBER,
                 },
-                ("districts", "instruction_share_all", "instruction_share_panel", "instruction_ps_all", "instruction_ps_panel"),
+                (
+                    "districts",
+                    "instruction_share_all",
+                    "instruction_share_panel",
+                    "instruction_ps_all",
+                    "instruction_ps_panel",
+                ),
             ),
             "visual": _STATEWIDE_VISUAL,
         },

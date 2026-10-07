@@ -73,7 +73,8 @@ methods, no sampling, no elicitation, no subscriptions, no resources — is smal
 that the standard library is the smaller risk. `src/mcp_protocol.py` is the wire format;
 `src/mcp_tools.py` is the content.
 
-- `server/discover`, `tools/list`, `tools/call` on a single `POST /mcp`.
+- `server/discover`, `tools/list`, `tools/call`, `resources/list`, and
+  `resources/read` on a single `POST /mcp`.
 - Required `_meta`: `io.modelcontextprotocol/protocolVersion` and
   `…/clientCapabilities`. Missing → `-32602`, HTTP 400.
 - Mirrored headers `MCP-Protocol-Version`, `Mcp-Method`, `Mcp-Name`, each **validated

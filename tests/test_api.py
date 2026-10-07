@@ -426,17 +426,26 @@ def test_hero_credentials_match_the_data(client):
     """The hero states four counted facts. Each has to be true of the whole
     portal, not of its longest single source — "67 years of records" was true
     only of the bond elections while every other dataset spans 17 years."""
+    import json
     from pathlib import Path
 
     page = Path("static/index.html").read_text(encoding="utf-8")
-    assert ">17</b><i>years of budgets" in page, \
-        "the years figure must describe the finance data, not the deepest source"
-    assert "years of records" not in page, "that phrasing overstated every source but one"
+    recorded = json.loads(
+        (Path("tests/browser/fixtures/public-endpoints.json")).read_text(encoding="utf-8")
+    )
+    stats = recorded["payloads"]["stats"]
+    assert recorded["captured_at"], "the recorded finance-count fixture needs a vintage"
+    assert ">17</b><i>actual financial years" in page
+    assert ">20,587</b><i>actual-finance records" in page
+    assert "years of records" not in page, "that phrasing overstated the finance source"
+    assert stats["total_years"] == 17
+    assert stats["total_records"] == 20_587
 
-    stats = client.get("/stats").json() if client.get("/stats").status_code == 200 else None
-    if stats:
-        span = stats["end_year"] - stats["start_year"] + 1
-        assert span == 17, f"finance data spans {span} years; the hero says 17"
+    response = client.get("/stats")
+    if response.status_code == 200:
+        live = response.json()
+        assert live["total_years"] == stats["total_years"]
+        assert live["total_records"] == stats["total_records"]
 
 
 def test_equity_headlines_the_level_not_the_gap(client):

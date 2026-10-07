@@ -1,0 +1,132 @@
+{
+  "recorded_at": "2026-10-07T23:40:10.922305+00:00",
+  "basis_revision": "de49c2f6c21baf4e818c8be284deec8512e0a692",
+  "working_tree_changes": true,
+  "runs": [
+    {
+      "mode": "default",
+      "environment": "Windows; Python 3.12.14 repository .venv",
+      "command": ".venv\\Scripts\\python.exe -m pytest -q -ra",
+      "PYTHONUTF8": "unset",
+      "timestamp": "2026-10-07T18:34:40.003492-05:00",
+      "seconds": 66.771,
+      "counts": {
+        "tests": 1287,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 60,
+        "passed": 1227
+      },
+      "skip_reasons": {
+        "brb_debt_outstanding.csv not present (raw sources are not committed)": 3,
+        "ccd_lea_directory_2425.csv not present (raw sources are not committed)": 1,
+        "census_f33_2024.xlsx not present (raw sources are not committed)": 1,
+        "collection skipped": 1,
+        "erate_district_match.csv not present (raw USAC files are re-ingested, not committed)": 2,
+        "per-district check needs the source CSV": 4,
+        "rebuilding needs the source CSV": 1,
+        "requires scripts/run_finance_contract_tests.py": 29,
+        "source CSV is not committed (18 MB)": 2,
+        "source CSV not present": 1,
+        "source CSV not present (18 MB, deliberately not committed)": 1,
+        "tapr_district_staar_2025.csv not present (raw sources are not committed)": 1,
+        "tea_accountability.csv not present (raw sources are not committed)": 2,
+        "tea_property.csv not present (raw sources are not committed)": 2,
+        "texas_bond_elections.csv not present (raw sources are not committed)": 2,
+        "texas_finance_clean.csv not present (raw sources are not committed)": 5,
+        "turnarounds needs the database": 1,
+        "usac_erate_frns.csv not present (raw USAC files are re-ingested, not committed)": 1
+      },
+      "warnings": {
+        "count": 3,
+        "notes": [
+          "Existing Starlette/httpx deprecation",
+          "Two existing lineage class-fixture deprecations"
+        ]
+      }
+    },
+    {
+      "mode": "utf8",
+      "environment": "Windows; Python 3.12.14 repository .venv",
+      "command": ".venv\\Scripts\\python.exe -m pytest -q -ra",
+      "PYTHONUTF8": "1",
+      "timestamp": "2026-10-07T18:36:13.731223-05:00",
+      "seconds": 91.309,
+      "counts": {
+        "tests": 1287,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 60,
+        "passed": 1227
+      },
+      "skip_reasons": {
+        "brb_debt_outstanding.csv not present (raw sources are not committed)": 3,
+        "ccd_lea_directory_2425.csv not present (raw sources are not committed)": 1,
+        "census_f33_2024.xlsx not present (raw sources are not committed)": 1,
+        "collection skipped": 1,
+        "erate_district_match.csv not present (raw USAC files are re-ingested, not committed)": 2,
+        "per-district check needs the source CSV": 4,
+        "rebuilding needs the source CSV": 1,
+        "requires scripts/run_finance_contract_tests.py": 29,
+        "source CSV is not committed (18 MB)": 2,
+        "source CSV not present": 1,
+        "source CSV not present (18 MB, deliberately not committed)": 1,
+        "tapr_district_staar_2025.csv not present (raw sources are not committed)": 1,
+        "tea_accountability.csv not present (raw sources are not committed)": 2,
+        "tea_property.csv not present (raw sources are not committed)": 2,
+        "texas_bond_elections.csv not present (raw sources are not committed)": 2,
+        "texas_finance_clean.csv not present (raw sources are not committed)": 5,
+        "turnarounds needs the database": 1,
+        "usac_erate_frns.csv not present (raw USAC files are re-ingested, not committed)": 1
+      },
+      "warnings": {
+        "count": 3,
+        "notes": [
+          "Existing Starlette/httpx deprecation",
+          "Two existing lineage class-fixture deprecations"
+        ]
+      }
+    }
+  ],
+  "source_hashes": {
+    "static/index.html": {
+      "sha256": "e53b2cd103c07de9f8d7788c15eab775b2ac2bbbd0c7e872b851c1128f224e7f",
+      "normalized_utf8_lf_sha256": "fba9163ebc2f137c196e03ff0c0087849f55d7d9015c2de45b6201c6ad5c9459"
+    },
+    "static/design.css": {
+      "sha256": "982f1403c7482d4514f858c37adbeca7493506c0edf53568ca0e55b8825cf983",
+      "normalized_utf8_lf_sha256": "4fe9c8f41ca8297005e251acfbb57b04c01836e932fabefd16ca7294368b0fae"
+    },
+    "static/mcp-app.html": {
+      "sha256": "f57a124e613ca75865e656503f75e4d94885bcd040039fdfe706c2e2ab1874a3",
+      "normalized_utf8_lf_sha256": "f57a124e613ca75865e656503f75e4d94885bcd040039fdfe706c2e2ab1874a3"
+    },
+    "src/mcp_apps.py": {
+      "sha256": "4d39ddd25ed3709265acabfc87228ab87136740899f53804d045f8c7670b656e",
+      "normalized_utf8_lf_sha256": "4d39ddd25ed3709265acabfc87228ab87136740899f53804d045f8c7670b656e"
+    },
+    "src/mcp_tools.py": {
+      "sha256": "e0cc5969bd3e0793a926af509c793ec5826bcd6a56a22e62cc2e8ffcecb8537e",
+      "normalized_utf8_lf_sha256": "24e4732bf521a0cae4075722f0cdf5d454653ff38f097f69f67505d3d8cc305a"
+    },
+    "tests/test_framing.py": {
+      "sha256": "839bbda51c3a9cc83a6864f21e358b13b9eafc2f0aa5d7d3161a508e8600b1b1",
+      "normalized_utf8_lf_sha256": "33d3bdf999e972f6405f297d871337db3c0f291cf6cb90645e1e8b707377dae1"
+    },
+    "tests/test_api.py": {
+      "sha256": "c37f3bffe70561d43fc9b9d9d37620a4916bcb27aaf15b544343829d4a608289",
+      "normalized_utf8_lf_sha256": "fb14b3a2c1ed4ba15a1e2a96e2c87d1b867079082e2cd470af5c261ac1159dfd"
+    }
+  },
+  "other_completed_checks": {
+    "ruff": "PASS",
+    "static_javascript_pages": "15/15 PASS",
+    "uv_locked_packages": "91 PASS",
+    "shared_retention_model": "1/1 PASS",
+    "reviewed_contrast_token_pairs": "40/40 PASS",
+    "generated_dictionary": "8/8 PASS; 20 artifacts, 617 fields, 79 routes"
+  },
+  "skip_boundary": "29 finance tests skipped in ordinary suite passed separately on actual disposable PG17.11; one legacy Python browser check is skipped while the Node Playwright suites run separately. Raw-source rebuild and live DB absences remain unverified.",
+  "linux_ci": "UNVERIFIED; repository GitHub Actions disabled",
+  "production_release": "not applied"
+}

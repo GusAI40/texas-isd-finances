@@ -4,9 +4,9 @@ import json
 import re
 from pathlib import Path
 
+from scripts.check_static_js import check_page, inline_scripts
 from src import mcp_apps
 from src import mcp_protocol as P
-from scripts.check_static_js import check_page, inline_scripts
 
 
 def _rpc(method, params):

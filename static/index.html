@@ -1108,8 +1108,7 @@
   <section class="welcome" id="welcome" aria-labelledby="welcome-h">
     <div class="hero-grid">
     <div class="hero-left">
-    <h1 class="welcome-h" id="welcome-h">Where your Texas school district's money comes from,
-      where it goes, and what it buys.</h1>
+    <h1 class="welcome-h" id="welcome-h">Texas school district finance · FY 2009–2025 actual records</h1>
     <p class="welcome-sub">A free, plain-English guide to all 1,310 Texas school districts — built
       entirely from the state's own official records, with a source on every number. No login, no
       spin, nothing to sell.</p>
@@ -1134,11 +1133,14 @@
          files go in one side, plain-English answers come out the other. The
          figures are real and live elsewhere on this page; nothing here is
          decoration. Reads as three stacked cards on phones (see CSS). -->
+    <details class="ledger-detail welcome-method">
+      <summary>How official records become plain-English answers</summary>
+      <div class="ledger-detail-body">
     <div class="pipeline" aria-label="How this site works">
       <div class="pipe-col">
-        <div class="pipe-head">10 official sources</div>
+        <div class="pipe-head">15 registered source products</div>
         <ul class="pipe-list">
-          <li>TEA budgets, 17 years</li>
+          <li>TEA actual financial records, 17 fiscal years</li>
           <li>STAAR results</li>
           <li>A&ndash;F campus ratings</li>
           <li>Property values &amp; tax rates</li>
@@ -1151,7 +1153,7 @@
       <div class="pipe-col pipe-mid">
         <div class="pipe-head">One intelligence layer</div>
         <ul class="pipe-list">
-          <li>6.6M data points joined</li>
+          <li>20,587 actual-finance records indexed</li>
           <li>Every district matched by its state ID</li>
           <li>Every figure re-checked against the state's file</li>
           <li>Refuses to guess &mdash; says "unknown"</li>
@@ -1170,6 +1172,8 @@
         <div class="pipe-foot">One search away, sourced to the state</div>
       </div>
     </div>
+      </div>
+    </details>
     <div class="welcome-strip">
       <b>Official TEA &amp; Comptroller data</b><span>·</span><span>Independent — not a TEA product</span>
       <span>·</span><span>17 years, fiscal 2009–2025</span><span>·</span><span>Open source</span>
@@ -1180,24 +1184,24 @@
     <div class="eyebrow">Storytelling with data · a story of Texas ISD</div>
     <div class="hero-grid">
     <div class="hero-left">
-    <h2 class="hero-h" id="picker-title">Texas school districts spend
-      <span class="hero-num" id="hero-num" style="opacity:.25">$—</span> a year. Here is where every penny goes.</h2>
+    <h2 class="hero-h" id="picker-title">Texas public-school spending:
+      <span class="hero-num" id="hero-num" style="opacity:.25">$—</span> · <span id="hero-year">FY —</span></h2>
     <div class="hero-kpis" id="hero-kpis" role="list" aria-label="Headline financial measures"></div>
     <p class="hero-sub" id="hero-sub"><b>What this is:</b> a public record of what every Texas school
-      district collects, spends, borrows and achieves — in plain English, from official state figures,
-      with a source on every number.</p>
+      district collects, spends, borrows and achieves — in plain English, from public records,
+      with source notes and methods alongside the analysis.</p>
     <p class="hero-truth" id="hero-truth"><svg class="ico" aria-hidden="true" style="width:.95em;height:.95em;vertical-align:-.1em;"><use href="#i-layers"/></svg>
-      <b>Built with AI, in the open:</b> a computer program helped build this site. Every number is
-      checked against the State of Texas&rsquo;s own files, thousands of times. It can still make
-      mistakes, and we say that here, not in fine print.
+      <b>Built with AI, in the open:</b> a computer program helped build this site. Build-time
+      verification recomputes key totals from the available public files and records mismatches.
+      Coverage and limits are published with the methods.
       <a href="#trust">Can I trust these numbers?</a> &middot;
       <a href="/transparency">How this was made, and the full terms&nbsp;&rarr;</a></p>
     <p class="clock" id="moneyclock" hidden aria-live="off"></p>
     <div class="proof" id="proof">
-      <span title="2,882,180 finance values · 2,248,478 STAAR · 894,286 Snapshot · 432,327 property and tax · 96,848 boundary coordinates · 51,744 bond records"><b id="proof-points">6.6 million</b><i>data points analysed</i></span>
-      <span><b id="proof-districts">1,310</b><i>school districts</i></span>
-      <span title="TEA financial data, fiscal 2009–2025. Bond elections go back further, to 1958."><b id="proof-years">17</b><i>years of budgets</i></span>
-      <span><b id="proof-sources">10</b><i>official sources</i></span>
+      <span title="Indexed records from the TEA actual-finance releases used by this report."><b id="proof-points">20,587</b><i>actual-finance records</i></span>
+      <span><b id="proof-districts">1,310</b><i>districts in the registry</i></span>
+      <span title="TEA actual financial data, fiscal 2009–2025. Bond elections go back further, to 1958."><b id="proof-years">17</b><i>actual financial years</i></span>
+      <span title="Registered public source products in the site's source catalogue."><b id="proof-sources">15</b><i>registered source products</i></span>
     </div>
     <p class="hero-why" id="hero-why"><b>Why it matters:</b> your school taxes are the largest line on most
       Texas property bills. This shows what yours buys, and the finding that surprised us: <b>spending $2,000 more per student changed results by 0.15 points — too small to
@@ -1214,17 +1218,17 @@
     <details class="trust" id="trust">
       <summary id="trust-h">How the numbers are checked</summary>
       <ol>
-        <li><b>Where they come from.</b> Every number starts in a file the State of Texas
-          publishes. We link the file on every card, so you can
-          <a href="/sources">download the same one we used</a>.</li>
-        <li><b>How we check them.</b> A second computer program redoes the math a different way,
-          every day. If the two answers do not match, the site will not publish.
-          <a href="/provenance">See the checking chain.</a></li>
+        <li><b>Where they come from.</b> The displayed finance figures start in public files.
+          Source links appear where figure-level lineage is available, and the
+          <a href="/sources">source catalogue</a> lists the other datasets used.</li>
+        <li><b>How we check them.</b> Independent build and verification steps recompute key totals
+          from the available source files and record mismatches in the evidence.
+          <a href="/provenance">See the checking chain and its limits.</a></li>
         <li><b>When we get one wrong.</b> We fix it in public and say so. Example: we once said
           Wills Point ISD had never passed a school bond. That was wrong &mdash; voters passed
           $69.9&nbsp;million in 2025 &mdash; and the correction is part of this site&rsquo;s record.</li>
         <li><b>What the AI did.</b> A computer program helped build and check this site. It did not
-          invent any number &mdash; numbers come only from the state&rsquo;s files.
+          invent the published source records &mdash; figures come from the public files listed in the catalogue.
           <a href="/transparency">The full story.</a></li>
         <li><b>Check one yourself.</b> Click any revenue dollar figure in
           <a href="#econ-section">What you pay</a> and it opens its own math: this number, divided
@@ -1277,6 +1281,7 @@
     <section id="kpi-section" data-section="kpi">
       <div class="eyebrow" id="kpi-eyebrow"></div>
       <h2 class="action" id="dname"></h2>
+      <div class="live-status" id="live-finance-status" role="status" hidden></div>
       <div class="lensbar" id="lensbar">
         <span class="lbl">Show me this as a…</span>
         <button data-lens="parent" aria-pressed="true">Parent</button>
@@ -1352,22 +1357,24 @@
         <div class="econ-card" id="econ-erate" hidden></div>
       </div>
 
-      <h3 class="econ-h">Where the money actually went, statewide</h3>
-      <p class="support" id="econ-macro-support"></p>
-      <figure class="econ-fig">
-        <div class="econ-legend" id="econ-macro-legend"></div>
-        <div class="chartwrap"><svg id="econ-macro" role="img" aria-labelledby="econ-macro-cap"></svg></div>
-        <figcaption id="econ-macro-cap" class="cite"></figcaption>
-      </figure>
+      <div id="econ-macro-block">
+        <h3 class="econ-h">Statewide spending per student by fiscal year</h3>
+        <p class="support" id="econ-macro-support"></p>
+        <figure class="econ-fig">
+          <div class="econ-legend" id="econ-macro-legend"></div>
+          <div class="chartwrap"><svg id="econ-macro" role="img" aria-labelledby="econ-macro-cap"></svg></div>
+          <figcaption id="econ-macro-cap" class="cite"></figcaption>
+        </figure>
+      </div>
 
-      <h3 class="econ-h">What each lever actually bought</h3>
+      <h3 class="econ-h">Estimated outcome change by district lever</h3>
       <p class="support" id="econ-lever-support"></p>
       <figure class="econ-fig">
         <div class="chartwrap"><svg id="econ-levers" role="img" aria-labelledby="econ-lever-cap"></svg></div>
         <figcaption id="econ-lever-cap" class="cite"></figcaption>
       </figure>
 
-      <h3 class="econ-h">Districts like yours that do better — reliably</h3>
+      <h3 class="econ-h">Structural-peer outcome comparison</h3>
       <p class="support" id="econ-peers-support"></p>
       <div class="econ-peers" id="econ-peers"></div>
 
@@ -1417,7 +1424,7 @@
         <figcaption id="eq-cap" class="cite"></figcaption>
       </figure>
 
-      <h3 class="econ-h">Districts getting the most out of the same students</h3>
+      <h3 class="econ-h">Low-income outcome peer comparison</h3>
       <p class="support" id="eq-leaders-sub"></p>
       <div class="econ-peers" id="eq-leaders"></div>
 
@@ -1749,7 +1756,7 @@
 </div>
 
 <div class="overlay" id="overlay"></div>
-<div class="sheet tour" id="tourbox">
+<div class="sheet tour" id="tourbox" role="dialog" aria-labelledby="tour-title">
   <h3 id="tour-title"></h3>
   <p id="tour-text"></p>
   <div class="row" style="justify-content:space-between;align-items:center">
@@ -1758,8 +1765,8 @@
     <button class="primary" id="tour-next">Next <svg class="ico" aria-hidden="true"><use href="#i-arrow-right"/></svg></button>
   </div>
 </div>
-<div class="sheet modal" id="disc-modal">
-  <h3>About this data — the honest version</h3>
+<div class="sheet modal" id="disc-modal" role="dialog" aria-labelledby="disc-title">
+  <h3 id="disc-title">About this data — the honest version</h3>
   <p><strong>Source:</strong> TEA's "Summarized PEIMS Actual Financial Data" — the state's official
   roll-up of district financial reports, fiscal 2009–2025, downloaded from tea.texas.gov.</p>
   <p><strong>Flags are math, not judgment.</strong> "Revenue drop" = revenue fell &gt;15% vs the prior
@@ -1774,8 +1781,8 @@
   <p><strong>Not:</strong> an audit, an official TEA product, a rating, or advice.</p>
   <div class="row" style="justify-content:flex-end"><button class="primary" id="disc-close">Got it</button></div>
 </div>
-<div class="sheet modal" id="compare-modal">
-  <h3>Compare with which district?</h3>
+<div class="sheet modal" id="compare-modal" role="dialog" aria-labelledby="compare-title">
+  <h3 id="compare-title">Compare with which district?</h3>
   <div class="row">
     <input type="search" id="csearch" placeholder="Search a district…" aria-label="Search comparison district">
     <button class="primary" id="csearchbtn">Search</button>
@@ -1806,7 +1813,7 @@ const titleCase = s => (s || '').toLowerCase()
   .replace(_ACRONYMS, m => m.toUpperCase())
   .replace(/\bMc([a-z])/g, (_m, c) => 'Mc' + c.toUpperCase());
 
-const state = { district: null, summary: [], benchmarks: [], peers: null, flags: [], breakdown: [],
+const state = { district: null, summary: [], benchmarks: [], peers: null, flags: [], flagsAvailable: null, breakdown: [],
                 metric: 'spend', compare: null, compareSummary: [], lens: 'parent',
                 dollar: null, dollarPin: null, dollarHover: null, outcomes: null, txDollar: null,
                 econ: null, econTexas: null, bonds: null, equity: null, takeover: null, national: null, erate: null };
@@ -1870,7 +1877,7 @@ function renderDollar() {
   sec.classList.remove('hidden');
   const classroom = d.parts.find(p => p.key === 'classroom');
   $('dollar-title').textContent =
-    `Of every dollar ${state.district.name} spends, ${classroom ? classroom.cents : 0}¢ goes to classroom teaching`;
+    `${state.district.name} all-funds dollar · FY ${d.year} · classroom teaching ${classroom ? classroom.cents : 0}¢`;
   $('dollar-support').innerHTML =
     `Fiscal ${d.year}. The district spent <strong>${fmtMoney(d.total)}</strong> in total — ` +
     `<strong>${fmtMoney(d.perStudent)} per student</strong> across ${fmtNum(d.enrollment)} students. ` +
@@ -2184,12 +2191,12 @@ function renderOutcomes() {
   const exp = o.expectation, turn = o.measures.teacher_turnover_pct;
   let title;
   if (exp && Math.abs(exp.gap) >= 3) {
-    title = `${state.district.name}'s students score ${Math.abs(exp.gap).toFixed(0)} points ` +
-      `${exp.gap > 0 ? 'above' : 'below'} what its student population predicts`;
+    title = `${state.district.name} observed-minus-predicted STAAR gap · ` +
+      `${exp.gap > 0 ? '+' : '−'}${Math.abs(exp.gap).toFixed(0)} points`;
   } else if (exp) {
-    title = `${state.district.name} performs about where its student population predicts`;
+    title = `${state.district.name} observed-minus-predicted STAAR gap · near 0 points`;
   } else {
-    title = `Who ${state.district.name} teaches, and how its teachers compare`;
+    title = `${state.district.name} student and teacher measures`;
   }
   $('outcomes-title').textContent = title;
   $('outcomes-support').innerHTML =
@@ -2246,7 +2253,7 @@ function renderOutcomes() {
                   students_per_teacher: 'Students per teacher', avg_teacher_salary: 'Average teacher salary',
                   spend_per_student: 'Spending per student' };
   $('outcomes-lever').innerHTML =
-    `<h4>Across all 1,202 districts and 16 years, this is what tracks results</h4>` +
+    `<h4>Statewide outcome association strength · 1,202 districts · 16 years</h4>` +
     `<p>Each measure below is tested the same way: after accounting for who a district teaches, how much of ` +
     `the remaining difference in STAAR results does it explain? <strong>Whether experienced teachers stay ` +
     `predicts results far better than the size of the budget.</strong></p>` +
@@ -2493,10 +2500,12 @@ function loadFallback() {
 
 function markDegraded(capturedISO) {
   const bar = $('dbwarn');
+  const hero = $('picker-section')?.querySelector('.hero-left');
+  if (hero && bar.parentElement !== hero) hero.prepend(bar);
   bar.style.display = 'block';
   const captured = capturedISO ? String(capturedISO).slice(0, 10) : 'dated public release';
   bar.innerHTML = '<span class="status-chip"><b>Saved statewide snapshot</b> · ' + captured + '</span>' +
-    '<details><summary>Live data status</summary><div>Live database figures are temporarily unavailable. ' +
+    '<details><summary>Live actual-finance unavailable · saved public artifacts available</summary><div>Live database figures are temporarily unavailable. ' +
     'Results, spending, bonds and equity below still come from published public files.</div></details>';
 }
 
@@ -2531,7 +2540,7 @@ async function selectDistrict(num, name) {
   localStorage.setItem('tisd_district', JSON.stringify({ num, name }));
   try { history.replaceState(null, '', '?d=' + encodeURIComponent(num)); } catch (e) {}
   state.district = { num, name };
-  state.compare = null; state.compareSummary = [];
+  state.compare = null; state.compareSummary = []; state.flagsAvailable = null;
   state.dollar = null; state.dollarPin = null; state.dollarHover = null; state.outcomes = null;
   state.econ = null; state.bonds = null; state.equity = null; state.takeover = null;
   $('results').innerHTML = ''; $('search').value = '';
@@ -2613,10 +2622,12 @@ async function loadDashboard(opts) {
     // sections that had ALREADY loaded from static files down with it —
     // outcomes, economics, bonds, equity, the takeover, the dollar. A reader
     // lost the entire district page over a paused free tier.
-    const [summary, peers, flags, breakdown, turnarounds, detail, insights, dollar, outcomes, econ, bonds, equity, takeover, national, erate] = await Promise.all([
+    const [summary, peers, flagsResult, breakdown, turnarounds, detail, insights, dollar, outcomes, econ, bonds, equity, takeover, national, erate] = await Promise.all([
       api('/district/' + encodeURIComponent(d.num) + '/summary').catch(() => []),
       api('/district/' + encodeURIComponent(d.num) + '/peers').catch(() => null),
-      api('/anomalies?district_number=' + encodeURIComponent(d.num) + '&limit=50').catch(() => []),
+      api('/anomalies?district_number=' + encodeURIComponent(d.num) + '&limit=50')
+        .then(data => ({ available: true, data }))
+        .catch(() => ({ available: false, data: [] })),
       api('/district/' + encodeURIComponent(d.num) + '/breakdown').catch(() => []),
       api('/district/' + encodeURIComponent(d.num) + '/turnarounds').catch(() => ({turnarounds: []})),
       api('/district/' + encodeURIComponent(d.num) + '/spending-detail').catch(() => []),
@@ -2645,7 +2656,8 @@ async function loadDashboard(opts) {
       state.district.name = titleCase(realName);
       localStorage.setItem('tisd_district', JSON.stringify(state.district));
     }
-    state.summary = summary; state.peers = peers; state.flags = flags; state.breakdown = breakdown;
+    state.summary = summary; state.peers = peers; state.flags = flagsResult.data;
+    state.flagsAvailable = flagsResult.available; state.breakdown = breakdown;
     state.turnarounds = turnarounds; state.detail = detail; state.insights = insights;
     state.dollar = dollar; state.outcomes = outcomes; state.econ = econ; state.bonds = bonds; state.equity = equity; state.takeover = takeover; state.national = national; state.erate = erate;
     renderAll();
@@ -2713,6 +2725,11 @@ function setMetricMeta(sectionId, label, items) {
   }));
 }
 
+function clearMetricMeta(sectionId) {
+  const row = $(sectionId)?.querySelector(':scope > .metric-meta');
+  if (row) row.remove();
+}
+
 function compactNarrativeNode(node) {
   if (!node || node.closest('details,table,dialog,footer,.metric-meta')) return;
   const token = node.closest('#picker-section') ? 'hero-context'
@@ -2749,19 +2766,26 @@ function compactNarrativeNode(node) {
 function applyVisualLedger() {
   const d = dollarParts();
   const financeYear = d?.year || (state.summary || []).at(-1)?.year;
+  const hasLiveFinance = (state.summary || []).some(row => row.spend_per_student != null);
   const outcomeYear = state.outcomes?.year;
+  const equityYear = state.equity?.year;
   const districtNumber = state.district?.num;
   if (state.district) {
-    setMetricMeta('kpi-section', 'Finance evidence metadata', [
-      'Observed', financeYear && `FY ${financeYear}`, '$ · per student · all funds',
-      districtNumber && `District ${districtNumber}`, 'Source · TEA PEIMS'
-    ]);
+    if (hasLiveFinance) {
+      setMetricMeta('kpi-section', 'Finance evidence metadata', [
+        'Observed', financeYear && `FY ${financeYear}`, '$ · per student · all funds',
+        districtNumber && `District ${districtNumber}`, 'Source · TEA PEIMS'
+      ]);
+    } else {
+      clearMetricMeta('kpi-section');
+    }
     setMetricMeta('dollar-section', 'Spending composition metadata', [
       'Observed', financeYear && `FY ${financeYear}`, '¢ of each all-funds dollar', 'Source · TEA PEIMS'
     ]);
     setMetricMeta('outcomes-section', 'Outcome evidence metadata', [
       'Observed associations', outcomeYear && `SY ${outcomeYear}`, '% · points · dollars',
-      'Noncausal', 'Modeled cohort · 6 annual periods', 'Source · TEA Snapshot + STAAR'
+      'Noncausal', 'Hypothetical K–5 cohort', '6 annual periods · constant turnover',
+      'Not an individual forecast', 'Source · TEA Snapshot + STAAR'
     ]);
     setMetricMeta('econ-section', 'Tax and economic evidence metadata', [
       'Observed', financeYear && `FY ${financeYear}`, '$ · rates · students', 'Source · Comptroller + TEA'
@@ -2770,7 +2794,7 @@ function applyVisualLedger() {
       'Observed comparison', 'Noncausal', 'Units shown on charts', 'Source · TEA'
     ]);
     setMetricMeta('equity-section', 'Equity evidence metadata', [
-      'Observed performance', outcomeYear && `SY ${outcomeYear}`, '% meeting grade level',
+      'Observed performance', equityYear && `SY ${equityYear}`, '% meeting grade level',
       'Gap is descriptive', 'Source · TEA STAAR'
     ]);
     setMetricMeta('bond-section', 'Bond evidence metadata', [
@@ -2788,10 +2812,14 @@ function applyVisualLedger() {
       ['insights-section', '$ · % difference vs peers']
     ];
     for (const [id, units] of financeSections) {
-      setMetricMeta(id, 'Finance chart metadata', [
-        'Observed', financeYear && `FY through ${financeYear}`, units,
-        'Source · TEA PEIMS', districtNumber && `District ${districtNumber}`
-      ]);
+      if (hasLiveFinance) {
+        setMetricMeta(id, 'Finance chart metadata', [
+          'Observed', financeYear && `FY through ${financeYear}`, units,
+          'Source · TEA PEIMS', districtNumber && `District ${districtNumber}`
+        ]);
+      } else {
+        clearMetricMeta(id);
+      }
     }
   }
   setMetricMeta('statewide-section', 'Statewide evidence metadata', [
@@ -2804,6 +2832,49 @@ function applyVisualLedger() {
     '#exec', '#dash .ask', '#dash .why', '#dash .cmpnote'
   ];
   document.querySelectorAll(selectors.join(',')).forEach(compactNarrativeNode);
+
+  // Keep the data, units, period, source and material caveats beside every
+  // chart. Longer interpretation and arithmetic stay adjacent in native
+  // disclosures so small screens lead with the chart rather than paragraphs.
+  document.querySelectorAll('.econ-sub').forEach(node => {
+    if (node.textContent.trim().length <= 110 || /(?:not reported|unavailable|no data)/i.test(node.textContent)) return;
+    const details = document.createElement('details');
+    details.className = 'ledger-detail compact-note';
+    details.innerHTML = '<summary>Read the calculation and interpretation</summary><div class="ledger-detail-body"></div>';
+    details.querySelector('.ledger-detail-body').append(node.cloneNode(true));
+    node.replaceWith(details);
+  });
+
+  // Figures keep one concise measure/period/denominator line in view. The
+  // longer method and interpretation remain immediately adjacent and
+  // keyboard-accessible without dominating the analytical surface.
+  document.querySelectorAll('figcaption:not(#tx-cap):not(#tx-cap-2)').forEach(node => {
+    if (node.closest('details') || node.dataset.compacted === '1') return;
+    const text = node.textContent.replace(/\s+/g, ' ').trim();
+    if (text.length <= 70) return;
+    const sentence = text.match(/^.*?[.!?](?=\s|$)/)?.[0] || text;
+    const replacement = document.createElement('figcaption');
+    replacement.dataset.compacted = '1';
+    const status = document.createElement('div');
+    status.className = 'chart-status';
+    status.textContent = sentence;
+    const details = document.createElement('details');
+    details.className = 'ledger-detail evidence-detail';
+    details.innerHTML = '<summary>Method, definitions and limits</summary><div class="ledger-detail-body"></div>';
+    details.querySelector('.ledger-detail-body').append(node.cloneNode(true));
+    replacement.append(status, details);
+    node.replaceWith(replacement);
+  });
+
+  document.querySelectorAll('.cite:not(figcaption)').forEach(node => {
+    if (node.closest('details') || node.id === 'cmphead') return;
+    if (node.textContent.replace(/\s+/g, ' ').trim().length <= 45) return;
+    const details = document.createElement('details');
+    details.className = 'ledger-detail evidence-detail';
+    details.innerHTML = '<summary>Source, definitions and limits</summary><div class="ledger-detail-body"></div>';
+    details.querySelector('.ledger-detail-body').append(node.cloneNode(true));
+    node.replaceWith(details);
+  });
 }
 
 /* ---------- executive summary (pyramid principle: answer first) ---------- */
@@ -2815,8 +2886,11 @@ function renderExec() {
   // not the identity of the page they are looking at.
   $('dname').textContent = state.district.name;
   const [cur] = latestOf(state.summary, 'spend_per_student');
+  const liveStatus = $('live-finance-status');
   if (!cur) {
-    $('kpi-eyebrow').textContent = 'Live budget figures are temporarily unavailable';
+    $('kpi-eyebrow').textContent = 'Actual-finance data unavailable';
+    liveStatus.hidden = false;
+    liveStatus.textContent = 'Live TEA actual-finance data unavailable · artifact-backed outcomes, bonds and equity remain available';
     $('exec').innerHTML = 'The year-by-year budget summary for this district could not be ' +
       'loaded right now. What follows — results, what the money bought, bonds and equity — ' +
       'is published separately and is complete.';
@@ -2831,6 +2905,13 @@ function renderExec() {
 /* ---------- KPIs ---------- */
 function renderKPIs() {
   const [cur, prev] = latestOf(state.summary, 'spend_per_student');
+  const liveStatus = $('live-finance-status');
+  if (!cur) {
+    $('kpis').innerHTML = '';
+    return;
+  }
+  liveStatus.hidden = true;
+  liveStatus.textContent = '';
   const st = state.peers?.statewide || {};
   const delta = (a, b) => {
     if (a == null || b == null) return '';
@@ -2845,15 +2926,15 @@ function renderKPIs() {
     <div class="kpi"><div class="label">Spend per student ${xb('spend')}</div>
       <div class="value">${fmtMoney(cur.spend_per_student)}</div>
       ${delta(cur.spend_per_student, prev?.spend_per_student)}
-      <div class="plain">State median ${fmtMoney(st.statewide_median_spend)}${cmp ? ' · ' + state.compare.name.split(' ')[0] + ' ' + fmtMoney(cmp.spend_per_student) : ''}${opsPerStudentNote(cur)}</div></div>
+      <div class="metric-detail">State median ${fmtMoney(st.statewide_median_spend)}${cmp ? ' · ' + state.compare.name.split(' ')[0] + ' ' + fmtMoney(cmp.spend_per_student) : ''}${opsPerStudentNote(cur)}</div></div>
     <div class="kpi"><div class="label">Statewide rank ${xb('rank')}</div>
       <div class="value">${pctile == null ? '—'
         : pctile + '<span style="font-size:.55em;vertical-align:.5em;letter-spacing:.02em">' + ordSuf(pctile) + '</span>'}</div>
-      <div class="plain">${pctile == null ? '' : 'Spends more per student than ' + pctile + '% of Texas districts, counting construction & debt.'}</div></div>
+      <div class="metric-detail">${pctile == null ? '' : 'Above ' + pctile + '% of Texas districts · all funds / student · includes construction & debt'}</div></div>
     <div class="kpi"><div class="label">Enrollment ${xb('enrollment')}</div>
       <div class="value">${fmtNum(cur.enrollment)}</div>
       ${delta(cur.enrollment, prev?.enrollment)}
-      <div class="plain">${declineYears >= 3 ? 'Down ' + declineYears + ' years in a row — a trend, not a blip.' : 'Fall survey count.'}</div></div>
+      <div class="metric-detail">${declineYears >= 3 ? 'Down ' + declineYears + ' consecutive years' : 'Fall survey count'}</div></div>
     ${balanceCard(cur)}`;
 }
 /* Operating vs total is the difference between an accusation and a fact.
@@ -3095,9 +3176,10 @@ function renderDyk() {
   if (facts.length < 2) { el.classList.add('hidden'); return; }
   el.classList.remove('hidden');
   let i = 0;
-  el.innerHTML = '<span class="dyk-tag">Did you know?</span>' +
-    '<span class="dyk-txt"></span><div class="dyk-dots">' +
-    facts.map((_, k) => '<i data-k="' + k + '"' + (k === 0 ? ' class="on"' : '') + '></i>').join('') + '</div>';
+  el.innerHTML = '<details class="ledger-detail dyk-detail"><summary>Did you know? Browse district facts</summary>' +
+    '<div class="ledger-detail-body"><span class="dyk-txt"></span><div class="dyk-dots">' +
+    facts.map((_, k) => '<i data-k="' + k + '"' + (k === 0 ? ' class="on"' : '') + '></i>').join('') +
+    '</div></div></details>';
   const txt = el.querySelector('.dyk-txt'), dots = el.querySelectorAll('.dyk-dots i');
   const show = k => {
     i = k;
@@ -3392,15 +3474,13 @@ function balanceCard(cur) {
     // ignore it.
     return label +
       `<div class="value ${surplus ? 'up' : 'down'}">${surplus ? 'Surplus' : 'Deficit'}</div>
-      <div class="plain">Operating revenue ${fmtMoneyShort(cur.total_revenue)} vs operating
-      spending ${fmtMoneyShort(cur.operating_spend)}.${nonOp > 1e6 ? ' A further ' + fmtMoneyShort(nonOp) +
-      ' went to construction and debt payments, funded by bonds — not the operating budget.' : ''}</div></div>`;
+      <div class="metric-detail">Operating revenue ${fmtMoneyShort(cur.total_revenue)} · operating spending ${fmtMoneyShort(cur.operating_spend)}</div>
+      ${nonOp > 1e6 ? '<div class="metric-caveat">' + fmtMoneyShort(nonOp) + ' construction and debt · bond funded · outside operating budget</div>' : ''}</div>`;
   }
   return `<div class="kpi"><div class="label">All money in vs out ${xb('balance')}</div>
       <div class="value">${+cur.total_revenue >= +cur.total_spend ? 'In exceeds out' : 'Out exceeds in'}</div>
-      <div class="plain">Operating revenue ${fmtMoneyShort(cur.total_revenue)} vs ALL spending
-      ${fmtMoneyShort(cur.total_spend)} — the second includes bond-funded construction and debt,
-      so this is not an operating deficit.</div></div>`;
+      <div class="metric-detail">Operating revenue ${fmtMoneyShort(cur.total_revenue)} · all-funds spending ${fmtMoneyShort(cur.total_spend)}</div>
+      <div class="metric-caveat">All funds includes bond construction and debt · not an operating-deficit measure</div></div>`;
 }
 function opsPerStudentNote(cur) {
   if (cur.operating_spend == null || !cur.enrollment) return '';
@@ -3455,27 +3535,34 @@ function trendTitle() {
     const v = pct(cur.spend_per_student, med ? +med.median_spend_per_student : null);
     const first5 = state.summary.filter(r => r.year >= cur.year - 5 && r.spend_per_student != null)[0];
     const g = pct(cur.spend_per_student, first5?.spend_per_student);
-    return `Per-student spending is ${Math.abs(v)}% ${v >= 0 ? 'above' : 'below'} the state median, ` +
-           `${g >= 0 ? 'up' : 'down'} ${Math.abs(g)}% in five years`;
+    return `${name} spend / student vs Texas median · ${v >= 0 ? '+' : '−'}${Math.abs(v)}% · ` +
+           `five-year ${g >= 0 ? '+' : '−'}${Math.abs(g)}%`;
   }
   if (state.metric === 'enrollment') {
     const n = consecutiveEnrollmentDeclines();
     const rows = state.summary.filter(r => r.enrollment != null);
     const g = pct(rows[rows.length - 1].enrollment, rows.find(r => r.year >= rows[rows.length - 1].year - 5)?.enrollment);
-    return n >= 3 ? `Enrollment has declined ${n} years in a row — a trend, not a blip`
-                  : `Enrollment is ${g >= 0 ? 'up' : 'down'} ${Math.abs(g)}% over five years`;
+    return `${name} enrollment · five-year ${g >= 0 ? '+' : '−'}${Math.abs(g)}%` +
+      (n >= 3 ? ` · ${n} consecutive annual declines` : '');
   }
   const rows = state.summary.filter(r => r.total_revenue != null && r.total_spend != null);
   const deficits = rows.slice(-5).filter(r => r.total_spend > r.total_revenue).length;
-  return deficits ? `Spending exceeded revenue in ${deficits} of the last 5 years`
-                  : `Revenue has covered spending in each of the last 5 years`;
+  return `${name} revenue versus spending · ${deficits} of 5 fiscal years in deficit`;
 }
 function renderTrend() {
+  const svg = $('trendchart'), tip = $('trendtip');
+  if (!state.summary.some(row => row.spend_per_student != null)) {
+    $('trend-title').textContent = 'Trend data unavailable';
+    $('trend-more').textContent = '';
+    svg.hidden = true;
+    svg.innerHTML = '';
+    return;
+  }
+  svg.hidden = false;
   $('trend-title').textContent = trendTitle();
   $('trend-more').innerHTML = state.district
     ? `Money in, money out. For where it <b>went</b> over the same seventeen years — the share reaching a classroom, debt service, security — and how that compares with Texas as a whole, see <a href="/forensics?d=${encodeURIComponent(state.district.num)}#trajectory">this district's seventeen-year trajectory</a>.` : '';
   const { series, money } = trendSeries();
-  const svg = $('trendchart'), tip = $('trendtip');
   const W = svg.clientWidth || 900, H = 300, m = { t: 18, r: 130, b: 28, l: 64 };
   svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
   const allPts = series.flatMap(s => s.pts);
@@ -3539,11 +3626,18 @@ function abbrev(v) {
 /* ---------- peers ---------- */
 function renderPeers() {
   const p = state.peers;
-  if (!p) return;
+  if (!p) {
+    $('peers-title').textContent = 'Peer data unavailable';
+    $('peerchart').hidden = true;
+    $('peerchart').innerHTML = '';
+    return;
+  }
+  $('peerchart').hidden = false;
   const me = p.district;
   const rows = [{ ...me, me: true }, ...p.peers].sort((a, b) => b.spend_per_student - a.spend_per_student);
   const rank = rows.findIndex(r => r.me) + 1;
-  $('peers-title').textContent = `${titleCase(me.district_name)} ranks #${rank} of ${rows.length} similar-size districts on per-student spending`;
+  $('peers-title').textContent =
+    `${titleCase(me.district_name)} spend / student rank · #${rank} of ${rows.length} structural peers`;
   $('peers-why').textContent = p.basis === 'similarity_graph'
     ? `Your ${p.peers.length} most structurally similar Texas districts — matched on size, enrollment trajectory, and funding profile (not on spending itself, so this comparison stays fair), fiscal ${me.year}. Your bar is blue; the dashed line is the state median.`
     : `The ${p.peers.length} Texas districts closest to your enrollment (${fmtNum(Math.round(me.enrollment * 0.5))}–${fmtNum(me.enrollment * 2)} students), fiscal ${me.year}. Your bar is blue; the dashed line is the state median.`;
@@ -3600,12 +3694,19 @@ const CAT_LABELS = {
 function renderMoney() {
   const rows = state.breakdown;
   const cur = rows[rows.length - 1];
-  if (!cur) return;
+  if (!cur) {
+    $('money-title').textContent = 'Operating data unavailable';
+    $('money-support').textContent = '';
+    $('moneychart').hidden = true;
+    $('moneychart').innerHTML = '';
+    return;
+  }
+  $('moneychart').hidden = false;
   const total = +cur.total_operating;
   const cats = Object.keys(CAT_LABELS).map(k => ({ k, name: CAT_LABELS[k], v: +cur[k] || 0 }))
     .sort((a, b) => b.v - a.v);
   const instrShare = Math.round(100 * (+cur.classroom_instruction) / total);
-  $('money-title').textContent = `Classroom instruction takes ${instrShare}¢ of every operating dollar`;
+  $('money-title').textContent = `Operating dollar · classroom instruction ${instrShare}¢`;
   $('money-support').innerHTML = `Operating spending · FY ${cur.year} · ${fmtMoney(total)} total. Debt ${fmtMoney(cur.debt_service)} and construction ${fmtMoney(cur.capital_projects)} are separate.`;
   const svg = $('moneychart'), tip = $('moneytip');
   const W = svg.clientWidth || 900, rowH = 32, m = { t: 4, r: 100, l: 235 };
@@ -3655,24 +3756,30 @@ const FLAG_META = {
     'Check whether it is a one-year dip (boundary change, new charter) or a multi-year slide.'],
 };
 function renderFlags() {
+  const el = $('flaglist');
+  if (state.flagsAvailable === false) {
+    $('flags-title').textContent = 'Anomaly status unknown';
+    el.innerHTML = '';
+    return;
+  }
   const flagged = state.flags.filter(f =>
     f.revenue_drop_flag || f.spend_spike_flag || f.per_student_spike_flag || f.enrollment_decline_flag);
   const n = countFlaggedYears();
-  $('flags-title').textContent = n
-    ? `${n} of 17 years show unusual swings worth a question`
-    : 'No anomaly flags — 17 years of numbers moved within normal ranges';
-  const el = $('flaglist');
+  $('flags-title').textContent = `Anomaly checks · ${n} of 17 fiscal years flagged`;
   if (!flagged.length) {
     el.innerHTML = '<div class="flagcard ok">Nothing tripped the automatic checks for this district in any year.</div>';
     return;
   }
-  el.innerHTML = flagged.sort((a, b) => b.year - a.year).map(f => {
+  const notes = new Set();
+  const cards = flagged.sort((a, b) => b.year - a.year).map(f => {
     const items = Object.keys(FLAG_META).filter(k => f[k]).map(k => {
       const [what, nums, why] = FLAG_META[k];
-      return `<strong>${what}.</strong> <span class="nums">${nums(f)}.</span> ${why}`;
+      notes.add(why);
+      return `<strong>${what}.</strong> <span class="nums">${nums(f)}.</span>`;
     }).join('<br>');
     return `<div class="flagcard"><strong>Fiscal ${f.year}</strong><br>${items}</div>`;
   }).join('');
+  el.innerHTML = cards + `<div class="flagcard flag-notes">${[...notes].join(' ')}</div>`;
 }
 
 /* ---------- actionable intelligence (peer-benchmarked findings) ---------- */
@@ -3893,7 +4000,8 @@ function buildNav() {
       const el = document.getElementById(btn.dataset.to);
       // offset for the sticky rail so the heading is not hidden under it
       const y = el.getBoundingClientRect().top + scrollY - (rail.offsetHeight + 14);
-      scrollTo({ top: y, behavior: 'smooth' });
+      const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      scrollTo({ top: y, behavior: reduced ? 'auto' : 'smooth' });
     };
   });
 
@@ -3975,7 +4083,7 @@ function schoolYear(endYear) {
     : n % 10 === 3 && n % 100 !== 13 ? 'rd' : 'th');
 
   $('eq-title').textContent =
-    `${p.meets}% of ${nm}'s low-income students meet grade level. Statewide it is ${st.poor_meets}%.`;
+    `${nm} low-income students meeting grade level · ${p.meets}% · Texas ${st.poor_meets}%`;
   // Date the headline where it is read, not only in the citation underneath.
   // A percentage with no year reads as "now"; TEA releases these annually, so
   // an undated figure quietly ages into a wrong impression without a single
@@ -3992,7 +4100,7 @@ function schoolYear(endYear) {
   $('eq-head').innerHTML =
     '<h4>Low-income students meeting grade level</h4>' +
     `<div class="econ-big" style="color:${better ? ECON_C.teach : ECON_C.debt}">${p.meets}%</div>` +
-    `<div class="econ-sub">${ord(p.percentile)} percentile of ${st.districts_ranked.toLocaleString()} ` +
+    `<div class="stat-note">${ord(p.percentile)} percentile of ${st.districts_ranked.toLocaleString()} ` +
     `districts · ${p.tests.toLocaleString()} tests</div>`;
 
   const bs = e.poor_by_subject || {};
@@ -4002,7 +4110,7 @@ function schoolYear(endYear) {
       ? `<div class="econ-legend" style="margin:.2rem 0 .4rem">` +
         `<span><i style="background:${ECON_C.teach}"></i>reading ${bs.reading}%</span>` +
         `<span><i style="background:${ECON_C.debt}"></i>maths ${bs.math}%</span></div>` +
-        `<div class="econ-sub">Statewide, low-income students reach ` +
+        `<div class="stat-note">Statewide, low-income students reach ` +
         `${e.state_by_subject['Reading/Language Arts']}% in reading and ` +
         `${e.state_by_subject['Mathematics']}% in maths &mdash; ` +
         `<b>maths is the harder problem everywhere.</b></div>`
@@ -4123,7 +4231,8 @@ function renderTakeover() {
   const h = t.headline, pt = t.parallel_trends, pb = t.placebo, c = t.composition;
 
   $('tk-title').textContent =
-    `Houston gained ${h.houston_change} points. Districts like it gained ${h.comparison_change}.`;
+    `Houston vs matched districts · ${h.houston_change > 0 ? '+' : ''}${h.houston_change} vs ` +
+    `${h.comparison_change > 0 ? '+' : ''}${h.comparison_change} points`;
   $('tk-sub').innerHTML =
     `Every Texas district was climbing out of the same pandemic hole, so Houston's own before-and-after ` +
     `settles nothing. Against <b>${h.pool_size - 1} districts of its size and poverty that were not taken ` +
@@ -4198,14 +4307,14 @@ function renderNational() {
   card.innerHTML = head +
     '<div class="econ-big">' + money(n.ppcs) +
     '<span style="font-size:var(--fs-md);font-weight:400;color:var(--muted)"> / student</span></div>' +
-    '<div class="econ-sub">' +
+    '<div class="stat-note">' +
     (n.pctile != null && pool
       ? 'More per student than <b>' + n.pctile + '%</b> of the ' + pool.toLocaleString() +
         ' U.S. districts with 500+ students' +
         (med ? ' &mdash; the middle one spends ' + money(med) : '') + '.'
       : 'Shown but not ranked &mdash; under 500 students, the same rule used across this site.') +
-    txLine +
-    ' Census current spending, fiscal 2024: construction and debt excluded, so it runs below the all-in figure elsewhere on this page.</div>';
+    txLine + '</div>' +
+    '<div class="chart-status">Census · FY 2024 · per student in attendance · construction and debt excluded</div>';
   card.hidden = false;
 }
 
@@ -4222,11 +4331,9 @@ function renderErate() {
   card.innerHTML = head +
     '<div class="econ-big">' + fmtBig(n.committed) +
     '<span style="font-size:var(--fs-md);font-weight:400;color:var(--muted)"> since ' + (m.first_year || 2017) + '</span></div>' +
-    '<div class="econ-sub">Committed to this district by the federal E-Rate program for internet and ' +
-    'connectivity — ' + fmtBig(n.disbursed) + ' drawn so far, mostly ' +
-    escText(String(n.top_service || '').toLowerCase()) + '. Paid largely straight to vendors, so it ' +
-    'appears in no TEA budget on this page; recent years are still being invoiced, so the drawn figure ' +
-    'is a floor.</div>';
+    '<div class="stat-note">Federal E-Rate · ' + fmtBig(n.disbursed) + ' drawn so far · mostly ' +
+    escText(String(n.top_service || '').toLowerCase()) + '.</div>' +
+    '<div class="chart-status">Vendor paid · outside TEA budget · invoice lag makes drawn amount a floor</div>';
   card.hidden = false;
 }
 
@@ -4240,7 +4347,7 @@ function renderEconomics() {
                   || (state.erate && (state.erate.committed != null || state.erate.absence));
     if (!hasOther) { sec.classList.add('hidden'); return; }
     sec.classList.remove('hidden');
-    $('econ-title').textContent = 'How ' + state.district.name + ' compares beyond Texas.';
+    $('econ-title').textContent = state.district.name + ' national and federal measures';
     $('econ-support').textContent = '';
     ['econ-bill', 'econ-alloc', 'econ-who'].forEach(id => { const el = $(id); el.innerHTML = ''; el.hidden = true; });
     renderNational();
@@ -4250,7 +4357,7 @@ function renderEconomics() {
   sec.classList.remove('hidden');
   ['econ-bill', 'econ-alloc', 'econ-who'].forEach(id => { $(id).hidden = false; });
   const nm = e.district_name || state.district.name;
-  $('econ-title').textContent = 'What ' + nm + ' costs you, and what it buys.';
+  $('econ-title').textContent = nm + ' tax, funding and outcome measures';
 
   /* ---- what you pay ---- */
   const t = e.tax, a = e.allocation;
@@ -4270,7 +4377,7 @@ function renderEconomics() {
           money(keeps) + '</span><span><i style="background:' + ECON_C.debt + '"></i>leaves ' +
           money(t.leaves_district) + '</span></div>'
         : '') +
-      '<div class="econ-sub">Rate ' + t.total_rate.toFixed(4) + ' per $100 &mdash; ' +
+      '<div class="stat-note">Rate ' + t.total_rate.toFixed(4) + ' per $100 &mdash; ' +
       t.mo_rate.toFixed(4) + ' operating, ' + t.is_rate.toFixed(4) + ' debt.</div>' +
       // Your house, not a hypothetical one. Everything below is the same
       // arithmetic as the $300k figure above — value ÷ 100 × the adopted rate —
@@ -4411,6 +4518,7 @@ function renderEconomics() {
 
   /* ---- macro: the statewide series ---- */
   const M = state.econTexas;
+  $('econ-macro-block').hidden = !M;
   if (M) {
     const sp = M.macro.spending.filter(r => r.year >= 2009);
     const f = sp[0], l = sp[sp.length - 1];
@@ -4574,7 +4682,7 @@ function bondTimeline(svg, elections) {
 function bondDetail(e) {
   const box = $('bond-detail');
   if (!e) { box.className = 'bond-detail none'; box.textContent =
-    'Hover or tap any circle above to see what that bond was for and how the vote went.'; return; }
+    'Tap a circle for its purpose and vote.'; return; }
   const tot = (e.for || 0) + (e.against || 0);
   const share = tot ? Math.round((e.for || 0) / tot * 100) : null;
   box.className = 'bond-detail' + (e.passed ? '' : ' lost');
@@ -4659,13 +4767,12 @@ function renderBonds() {
 
   // The one-sentence big idea, tied to the money already shown above.
   const ec = state.econ && state.econ.allocation;
-  $('bond-bigidea').textContent =
-    'The fastest-growing part of your school tax bill is debt — and you voted for it.';
+  $('bond-bigidea').textContent = 'School bond election record';
   $('bond-lede').innerHTML = 'Every dollar of it went on a ballot. Here is the record.';
 
   // BEAT 1
   $('bond-b1-title').textContent =
-    `${nm} has asked voters for ${usd(t.asked)} since ${t.first_year}. They approved ${Math.round((t.approved_share || 0) * 100)}% of it.`;
+    `${nm} bond asks since ${t.first_year} · ${usd(t.asked)} · ${Math.round((t.approved_share || 0) * 100)}% approved`;
   $('bond-b1-sub').innerHTML =
     `<span class="bond-key"><span><i class="k-yes"></i>${t.passed} approved</span>` +
     `<span><i class="k-no"></i>${t.props - t.passed} rejected</span>` +
@@ -4694,9 +4801,8 @@ function renderBonds() {
   const stad = C.stadium;
   $('bond-b2-title').textContent =
     (bld && bld.pass_rate != null && stad && stad.pass_rate != null)
-      ? `Texans approve classrooms ${Math.round(bld.pass_rate)}% of the time. ` +
-        `Stadium-specific asks, ${Math.round(stad.pass_rate)}%.`
-      : 'What voters back, by stated purpose';
+      ? `Bond approval by purpose · classrooms ${Math.round(bld.pass_rate)}% · stadium-only ${Math.round(stad.pass_rate)}%`
+      : 'Bond approval by stated purpose';
   $('bond-b2-sub').innerHTML =
     `<span class="stat-note">${stad && stad.props ? stad.props + ' stadium-specific propositions among ' : ''}` +
     `${b.meta.propositions.toLocaleString()} total since ${b.meta.first_year}. ` +
@@ -4708,9 +4814,9 @@ function renderBonds() {
     'a proposition reading "School Building & Gymnasium" counts under athletics, so athletics is an upper bound.';
 
   // BEAT 3
-  const first = C.by_era[0], last = C.by_era[C.by_era.length - 1], prev = C.by_era[C.by_era.length - 2];
+  const last = C.by_era[C.by_era.length - 1];
   $('bond-b3-title').textContent =
-    `Districts asked for more since ${last.start} than in all of the ${prev.start}s — and approval hit a ${b.meta.last_year - b.meta.first_year}-year low.`;
+    `Bond asks and approval by era · ${last.start}–${b.meta.last_year}`;
   $('bond-b3-sub').innerHTML =
     'More asked, less approved. Districts turned to borrowing; voters started saying no.';
   bondEra($('bond-era'), C.by_era);
@@ -4725,8 +4831,7 @@ function renderBonds() {
   // down. Prose that summarises a number must be derived from the number.
   const B = C.bundling, alone = B.athletics_alone, bund = B.athletics_with_buildings, sch = B.buildings_alone;
   $('bond-b4-title').textContent =
-    `Athletics on its own passes ${Math.round(alone.pass_rate)}% of the time. ` +
-    `Bundled with classrooms, ${Math.round(bund.pass_rate)}% — and the ask gets bigger.`;
+    `Athletics bundling · alone ${Math.round(alone.pass_rate)}% · with classrooms ${Math.round(bund.pass_rate)}%`;
   $('bond-b4-sub').innerHTML =
     'A vote for classrooms is often a vote for the field house too.';
   const card = (h, r, cap, hi) =>
@@ -4741,13 +4846,16 @@ function renderBonds() {
   // the close: hand the reader something to do
   const w = b.did_it_work;
   if (w) {
-    $('bond-b5-title').textContent = w.distinguishable_from_zero
-      ? 'Districts whose bond passed did measurably better afterwards.'
-      : 'Whether the bond passed or failed, results afterwards look the same.';
+    $('bond-b5-title').textContent = 'Bond outcomes: passed versus defeated propositions';
     $('bond-b5-sub').innerHTML =
       `Before/after comparison: passed versus defeated bonds. <b>Suggestive evidence, not proof of cause.</b>` +
       `<details><summary>Comparison method</summary>Each district is compared with itself around the vote, then passed and defeated propositions are compared.</details>`;
     const arrow = v => (v > 0 ? '+' : '') + v.toFixed(2);
+    const modelStatus = !w.distinguishable_from_zero
+      ? `p = ${w.p_value} · ${w.bonds_tested} bonds · too close to call`
+      : w.fragile
+        ? `p = ${w.p_value} · ${w.bonds_tested} bonds · ${w.ci_low != null ? `range ${arrow(w.ci_low)} to ${arrow(w.ci_high)} points · ` : ''}suggestive, not settled`
+        : `p = ${w.p_value} · ${w.bonds_tested} bonds${w.ci_low != null ? ` · range ${arrow(w.ci_low)} to ${arrow(w.ci_high)} points` : ''}`;
     $('bond-worked').innerHTML =
       `<h4>Change in results after the vote</h4>` +
       `<div class="econ-legend" style="margin:.3rem 0 .5rem">` +
@@ -4756,6 +4864,7 @@ function renderBonds() {
       `</div>` +
       `<div class="econ-big" style="color:${w.distinguishable_from_zero ? ECON_C.teach : 'var(--muted)'}">` +
       `${arrow(w.difference)}<span style="font-size:var(--fs-md);font-weight:400;color:var(--muted)"> points</span></div>` +
+      `<div class="stat-note">${modelStatus}</div>` +
       `<div class="econ-sub">` +
       (!w.distinguishable_from_zero
         ? `<b>p = ${w.p_value} &mdash; too close to call.</b> With ${w.bonds_tested} bonds across ` +
@@ -4810,8 +4919,7 @@ function renderInsights() {
   if (!items.length) { sec.classList.add('hidden'); return; }
   sec.classList.remove('hidden');
   const n = items.length;
-  $('insights-title').textContent =
-    `${n} place${n > 1 ? 's' : ''} ${state.district.name} stands out from districts like it`;
+  $('insights-title').textContent = `Structural-peer outliers · ${n} measure${n === 1 ? '' : 's'}`;
   $('insightlist').innerHTML = items.map(it => {
     const up = it.direction === 'above';
     // "above peers" is red for cost lines, green for instruction share
@@ -4873,7 +4981,7 @@ function renderObject() {
   ];
   const total = +cur.obj_total;
   const payPct = Math.round(100 * (+cur.obj_payroll) / total);
-  $('object-title').textContent = `${payPct}¢ of every operating dollar goes to payroll`;
+  $('object-title').textContent = `Operating dollar · payroll ${payPct}¢`;
   barChart('objchart', 'objtip', items, total, 0);
   cite('object-cite');
 }
@@ -4894,7 +5002,7 @@ function renderProgram() {
   const total = +cur.prog_total;
   const sped = items.find(i => i.name === 'Special education');
   const spedPct = sped ? Math.round(100 * sped.v / total) : 0;
-  $('program-title').textContent = `${spedPct}% of program spending reaches special education`;
+  $('program-title').textContent = `Program spending · special education ${spedPct}%`;
   barChart('progchart', 'progtip', items, total, items.findIndex(i => i.name === 'Special education'));
   cite('program-cite');
 }
@@ -4907,11 +5015,8 @@ function renderTurnarounds() {
   sec.classList.remove('hidden');
   const nDef = t.filter(x => x.type === 'deficit_reversal').length;
   const nEnr = t.filter(x => x.type === 'enrollment_reversal').length;
-  const parts = [];
-  if (nDef) parts.push(`${nDef} reversed a multi-year deficit`);
-  if (nEnr) parts.push(`${nEnr} reversed an enrollment slide`);
   $('turnaround-title').textContent =
-    `Among districts like yours, ${parts.join(' and ')}`;
+    `Peer turnaround records · ${nDef} deficit · ${nEnr} enrollment`;
   $('turnaroundlist').innerHTML = t.map(x =>
     `<div class="flagcard ok"><strong>${titleCase(x.district_name)}</strong> — ` +
     (x.type === 'deficit_reversal'
@@ -5061,7 +5166,7 @@ function pngDownload(svgId) {
    that actually exist for this district — a district with no bond history, or
    any district but Houston, must not be walked to an empty highlight. */
 const TOUR = [
-  ['Welcome', 'Ten official sources, 6.6 million data points, one plain-English answer: what your school district collects, spends, borrows — and what it buys. Quick tour?', 'picker-section'],
+  ['Welcome', 'Fifteen registered public source products and 20,587 actual-finance records, in plain English: what your school district collects, spends, borrows — and what it buys. Quick tour?', 'picker-section'],
   ['Find your way around', 'The bar across the top tracks how far through you are, and the chips jump straight to any section. J and K move between them from the keyboard.', 'picker-section'],
   ['The answer first', 'Spending against the state, your rank among districts your size, and the five-year direction. Every headline on this page states a finding, not a label.', 'kpi-section'],
   ['Your dollar, as 100 pennies', 'Every dollar the district spends, split into real TEA categories. Hover or tap a colour to see what it covers and how it compares with peers.', 'dollar-section'],
@@ -5101,9 +5206,58 @@ function tourEnd() {
   document.querySelectorAll('.tour-highlight').forEach(el => el.classList.remove('tour-highlight'));
   localStorage.setItem('tisd_toured', '1');
 }
+let _activeSheet = null;
+let _sheetInvoker = null;
+let _sheetMore = null;
+let _inertSnapshot = [];
+function sheetFocusable(sheet) {
+  return [...sheet.querySelectorAll('a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])')]
+    .filter(el => !el.hidden && getComputedStyle(el).display !== 'none' && getComputedStyle(el).visibility !== 'hidden');
+}
+function openSheet(id, invoker, initialFocus) {
+  const sheet = $(id);
+  if (!sheet) return;
+  if (!_activeSheet) {
+    _sheetInvoker = invoker || document.activeElement;
+    const more = _sheetInvoker?.closest?.('#masthead .m-more');
+    _sheetMore = more ? { element: more, wasOpen: more.open } : null;
+    _inertSnapshot = [...document.body.children]
+      .filter(el => el !== sheet && el !== $('overlay') && !el.classList.contains('sheet'))
+      .map(el => [el, el.inert]);
+  }
+  if (_activeSheet && _activeSheet !== sheet) {
+    _activeSheet.style.display = 'none';
+    _activeSheet.removeAttribute('aria-modal');
+  }
+  _activeSheet = sheet;
+  _inertSnapshot.forEach(([el]) => { el.inert = true; });
+  $('overlay').style.display = 'block';
+  sheet.style.display = 'block';
+  sheet.setAttribute('aria-modal', 'true');
+  sheet.setAttribute('tabindex', '-1');
+  const target = initialFocus ? $(initialFocus) : null;
+  requestAnimationFrame(() => (target || sheetFocusable(sheet)[0] || sheet).focus());
+}
 function closeSheets() {
   $('overlay').style.display = 'none';
-  document.querySelectorAll('.sheet').forEach(s => s.style.display = 'none');
+  document.querySelectorAll('.sheet').forEach(s => {
+    s.style.display = 'none';
+    s.removeAttribute('aria-modal');
+    s.removeAttribute('tabindex');
+  });
+  _inertSnapshot.forEach(([el, inert]) => { el.inert = inert; });
+  _inertSnapshot = [];
+  const invoker = _sheetInvoker;
+  const more = _sheetMore;
+  _activeSheet = null;
+  _sheetInvoker = null;
+  _sheetMore = null;
+  document.querySelectorAll('.tour-highlight').forEach(el => el.classList.remove('tour-highlight'));
+  if (more?.wasOpen && more.element?.isConnected) more.element.open = true;
+  requestAnimationFrame(() => {
+    if (invoker?.isConnected && !invoker.disabled) invoker.focus();
+    else (more?.element?.querySelector('summary') || $('search'))?.focus();
+  });
 }
 
 /* ---------- statewide + boot ---------- */
@@ -5129,8 +5283,8 @@ function startMoneyClock(tx) {
   EXPLAIN.clock = 'This is an average, not a meter. Texas districts reported ' +
     linBtn('statewide_total_spend', fmtBig(tx.total_spend)) +
     ' of total spending in fiscal ' + tx.year +
-    ' (TEA Summarized PEIMS Actual Financial Data, all funds, all ' +
-    fmtNum(tx.districts) + ' districts). Divided by the 31,536,000 seconds in a year, that is ' +
+    ' (TEA Summarized PEIMS Actual Financial Data, all funds, ' +
+    fmtNum(tx.districts) + ' districts with reported records for that fiscal year). Divided by the 31,536,000 seconds in a year, that is ' +
     fmtMoney(rate) + ' per second. The counter multiplies that rate by your time on this page — ' +
     'spending is not literally smooth, but the total is real. Click the total ' +
     'to see the exact sum, which districts were counted, and whether an ' +
@@ -5163,6 +5317,8 @@ function renderTexasDollar(tx) {
   // penny figure with it — the hero's right column sat on "Loading…" forever.
   const heroNum = $('hero-num');
   if (heroNum) { heroNum.textContent = fmtBig(tx.total_spend); heroNum.style.opacity = ''; }
+  const heroYear = $('hero-year');
+  if (heroYear) heroYear.textContent = 'FY ' + tx.year;
   if (!state.district) renderHeroMetrics({
     label: 'Texas public schools', year: tx.year, totalSpend: tx.total_spend,
     totalPerStudent: tx.per_student, enrollment: tx.students, districts: tx.districts
@@ -5174,11 +5330,8 @@ function renderTexasDollar(tx) {
     ).join('')).join('');
   const top = tx.parts[0], debt = tx.parts.find(p => p.key === 'debt');
   const caption =
-    `<b>The Texas dollar, fiscal ${tx.year}.</b> Every one of the ${fmtNum(tx.districts)} districts pooled ` +
-    `together: ${top.cents}¢ of every dollar goes to ${top.label.toLowerCase()}` +
-    (debt ? `, ${debt.cents}¢ to paying off past building bonds` : '') +
-    `. That is ${linBtn('statewide_spend_per_student', fmtMoney(tx.per_student))} per student across ${fmtNum(tx.students)} students. ` +
-    `Search a district to see how its dollar is different.` +
+    `<div class="chart-status"><b>Texas dollar · FY ${tx.year}</b> · ${fmtNum(tx.districts)} districts with reported actual finance · ` +
+    `${linBtn('statewide_spend_per_student', fmtMoney(tx.per_student))} per student · ${fmtNum(tx.students)} students</div>` +
     `<div class="tx-legend">` + tx.parts.filter(p => p.cents > 0).slice(0, 6).map(p =>
       `<span><i style="background:${DOLLAR_COLORS[p.key] || '#c9c7be'}"></i>${p.label} ${p.cents}¢</span>`
     ).join('') + `<span class="rest">…and the rest</span></div>`;
@@ -5209,13 +5362,15 @@ function updateHeroDollar() {
   // material share, the all-funds figure never travels without the
   // operating figure. The owner misread the first draft of this caption —
   // which means a parent would have too.
-  const cur = (state.summary || []).filter(r => r.operating_spend != null && r.enrollment > 0).pop();
+  const cur = (state.summary || []).find(r => Number(r.year) === Number(d.year)
+    && r.operating_spend != null && Number.isFinite(+r.operating_spend)
+    && Number.isFinite(+r.enrollment) && +r.enrollment > 0);
   const ops = cur ? +cur.operating_spend / +cur.enrollment : null;
-  c.innerHTML = `<b>${state.district.name}&rsquo;s dollar, fiscal ${d.year}.</b> ` +
-    `Every square is one penny of all-funds spending — ${fmtMoney(d.perStudent)} per student` +
-    (ops ? `; <b>${fmtMoney(ops)} per student is operating spending</b>` : '') +
-    (cls ? `. ${cls.cents}¢ of the dollar reaches classroom teaching` : '') +
-    `. Debt service and capital projects remain separate chart categories.` +
+  c.innerHTML = `<div class="chart-status"><b>${state.district.name}&rsquo;s dollar · FY ${d.year}</b> · ` +
+    `${fmtMoney(d.perStudent)} all funds / student · construction & debt included` +
+    (ops != null ? ` · ${fmtMoney(ops)} operations / student` : ` · operations / student unavailable for FY ${d.year}`) +
+    (cls ? ` · ${cls.cents}¢ classroom teaching` : '') +
+    ` · construction and debt shown separately below</div>` +
     // The statewide render always carried this legend; the district render
     // dropped it, leaving eleven colours above the fold with only blue and
     // "the rest" explained. Same rule for both: the signature visual never
@@ -5225,7 +5380,8 @@ function updateHeroDollar() {
     ).join('') + `<span class="rest">…and the rest</span></div>`;
   renderHeroMetrics({
     label: state.district.name, year: d.year, totalPerStudent: d.perStudent,
-    operatingPerStudent: ops, enrollment: d.enrollment, totalSpend: d.total
+    operatingPerStudent: ops, operatingUnavailable: ops == null,
+    enrollment: d.enrollment, totalSpend: d.total
   });
 }
 
@@ -5235,13 +5391,14 @@ function renderHeroMetrics(m) {
   const el = $('hero-kpis');
   if (!el || !m) return;
   const cells = [];
-  if (m.totalPerStudent != null) cells.push([fmtMoney(m.totalPerStudent), 'all funds / student']);
+  if (m.totalPerStudent != null) cells.push([fmtMoney(m.totalPerStudent), 'all funds / student · includes construction & debt']);
   if (m.operatingPerStudent != null) cells.push([fmtMoney(m.operatingPerStudent), 'operations / student']);
+  else if (m.operatingUnavailable) cells.push(['—', `operations / student unavailable for FY ${m.year}`]);
   if (m.totalSpend != null) cells.push([fmtBig(m.totalSpend), 'all-funds spending']);
   if (m.enrollment != null) cells.push([fmtNum(m.enrollment), 'students']);
-  if (m.districts != null) cells.push([fmtNum(m.districts), 'districts']);
-  if (m.year != null) cells.push(['FY ' + m.year, 'source period']);
-  el.innerHTML = cells.slice(0, 4).map(([value, label]) =>
+  if (m.year != null) cells.unshift(['FY ' + m.year, 'actual-finance period']);
+  if (m.districts != null) cells.push([fmtNum(m.districts), 'districts with FY records']);
+  el.innerHTML = cells.map(([value, label]) =>
     `<span role="listitem"><b>${value}</b><i>${label}</i></span>`).join('');
 }
 
@@ -5259,7 +5416,7 @@ function renderCredential(s, tx) {
   const bits = [];
   if (s) bits.push(`<span><b>${fmtNum(s.total_records)}</b> financial records</span>`);
   if (tx) bits.push(`<span><b>${fmtBig(tx.total_spend)}</b> a year accounted for</span>`);
-  bits.push(`<span>Every number traceable to the State of Texas</span>`);
+  bits.push(`<span><b>15</b> registered public source products</span>`);
   el.innerHTML = bits.join('');
 }
 function renderQuickPicks(largest) {
@@ -5281,7 +5438,9 @@ function renderQuickPicks(largest) {
     b.onclick = () => selectDistrict(b.dataset.num, b.dataset.name));
   $('chip-map').onclick = () => { location.href = '/geomap'; };
   $('chip-heatmap').onclick = () => { location.href = '/heatmap'; };
-  if ($('chip-tour')) $('chip-tour').onclick = () => { tourBuild(); tourShow(0); };
+  if ($('chip-tour')) $('chip-tour').onclick = e => {
+    tourBuild(); openSheet('tourbox', e.currentTarget, 'tour-next'); tourShow(0);
+  };
   $('chip-random').onclick = async () => {
     try {
       let all;
@@ -5343,7 +5502,8 @@ async function loadStatewide() {
     const last = bm[bm.length - 1];
     $('t-med').textContent = fmtMoney(last?.median_spend_per_student);
     const g = pct(+last?.median_spend_per_student, +bm[bm.length - 6]?.median_spend_per_student);
-    if (g != null) $('state-title').textContent = `The typical Texas district now spends ${fmtMoney(last.median_spend_per_student)} per student — up ${g}% in five years`;
+    if (g != null) $('state-title').textContent =
+      `Texas median spend / student · ${fmtMoney(last.median_spend_per_student)} · five-year ${g >= 0 ? '+' : '−'}${Math.abs(g)}%`;
     applyVisualLedger();
   } catch (e) { /* banner */ }
 }
@@ -5406,10 +5566,21 @@ $('cmpbars').addEventListener('mouseleave', () => hoverCat(null));
     `Actual Financial Data, fiscal years 2009–2025. Compiled by Technology Automation Group (TAG ai). ` +
     `Retrieved ${today} from https://txisd.dev`;
   $('citation-text').textContent = txt;
-  $('btn-cite').onclick = () => {
-    navigator.clipboard?.writeText(txt);
-    $('btn-cite').textContent = 'Copied';
-    setTimeout(() => { $('btn-cite').textContent = 'Copy citation'; }, 2000);
+  $('btn-cite').onclick = async () => {
+    const button = $('btn-cite');
+    try {
+      if (!navigator.clipboard?.writeText) throw new Error('Clipboard API unavailable');
+      await navigator.clipboard.writeText(txt);
+      button.textContent = 'Copied';
+      setTimeout(() => { button.textContent = 'Copy citation'; }, 2000);
+    } catch (_) {
+      const range = document.createRange();
+      range.selectNodeContents($('citation-text'));
+      const selection = getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+      button.textContent = 'Copy unavailable — citation selected';
+    }
   };
 })();
 $('lensbar').addEventListener('click', e => {
@@ -5425,7 +5596,7 @@ $('lensbar').addEventListener('click', e => {
    the masthead's More menu now — same reach, one fewer bar, and the tutorial
    keeps its second entry point on the welcome card. */
 const _mmClose = () => { const d = document.querySelector('#masthead .m-more'); if (d) d.open = false; };
-$('mm-tour').onclick = () => { _mmClose(); tourBuild(); tourShow(0); };
+$('mm-tour').onclick = e => { const opener = e.currentTarget; tourBuild(); openSheet('tourbox', opener, 'tour-next'); _mmClose(); tourShow(0); };
 $('mm-print').onclick = () => { _mmClose(); window.print(); };
 /* Welcome-band actions: send a first-time visitor straight into the finder or
    the tour. The other two CTAs are plain links (/feed, /geomap). */
@@ -5434,7 +5605,7 @@ if ($('wc-find')) $('wc-find').onclick = (e) => {
   const s = $('search');
   if (s) { s.scrollIntoView({ behavior: 'smooth', block: 'center' }); setTimeout(() => s.focus(), 350); }
 };
-if ($('wc-tour')) $('wc-tour').onclick = (e) => { e.preventDefault(); tourBuild(); tourShow(0); };
+if ($('wc-tour')) $('wc-tour').onclick = (e) => { e.preventDefault(); tourBuild(); openSheet('tourbox', e.currentTarget, 'tour-next'); tourShow(0); };
 $('tour-next').onclick = () => tourShow(tourI + 1);
 $('tour-skip').onclick = tourEnd;
 $('overlay').onclick = closeSheets;
@@ -5443,15 +5614,27 @@ $('overlay').onclick = closeSheets;
    not discoverable and not the expected behavior. Also clears the tour
    highlight so nothing is left visually stuck. */
 addEventListener('keydown', ev => {
-  if (ev.key !== 'Escape') return;
-  if ($('overlay').style.display !== 'block') return;
-  closeSheets();
-  document.querySelectorAll('.tour-highlight').forEach(el => el.classList.remove('tour-highlight'));
+  if (!_activeSheet) return;
+  if (ev.key === 'Escape') {
+    ev.preventDefault();
+    closeSheets();
+    document.querySelectorAll('.tour-highlight').forEach(el => el.classList.remove('tour-highlight'));
+    return;
+  }
+  if (ev.key !== 'Tab') return;
+  const focusable = sheetFocusable(_activeSheet);
+  if (!focusable.length) { ev.preventDefault(); _activeSheet.focus(); return; }
+  const first = focusable[0], last = focusable[focusable.length - 1];
+  if (ev.shiftKey && (document.activeElement === first || !_activeSheet.contains(document.activeElement))) {
+    ev.preventDefault(); last.focus();
+  } else if (!ev.shiftKey && document.activeElement === last) {
+    ev.preventDefault(); first.focus();
+  }
 });
-$('mm-disclaimer').onclick = () => { _mmClose(); $('overlay').style.display = 'block'; $('disc-modal').style.display = 'block'; };
-$('open-disc').onclick = e => { e.preventDefault(); $('overlay').style.display = 'block'; $('disc-modal').style.display = 'block'; };
+$('mm-disclaimer').onclick = e => { const opener = e.currentTarget; openSheet('disc-modal', opener, 'disc-close'); _mmClose(); };
+$('open-disc').onclick = e => { e.preventDefault(); openSheet('disc-modal', e.currentTarget, 'disc-close'); };
 $('disc-close').onclick = closeSheets;
-$('btn-compare').onclick = () => { $('overlay').style.display = 'block'; $('compare-modal').style.display = 'block'; };
+$('btn-compare').onclick = e => { openSheet('compare-modal', e.currentTarget, 'csearch'); };
 $('btn-uncompare').onclick = () => { state.compare = null; state.compareSummary = []; renderAll(); };
 $('btn-trendcsv').onclick = () => csvDownload(state._trendCsv, slug() + '_trends.csv');
 $('btn-peercsv').onclick = () => csvDownload(state._peerCsv, slug() + '_peers.csv');

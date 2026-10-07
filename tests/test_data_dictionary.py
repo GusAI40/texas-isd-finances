@@ -88,3 +88,57 @@ def test_the_field_counts_are_real():
     assert len(d["routes"]) > 40
     for a in d["artifacts"]:
         assert a["title"], f"{a['file']} has no title"
+
+
+def test_dictionary_artifact_metadata_is_utf8_and_line_ending_canonical(tmp_path):
+    from build_data_dictionary import describe_artifact
+
+    lf = tmp_path / "lf.json"
+    crlf = tmp_path / "crlf.json"
+    payload = '{\n  "meta": {"source": "Peña"},\n  "districts": {"057905": {"name": "Münster"}}\n}\n'
+    lf.write_text(payload, encoding="utf-8", newline="\n")
+    crlf.write_text(payload, encoding="utf-8", newline="\r\n")
+    left, right = describe_artifact(lf), describe_artifact(crlf)
+    assert left["source"] == "Peña"
+    assert left["fields"] == right["fields"]
+    assert left["bytes"] == right["bytes"]
+
+
+def test_dictionary_reads_current_working_file_and_rejects_invalid_utf8(tmp_path):
+    from build_data_dictionary import describe_artifact
+
+    path = tmp_path / "working.json"
+    path.write_text('{"meta":{"source":"one"},"districts":{}}\n', encoding="utf-8", newline="\n")
+    first = describe_artifact(path)
+    path.write_text('{"meta":{"source":"two"},"districts":{}}\n', encoding="utf-8", newline="\n")
+    second = describe_artifact(path)
+    assert first["source"] == "one" and second["source"] == "two"
+    path.write_bytes(b'{"meta":"\xff"}')
+    with pytest.raises(UnicodeDecodeError):
+        describe_artifact(path)
+
+
+def test_mini_dictionary_generation_is_utf8_lf_canonical_and_uses_working_files(tmp_path, monkeypatch):
+    import build_data_dictionary as builder
+
+    root = tmp_path / "mini"
+    static = root / "static"
+    static.mkdir(parents=True)
+    (root / "src").mkdir()
+    (root / "sql").mkdir()
+    (root / "src" / "api.py").write_text("", encoding="utf-8", newline="\n")
+    (root / "sql" / "create_tables.sql").write_text("", encoding="utf-8", newline="\n")
+    payload = '{\r\n  "meta": {"source": "Peña"},\r\n  "districts": {}\r\n}\r\n'
+    artifact = static / "sample.json"
+    artifact.write_text(payload, encoding="utf-8", newline="")
+    monkeypatch.setattr(builder, "ROOT", root)
+    monkeypatch.setattr(builder, "STATIC", static)
+    first = builder.build()
+    first_markdown = builder.markdown(first).encode("utf-8")
+    artifact.write_text(payload.replace("\r\n", "\n"), encoding="utf-8", newline="")
+    second = builder.build()
+    second_markdown = builder.markdown(second).encode("utf-8")
+    assert first == second and first_markdown == second_markdown
+    assert b"\r" not in first_markdown and "Peña" in first_markdown.decode("utf-8")
+    artifact.write_text('{"meta":{"source":"changed"},"districts":{}}\n', encoding="utf-8", newline="\n")
+    assert builder.build()["artifacts"][0]["source"] == "changed"

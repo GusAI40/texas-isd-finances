@@ -72,14 +72,15 @@ def without_visual(value):
     return value
 
 
-def expected_compare_row(record, district_number, district_name, year):
+def expected_compare_row(record, district_number, district_name):
     outside = record.get("outside_operating") or {}
     who_pays = record.get("who_pays") or {}
     landed = record.get("where_it_landed") or {}
     return {
         "district_number": district_number,
         "district_name": district_name,
-        "year": year,
+        "year": record.get("year"),
+        "outcomes_year": landed.get("year"),
         "students": record.get("students"),
         "debt_per_student": outside.get("per_student"),
         "operating_per_student": outside.get("operating_per_student"),
@@ -275,8 +276,8 @@ def test_all_eleven_tools_match_complete_independent_artifact_contracts(client, 
     _, comparison = success(client, "compare_districts", {"district_numbers": [dallas, houston]})
     assert without_visual(comparison) == {
         "districts": [
-            expected_compare_row(forensic["districts"][dallas], dallas, "Dallas ISD", forensic["meta"]["year"]),
-            expected_compare_row(forensic["districts"][houston], houston, "Houston ISD", forensic["meta"]["year"]),
+            expected_compare_row(forensic["districts"][dallas], dallas, "Dallas ISD"),
+            expected_compare_row(forensic["districts"][houston], houston, "Houston ISD"),
         ],
         "not_found": [],
         "limits": forensic["meta"]["limits"],
@@ -321,8 +322,9 @@ def test_visual_values_periods_units_denominators_sources_and_limits_match_artif
             assert metric["value"] == at_path(source_record, definition["path"])
             for field in ("label", "unit", "denominator", "status"):
                 assert metric[field] == definition[field]
-            assert metric["period"] == str(forensic["meta"]["year"])
-            assert metric["source"]["period"] == str(forensic["meta"]["year"])
+            period = at_path(source_record, definition.get("period_path", "year"))
+            assert metric["period"] == str(period) if period is not None else "Not reported"
+            assert metric["source"]["period"] == str(period) if period is not None else "Not reported"
             assert metric["source"]["label"] and metric["source"]["url"]
             assert metric["limits"] == forensic["meta"]["limits"]
     assert comparison["visual"]["limits"] == forensic["meta"]["limits"]
@@ -378,7 +380,14 @@ def test_every_tool_period_matches_its_exact_artifact(client):
     assert overview["year"] == forensic["meta"]["year"]
     assert overview["deficit_by_year"][0]["year"] == trend["meta"]["first_year"]
     assert overview["deficit_by_year"][-1]["year"] == trend["meta"]["last_year"]
-    assert all(row["year"] == forensic["meta"]["year"] for row in comparison["districts"])
+    assert all(row["year"] == forensic["districts"][row["district_number"]]["year"] for row in comparison["districts"])
+    assert all(
+        row["outcomes_year"]
+        == forensic["districts"][row["district_number"]]
+        .get("where_it_landed", {})
+        .get("year")
+        for row in comparison["districts"]
+    )
 
 
 def test_bounds_missing_null_charter_and_multi_round_trip_paths(client, monkeypatch):

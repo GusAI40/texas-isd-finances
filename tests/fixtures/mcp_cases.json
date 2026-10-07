@@ -144,10 +144,10 @@
       "instruction_per_student": {"path": "districts.057905.allocation.instruction_per_student", "label": "Instruction per student", "unit": "USD per student", "denominator": "fall survey enrollment", "status": "observed"}
     },
     "compare_districts": {
-      "operating_per_student": {"path": "outside_operating.operating_per_student", "label": "Operating spending per student", "unit": "USD per student", "denominator": "fall survey enrollment", "status": "observed"},
-      "debt_per_student": {"path": "outside_operating.per_student", "label": "Debt service per student", "unit": "USD per student", "denominator": "fall survey enrollment", "status": "observed"},
-      "local_pct": {"path": "who_pays.local_pct", "label": "Local revenue share", "unit": "percent", "denominator": "gross local + state + federal revenue", "status": "observed"},
-      "points_vs_predicted": {"path": "where_it_landed.gap", "label": "Points vs predicted", "unit": "percentage points", "denominator": "predicted Meets rate from the district need model", "status": "modeled"}
+        "operating_per_student": {"path": "outside_operating.operating_per_student", "period_path": "year", "label": "Operating spending per student", "unit": "USD per student", "denominator": "fall survey enrollment", "status": "observed"},
+        "debt_per_student": {"path": "outside_operating.per_student", "period_path": "year", "label": "Debt service per student", "unit": "USD per student", "denominator": "fall survey enrollment", "status": "observed"},
+        "local_pct": {"path": "who_pays.local_pct", "period_path": "year", "label": "Local revenue share", "unit": "percent", "denominator": "gross local + state + federal revenue", "status": "observed"},
+        "points_vs_predicted": {"path": "where_it_landed.gap", "period_path": "where_it_landed.year", "label": "Points vs predicted", "unit": "percentage points", "denominator": "predicted Meets rate from the district need model", "status": "modeled"}
     },
     "texas_overview": {
       "debt_total": {"path": "statewide.debt_total", "label": "Annual debt service", "unit": "USD per fiscal year", "denominator": "sum across Texas districts reporting enrollment and debt service", "status": "observed"},

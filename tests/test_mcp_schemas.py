@@ -105,6 +105,31 @@ def test_visual_payloads_are_additive_and_carry_status_source_and_limits():
     assert metric["status"] == "observed" and metric["source"]["url"].startswith("https://txisd.dev/")
 
 
+def test_visual_metadata_normalizes_identity_period_and_missing_modeled_gap():
+    assert mcp_apps._district_population("  Dallas ISD ", "057905") == "Dallas ISD"
+    assert mcp_apps._district_population(" ", "057905") == "District 057905"
+    assert mcp_apps._district_population(None, None) == "District not reported"
+    missing_period = mcp_apps._metric("x", "x", 1, "unit", None, [])
+    assert missing_period["period"] == missing_period["source"]["period"] == "Not reported"
+    comparison = mcp_apps.visual_payload("compare_districts", {"districts": [{
+        "district_number": "057905", "district_name": "", "year": None, "outcomes_year": 2024,
+        "points_vs_predicted": None,
+    }], "limits": []})
+    values = {metric["id"]: metric for metric in comparison["metrics"][0]["values"]}
+    assert all(metric["population"] == "District 057905" for metric in values.values())
+    assert values["operating_per_student"]["period"] == "Not reported"
+    assert values["operating_per_student"]["source"]["period"] == "Not reported"
+    assert values["points_vs_predicted"]["status"] == "missing"
+    assert values["points_vs_predicted"]["period"] == "2024"
+    modeled = mcp_apps.visual_payload("compare_districts", {"districts": [{
+        "district_number": "057905", "district_name": "Dallas ISD", "outcomes_year": None,
+        "points_vs_predicted": 0,
+    }], "limits": []})
+    gap = modeled["metrics"][0]["values"][-1]
+    assert gap["value"] == 0 and gap["status"] == "modeled"
+    assert gap["period"] == gap["source"]["period"] == "Not reported"
+
+
 def test_strict_ajv_compiles_all_schemas_and_validates_all_current_tool_calls(tmp_path):
     cases = []
     for tool, arguments in CURRENT_CALLS.items():
@@ -179,6 +204,26 @@ def test_recursive_validator_rejects_wrong_nested_types_and_missing_required_fie
         _case("null-required-string", "district_money", null_is_not_missing, valid=False),
     ]
     _run_ajv(tmp_path, cases)
+
+
+def test_comparison_outcomes_year_is_optional_nullable_and_strictly_typed(tmp_path):
+    comparison = _result("compare_districts", {"district_numbers": ["057905", "101912"]})
+    assert all(row["outcomes_year"] == 2024 for row in comparison["districts"])
+    historical = deepcopy(comparison)
+    del historical["districts"][0]["outcomes_year"]
+    explicit_null = deepcopy(comparison)
+    explicit_null["districts"][0]["outcomes_year"] = None
+    invalid = []
+    for label, value in (("string", "2024"), ("boolean", True), ("fraction", 2024.5), ("out-of-range", 1800)):
+        payload = deepcopy(comparison)
+        payload["districts"][0]["outcomes_year"] = value
+        invalid.append(_case("outcomes-year-" + label, "compare_districts", payload, valid=False))
+    _run_ajv(tmp_path, [
+        _case("outcomes-year-current", "compare_districts", comparison),
+        _case("outcomes-year-historical-omitted", "compare_districts", historical),
+        _case("outcomes-year-null", "compare_districts", explicit_null),
+        *invalid,
+    ])
 
 
 def test_debt_history_tuple_uses_portable_object_terminator_and_rejects_extra_items(tmp_path):

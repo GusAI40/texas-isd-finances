@@ -4,10 +4,10 @@
   "D-SCHEMA-01": "PASS locally: every listed tool has a bounded success schema requiring limits; package schemas validate.",
   "D-BOUNDARY-01": "PASS locally: existing no DB/LLM/write checks and read-only annotations remain green.",
   "D-RESOURCE-01": "PASS locally: exact versioned resource, unknown URI rejection, composition, helper reuse and empty CSP tested.",
-  "E-VISUAL-01": "PASS locally for no-bridge frame and visual payload shape; actual ChatGPT render UNVERIFIED.",
-  "E-BRIDGE-01": "PASS static/local bridge safety checks; actual ChatGPT bridge rendering UNVERIFIED.",
-  "E-PACKAGE-01": "PASS local official-schema/reference validation and actual creator-generated mapping shape.",
+  "E-VISUAL-01": "PASS locally: 36/36 actual sandboxed cases pass initial/full 95/5 with fresh independent agent screenshot and semantic review; actual ChatGPT render remains UNVERIFIED.",
+  "E-BRIDGE-01": "PASS locally: fresh independent 56/56 Chromium/Firefox bridge tests; actual ChatGPT bridge rendering remains UNVERIFIED.",
+  "E-PACKAGE-01": "PASS locally: official-schema/reference validation, actual creator mapping, eight-entry portable ZIP, and independently extracted package validation.",
   "E-LISTING-01": "PASS draft materials; public listing remains UNVERIFIED.",
-  "E-INSTALL-01": "UNVERIFIED: endpoint registration is not an install test.",
+  "E-INSTALL-01": "UNVERIFIED: actual development-package upload attempted but Chrome blocked local-file access; permission approval is pending. Endpoint registration is not a complete package install.",
   "E-PUBLIC-01": "UNVERIFIED pending authorized publication and independent eligible-account confirmation."
 }

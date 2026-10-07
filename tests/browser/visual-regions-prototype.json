@@ -1,0 +1,28 @@
+{
+  "version": 2,
+  "rubric_version": "semantic-painted-marks-v2",
+  "rubric": "Prototype adapter: inventory direct visible text and the two actual bar marks under main. Controls and closed assumptions remain outside the measured analytical surface.",
+  "analytic_roots": [
+    { "selector": "main", "required": true }
+  ],
+  "exclusions": [
+    { "selector": "input, button, label", "reason": "nonfunctional prototype control" },
+    { "selector": "details", "reason": "closed prototype disclosure" }
+  ],
+  "prose": [
+    "p",
+    "h1"
+  ],
+  "visual_text": [
+    "main > h2",
+    ".value",
+    ".grid .card > div:not(.value)",
+    "figure figcaption"
+  ],
+  "graphic_roots": [
+    ".bars[role=\"img\"]"
+  ],
+  "html_marks": [
+    ".bars > i"
+  ]
+}

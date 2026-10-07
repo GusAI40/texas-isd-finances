@@ -10,6 +10,9 @@
     "com.openai": {
       "apps": "./.app.json",
       "interface": {
+        "composerIcon": "./assets/icon.svg",
+        "logo": "./assets/icon.svg",
+        "screenshots": ["./assets/district-report.png", "./assets/comparison.png"],
         "displayName": "Texas ISD Finances",
         "shortDescription": "Read-only public Texas school district finance research.",
         "developerName": "Texas ISD Finances",

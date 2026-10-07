@@ -1,30 +1,417 @@
 {
-  "district": {
-    "schemaVersion": 1, "view": "district", "districts": [{"district_number": "057905", "district_name": "Dallas ISD"}],
-    "websiteUrl": "https://txisd.dev/?d=057905",
-    "metrics": [
-      {"id":"total","label":"Operating plus debt service per student","value":17788,"unit":"USD per student","period":"2025","population":"Dallas ISD","denominator":"fall survey enrollment","status":"observed","source":{"label":"TEA public artifact","url":"https://txisd.dev/transparency","period":"2025"},"limits":["Public artifact vintage."]},
-      {"id":"instruction","label":"Instruction per student","value":8100,"unit":"USD per student","period":"2025","population":"Dallas ISD","denominator":"fall survey enrollment","status":"observed","source":{"label":"TEA public artifact","url":"https://txisd.dev/transparency","period":"2025"},"limits":["Public artifact vintage."]}
-    ]
-  },
-  "comparison": {
-    "schemaVersion": 1, "view": "comparison", "districts": [{"district_number":"057905","district_name":"Dallas ISD"},{"district_number":"101912","district_name":"Houston ISD"}], "websiteUrl":"https://txisd.dev/",
-    "metrics": [
-      {"district_name":"Dallas ISD","values":[
-        {"id":"operating","label":"Operating spending per student","value":15200,"unit":"USD per student","period":"2025","status":"observed","source":{"label":"TEA","url":"https://txisd.dev/transparency","period":"2025"},"limits":[]},
-        {"id":"local","label":"Local revenue share","value":62.4,"unit":"percent","period":"2025","status":"observed","source":{"label":"TEA","url":"https://txisd.dev/transparency","period":"2025"},"limits":[]}
-      ]},
-      {"district_name":"Houston ISD","values":[
-        {"id":"operating","label":"Operating spending per student","value":14100,"unit":"USD per student","period":"2025","status":"observed","source":{"label":"TEA","url":"https://txisd.dev/transparency","period":"2025"},"limits":[]},
-        {"id":"points","label":"Points vs predicted","value":null,"unit":"percentage points","period":"2025","status":"modeled","source":{"label":"TEA","url":"https://txisd.dev/transparency","period":"2025"},"limits":["Modeled estimate."]}
-      ]}
-    ]
-  },
-  "statewide": {
-    "schemaVersion": 1, "view":"statewide", "districts":[], "websiteUrl":"https://txisd.dev/",
-    "metrics":[
-      {"id":"debt","label":"Annual debt service","value":5500000000,"unit":"USD per fiscal year","period":"2025","status":"observed","source":{"label":"TEA","url":"https://txisd.dev/transparency","period":"2025"},"limits":[]},
-      {"id":"median","label":"Median debt service per student","value":1220,"unit":"USD per student","period":"2025","status":"observed","source":{"label":"TEA","url":"https://txisd.dev/transparency","period":"2025"},"limits":[]}
-    ]
+  "schemaVersion": 1,
+  "capturedAt": "2026-10-07",
+  "provenance": "Fresh call_tool structured visual capture from committed public artifacts.",
+  "views": {
+    "district": {
+      "schemaVersion": 1,
+      "view": "district",
+      "districts": [
+        {
+          "district_number": "057905",
+          "district_name": "Dallas ISD"
+        }
+      ],
+      "metrics": [
+        {
+          "id": "total_per_student",
+          "key": "total_per_student",
+          "label": "Operating plus debt service per student",
+          "value": 17788,
+          "unit": "USD per student",
+          "period": "2025",
+          "population": "Dallas ISD",
+          "denominator": "fall survey enrollment",
+          "status": "observed",
+          "source": {
+            "label": "Texas Education Agency public artifacts",
+            "url": "https://txisd.dev/transparency",
+            "period": "2025"
+          },
+          "limits": [
+            "Effect sizes are observational. Within-district first differences remove everything about a district that does not change, but not confounders that move at the same time.",
+            "TEA does not itemise facilities: debt service covers all buildings together, so a stadium cannot be separated from a roof without a district's own bond documents.",
+            "Tax figures are withheld for districts where two independent estimates of the tax base disagree by more than 25%."
+          ]
+        },
+        {
+          "id": "operating_per_student",
+          "key": "operating_per_student",
+          "label": "Operating spending per student",
+          "value": 14210,
+          "unit": "USD per student",
+          "period": "2025",
+          "population": "Dallas ISD",
+          "denominator": "fall survey enrollment",
+          "status": "observed",
+          "source": {
+            "label": "Texas Education Agency public artifacts",
+            "url": "https://txisd.dev/transparency",
+            "period": "2025"
+          },
+          "limits": [
+            "Effect sizes are observational. Within-district first differences remove everything about a district that does not change, but not confounders that move at the same time.",
+            "TEA does not itemise facilities: debt service covers all buildings together, so a stadium cannot be separated from a roof without a district's own bond documents.",
+            "Tax figures are withheld for districts where two independent estimates of the tax base disagree by more than 25%."
+          ]
+        },
+        {
+          "id": "debt_per_student",
+          "key": "debt_per_student",
+          "label": "Debt service per student",
+          "value": 3578,
+          "unit": "USD per student",
+          "period": "2025",
+          "population": "Dallas ISD",
+          "denominator": "fall survey enrollment",
+          "status": "observed",
+          "source": {
+            "label": "Texas Education Agency public artifacts",
+            "url": "https://txisd.dev/transparency",
+            "period": "2025"
+          },
+          "limits": [
+            "Effect sizes are observational. Within-district first differences remove everything about a district that does not change, but not confounders that move at the same time.",
+            "TEA does not itemise facilities: debt service covers all buildings together, so a stadium cannot be separated from a roof without a district's own bond documents.",
+            "Tax figures are withheld for districts where two independent estimates of the tax base disagree by more than 25%."
+          ]
+        },
+        {
+          "id": "instruction_per_student",
+          "key": "instruction_per_student",
+          "label": "Instruction per student",
+          "value": 7206,
+          "unit": "USD per student",
+          "period": "2025",
+          "population": "Dallas ISD",
+          "denominator": "fall survey enrollment",
+          "status": "observed",
+          "source": {
+            "label": "Texas Education Agency public artifacts",
+            "url": "https://txisd.dev/transparency",
+            "period": "2025"
+          },
+          "limits": [
+            "Effect sizes are observational. Within-district first differences remove everything about a district that does not change, but not confounders that move at the same time.",
+            "TEA does not itemise facilities: debt service covers all buildings together, so a stadium cannot be separated from a roof without a district's own bond documents.",
+            "Tax figures are withheld for districts where two independent estimates of the tax base disagree by more than 25%."
+          ]
+        }
+      ],
+      "limits": [
+        "Effect sizes are observational. Within-district first differences remove everything about a district that does not change, but not confounders that move at the same time.",
+        "TEA does not itemise facilities: debt service covers all buildings together, so a stadium cannot be separated from a roof without a district's own bond documents.",
+        "Tax figures are withheld for districts where two independent estimates of the tax base disagree by more than 25%."
+      ],
+      "websiteUrl": "https://txisd.dev/?d=057905"
+    },
+    "comparison": {
+      "schemaVersion": 1,
+      "view": "comparison",
+      "districts": [
+        {
+          "district_number": "057905",
+          "district_name": "Dallas ISD"
+        },
+        {
+          "district_number": "101912",
+          "district_name": "Houston ISD"
+        }
+      ],
+      "metrics": [
+        {
+          "district_number": "057905",
+          "district_name": "Dallas ISD",
+          "values": [
+            {
+              "id": "operating_per_student",
+              "key": "operating_per_student",
+              "label": "Operating spending per student",
+              "value": 14210,
+              "unit": "USD per student",
+              "period": "2025",
+              "population": "Dallas ISD",
+              "denominator": "fall survey enrollment",
+              "status": "observed",
+              "source": {
+                "label": "Texas Education Agency public artifacts",
+                "url": "https://txisd.dev/transparency",
+                "period": "2025"
+              },
+              "limits": [
+                "Nothing here is a finding of wrongdoing. Every flag is a description of a published number against a published threshold, and the thresholds are above so you can disagree with them.",
+                "There is deliberately no combined score. Debt, recapture, ballot history and results measure four unrelated things, and adding them would invent a ranking the data cannot support.",
+                "Debt service sits outside TEA's operating total, so it is composed with it, never subtracted from it.",
+                "Local revenue is gross property collections before recapture is deducted. TEA reports it net, which understates how locally funded a paying district is.",
+                "Ballot amounts are as asked, in the dollars of their year, and are not inflation-adjusted.",
+                "Whether a passed bond changed results is a statewide test, not a district one, and it is fragile \u2014 see the bond section."
+              ]
+            },
+            {
+              "id": "debt_per_student",
+              "key": "debt_per_student",
+              "label": "Debt service per student",
+              "value": 3578,
+              "unit": "USD per student",
+              "period": "2025",
+              "population": "Dallas ISD",
+              "denominator": "fall survey enrollment",
+              "status": "observed",
+              "source": {
+                "label": "Texas Education Agency public artifacts",
+                "url": "https://txisd.dev/transparency",
+                "period": "2025"
+              },
+              "limits": [
+                "Nothing here is a finding of wrongdoing. Every flag is a description of a published number against a published threshold, and the thresholds are above so you can disagree with them.",
+                "There is deliberately no combined score. Debt, recapture, ballot history and results measure four unrelated things, and adding them would invent a ranking the data cannot support.",
+                "Debt service sits outside TEA's operating total, so it is composed with it, never subtracted from it.",
+                "Local revenue is gross property collections before recapture is deducted. TEA reports it net, which understates how locally funded a paying district is.",
+                "Ballot amounts are as asked, in the dollars of their year, and are not inflation-adjusted.",
+                "Whether a passed bond changed results is a statewide test, not a district one, and it is fragile \u2014 see the bond section."
+              ]
+            },
+            {
+              "id": "local_pct",
+              "key": "local_pct",
+              "label": "Local revenue share",
+              "value": 79,
+              "unit": "percent",
+              "period": "2025",
+              "population": "Dallas ISD",
+              "denominator": "gross local + state + federal revenue",
+              "status": "observed",
+              "source": {
+                "label": "Texas Education Agency public artifacts",
+                "url": "https://txisd.dev/transparency",
+                "period": "2025"
+              },
+              "limits": [
+                "Nothing here is a finding of wrongdoing. Every flag is a description of a published number against a published threshold, and the thresholds are above so you can disagree with them.",
+                "There is deliberately no combined score. Debt, recapture, ballot history and results measure four unrelated things, and adding them would invent a ranking the data cannot support.",
+                "Debt service sits outside TEA's operating total, so it is composed with it, never subtracted from it.",
+                "Local revenue is gross property collections before recapture is deducted. TEA reports it net, which understates how locally funded a paying district is.",
+                "Ballot amounts are as asked, in the dollars of their year, and are not inflation-adjusted.",
+                "Whether a passed bond changed results is a statewide test, not a district one, and it is fragile \u2014 see the bond section."
+              ]
+            },
+            {
+              "id": "points_vs_predicted",
+              "key": "points_vs_predicted",
+              "label": "Points vs predicted",
+              "value": 5.5,
+              "unit": "percentage points",
+              "period": "2024",
+              "population": "Dallas ISD",
+              "denominator": "predicted Meets rate from the district need model",
+              "status": "modeled",
+              "source": {
+                "label": "Texas Education Agency public artifacts",
+                "url": "https://txisd.dev/transparency",
+                "period": "2024"
+              },
+              "limits": [
+                "Nothing here is a finding of wrongdoing. Every flag is a description of a published number against a published threshold, and the thresholds are above so you can disagree with them.",
+                "There is deliberately no combined score. Debt, recapture, ballot history and results measure four unrelated things, and adding them would invent a ranking the data cannot support.",
+                "Debt service sits outside TEA's operating total, so it is composed with it, never subtracted from it.",
+                "Local revenue is gross property collections before recapture is deducted. TEA reports it net, which understates how locally funded a paying district is.",
+                "Ballot amounts are as asked, in the dollars of their year, and are not inflation-adjusted.",
+                "Whether a passed bond changed results is a statewide test, not a district one, and it is fragile \u2014 see the bond section."
+              ]
+            }
+          ]
+        },
+        {
+          "district_number": "101912",
+          "district_name": "Houston ISD",
+          "values": [
+            {
+              "id": "operating_per_student",
+              "key": "operating_per_student",
+              "label": "Operating spending per student",
+              "value": 14147,
+              "unit": "USD per student",
+              "period": "2025",
+              "population": "Houston ISD",
+              "denominator": "fall survey enrollment",
+              "status": "observed",
+              "source": {
+                "label": "Texas Education Agency public artifacts",
+                "url": "https://txisd.dev/transparency",
+                "period": "2025"
+              },
+              "limits": [
+                "Nothing here is a finding of wrongdoing. Every flag is a description of a published number against a published threshold, and the thresholds are above so you can disagree with them.",
+                "There is deliberately no combined score. Debt, recapture, ballot history and results measure four unrelated things, and adding them would invent a ranking the data cannot support.",
+                "Debt service sits outside TEA's operating total, so it is composed with it, never subtracted from it.",
+                "Local revenue is gross property collections before recapture is deducted. TEA reports it net, which understates how locally funded a paying district is.",
+                "Ballot amounts are as asked, in the dollars of their year, and are not inflation-adjusted.",
+                "Whether a passed bond changed results is a statewide test, not a district one, and it is fragile \u2014 see the bond section."
+              ]
+            },
+            {
+              "id": "debt_per_student",
+              "key": "debt_per_student",
+              "label": "Debt service per student",
+              "value": 2267,
+              "unit": "USD per student",
+              "period": "2025",
+              "population": "Houston ISD",
+              "denominator": "fall survey enrollment",
+              "status": "observed",
+              "source": {
+                "label": "Texas Education Agency public artifacts",
+                "url": "https://txisd.dev/transparency",
+                "period": "2025"
+              },
+              "limits": [
+                "Nothing here is a finding of wrongdoing. Every flag is a description of a published number against a published threshold, and the thresholds are above so you can disagree with them.",
+                "There is deliberately no combined score. Debt, recapture, ballot history and results measure four unrelated things, and adding them would invent a ranking the data cannot support.",
+                "Debt service sits outside TEA's operating total, so it is composed with it, never subtracted from it.",
+                "Local revenue is gross property collections before recapture is deducted. TEA reports it net, which understates how locally funded a paying district is.",
+                "Ballot amounts are as asked, in the dollars of their year, and are not inflation-adjusted.",
+                "Whether a passed bond changed results is a statewide test, not a district one, and it is fragile \u2014 see the bond section."
+              ]
+            },
+            {
+              "id": "local_pct",
+              "key": "local_pct",
+              "label": "Local revenue share",
+              "value": 77,
+              "unit": "percent",
+              "period": "2025",
+              "population": "Houston ISD",
+              "denominator": "gross local + state + federal revenue",
+              "status": "observed",
+              "source": {
+                "label": "Texas Education Agency public artifacts",
+                "url": "https://txisd.dev/transparency",
+                "period": "2025"
+              },
+              "limits": [
+                "Nothing here is a finding of wrongdoing. Every flag is a description of a published number against a published threshold, and the thresholds are above so you can disagree with them.",
+                "There is deliberately no combined score. Debt, recapture, ballot history and results measure four unrelated things, and adding them would invent a ranking the data cannot support.",
+                "Debt service sits outside TEA's operating total, so it is composed with it, never subtracted from it.",
+                "Local revenue is gross property collections before recapture is deducted. TEA reports it net, which understates how locally funded a paying district is.",
+                "Ballot amounts are as asked, in the dollars of their year, and are not inflation-adjusted.",
+                "Whether a passed bond changed results is a statewide test, not a district one, and it is fragile \u2014 see the bond section."
+              ]
+            },
+            {
+              "id": "points_vs_predicted",
+              "key": "points_vs_predicted",
+              "label": "Points vs predicted",
+              "value": 3.9,
+              "unit": "percentage points",
+              "period": "2024",
+              "population": "Houston ISD",
+              "denominator": "predicted Meets rate from the district need model",
+              "status": "modeled",
+              "source": {
+                "label": "Texas Education Agency public artifacts",
+                "url": "https://txisd.dev/transparency",
+                "period": "2024"
+              },
+              "limits": [
+                "Nothing here is a finding of wrongdoing. Every flag is a description of a published number against a published threshold, and the thresholds are above so you can disagree with them.",
+                "There is deliberately no combined score. Debt, recapture, ballot history and results measure four unrelated things, and adding them would invent a ranking the data cannot support.",
+                "Debt service sits outside TEA's operating total, so it is composed with it, never subtracted from it.",
+                "Local revenue is gross property collections before recapture is deducted. TEA reports it net, which understates how locally funded a paying district is.",
+                "Ballot amounts are as asked, in the dollars of their year, and are not inflation-adjusted.",
+                "Whether a passed bond changed results is a statewide test, not a district one, and it is fragile \u2014 see the bond section."
+              ]
+            }
+          ]
+        }
+      ],
+      "limits": [
+        "Nothing here is a finding of wrongdoing. Every flag is a description of a published number against a published threshold, and the thresholds are above so you can disagree with them.",
+        "There is deliberately no combined score. Debt, recapture, ballot history and results measure four unrelated things, and adding them would invent a ranking the data cannot support.",
+        "Debt service sits outside TEA's operating total, so it is composed with it, never subtracted from it.",
+        "Local revenue is gross property collections before recapture is deducted. TEA reports it net, which understates how locally funded a paying district is.",
+        "Ballot amounts are as asked, in the dollars of their year, and are not inflation-adjusted.",
+        "Whether a passed bond changed results is a statewide test, not a district one, and it is fragile \u2014 see the bond section."
+      ],
+      "websiteUrl": "https://txisd.dev/"
+    },
+    "statewide": {
+      "schemaVersion": 1,
+      "view": "statewide",
+      "districts": [],
+      "metrics": [
+        {
+          "id": "debt_total",
+          "key": "debt_total",
+          "label": "Annual debt service",
+          "value": 13859452749,
+          "unit": "USD per fiscal year",
+          "period": "2025",
+          "population": "Texas public school districts",
+          "denominator": "sum across Texas districts reporting enrollment and debt service",
+          "status": "observed",
+          "source": {
+            "label": "Texas Education Agency public artifacts",
+            "url": "https://txisd.dev/transparency",
+            "period": "2025"
+          },
+          "limits": [
+            "Nothing here is a finding of wrongdoing. Every flag is a description of a published number against a published threshold, and the thresholds are above so you can disagree with them.",
+            "There is deliberately no combined score. Debt, recapture, ballot history and results measure four unrelated things, and adding them would invent a ranking the data cannot support.",
+            "Debt service sits outside TEA's operating total, so it is composed with it, never subtracted from it.",
+            "Local revenue is gross property collections before recapture is deducted. TEA reports it net, which understates how locally funded a paying district is.",
+            "Ballot amounts are as asked, in the dollars of their year, and are not inflation-adjusted.",
+            "Whether a passed bond changed results is a statewide test, not a district one, and it is fragile \u2014 see the bond section.",
+            "A trend describes a direction, not a cause. A falling instruction share can be a district cutting classrooms or a district opening them; this data cannot tell the two apart.",
+            "Operating balance compares operating revenue with operating spending only. Including debt service or capital would count buildings paid for out of bond proceeds as a deficit.",
+            "The shift between functions is real reallocation, not reclassification: the 16 function codes still sum to the reported operating total in every year, risers and fallers cancel to a zero residual, no single function absorbs the decline, and it predates COVID and continues after the federal money left. See meta.reclassification_check.",
+            "Districts under 500 students keep their series but are left out of the rankings: one retirement moves a small district's per-student figure more than a policy would.",
+            "Fiscal 2025 is the newest release and has had the least time to be corrected."
+          ]
+        },
+        {
+          "id": "debt_median",
+          "key": "debt_median",
+          "label": "Median debt service per student",
+          "value": 1538,
+          "unit": "USD per student",
+          "period": "2025",
+          "population": "Texas public school districts",
+          "denominator": "fall survey enrollment",
+          "status": "observed",
+          "source": {
+            "label": "Texas Education Agency public artifacts",
+            "url": "https://txisd.dev/transparency",
+            "period": "2025"
+          },
+          "limits": [
+            "Nothing here is a finding of wrongdoing. Every flag is a description of a published number against a published threshold, and the thresholds are above so you can disagree with them.",
+            "There is deliberately no combined score. Debt, recapture, ballot history and results measure four unrelated things, and adding them would invent a ranking the data cannot support.",
+            "Debt service sits outside TEA's operating total, so it is composed with it, never subtracted from it.",
+            "Local revenue is gross property collections before recapture is deducted. TEA reports it net, which understates how locally funded a paying district is.",
+            "Ballot amounts are as asked, in the dollars of their year, and are not inflation-adjusted.",
+            "Whether a passed bond changed results is a statewide test, not a district one, and it is fragile \u2014 see the bond section.",
+            "A trend describes a direction, not a cause. A falling instruction share can be a district cutting classrooms or a district opening them; this data cannot tell the two apart.",
+            "Operating balance compares operating revenue with operating spending only. Including debt service or capital would count buildings paid for out of bond proceeds as a deficit.",
+            "The shift between functions is real reallocation, not reclassification: the 16 function codes still sum to the reported operating total in every year, risers and fallers cancel to a zero residual, no single function absorbs the decline, and it predates COVID and continues after the federal money left. See meta.reclassification_check.",
+            "Districts under 500 students keep their series but are left out of the rankings: one retirement moves a small district's per-student figure more than a policy would.",
+            "Fiscal 2025 is the newest release and has had the least time to be corrected."
+          ]
+        }
+      ],
+      "limits": [
+        "Nothing here is a finding of wrongdoing. Every flag is a description of a published number against a published threshold, and the thresholds are above so you can disagree with them.",
+        "There is deliberately no combined score. Debt, recapture, ballot history and results measure four unrelated things, and adding them would invent a ranking the data cannot support.",
+        "Debt service sits outside TEA's operating total, so it is composed with it, never subtracted from it.",
+        "Local revenue is gross property collections before recapture is deducted. TEA reports it net, which understates how locally funded a paying district is.",
+        "Ballot amounts are as asked, in the dollars of their year, and are not inflation-adjusted.",
+        "Whether a passed bond changed results is a statewide test, not a district one, and it is fragile \u2014 see the bond section.",
+        "A trend describes a direction, not a cause. A falling instruction share can be a district cutting classrooms or a district opening them; this data cannot tell the two apart.",
+        "Operating balance compares operating revenue with operating spending only. Including debt service or capital would count buildings paid for out of bond proceeds as a deficit.",
+        "The shift between functions is real reallocation, not reclassification: the 16 function codes still sum to the reported operating total in every year, risers and fallers cancel to a zero residual, no single function absorbs the decline, and it predates COVID and continues after the federal money left. See meta.reclassification_check.",
+        "Districts under 500 students keep their series but are left out of the rankings: one retirement moves a small district's per-student figure more than a policy would.",
+        "Fiscal 2025 is the newest release and has had the least time to be corrected."
+      ],
+      "websiteUrl": "https://txisd.dev/"
+    }
   }
 }
