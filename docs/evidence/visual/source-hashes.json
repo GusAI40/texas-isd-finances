@@ -1,0 +1,124 @@
+{
+  "format": "source-hashes-v1",
+  "normalization": "decode UTF-8, convert CRLF and lone CR to LF, encode UTF-8; raw hashes remain the captured/served byte identity",
+  "final_application_sources": [
+    {
+      "path": "static/index.html",
+      "raw_sha256": "ef028ef84bdd3258739a83cbc4fce52483debc840e4a113a2552b9a9745bfb7e",
+      "normalized_utf8_lf_sha256": "f850caaea16a936c0d3d797a55a9ee7f3fc7b7303af1a112d3ba06ebc71b6d82",
+      "bytes": 353795
+    },
+    {
+      "path": "static/design.css",
+      "raw_sha256": "982f1403c7482d4514f858c37adbeca7493506c0edf53568ca0e55b8825cf983",
+      "normalized_utf8_lf_sha256": "4fe9c8f41ca8297005e251acfbb57b04c01836e932fabefd16ca7294368b0fae",
+      "bytes": 30648
+    },
+    {
+      "path": "static/visual-components.js",
+      "raw_sha256": "b9e65880946ed9f84efe0e0135c9270b36577630e0b7ec33b96132dd413d1fe9",
+      "normalized_utf8_lf_sha256": "b9e65880946ed9f84efe0e0135c9270b36577630e0b7ec33b96132dd413d1fe9",
+      "bytes": 4554
+    },
+    {
+      "path": "static/track.js",
+      "raw_sha256": "2b323b3f9f8b606df6f1e65e1ad8681309c1994a2a6fc37d93ac4b9cf3d14489",
+      "normalized_utf8_lf_sha256": "91a52c7847b2b11c70f555ff7c112ebc7e0ed3b4e4107b001ad84744d99e5ddf",
+      "bytes": 6184
+    },
+    {
+      "path": "static/ask.js",
+      "raw_sha256": "ef99cc36d6641f355c171854dc58e61ee5dc9d210744a8b92d178b79a89da0de",
+      "normalized_utf8_lf_sha256": "4764396eb5e0d189935e0c15028654bce0f55627861c5864fd3d64f024a2c41e",
+      "bytes": 47457
+    }
+  ],
+  "historical_baseline_sources": [
+    {
+      "path": "static/index.html",
+      "git_revision": "73df1896ed0818020ec1c15c06f5ee823db7ec0f",
+      "raw_sha256": "7546210a17eb2412dc9c37f3d3b831d97a249d7349a3c811982514d460624544",
+      "normalized_utf8_lf_sha256": "7546210a17eb2412dc9c37f3d3b831d97a249d7349a3c811982514d460624544",
+      "bytes": 329558
+    },
+    {
+      "path": "static/design.css",
+      "git_revision": "73df1896ed0818020ec1c15c06f5ee823db7ec0f",
+      "raw_sha256": "c93250e5a328360ae37d7a0ddb0452ccab744def539c95f589f3f51247f31ba7",
+      "normalized_utf8_lf_sha256": "c93250e5a328360ae37d7a0ddb0452ccab744def539c95f589f3f51247f31ba7",
+      "bytes": 23709
+    },
+    {
+      "path": "static/ask.js",
+      "git_revision": "73df1896ed0818020ec1c15c06f5ee823db7ec0f",
+      "raw_sha256": "4764396eb5e0d189935e0c15028654bce0f55627861c5864fd3d64f024a2c41e",
+      "normalized_utf8_lf_sha256": "4764396eb5e0d189935e0c15028654bce0f55627861c5864fd3d64f024a2c41e",
+      "bytes": 46489
+    },
+    {
+      "path": "static/track.js",
+      "git_revision": "73df1896ed0818020ec1c15c06f5ee823db7ec0f",
+      "raw_sha256": "91a52c7847b2b11c70f555ff7c112ebc7e0ed3b4e4107b001ad84744d99e5ddf",
+      "normalized_utf8_lf_sha256": "91a52c7847b2b11c70f555ff7c112ebc7e0ed3b4e4107b001ad84744d99e5ddf",
+      "bytes": 6007
+    }
+  ],
+  "prototype_sources": [
+    {
+      "path": "design/public-portal-prototype.html",
+      "raw_sha256": "e8b5aa3cc8d64c4e907a634df22565cc63db367d9dacae7c2fc04e4ce9452982",
+      "normalized_utf8_lf_sha256": "e8b5aa3cc8d64c4e907a634df22565cc63db367d9dacae7c2fc04e4ce9452982",
+      "bytes": 2565
+    }
+  ],
+  "fixture_sources": [
+    {
+      "path": "tests/browser/fixtures/public-endpoints.json",
+      "raw_sha256": "006a367bfc91585b08a21c68b840b0838bb05f1d11635f2f3b31bd1c9d5fe8ab",
+      "normalized_utf8_lf_sha256": "13496040b019b62b27441268f744493fe69a4865544d24892a40a0a57a384be1",
+      "bytes": 748155
+    },
+    {
+      "path": "tests/browser/fixtures/public-states.json",
+      "raw_sha256": "a0f8cde3cf637fed09407b24bc17bbe953af0dac1a52164b831bd08c3454a8f8",
+      "normalized_utf8_lf_sha256": "a0f8cde3cf637fed09407b24bc17bbe953af0dac1a52164b831bd08c3454a8f8",
+      "bytes": 1163
+    }
+  ],
+  "fixture_recorders": [
+    {
+      "path": "tests/browser/record-public-fixtures.py",
+      "raw_sha256": "cbe96a9b182b1c46df2d79de82273ff5f07035e8899de26f3ef3b8aad13a447a",
+      "normalized_utf8_lf_sha256": "cbe96a9b182b1c46df2d79de82273ff5f07035e8899de26f3ef3b8aad13a447a",
+      "bytes": 2010
+    }
+  ],
+  "selector_manifests": [
+    {
+      "path": "tests/browser/visual-regions.json",
+      "raw_sha256": "c750b01956f40d0d7a129a564eee4cce26be8b501a882a1ed3ffa11b4b4d1387",
+      "normalized_utf8_lf_sha256": "c750b01956f40d0d7a129a564eee4cce26be8b501a882a1ed3ffa11b4b4d1387",
+      "bytes": 3964
+    },
+    {
+      "path": "tests/browser/visual-regions-prototype.json",
+      "raw_sha256": "51d8a0363a10a323d69cc077507077cd9ae50c1d820646db0238a5baa45f8be3",
+      "normalized_utf8_lf_sha256": "51d8a0363a10a323d69cc077507077cd9ae50c1d820646db0238a5baa45f8be3",
+      "bytes": 751
+    }
+  ],
+  "measurement_code": [
+    {
+      "path": "tests/browser/measurement-core.mjs",
+      "raw_sha256": "0e05a77e26856180548378080cdf13e53b7f83284c07a6011a083cfc5a4e29ab",
+      "normalized_utf8_lf_sha256": "0e05a77e26856180548378080cdf13e53b7f83284c07a6011a083cfc5a4e29ab",
+      "bytes": 12186
+    },
+    {
+      "path": "tests/browser/capture-visuals.mjs",
+      "raw_sha256": "0f73c92b0ad2a25600266f17484e043b90f1da8bff14d745545ed210c41fb272",
+      "normalized_utf8_lf_sha256": "0f73c92b0ad2a25600266f17484e043b90f1da8bff14d745545ed210c41fb272",
+      "bytes": 20436
+    }
+  ]
+}

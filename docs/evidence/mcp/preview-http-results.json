@@ -1,14 +1,14 @@
 {
-  "checked_at": "2026-10-07T23:57:37.990825+00:00",
-  "deployment_revision": "1526236dc6153354257f5c41a54385c81ace25de",
-  "endpoint": "https://texas-isd-finances-4637p9ee8-tag-ai-projects.vercel.app/mcp",
+  "checked_at": "2026-10-08T00:37:24.858477+00:00",
+  "deployment_revision": "76cacacfd41bc3cf855feaafd3ce7761a964c108",
+  "endpoint": "https://texas-isd-finances-ddw0ovyus-tag-ai-projects.vercel.app/mcp",
   "client": "Vercel CLI 60.1.3 authenticated HTTP probe; not an actual ChatGPT frame",
   "health": {
     "status": "healthy",
     "database": "connected",
     "llm": "openai:gpt-4o-mini via api.openai.com (NO KEY SET)",
     "tracking_schema": "ready",
-    "revision": "1526236dc6153354257f5c41a54385c81ace25de"
+    "revision": "76cacacfd41bc3cf855feaafd3ce7761a964c108"
   },
   "discovery": {
     "tools": {

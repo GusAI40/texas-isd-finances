@@ -1,0 +1,44 @@
+{
+  "format": "gzip-compressed canonical JSON",
+  "canonical_path": "docs/evidence/visual/measurements.json.gz",
+  "uncompressed_bytes": 135215313,
+  "uncompressed_sha256": "52684675da1749ed8e0217e6393752c6e2cbe74cd4a335f500cd17bc2fb641aa",
+  "gzip_bytes": 8197250,
+  "gzip_sha256": "01ca375c043afe019188bf684ba4520931b1093cdbed55736b0aae15c5fcd11d",
+  "case_counts": {
+    "baseline": 72,
+    "final": 72,
+    "prototype": 12
+  },
+  "source_hash_manifest": {
+    "path": "docs/evidence/visual/source-hashes.json",
+    "sha256": "15ce4b395d66058207ea820ff84cf43d9be6e9faf7c832ecb7b61097b28e2af4"
+  },
+  "final_byte_equivalent_checkpoint": "76cacacfd41bc3cf855feaafd3ce7761a964c108",
+  "review_transition": {
+    "reviewed_at": "2026-10-08T00:47:04.235Z",
+    "review_type": "independent-agent-semantic-review",
+    "reviewer_identity": "luna_populated_final_verification (gpt-5.6-luna)",
+    "review_document": "docs/evidence/visual/final-portal-independent-verification.md",
+    "review_document_sha256": "d1b480830b7674a63543a9865aa49d84870f5395ccdbcc79bf33c9f6c4c2ea59",
+    "pre_review_measurements_gzip_sha256": "cc5cf5452507a436622ac5d4f7db5a412644999277fdd18b724250e7775ed3d1",
+    "pre_review_measurements_uncompressed_sha256": "fca6600d7047653f936af09cbe9dc0367612b5ae9428174980d9d17a954fef57",
+    "pre_review_ratio_sha256": "4c6d2028f0802f512348faee47d8e1b419b57568b5a8340eec70dd927d7ecb46",
+    "non_review_content_sha256_before": "3d3fd9d02d795ddec138f798e84e2251bb75eed07ab14ef10ac1e9429a5c7638",
+    "non_review_content_sha256_after": "3d3fd9d02d795ddec138f798e84e2251bb75eed07ab14ef10ac1e9429a5c7638",
+    "image_manifest_before": {
+      "count": 288,
+      "sha256": "245d3642c27adb381765470db78dab862bf3b5b5fb4d0d89666007e7e02eee96",
+      "total_bytes": 176983793
+    },
+    "image_manifest_after": {
+      "count": 288,
+      "sha256": "245d3642c27adb381765470db78dab862bf3b5b5fb4d0d89666007e7e02eee96",
+      "total_bytes": 176983793
+    },
+    "reviewed_final_cases": 72,
+    "human_participant_review": "unverified",
+    "assistive_technology_review": "unverified",
+    "review_document_normalized_utf8_lf_sha256": "d1b480830b7674a63543a9865aa49d84870f5395ccdbcc79bf33c9f6c4c2ea59"
+  }
+}

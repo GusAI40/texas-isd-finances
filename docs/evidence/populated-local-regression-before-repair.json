@@ -1,0 +1,51 @@
+{
+  "recorded_at": "2026-10-08T00:19:23.493753+00:00",
+  "kind": "preserved-populated-composition-regression-before-bounded-repair",
+  "application": {
+    "path": "static/index.html",
+    "sha256": "0dbed6b4ed0f71f3080825b34b80ecef0f775829cbfcbd3e2bb0df9152c92239"
+  },
+  "runs": [
+    {
+      "mode": "default",
+      "counts": {
+        "tests": 1287,
+        "failures": 1,
+        "errors": 0,
+        "skipped": 60,
+        "passed": 1226
+      },
+      "timestamp": "2026-10-07T19:15:26.974275-05:00",
+      "seconds": 103.459,
+      "failed": [
+        {
+          "class": "tests.test_framing",
+          "name": "test_the_spend_spike_flag_mentions_construction",
+          "message": "AssertionError: an all-funds spike flag must say it is usually a bond construction year, or every growing district reads as a scandal\nassert 'construction' in \"spend_spike_flag: ['All-funds spending jumped more than 20% with flat enrollment', 'All-funds outlay', f => [fmtMoney(f.prev_spend), fmtMoney(f.total_spend)\"\n +  where \"spend_spike_flag: ['All-funds spending jumped more than 20% with flat enrollment', 'All-funds outlay', f => [fmtMoney(f.prev_spend), fmtMoney(f.total_spend)\" = <built-in method group of re.Match object at 0x000002579E7BAD40>(0)\n +    where <built-in method group of re.Match object at 0x000002579E7BAD40> = <re.Match object; span=(231547, 231703), match=\"spend_spike_flag: ['All-funds spending jumped mor>.group"
+        }
+      ]
+    },
+    {
+      "mode": "utf8",
+      "counts": {
+        "tests": 1287,
+        "failures": 1,
+        "errors": 0,
+        "skipped": 60,
+        "passed": 1226
+      },
+      "timestamp": "2026-10-07T19:15:27.187479-05:00",
+      "seconds": 103.248,
+      "failed": [
+        {
+          "class": "tests.test_framing",
+          "name": "test_the_spend_spike_flag_mentions_construction",
+          "message": "AssertionError: an all-funds spike flag must say it is usually a bond construction year, or every growing district reads as a scandal\nassert 'construction' in \"spend_spike_flag: ['All-funds spending jumped more than 20% with flat enrollment', 'All-funds outlay', f => [fmtMoney(f.prev_spend), fmtMoney(f.total_spend)\"\n +  where \"spend_spike_flag: ['All-funds spending jumped more than 20% with flat enrollment', 'All-funds outlay', f => [fmtMoney(f.prev_spend), fmtMoney(f.total_spend)\" = <built-in method group of re.Match object at 0x000001B1030F6AC0>(0)\n +    where <built-in method group of re.Match object at 0x000001B1030F6AC0> = <re.Match object; span=(231547, 231703), match=\"spend_spike_flag: ['All-funds spending jumped mor>.group"
+        }
+      ]
+    }
+  ],
+  "finding": "Existing guard requires construction in the spend-spike FLAG_META entry; preserve the all-funds qualifier without assigning a district-specific cause.",
+  "counted_attempts": 1,
+  "final_status": "not acceptance evidence; see subsequent final-local-checks and independent review"
+}

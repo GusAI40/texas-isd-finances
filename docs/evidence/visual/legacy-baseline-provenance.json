@@ -1,0 +1,9 @@
+{
+  "status": "OBSERVED_FAIL",
+  "role": "preserved legacy wrapper-era observation; it is not semantic-painted-marks-v2 evidence",
+  "archive": "docs/evidence/visual/legacy-baseline-wrapper.json.gz",
+  "uncompressed_bytes": 2209682,
+  "uncompressed_sha256": "4e809da38e1708f77dee35bb982881f6887d04d5a32749c8c667f44ea778fa3b",
+  "gzip_sha256": "194a68814d29a6762bd83501166347375a0bddf08d41b8d4b7e4b5ae160adfce",
+  "note": "The old approximately 73% result used an earlier wrapper-based rubric. It is retained as history and is never compared as if it used semantic-painted-marks-v2."
+}

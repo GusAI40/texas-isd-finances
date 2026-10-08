@@ -1,0 +1,70 @@
+{
+  "format": "visual-review-publication-receipt-v1",
+  "recorded_at": "2026-10-08T00:47:04.235Z",
+  "review": {
+    "type": "independent-agent-semantic-review",
+    "identity": "luna_populated_final_verification (gpt-5.6-luna)",
+    "document": "docs/evidence/visual/final-portal-independent-verification.md",
+    "document_raw_sha256": "d1b480830b7674a63543a9865aa49d84870f5395ccdbcc79bf33c9f6c4c2ea59",
+    "document_normalized_utf8_lf_sha256": "d1b480830b7674a63543a9865aa49d84870f5395ccdbcc79bf33c9f6c4c2ea59",
+    "human_participant_review": "unverified",
+    "assistive_technology_review": "unverified"
+  },
+  "pre_review": {
+    "freeze_path": "docs/evidence/visual/final-freeze.json",
+    "freeze_sha256": "b83130dc52282975c4aaf42019d130c0c94b81838a04f3223b481a448f88a06e",
+    "measurements_path": "docs/evidence/visual/measurements-before-review.json.gz",
+    "measurements_gzip_sha256": "cc5cf5452507a436622ac5d4f7db5a412644999277fdd18b724250e7775ed3d1",
+    "measurements_uncompressed_sha256": "fca6600d7047653f936af09cbe9dc0367612b5ae9428174980d9d17a954fef57",
+    "provenance_path": "docs/evidence/visual/measurements-provenance-before-review.json",
+    "provenance_sha256": "8fff60243c11de61f630cb75f1a675e73f25ec44a6aa738142af3391f1535a92",
+    "ratio_path": "docs/evidence/visual/visual-ratio-before-review.json",
+    "ratio_sha256": "4c6d2028f0802f512348faee47d8e1b419b57568b5a8340eec70dd927d7ecb46",
+    "status": "FAIL"
+  },
+  "post_review": {
+    "measurements_path": "docs/evidence/visual/measurements.json.gz",
+    "measurements_gzip_sha256": "01ca375c043afe019188bf684ba4520931b1093cdbed55736b0aae15c5fcd11d",
+    "measurements_uncompressed_sha256": "52684675da1749ed8e0217e6393752c6e2cbe74cd4a335f500cd17bc2fb641aa",
+    "provenance_path": "docs/evidence/visual/measurements-provenance.json",
+    "provenance_sha256": "830a5fef3f13a0c657d13bf6c9209c58d092bdfb32044d9ffdd3cd683b5727b5",
+    "ratio_path": "docs/evidence/visual/visual-ratio.json",
+    "ratio_sha256": "96650a7d1ab8764403d4bc38b60d4b4e92ea6decebc2f017c80af86c73c62b0e",
+    "status": "PASS",
+    "final_phase_status": "PASS",
+    "reviewed_final_cases": 72
+  },
+  "invariants": {
+    "non_review_content_sha256_before": "3d3fd9d02d795ddec138f798e84e2251bb75eed07ab14ef10ac1e9429a5c7638",
+    "non_review_content_sha256_after": "3d3fd9d02d795ddec138f798e84e2251bb75eed07ab14ef10ac1e9429a5c7638",
+    "non_review_content_unchanged": true,
+    "geometry_digest_before": "075ae85c83ca2e2bcac98971b94f0ba26b816d36f77dc58983fa09b882d22516",
+    "geometry_digest_after": "075ae85c83ca2e2bcac98971b94f0ba26b816d36f77dc58983fa09b882d22516",
+    "geometry_unchanged": true,
+    "image_manifest_before": {
+      "count": 288,
+      "sha256": "245d3642c27adb381765470db78dab862bf3b5b5fb4d0d89666007e7e02eee96",
+      "total_bytes": 176983793
+    },
+    "image_manifest_after": {
+      "count": 288,
+      "sha256": "245d3642c27adb381765470db78dab862bf3b5b5fb4d0d89666007e7e02eee96",
+      "total_bytes": 176983793
+    },
+    "images_unchanged": true,
+    "source_hash_manifest_path": "docs/evidence/visual/source-hashes.json",
+    "source_hash_manifest_sha256": "15ce4b395d66058207ea820ff84cf43d9be6e9faf7c832ecb7b61097b28e2af4",
+    "source_fixture_inventory_refs_unchanged": true,
+    "only_measurement_changes": "final-cell review metadata fields",
+    "only_ratio_changes": "review-derived status, errors, warnings, and reviewed fields"
+  },
+  "geometry": {
+    "final_cell_count": 72,
+    "full_visual_share_min": 0.9582794404438632,
+    "full_visual_share_max": 1.0,
+    "initial_visual_share_min": 0.9829177946363667,
+    "initial_visual_share_max": 1.0,
+    "missing_final_cells": [],
+    "final_gate_errors": []
+  }
+}

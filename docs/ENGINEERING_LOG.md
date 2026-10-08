@@ -17,6 +17,20 @@ Entry template:
 
 ---
 
+## 2026-10-07 — Public reports satisfy independently measured 95/5; package ready
+
+**What changed.** Completed the public report composition, financial scope/period labels, maps, focus/dialog handling, honest exports/print/offline behavior, public MCP resource, schema/metadata checks and portable plugin archive. All 72 final report cells pass initial/full 95/5 with independent agent inspection: 95.83% minimum full-report visual share; 98.29% minimum initial visual share. The 36 widget cells and 56 bridge checks pass. All 37 public recorded GETs and populated insights/turnarounds are retained; source hashes and compressed evidence identify the captured implementation. Root documentation inventories, dictionary and index are complete. Full Windows suite passed 1,227/60 skipped in each encoding mode; isolated finance verification passed 29 integration plus four runner checks. Actual preview tools/resources and source/health/figure checks passed at their recorded revision.
+
+**Why.** The user required meaningful visuals for parents and taxpayers, with readable years, units and limits. Explanatory details remain accessible beside actual numeric comparisons. All-funds and operating figures are visibly separate, and modeled associations are not causal savings or personal forecasts.
+
+**Gotchas.** An incomplete browser fixture omitted actual optional GETs and falsely reduced prose. Restoring all 37 responses exposed 24 full and four initial ratio failures. The invalid apparent pass and a prematurely read semantic verdict were withdrawn; the bounded populated-report refinement repaired real composition without reclassifying narrative, shrinking fonts or dropping records. Capture generations must be fully compressed/validated and hash-frozen before independent review. Windows raw source bytes can differ from Git LF blobs, so normalized hashes are recorded separately. Protected preview checks use authenticated CLI responses, not SSO HTML. The package upload requires browser local-file permission; it was attempted but did not complete.
+
+**Transfer note.** GitHub timed out on the single large screenshot push (HTTP408). The unpushed snapshot was retained locally, and the identical image tree was published in twelve bounded commits with an exact remote-revision check after each. All770 image files are preserved; the final image checkpoint tree equals the original saved tree. Windows rejected a770-path comparison command (WinError206), so whole-tree Git identities verified equality without the oversized argument list. See docs/evidence/visual/github-evidence-transfer.json.
+
+**Open items.** Production remains at `73df1896ed0818020ec1c15c06f5ee823db7ec0f`; explicit merge/release and guarded finance SQL authority remain separate. Development registration is not public availability. Local-file permission, complete host installation/new frames, independent-account/public-directory review, disabled Linux CI, raw rebuild inputs, native zoom/screen reader, participant study and post-release observation remain UNVERIFIED. No production SQL, paid query, outreach or private-data publication occurred. Use docs/RELEASE_EVIDENCE.md and the finance runbook for target verification/recovery.
+
+---
+
 ## 2026-10-07 — Independent finance recovery gates pass; visual scoring remains strict
 
 **What changed.** Saved the focused finance implementation after fresh independent verification: 29 PostgreSQL 17.11 integration checks and four runner checks passed with owned-cluster cleanup. The v2 anomaly transition records a reviewed preimage and committed receipt; recovery verifies the current replacement identity before restoring prior semantics. API projection coverage, effective read-only grants, dependency rejection, arithmetic thresholds, fault rollback, contention and reapplication were exercised. Actual artifact checks in both Windows encoding modes correctly report seven unavailable chains as UNVERIFIED. No production SQL or source ingestion occurred.

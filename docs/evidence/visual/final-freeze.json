@@ -1,0 +1,48 @@
+{
+  "format": "visual-final-freeze-v1",
+  "capture_timestamp": "2026-10-08T00:37:00.542Z",
+  "fixture_capture_timestamp": "2026-10-07T23:42:55.403985+00:00",
+  "fixture_route_count": 37,
+  "byte_equivalent_checkpoint": "76cacacfd41bc3cf855feaafd3ce7761a964c108",
+  "rubric_version": "semantic-painted-marks-v2",
+  "hashes": {
+    "index_raw_sha256": "ef028ef84bdd3258739a83cbc4fce52483debc840e4a113a2552b9a9745bfb7e",
+    "index_normalized_utf8_lf_sha256": "f850caaea16a936c0d3d797a55a9ee7f3fc7b7303af1a112d3ba06ebc71b6d82",
+    "fixture_raw_sha256": "006a367bfc91585b08a21c68b840b0838bb05f1d11635f2f3b31bd1c9d5fe8ab",
+    "fixture_normalized_utf8_lf_sha256": "13496040b019b62b27441268f744493fe69a4865544d24892a40a0a57a384be1",
+    "visual_manifest_raw_sha256": "c750b01956f40d0d7a129a564eee4cce26be8b501a882a1ed3ffa11b4b4d1387",
+    "classifier_raw_sha256": "0e05a77e26856180548378080cdf13e53b7f83284c07a6011a083cfc5a4e29ab",
+    "collector_raw_sha256": "0f73c92b0ad2a25600266f17484e043b90f1da8bff14d745545ed210c41fb272",
+    "source_hash_manifest_sha256": "15ce4b395d66058207ea820ff84cf43d9be6e9faf7c832ecb7b61097b28e2af4",
+    "measurements_uncompressed_sha256": "fca6600d7047653f936af09cbe9dc0367612b5ae9428174980d9d17a954fef57",
+    "measurements_gzip_sha256": "cc5cf5452507a436622ac5d4f7db5a412644999277fdd18b724250e7775ed3d1",
+    "visual_ratio_sha256": "4c6d2028f0802f512348faee47d8e1b419b57568b5a8340eec70dd927d7ecb46",
+    "failed_final_package_sha256": "05bf0fa15ff2a3162a3041c2fbc55c914142ae40b36c534c5f881d568f344c2f"
+  },
+  "case_counts": {
+    "baseline": 72,
+    "final": 72,
+    "prototype": 12
+  },
+  "final_geometry": {
+    "cell_count": 72,
+    "full_visual_share_min": 0.9582794404438632,
+    "full_visual_share_max": 1.0,
+    "initial_visual_share_min": 0.9829177946363667,
+    "initial_visual_share_max": 1.0,
+    "non_review_error_count": 0,
+    "reviewed_true_count": 0,
+    "png_reference_count": 288,
+    "missing_reference_count": 0,
+    "page_error_cases": 0,
+    "renderer_warning_cases": 0,
+    "manifest_error_cases": 0,
+    "unclassified_cases": 0,
+    "blocked_external_request_cases": 0,
+    "comparison_selected_cases": 12,
+    "unavailable_artifact_graphics_values": [
+      11
+    ]
+  },
+  "review_status": "pending fresh independent semantic inspection; no capture flag was auto-approved"
+}

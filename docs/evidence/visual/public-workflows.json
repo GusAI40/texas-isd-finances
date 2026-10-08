@@ -1,0 +1,321 @@
+{
+  "captured_at": "2026-10-08T00:37:32.652454+00:00",
+  "revision": "76cacacfd41bc3cf855feaafd3ce7761a964c108",
+  "working_tree": "Application and workflow files frozen at the hashes below; uncommitted evidence and documentation remain in progress.",
+  "runner": {
+    "playwright": "1.56.1",
+    "command": "npx.cmd playwright test public-regression.spec.js --reporter=line",
+    "working_directory": "tests/browser",
+    "result": "PASS",
+    "tests_passed": 34,
+    "tests_failed": 0,
+    "duration_reported": "3.2m",
+    "browsers": [
+      {
+        "name": "chromium",
+        "version": "141.0.7390.37"
+      },
+      {
+        "name": "firefox",
+        "version": "142.0.1"
+      }
+    ],
+    "reviewer_type": "root execution; separate fresh independent review recorded in final-portal-independent-verification.md"
+  },
+  "matrix": {
+    "result": "PASS",
+    "target_cells": 12,
+    "passed_cells": 12,
+    "reduced_motion": "reduce",
+    "cells": [
+      {
+        "browser": "chromium",
+        "viewport": "1440x900",
+        "theme": "light",
+        "result": "PASS"
+      },
+      {
+        "browser": "chromium",
+        "viewport": "1440x900",
+        "theme": "dark",
+        "result": "PASS"
+      },
+      {
+        "browser": "chromium",
+        "viewport": "768x1024",
+        "theme": "light",
+        "result": "PASS"
+      },
+      {
+        "browser": "chromium",
+        "viewport": "768x1024",
+        "theme": "dark",
+        "result": "PASS"
+      },
+      {
+        "browser": "chromium",
+        "viewport": "390x844",
+        "theme": "light",
+        "result": "PASS"
+      },
+      {
+        "browser": "chromium",
+        "viewport": "390x844",
+        "theme": "dark",
+        "result": "PASS"
+      },
+      {
+        "browser": "firefox",
+        "viewport": "1440x900",
+        "theme": "light",
+        "result": "PASS"
+      },
+      {
+        "browser": "firefox",
+        "viewport": "1440x900",
+        "theme": "dark",
+        "result": "PASS"
+      },
+      {
+        "browser": "firefox",
+        "viewport": "768x1024",
+        "theme": "light",
+        "result": "PASS"
+      },
+      {
+        "browser": "firefox",
+        "viewport": "768x1024",
+        "theme": "dark",
+        "result": "PASS"
+      },
+      {
+        "browser": "firefox",
+        "viewport": "390x844",
+        "theme": "light",
+        "result": "PASS"
+      },
+      {
+        "browser": "firefox",
+        "viewport": "390x844",
+        "theme": "dark",
+        "result": "PASS"
+      }
+    ]
+  },
+  "test_breakdown": {
+    "complete_public_workflow": 12,
+    "map_parity": 4,
+    "dialog_lifecycle": 4,
+    "finance_frames": 4,
+    "normal_health_state": 2,
+    "offline_503_state": 2,
+    "automated_accessibility_reflow": 2,
+    "public_route_inventory": 2,
+    "populated_report_composition": 2
+  },
+  "fixture": {
+    "file": "tests/browser/fixtures/public-endpoints.json",
+    "origin": "https://txisd.dev",
+    "captured_at": "2026-10-07T23:42:55.403985+00:00",
+    "recorded_public_get_responses": 37,
+    "sha256_entries": 37,
+    "payload_entries": 37,
+    "sha256_semantics": "raw HTTPS response bytes before JSON parsing and pretty serialization",
+    "normal_state_districts": [
+      {
+        "district_number": "057905",
+        "name": "Dallas ISD",
+        "source": "recorded route set"
+      },
+      {
+        "district_number": "101912",
+        "name": "Houston ISD",
+        "source": "recorded route set"
+      },
+      {
+        "district_number": "091907",
+        "name": "Tioga ISD",
+        "source": "recorded route set"
+      },
+      {
+        "district_number": "003801",
+        "name": "Pineywoods Community Academy",
+        "source": "recorded route set"
+      },
+      {
+        "district_number": "061910",
+        "name": "Argyle ISD",
+        "source": "read-only public evidence plus bounded supplemental responses"
+      }
+    ],
+    "supplemental_argyle_provenance": {
+      "summary_evidence_file": "docs/evidence/mcp/framing-argyle-public.json",
+      "summary_evidence_sha256": "B6C0C9ACFDDFF1898B73FC2E2B6A63245868B1FA42DE000FE840C0DD0413F1F9",
+      "peers_response_sha256": "0515e88e227707c27966607b99785902beb1ce91e1905a6fd9f9bd99cf8fb516",
+      "dollar_response_sha256": "66769cfa53a3a3ac88fa422b13325911e276873facb9460bc4f2414252b387c3",
+      "turnarounds_response_sha256": "20705c14fd09b0ef4e55f1ec7f8977d637dee9a1f9e489b8fe05e7edcb9a4313",
+      "insights_response_sha256": "10c7321ed9fc14bc494b7f0e103adf49732abbef7cf26b040c5c366400f867d5",
+      "synthetic_unused_section_responses": [
+        "/district/061910/breakdown",
+        "/district/061910/spending-detail",
+        "/anomalies?district_number=061910"
+      ],
+      "synthetic_unused_section_scope": "empty-array stubs used only to keep unrelated optional sections deterministic; FRAME-03/05 asserts the default finance hero, rank, caption, period, and qualifiers and makes no claim about Argyle anomaly or history cleanliness"
+    }
+  },
+  "criteria": {
+    "C-FLOW-01": {
+      "status": "PASS",
+      "executions": 14,
+      "evidence": [
+        "All 12 browser, viewport, and theme cells completed the same public workflow with reduced motion enabled.",
+        "The finder returned both actual Wylie registry identifiers 043914 and 221912 before Dallas 057905 selection.",
+        "A six-digit deep URL selected Dallas over stored Houston state, and cross-page map handoffs retained the selected district.",
+        "Taxpayer / Grandparent, Reporter, and Parent lenses; Houston comparison and removal; and section navigation all completed.",
+        "Finance FY 2025, outcomes SY 2024, equity SY 2025, economics FY 2025, and national FY 2024 remained distinct and visible.",
+        "The $500,000 tax-model input, economic source disclosure, semantic tables, citation copy or selected-text fallback, and actual citation text were asserted.",
+        "CSV content was parsed and contained more than 10 rows plus the expected Dallas FY 2025 value.",
+        "PNG bytes were decoded, with width at least 600, height at least 200, more than 4 colors, and more than 1,000 non-background pixels.",
+        "Print media retained district identity, finance value, TEA source, more than four visible charts, and no chart clipping; the print action invoked window.print.",
+        "A bounded route inventory rendered /feed, /forensics, /geomap, /heatmap, /about, /sources, /map, /intel, /transparency, and /docs in both engines. The root route was exercised by the 12 core flows."
+      ]
+    },
+    "C-OFFLINE-01": {
+      "status": "PASS",
+      "executions": 4,
+      "evidence": [
+        "Dallas, Houston, Tioga, Pineywoods Community Academy, and Argyle each rendered populated finance content with the degraded banner and live-finance unavailable message hidden in Chromium and Firefox.",
+        "The forced 503 fixture displayed the actual-finance unavailable warning, hid live finance KPIs, and retained outcomes, economics, equity, bonds, the economic levers chart, equity bars, bond timeline, district geomap, and built-in heatmap in both engines.",
+        "Expected offline 503 responses were confined to the unavailable fixture; normal runs had zero unexpected same-origin 5xx responses."
+      ]
+    },
+    "MAP-C4-01": {
+      "status": "PASS",
+      "executions": 4,
+      "evidence": "Desktop and mobile runs in both engines switched turnover, spending, poverty, prediction, and turnover again while the active button, caption, note, focus, selected Dallas pin, URL, disclosure, and map extent stayed synchronized."
+    },
+    "MAP-C4-02": {
+      "status": "PASS",
+      "executions": 4,
+      "evidence": "The accessibility table retained all 1,016 mapped districts, six cells per row, one district link per row, active-metric descending order, deterministic finite rows before missing rows, Dallas values, and Kenedy's real 0% turnover."
+    },
+    "MAP-C4-03": {
+      "status": "PASS",
+      "executions": 4,
+      "evidence": "A test-only Houston turnover null patch proved missing values render as Not published and sort last instead of becoming zero; the patch is labeled synthetic-edge-case in the fixture."
+    },
+    "DIALOG-C4-01/02/03/04": {
+      "status": "PASS",
+      "executions": 4,
+      "evidence": "Named modal semantics, initial focus, Tab and Shift+Tab containment, Enter, Escape, overlay close, exact invoker focus return, direct-link return, comparison result focus return after render, tour cleanup, and removed-invoker fallback passed at desktop and mobile in both engines."
+    },
+    "FRAME-03/05": {
+      "status": "PASS",
+      "executions": 4,
+      "evidence": [
+        "Dallas default frame showed FY 2025, $23,746 all funds per student, $14,210 operations per student, statewide percentile 70, and explicit construction/debt qualifiers.",
+        "Argyle default frame showed FY 2025, $31,704 all funds per student, $10,357 operations per student, statewide percentile 85, and the same explicit qualifiers.",
+        "Both frames passed at 1440x900 and 390x844 in Chromium and Firefox."
+      ]
+    },
+    "C-A11Y-01": {
+      "status": "PARTIAL",
+      "automated_browser_status": "PASS",
+      "executions": 2,
+      "evidence": [
+        "Keyboard-only finder, lens, section navigation, comparison, disclosure, table, and disclaimer tasks passed in Chromium and Firefox.",
+        "At a 640 CSS-pixel viewport, doubling the document root font size to 200% produced no horizontal page overflow in either engine.",
+        "At a 320 CSS-pixel viewport, the populated report produced no horizontal page overflow and retained visible finder and one pressed lens in either engine.",
+        "Reduced-motion mode was active during the browser checks.",
+        "scripts/contrast_check.py passed all 40 reviewed light and dark token pairs. There is no tests/test_visual_contrast.py file and no result is claimed for it."
+      ],
+      "unverified": [
+        "Manual screen-reader task execution",
+        "Native browser zoom at 200%; the automated check used CSS root text resize",
+        "The planned 10-participant usability study",
+        "External assistive-technology interoperability and blanket WCAG compliance"
+      ]
+    },
+    "POP-COMP-01": {
+      "status": "PASS",
+      "executions": 2,
+      "evidence": [
+        "Actual category shares, totals, student denominator and peer comparisons remain visible; original category explanation is keyboard accessible.",
+        "A true-zero category and unavailable peer values remain distinct in the direct renderer branch; actual legend hover and pin were tested separately.",
+        "Argyle actual peer insight and historical turnaround retain numeric values, fiscal periods and keyboard-accessible full interpretation.",
+        "Default turnaround context remains visible with closed disclosures: historical-only, 12 structural peers, fiscal periods and noncausal/nonpredictive limitation.",
+        "Tioga retains every actual returned item: nine turnarounds and one insight.",
+        "Dallas automatic flags remain review prompts with spending/enrollment context; no invented small-district causal explanation is displayed."
+      ]
+    }
+  },
+  "request_isolation": {
+    "result": "PASS",
+    "normal_unexpected_same_origin_5xx": 0,
+    "uncaught_page_errors": 0,
+    "renderer_failures": 0,
+    "failed_owned_assets": 0,
+    "blocked_request_attempts": 0,
+    "guarded_categories": [
+      "cross-origin requests",
+      "non-GET mutations",
+      "/query paid/private endpoint",
+      "/feedback",
+      "/track",
+      "/telemetry"
+    ],
+    "interpretation": "The fixture would abort or return 503 for guarded traffic and record the attempt; all final passive workflows recorded zero such attempts."
+  },
+  "contrast": {
+    "command": ".\\.venv\\Scripts\\python.exe scripts\\contrast_check.py",
+    "result": "PASS",
+    "reviewed_pairs": 40,
+    "light_pairs": 20,
+    "dark_pairs": 20
+  },
+  "tested_file_sha256": {
+    "tests/browser/public-regression.spec.js": "a301123f0180d2f569e0679c3edcf870fa9451876288e93e0f97264fd3b61a8b",
+    "tests/browser/public-fixtures.js": "673abfdf20641f0f45728024797fdada886d1a4079c9b4fd9a3636015be01487",
+    "tests/browser/fixtures/public-endpoints.json": "006a367bfc91585b08a21c68b840b0838bb05f1d11635f2f3b31bd1c9d5fe8ab",
+    "static/index.html": "ef028ef84bdd3258739a83cbc4fce52483debc840e4a113a2552b9a9745bfb7e",
+    "static/design.css": "982f1403c7482d4514f858c37adbeca7493506c0edf53568ca0e55b8825cf983",
+    "static/geomap.html": "ba051e1a6e8de85218d5fd60a27b39626e69a102f348b6df9960322d7baa4046",
+    "docs/evidence/mcp/framing-argyle-public.json": "b6c0c9acfddff1898b73fc2e2b6a63245868b1fa42de000fe840c0dd0413f1f9"
+  },
+  "scope_limit": "This evidence covers the explicitly listed public workflows and ten-route render inventory. It does not claim that every application route was browser-rendered, and it does not include the separate 72-cell visual capture.",
+  "historical_runs": [
+    {
+      "captured_at": "2026-10-07T23:47:47.6550401Z",
+      "revision": "de49c2f6c21baf4e818c8be284deec8512e0a692",
+      "runner": {
+        "playwright": "1.56.1",
+        "command": "npx.cmd playwright test public-regression.spec.js --reporter=line",
+        "working_directory": "tests/browser",
+        "result": "PASS",
+        "tests_passed": 32,
+        "tests_failed": 0,
+        "duration_reported": "2.2m",
+        "browsers": [
+          {
+            "name": "chromium",
+            "version": "141.0.7390.37"
+          },
+          {
+            "name": "firefox",
+            "version": "142.0.1"
+          }
+        ]
+      },
+      "tested_file_sha256": {
+        "tests/browser/public-regression.spec.js": "a301123f0180d2f569e0679c3edcf870fa9451876288e93e0f97264fd3b61a8b",
+        "tests/browser/public-fixtures.js": "673abfdf20641f0f45728024797fdada886d1a4079c9b4fd9a3636015be01487",
+        "tests/browser/fixtures/public-endpoints.json": "006a367bfc91585b08a21c68b840b0838bb05f1d11635f2f3b31bd1c9d5fe8ab",
+        "static/index.html": "ef028ef84bdd3258739a83cbc4fce52483debc840e4a113a2552b9a9745bfb7e",
+        "static/design.css": "982f1403c7482d4514f858c37adbeca7493506c0edf53568ca0e55b8825cf983",
+        "static/geomap.html": "ba051e1a6e8de85218d5fd60a27b39626e69a102f348b6df9960322d7baa4046",
+        "docs/evidence/mcp/framing-argyle-public.json": "b6c0c9acfddff1898b73fc2e2b6a63245868b1fa42de000fe840c0dd0413f1f9"
+      },
+      "note": "Earlier stable-source 32-test run; preserved independently from the final populated-report run."
+    }
+  ]
+}

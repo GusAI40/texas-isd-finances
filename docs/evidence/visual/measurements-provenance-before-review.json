@@ -1,0 +1,18 @@
+{
+  "format": "gzip-compressed canonical JSON",
+  "canonical_path": "docs/evidence/visual/measurements.json.gz",
+  "uncompressed_bytes": 135181761,
+  "uncompressed_sha256": "fca6600d7047653f936af09cbe9dc0367612b5ae9428174980d9d17a954fef57",
+  "gzip_bytes": 8186489,
+  "gzip_sha256": "cc5cf5452507a436622ac5d4f7db5a412644999277fdd18b724250e7775ed3d1",
+  "case_counts": {
+    "baseline": 72,
+    "final": 72,
+    "prototype": 12
+  },
+  "source_hash_manifest": {
+    "path": "docs/evidence/visual/source-hashes.json",
+    "sha256": "15ce4b395d66058207ea820ff84cf43d9be6e9faf7c832ecb7b61097b28e2af4"
+  },
+  "final_byte_equivalent_checkpoint": "76cacacfd41bc3cf855feaafd3ce7761a964c108"
+}
