@@ -528,18 +528,31 @@ function showPanel(id) {
 }
 /* The canvas is unreachable by keyboard or screen reader, and always will be.
    Rather than bolt fake focus onto pixels, publish the same data as a real
-   table — sortable by nothing, but readable, linkable and copyable by anyone. */
+   table. It follows the active map measure so keyboard and screen-reader users
+   get the same comparison as the colour scale. */
 function renderA11yTable() {
+  if (!geo) return;
+  const M = METRICS[metric];
+  const selectedValue = row => row.m[metric];
+  const hasSelectedValue = row => Number.isFinite(selectedValue(row));
   const rows = ids.map(id => ({ id, d: geo.d[id], m: geo.d[id].m || {} }))
-    .filter(r => r.m.t != null)
-    .sort((a, b) => b.m.t - a.m.t);
+    .sort((a, b) => {
+      const aHasValue = hasSelectedValue(a), bHasValue = hasSelectedValue(b);
+      if (aHasValue && bHasValue) {
+        const difference = selectedValue(b) - selectedValue(a);
+        if (difference) return difference;
+      } else if (aHasValue !== bHasValue) return aHasValue ? -1 : 1;
+      return a.d.n.localeCompare(b.d.n) || a.id.localeCompare(b.id);
+    });
+  const published = rows.filter(hasSelectedValue).length;
   $('a11y-note').textContent =
-    `Every district on the map, listed highest teacher turnover first. ` +
-    `The map is a picture of this table; the numbers are identical.`;
+    `Every mapped district is listed by ${M.label.toLowerCase()}, highest first; ` +
+    `districts without a published value are last. The map is a picture of this table; ` +
+    `the numbers are identical.`;
   // The caption is a child of the table, so it has to be written in the same
   // innerHTML assignment — setting it first and then assigning innerHTML wipes it.
-  const cap = `<caption id="a11y-cap">${rows.length.toLocaleString()} Texas school ` +
-    `districts with a published turnover rate, fiscal 2024. Charter districts have ` +
+  const cap = `<caption id="a11y-cap">${M.label}: ${published.toLocaleString()} published values ` +
+    `out of ${rows.length.toLocaleString()} mapped Texas school districts. Charter districts have ` +
     `no boundary and are not included.</caption>`;
   const head = `<thead><tr><th scope="col">District</th><th scope="col">Students</th>` +
     `<th scope="col">Teacher turnover</th><th scope="col">Spending / student</th>` +
@@ -547,11 +560,11 @@ function renderA11yTable() {
     `</tr></thead>`;
   const body = rows.map(r =>
     `<tr><td><a href="/?d=${r.id}">${r.d.n}</a></td>` +
-    `<td>${r.m.e == null ? '—' : Number(r.m.e).toLocaleString()}</td>` +
-    `<td>${r.m.t}%</td>` +
-    `<td>${r.m.s == null ? '—' : '$' + Math.round(r.m.s).toLocaleString()}</td>` +
-    `<td>${r.m.p == null ? '—' : r.m.p + '%'}</td>` +
-    `<td>${r.m.g == null ? '—' : (r.m.g > 0 ? '+' : '') + r.m.g + ' pts'}</td></tr>`).join('');
+    `<td>${r.m.e == null ? 'Not published' : Number(r.m.e).toLocaleString()}</td>` +
+    `<td>${r.m.t == null ? 'Not published' : r.m.t + '%'}</td>` +
+    `<td>${r.m.s == null ? 'Not published' : '$' + Math.round(r.m.s).toLocaleString()}</td>` +
+    `<td>${r.m.p == null ? 'Not published' : r.m.p + '%'}</td>` +
+    `<td>${r.m.g == null ? 'Not published' : (r.m.g > 0 ? '+' : '') + r.m.g + ' pts'}</td></tr>`).join('');
   $('a11y-table').innerHTML = cap + head + `<tbody>${body}</tbody>`;
 }
 
@@ -598,7 +611,7 @@ function setMetric(m) {
   metric = m;
   [['t','m-turn'],['s','m-spend'],['p','m-pov'],['g','m-gap']].forEach(([k,el]) =>
     $(el).setAttribute('aria-pressed', String(k === m)));
-  renderLegend(); renderPanelDefault(); draw();
+  renderA11yTable(); renderLegend(); renderPanelDefault(); draw();
 }
 function focusOn(id) {
   pinned = id; showPanel(id);

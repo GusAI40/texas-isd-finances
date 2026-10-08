@@ -1,0 +1,3773 @@
+{
+  "checked_utc": "2026-10-07 20:41:36 UTC",
+  "server": "https://txisd.dev/mcp",
+  "server_revision": "73df1896ed0818020ec1c15c06f5ee823db7ec0f",
+  "channel": "Actual installed ChatGPT compatibility plugin tools exposed through the Codex connector",
+  "scope": "Host-normalized public results, not raw transport frames or package installation proof",
+  "calls": [
+    {
+      "tool": "find_district",
+      "result": {
+        "content": [
+          {
+            "type": "text",
+            "text": "3 district(s) matching 'Dallas':\n  057905  Dallas ISD  (139,776 students)\n  057810  Academy of Dallas\n  061912  Lake Dallas ISD  (3,711 students)\n\nTexas has thirteen pairs of districts sharing a name (two Wylie ISDs, two Highland Park ISDs, two Northside ISDs and more), so confirm which one is meant before quoting figures."
+          }
+        ],
+        "structuredContent": {
+          "matches": [
+            {
+              "district_number": "057905",
+              "district_name": "Dallas ISD",
+              "students": 139776
+            },
+            {
+              "district_number": "057810",
+              "district_name": "Academy of Dallas",
+              "students": null
+            },
+            {
+              "district_number": "061912",
+              "district_name": "Lake Dallas ISD",
+              "students": 3711
+            }
+          ],
+          "limits": [
+            "A district name is not an identifier in Texas — thirteen names are shared by two districts each. Use the district_number."
+          ]
+        },
+        "isError": false
+      }
+    },
+    {
+      "tool": "district_money",
+      "result": {
+        "content": [
+          {
+            "type": "text",
+            "text": "Dallas ISD (057905), fiscal 2025, 139,776 students.\nSpends $17,788 per student in total: $14,210 operating plus $3,578 servicing debt. Debt service is NOT in TEA's operating figure, so the two are composed here, never subtracted.\nInstruction: $7,206 per student.\nRevenue: 79% local, 9% state, 12% federal — local measured on GROSS property collections before recapture is deducted.\nSchool tax on a $300,000 home: $3,041, of which $88 leaves the district under recapture.\n"
+          }
+        ],
+        "structuredContent": {
+          "district_number": "057905",
+          "district_name": "Dallas ISD",
+          "year": 2025,
+          "students": 139776,
+          "tax": {
+            "mo_rate": 0.7718,
+            "is_rate": 0.242,
+            "total_rate": 1.0138,
+            "bill_on_home": 3041,
+            "leaves_district": 88,
+            "home_value": 300000,
+            "tax_price": 214.04
+          },
+          "allocation": {
+            "instruction_per_student": 7206,
+            "debt_per_student": 3578,
+            "other_operating_per_student": 7004,
+            "operating_per_student": 14210,
+            "total_per_student": 17788,
+            "payroll_per_student": 11503,
+            "cents_on_debt_per_dollar_taught": 50,
+            "teachers_equivalent_of_debt": 8826,
+            "lineage": {
+              "denominator": 139776,
+              "recomputed_from": "data/texas_finance_clean.csv, re-read longhand by scripts/recompute_spending.py",
+              "figures": {
+                "spend_instruction_per_student": {
+                  "value": 7206,
+                  "numerator": 1007186822,
+                  "recomputed_value": 7206
+                },
+                "spend_debt_per_student": {
+                  "value": 3578,
+                  "numerator": 500174938,
+                  "recomputed_value": 3578
+                },
+                "spend_operating_per_student": {
+                  "value": 14210,
+                  "numerator": 1986168795,
+                  "recomputed_value": 14210
+                }
+              }
+            }
+          },
+          "revenue": {
+            "local_per_student": 13525,
+            "state_per_student": 1489,
+            "federal_per_student": 2039,
+            "total_per_student": 17053,
+            "local_pct": 79,
+            "state_pct": 9,
+            "federal_pct": 12,
+            "note": "local is gross property tax before recapture is deducted",
+            "lineage": {
+              "denominator": 139776,
+              "recomputed_from": "data/texas_finance_clean.csv + data/tea_property.csv, re-read longhand by scripts/recompute_revenue.py",
+              "figures": {
+                "total_per_student": {
+                  "value": 17053,
+                  "numerator": 2383669437,
+                  "recomputed_value": 17053
+                },
+                "local_per_student": {
+                  "value": 13525,
+                  "numerator": 1890534120,
+                  "recomputed_value": 13525
+                },
+                "state_per_student": {
+                  "value": 1489,
+                  "numerator": 208159419,
+                  "recomputed_value": 1489
+                },
+                "federal_per_student": {
+                  "value": 2039,
+                  "numerator": 284975898,
+                  "recomputed_value": 2039
+                }
+              }
+            }
+          },
+          "recapture": {
+            "paid": 52538602,
+            "per_student": 376,
+            "share_of_local_mo": 0.0382
+          },
+          "own": {
+            "pct_poor": 85.7,
+            "turnover": 18.2
+          },
+          "reliability": {
+            "score": 5.4,
+            "years_measured": 6,
+            "percentile": 76
+          },
+          "who_does_better": [
+            {
+              "district_number": "031901",
+              "name": "Brownsville ISD",
+              "students": 37766,
+              "pct_poor": 89.4,
+              "beats_by": 14.2,
+              "turnover": 8.8,
+              "spend_per_student": 13732
+            },
+            {
+              "district_number": "108807",
+              "name": "Idea Public Schools",
+              "students": 73008,
+              "pct_poor": 84.8,
+              "beats_by": 13.1,
+              "turnover": 21.9,
+              "spend_per_student": 12073
+            },
+            {
+              "district_number": "108911",
+              "name": "Sharyland ISD",
+              "students": 9646,
+              "pct_poor": 67.1,
+              "beats_by": 13,
+              "turnover": 11.6,
+              "spend_per_student": 11899
+            },
+            {
+              "district_number": "108906",
+              "name": "McAllen ISD",
+              "students": 20227,
+              "pct_poor": 73.2,
+              "beats_by": 11.8,
+              "turnover": 13.3,
+              "spend_per_student": 13413
+            },
+            {
+              "district_number": "240903",
+              "name": "United ISD",
+              "students": 40554,
+              "pct_poor": 76.5,
+              "beats_by": 11.7,
+              "turnover": 7.8,
+              "spend_per_student": 12114
+            }
+          ],
+          "limits": [
+            "Effect sizes are observational. Within-district first differences remove everything about a district that does not change, but not confounders that move at the same time.",
+            "TEA does not itemise facilities: debt service covers all buildings together, so a stadium cannot be separated from a roof without a district's own bond documents.",
+            "Tax figures are withheld for districts where two independent estimates of the tax base disagree by more than 25%."
+          ]
+        },
+        "isError": false
+      }
+    },
+    {
+      "tool": "district_lineage",
+      "result": {
+        "content": [
+          {
+            "type": "text",
+            "text": "Dallas ISD (057905), revenue_total_per_student, fiscal 2025: $17,053 per student.\nWorking: 2,383,669,437 divided by 139,776 (fall survey enrollment). Formula: gross local + state + federal revenue / fall survey enrollment.\nPublished by Texas Education Agency.\nPublication gate: VERIFIED. computability=ok; arithmetic=ok; correctness=ok; freshness=ok; aim=ok.\nCaveat: local is GROSS property tax collections; TEA reports M&O revenue net of recapture, which understates property-funded districts Freshness is as recorded on 2026-08-12: no newer release from this publisher had been written down. A daily check asks the publishers, but it does not update this record by itself.\nThis figure is VERIFIED: a second, independent re-read of the source data by different code produced the same number. That means two roads agree. It does NOT mean the figure is true — both roads read the same cleaned CSV, and neither can make TEA's filing right, because districts file PEIMS and it is corrected for years afterwards.\n"
+          }
+        ],
+        "structuredContent": {
+          "metric": "revenue_total_per_student",
+          "value": 17053,
+          "numerator": 2383669437,
+          "denominator": 139776,
+          "denominator_type": "fall survey enrollment",
+          "formula": "gross local + state + federal revenue / fall survey enrollment",
+          "unit": "USD per student",
+          "fiscal_year": 2025,
+          "district_number": "057905",
+          "source": "Texas Education Agency",
+          "source_url": "https://tea.texas.gov/finance-and-grants/state-funding/state-funding-reports-and-data/peims-financial-data-downloads",
+          "source_vintage": "2025",
+          "calculation_version": "1",
+          "rounding": 0.5,
+          "recomputed_value": 17053,
+          "recomputed_from": "data/texas_finance_clean.csv + data/tea_property.csv, re-read longhand by scripts/recompute_revenue.py",
+          "artifact": "economics_data.json",
+          "independent_test": "tests/test_forensics.py::test_local_revenue_is_gross_not_net_of_recapture",
+          "fresh": true,
+          "aim_ok": true,
+          "refused_because": "",
+          "notes": [
+            "local is GROSS property tax collections; TEA reports M&O revenue net of recapture, which understates property-funded districts",
+            "Freshness is as recorded on 2026-08-12: no newer release from this publisher had been written down. A daily check asks the publishers, but it does not update this record by itself."
+          ],
+          "gate": {
+            "verdict": "VERIFIED",
+            "checks": {
+              "computability": "ok",
+              "arithmetic": "ok",
+              "correctness": "ok",
+              "freshness": "ok",
+              "aim": "ok"
+            },
+            "why": []
+          },
+          "available_metrics": [
+            "federal_per_student",
+            "local_per_student",
+            "spend_debt_per_student",
+            "spend_instruction_per_student",
+            "spend_operating_per_student",
+            "state_per_student",
+            "total_per_student"
+          ],
+          "limits": [
+            "Effect sizes are observational. Within-district first differences remove everything about a district that does not change, but not confounders that move at the same time.",
+            "TEA does not itemise facilities: debt service covers all buildings together, so a stadium cannot be separated from a roof without a district's own bond documents.",
+            "Tax figures are withheld for districts where two independent estimates of the tax base disagree by more than 25%."
+          ]
+        },
+        "isError": false
+      }
+    },
+    {
+      "tool": "district_forensics",
+      "result": {
+        "content": [
+          {
+            "type": "text",
+            "text": "Dallas ISD (057905) — the four money questions Texas reports separately.\n1. OUTSIDE the operating total: $3,578 per student a year in debt service, higher than 83% of Texas districts (state median $1,538).\n2. WHO PAYS: 79c of every revenue dollar is raised locally against 54c statewide, on gross collections.\n3. THE BALLOT: $14.3B approved by voters across 15 propositions since 2002; 1% of what was asked named athletics — an UPPER BOUND, because propositions bundle purposes.\n4. WHERE IT LANDED: 42.0% at Meets against 36.5% predicted by this district's own student need (+5.5 points).\n\nWhat stands out:\n  - Debt costs more than half of what instruction costs: 50¢ goes to debt for every dollar that reaches a classroom. None of it appears in the operating total TEA reports.\n  - Sends money back to the state: $376 per student leaves under recapture — $52,538,602 a year. TEA reports this district's revenue after that is taken out.\n  - Paid for locally, not by the state: 79% of revenue is raised from local property, against 54% statewide.\n  - Does better than its student need predicts: 42.0% at Meets against 36.5% predicted — +5.5 points.\n\nThese are descriptions of published numbers against published thresholds, not findings of wrongdoing, and there is deliberately no combined score."
+          }
+        ],
+        "structuredContent": {
+          "district_number": "057905",
+          "district_name": "Dallas ISD",
+          "absences": [],
+          "absence_summary": {
+            "count": 0,
+            "findings": 0,
+            "sections": [],
+            "kinds": []
+          },
+          "students": 139776,
+          "year": 2025,
+          "outside_operating": {
+            "per_student": 3578,
+            "percentile": 83,
+            "state_median": 1538,
+            "cents_per_dollar_taught": 50,
+            "teachers_equivalent": 8826,
+            "operating_per_student": 14210,
+            "total_per_student": 17788,
+            "annual_total": 500118528
+          },
+          "who_pays": {
+            "local_pct": 79,
+            "state_pct": 9,
+            "federal_pct": 12,
+            "local_percentile": 88,
+            "state_local_pct": 54,
+            "tax_bill_on_home": 3041,
+            "home_value": 300000,
+            "leaves_district": 88,
+            "recapture_per_student": 376,
+            "recapture_paid": 52538602,
+            "recapture_share_of_local_mo": 0.0382,
+            "recapture_percentile": 47,
+            "basis": "local is gross property tax before recapture is deducted"
+          },
+          "ballot": {
+            "props": 15,
+            "passed": 12,
+            "pass_rate": 80,
+            "asked": 14442670000,
+            "approved": 14289770000,
+            "approved_per_student": 102233,
+            "refused": 152900000,
+            "first_year": 2002,
+            "last_year": 2026,
+            "athletics_asked": 86800000,
+            "athletics_share_pct": 1,
+            "match_method": "name+county",
+            "match_exact": true,
+            "last_election": {
+              "date": "2026-05-02",
+              "year": 2026,
+              "amount": 26250000,
+              "purpose": "Swimming Pool",
+              "category": "buildings & other",
+              "passed": true,
+              "for": 27216,
+              "against": 11095,
+              "votes_reported": true
+            }
+          },
+          "where_it_landed": {
+            "actual": 42,
+            "expected": 36.5,
+            "gap": 5.5,
+            "model_r2": 0.5005,
+            "spend_per_student": 15518.8,
+            "spend_state_median": 14416.4,
+            "need": {
+              "pct_econ_disadv": 87.2,
+              "pct_emergent_bilingual": 50.5,
+              "pct_special_ed": 11.9
+            },
+            "year": 2024
+          },
+          "flags": [
+            {
+              "key": "debt_vs_instruction",
+              "tone": "watch",
+              "label": "Debt costs more than half of what instruction costs",
+              "detail": "50¢ goes to debt for every dollar that reaches a classroom. None of it appears in the operating total TEA reports."
+            },
+            {
+              "key": "recapture",
+              "tone": "info",
+              "label": "Sends money back to the state",
+              "detail": "$376 per student leaves under recapture — $52,538,602 a year. TEA reports this district's revenue after that is taken out."
+            },
+            {
+              "key": "locally_funded",
+              "tone": "info",
+              "label": "Paid for locally, not by the state",
+              "detail": "79% of revenue is raised from local property, against 54% statewide."
+            },
+            {
+              "key": "beats_prediction",
+              "tone": "good",
+              "label": "Does better than its student need predicts",
+              "detail": "42.0% at Meets against 36.5% predicted — +5.5 points."
+            }
+          ],
+          "thresholds": {
+            "top_decile": 90,
+            "debt_cents_per_dollar_taught": 50,
+            "local_share_high_pct": 65,
+            "athletics_share_pct": 50,
+            "beats_prediction_points": 3,
+            "min_propositions_for_a_pass_rate": 3
+          },
+          "limits": [
+            "Nothing here is a finding of wrongdoing. Every flag is a description of a published number against a published threshold, and the thresholds are above so you can disagree with them.",
+            "There is deliberately no combined score. Debt, recapture, ballot history and results measure four unrelated things, and adding them would invent a ranking the data cannot support.",
+            "Debt service sits outside TEA's operating total, so it is composed with it, never subtracted from it.",
+            "Local revenue is gross property collections before recapture is deducted. TEA reports it net, which understates how locally funded a paying district is.",
+            "Ballot amounts are as asked, in the dollars of their year, and are not inflation-adjusted.",
+            "Whether a passed bond changed results is a statewide test, not a district one, and it is fragile — see the bond section."
+          ]
+        },
+        "isError": false
+      }
+    },
+    {
+      "tool": "district_trends",
+      "result": {
+        "content": [
+          {
+            "type": "text",
+            "text": "Dallas ISD (057905), fiscal 2009-2025, constant 2024 dollars:\n  Share of the operating dollar reaching a classroom: 60.0% -> 50.7% — moving that way faster than Texas as a whole\n  Instruction per student: $8,240 -> $7,018 — moving that way faster than Texas as a whole\n  Debt service per student: $1,131 -> $3,485 — moving that way faster than Texas as a whole\n  Security and monitoring per student: $154 -> $368 — moving that way faster than Texas as a whole\n  Operating revenue minus operating spending, per student: -$354 -> -$662\n  Federal revenue per student: $2,171 -> $1,986 — moving that way faster than Texas as a whole\n\nA trend is a direction, not a cause: a falling instruction share can be a district cutting classrooms or opening them, and this data cannot tell the two apart."
+          }
+        ],
+        "structuredContent": {
+          "district_number": "057905",
+          "district_name": "DALLAS ISD",
+          "years": [
+            2009,
+            2010,
+            2011,
+            2012,
+            2013,
+            2014,
+            2015,
+            2016,
+            2017,
+            2018,
+            2019,
+            2020,
+            2021,
+            2022,
+            2023,
+            2024,
+            2025
+          ],
+          "series": {
+            "enrollment": [
+              157174,
+              156728,
+              156784,
+              157085,
+              158680,
+              159487,
+              160148,
+              158495,
+              157787,
+              156726,
+              155030,
+              153784,
+              145105,
+              143430,
+              141042,
+              139096,
+              139776
+            ],
+            "debt_share": [
+              7.6,
+              10.9,
+              8.3,
+              13.1,
+              12.3,
+              12.3,
+              11,
+              12.5,
+              14.3,
+              13.7,
+              14.9,
+              14.6,
+              15.4,
+              16.5,
+              15.9,
+              16.3,
+              20.1
+            ],
+            "instruction_share": [
+              60,
+              59,
+              57.6,
+              57.1,
+              56.2,
+              54.6,
+              54.6,
+              53.8,
+              53.1,
+              55.1,
+              53.8,
+              53.5,
+              53.1,
+              52.6,
+              52.4,
+              51.3,
+              50.7
+            ],
+            "instruction_ps": [
+              8240,
+              8060,
+              7820,
+              6841,
+              6422,
+              6369,
+              7048,
+              7362,
+              7013,
+              7023,
+              6765,
+              7356,
+              7655,
+              7319,
+              7987,
+              7959,
+              7018
+            ],
+            "debt_ps": [
+              1131,
+              1665,
+              1236,
+              1810,
+              1602,
+              1631,
+              1594,
+              1957,
+              2197,
+              2027,
+              2205,
+              2340,
+              2619,
+              2745,
+              2887,
+              3033,
+              3485
+            ],
+            "security_ps": [
+              154,
+              183,
+              186,
+              159,
+              158,
+              163,
+              190,
+              169,
+              165,
+              156,
+              155,
+              176,
+              178,
+              197,
+              220,
+              296,
+              368
+            ],
+            "operating_balance_ps": [
+              -354,
+              401,
+              -16,
+              327,
+              489,
+              461,
+              367,
+              -206,
+              -50,
+              450,
+              1828,
+              810,
+              155,
+              324,
+              74,
+              -51,
+              -662
+            ],
+            "federal_ps": [
+              2171,
+              2984,
+              3086,
+              2052,
+              2189,
+              2386,
+              2599,
+              2437,
+              2343,
+              2434,
+              2701,
+              2757,
+              2695,
+              3368,
+              4539,
+              4281,
+              1986
+            ]
+          },
+          "change": {
+            "instruction_share": {
+              "first_year": 2009,
+              "first": 60,
+              "last_year": 2025,
+              "last": 50.7,
+              "change": -9.3,
+              "pct_change": -15.5
+            },
+            "instruction_ps": {
+              "first_year": 2009,
+              "first": 8240,
+              "last_year": 2025,
+              "last": 7018,
+              "change": -1222,
+              "pct_change": -14.8
+            },
+            "debt_ps": {
+              "first_year": 2009,
+              "first": 1131,
+              "last_year": 2025,
+              "last": 3485,
+              "change": 2354,
+              "pct_change": 208.1
+            },
+            "security_ps": {
+              "first_year": 2009,
+              "first": 154,
+              "last_year": 2025,
+              "last": 368,
+              "change": 214,
+              "pct_change": 139
+            },
+            "operating_balance_ps": {
+              "first_year": 2009,
+              "first": -354,
+              "last_year": 2025,
+              "last": -662,
+              "change": -308,
+              "pct_change": -87
+            },
+            "federal_ps": {
+              "first_year": 2009,
+              "first": 2171,
+              "last_year": 2025,
+              "last": 1986,
+              "change": -185,
+              "pct_change": -8.5
+            }
+          },
+          "vs_state": {
+            "instruction_share": {
+              "gap_vs_state": -6,
+              "steeper_than_state": true
+            },
+            "instruction_ps": {
+              "gap_vs_state": -853,
+              "steeper_than_state": true
+            },
+            "debt_ps": {
+              "gap_vs_state": 1420,
+              "steeper_than_state": true
+            },
+            "security_ps": {
+              "gap_vs_state": 78,
+              "steeper_than_state": true
+            },
+            "operating_balance_ps": {
+              "gap_vs_state": 17,
+              "steeper_than_state": false
+            },
+            "federal_ps": {
+              "gap_vs_state": -165,
+              "steeper_than_state": true
+            }
+          },
+          "small_district": false,
+          "note": null,
+          "limits": [
+            "A trend describes a direction, not a cause. A falling instruction share can be a district cutting classrooms or a district opening them; this data cannot tell the two apart.",
+            "Operating balance compares operating revenue with operating spending only. Including debt service or capital would count buildings paid for out of bond proceeds as a deficit.",
+            "The shift between functions is real reallocation, not reclassification: the 16 function codes still sum to the reported operating total in every year, risers and fallers cancel to a zero residual, no single function absorbs the decline, and it predates COVID and continues after the federal money left. See meta.reclassification_check.",
+            "Districts under 500 students keep their series but are left out of the rankings: one retirement moves a small district's per-student figure more than a policy would.",
+            "Fiscal 2025 is the newest release and has had the least time to be corrected."
+          ]
+        },
+        "isError": false
+      }
+    },
+    {
+      "tool": "district_bonds",
+      "result": {
+        "content": [
+          {
+            "type": "text",
+            "text": "Dallas ISD (057905) put 15 bond propositions to voters between 2002 and 2026; 12 carried (80.0%). Asked $14,442,670,000, approved $14,289,770,000.\nMost recent:\n  2020-11-03  $33.5M  defeated  Natatorium\n  2026-05-02  $5.9B  carried  School Building & Buses\n  2026-05-02  $144.7M  carried  Technology\n  2026-05-02  $143.3M  carried  Maintenance\n  2026-05-02  $26.2M  carried  Swimming Pool\n\nThe ballot is the only public record of what school debt was FOR — TEA does not itemise facilities. Amounts are as asked, in the dollars of their own year, and are not inflation-adjusted."
+          }
+        ],
+        "structuredContent": {
+          "district_number": "057905",
+          "district_name": "DALLAS ISD",
+          "match": {
+            "method": "name+county",
+            "exact": true,
+            "source_names": [
+              "Dallas ISD"
+            ]
+          },
+          "elections": [
+            {
+              "date": "2002-01-19",
+              "year": 2002,
+              "amount": 1366300000,
+              "purpose": "Building",
+              "category": "buildings & other",
+              "passed": true,
+              "for": 78351,
+              "against": 21519,
+              "votes_reported": true
+            },
+            {
+              "date": "2002-01-19",
+              "year": 2002,
+              "amount": 38760000,
+              "purpose": "Refund M&O",
+              "category": "refinancing",
+              "passed": true,
+              "for": 60736,
+              "against": 33457,
+              "votes_reported": true
+            },
+            {
+              "date": "2008-05-10",
+              "year": 2008,
+              "amount": 1350000000,
+              "purpose": "Building & Renovations",
+              "category": "buildings & other",
+              "passed": true,
+              "for": 10178,
+              "against": 8693,
+              "votes_reported": true
+            },
+            {
+              "date": "2015-11-03",
+              "year": 2015,
+              "amount": 1600000000,
+              "purpose": "School Building and Technology",
+              "category": "technology",
+              "passed": true,
+              "for": 24355,
+              "against": 16046,
+              "votes_reported": true
+            },
+            {
+              "date": "2018-11-06",
+              "year": 2018,
+              "amount": 75000000,
+              "purpose": "Buses",
+              "category": "buses",
+              "passed": true,
+              "for": 197430,
+              "against": 72014,
+              "votes_reported": true
+            },
+            {
+              "date": "2018-11-06",
+              "year": 2018,
+              "amount": 75000000,
+              "purpose": "Refinance",
+              "category": "buildings & other",
+              "passed": true,
+              "for": 146983,
+              "against": 108115,
+              "votes_reported": true
+            },
+            {
+              "date": "2020-11-03",
+              "year": 2020,
+              "amount": 3271600000,
+              "purpose": "School  Building",
+              "category": "buildings & other",
+              "passed": true,
+              "for": 192084,
+              "against": 170187,
+              "votes_reported": true
+            },
+            {
+              "date": "2020-11-03",
+              "year": 2020,
+              "amount": 270000000,
+              "purpose": "Technology",
+              "category": "technology",
+              "passed": true,
+              "for": 187095,
+              "against": 174060,
+              "votes_reported": true
+            },
+            {
+              "date": "2020-11-03",
+              "year": 2020,
+              "amount": 53300000,
+              "purpose": "Athletic Facility Improvements",
+              "category": "athletics",
+              "passed": false,
+              "for": 136236,
+              "against": 223524,
+              "votes_reported": true
+            },
+            {
+              "date": "2020-11-03",
+              "year": 2020,
+              "amount": 66100000,
+              "purpose": "Performing Arts",
+              "category": "arts venues",
+              "passed": false,
+              "for": 174604,
+              "against": 184927,
+              "votes_reported": true
+            },
+            {
+              "date": "2020-11-03",
+              "year": 2020,
+              "amount": 33500000,
+              "purpose": "Natatorium",
+              "category": "athletics",
+              "passed": false,
+              "for": 151368,
+              "against": 206471,
+              "votes_reported": true
+            },
+            {
+              "date": "2026-05-02",
+              "year": 2026,
+              "amount": 5928820000,
+              "purpose": "School Building & Buses",
+              "category": "buses",
+              "passed": true,
+              "for": 28544,
+              "against": 9869,
+              "votes_reported": true
+            },
+            {
+              "date": "2026-05-02",
+              "year": 2026,
+              "amount": 144700000,
+              "purpose": "Technology",
+              "category": "technology",
+              "passed": true,
+              "for": 28684,
+              "against": 9661,
+              "votes_reported": true
+            },
+            {
+              "date": "2026-05-02",
+              "year": 2026,
+              "amount": 143340000,
+              "purpose": "Maintenance",
+              "category": "buildings & other",
+              "passed": true,
+              "for": 27566,
+              "against": 10654,
+              "votes_reported": true
+            },
+            {
+              "date": "2026-05-02",
+              "year": 2026,
+              "amount": 26250000,
+              "purpose": "Swimming Pool",
+              "category": "buildings & other",
+              "passed": true,
+              "for": 27216,
+              "against": 11095,
+              "votes_reported": true
+            }
+          ],
+          "totals": {
+            "props": 15,
+            "passed": 12,
+            "pass_rate": 80,
+            "asked": 14442670000,
+            "approved": 14289770000,
+            "approved_share": 0.989,
+            "first_year": 2002,
+            "last_year": 2026,
+            "athletics_asked": 86800000
+          },
+          "limits": [
+            "Propositions bundle purposes. A proposition reading 'School Building & Gymnasium' is counted under athletics, so athletics dollars are an upper bound; the athletics-only figure is reported separately.",
+            "Amounts are as asked, in the dollars of their year, and are not inflation-adjusted — counts and pass rates are the comparable measures across eras.",
+            "Purpose is free text written by hundreds of districts over 66 years; the keyword rules used to classify it are published above.",
+            "About a fifth of records carry a vote tally under 20 (a multi-million-dollar bond recorded as '1 for, 0 against'). Those are placeholders rather than turnout, so the tally is shown as unreported. The carried/defeated result itself is unaffected."
+          ]
+        },
+        "isError": false
+      }
+    },
+    {
+      "tool": "district_debt",
+      "result": {
+        "content": [
+          {
+            "type": "text",
+            "text": "Dallas ISD (057905) still owes $7.2B as of fiscal 2025: $4.6B of principal and $2.6B of interest not yet paid (36.4% of the total).\nThat is $51,861 per student, owed over decades rather than in a year. On debt already sold it clears in 2054.\nBorrowing to build schools is lawful and ordinary, and this is a balance sheet rather than a budget — it sits outside TEA's operating total entirely and is not comparable to it."
+          }
+        ],
+        "structuredContent": {
+          "district_name": "DALLAS ISD",
+          "students": 139776,
+          "principal": 4613765000,
+          "interest": 2635128833,
+          "total": 7248893833,
+          "per_student": 51861,
+          "interest_share_pct": 36.4,
+          "clears_in": 2054,
+          "history": [
+            [
+              2005,
+              2143606081
+            ],
+            [
+              2006,
+              2583954121
+            ],
+            [
+              2007,
+              2464389011
+            ],
+            [
+              2008,
+              2343758798
+            ],
+            [
+              2009,
+              3059589702
+            ],
+            [
+              2010,
+              2866312105
+            ],
+            [
+              2011,
+              4823185949
+            ],
+            [
+              2012,
+              4613807052
+            ],
+            [
+              2013,
+              4327047940
+            ],
+            [
+              2014,
+              4348350003
+            ],
+            [
+              2015,
+              4271777532
+            ],
+            [
+              2016,
+              5013319486
+            ],
+            [
+              2017,
+              4744671948
+            ],
+            [
+              2018,
+              4408426282
+            ],
+            [
+              2019,
+              4054464451
+            ],
+            [
+              2020,
+              4542431309
+            ],
+            [
+              2021,
+              4555100802
+            ],
+            [
+              2022,
+              4772275843
+            ],
+            [
+              2023,
+              5389902664
+            ],
+            [
+              2024,
+              5897722030
+            ],
+            [
+              2025,
+              7248893833
+            ]
+          ],
+          "limits": [
+            "Figures are as of fiscal 2025, the Board's most recent completed year. Years after it are the amortisation schedule for debt already sold, not a forecast of future borrowing — districts will issue more, so the schedule is a floor.",
+            "Excludes obligations maturing in under a year, commercial paper, and special obligations that do not require Attorney General approval, per the Board's own scope note.",
+            "Dollars repaid per dollar borrowed is reported at each district's PEAK year, not the current one. On outstanding balances the ratio rises on its own as principal is retired and is not a measure of anything.",
+            "No ratio is reported where CAB principal never reached $5m in any year on record. Below that the figure is dominated by a nearly-retired balance, and for districts whose bonds were sold before 2005, or whose reported years have a gap, the record never shows the deal at all. Their deferred interest is still reported — it is the ratio, not the debt, that is unknowable here.",
+            "Debt outstanding is not comparable to a district's operating budget: it is a stock owed over decades, and it sits outside TEA's operating total entirely.",
+            "68 of the Board's 1,035 listed school districts publish no series and carry no Board-tracked debt."
+          ]
+        },
+        "isError": false
+      }
+    },
+    {
+      "tool": "district_campuses",
+      "result": {
+        "content": [
+          {
+            "type": "text",
+            "text": "Dallas ISD (057905) is rated B by Texas. Its 233 rated campuses run from F to A, spanning 4 letter grades.\n7,786 of its students attend one of the 16 campuses rated D or F:\n  F  Ronald E Mcnair El (500 students, 98.2% low-income)\n  F  Boude Storey Middle (379 students, 97.6% low-income)\n  D  Wilmer-Hutchins H S (921 students, 97.9% low-income)\n  D  Julian T Saldivar El (754 students, 98.8% low-income)\n  D  Jose 'JOE' May El (746 students, 98.3% low-income)\n  D  Frank Guzick El (680 students, 95.6% low-income)\n  D  Judge Louis A Bedford Jr Law Academy (509 students, 97.4% low-income)\n  D  Young Men'S Leadership Academy at Fred F Florence (467 students, 98.1% low-income)\nA district rating is an average over campuses and hides its own tails; this is the spread inside one district and is not a comparison with campuses elsewhere. Unrated campuses are excluded — that is missing data, not failure. A rating measures tested performance against state targets, not a school."
+          }
+        ],
+        "structuredContent": {
+          "district_name": "DALLAS ISD",
+          "district_rating": "B",
+          "district_score": 83,
+          "campuses": [
+            {
+              "campus_number": "057905264",
+              "campus_name": "RONALD E MCNAIR EL",
+              "school_type": "Elementary",
+              "students": 500,
+              "pct_poor": 98.2,
+              "rating": "F",
+              "score": 59,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905060",
+              "campus_name": "BOUDE STOREY MIDDLE",
+              "school_type": "Middle School",
+              "students": 379,
+              "pct_poor": 97.6,
+              "rating": "F",
+              "score": 59,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905380",
+              "campus_name": "WILMER-HUTCHINS H S",
+              "school_type": "High School",
+              "students": 921,
+              "pct_poor": 97.9,
+              "rating": "D",
+              "score": 69,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905271",
+              "campus_name": "JULIAN T SALDIVAR EL",
+              "school_type": "Elementary",
+              "students": 754,
+              "pct_poor": 98.8,
+              "rating": "D",
+              "score": 69,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905107",
+              "campus_name": "JOSE 'JOE' MAY EL",
+              "school_type": "Elementary",
+              "students": 746,
+              "pct_poor": 98.3,
+              "rating": "D",
+              "score": 66,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905240",
+              "campus_name": "FRANK GUZICK EL",
+              "school_type": "Elementary",
+              "students": 680,
+              "pct_poor": 95.6,
+              "rating": "D",
+              "score": 69,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905042",
+              "campus_name": "JUDGE LOUIS A BEDFORD JR LAW ACADEMY",
+              "school_type": "Middle School",
+              "students": 509,
+              "pct_poor": 97.4,
+              "rating": "D",
+              "score": 69,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905046",
+              "campus_name": "YOUNG MEN'S LEADERSHIP ACADEMY AT FRED F FLORENCE",
+              "school_type": "Middle School",
+              "students": 467,
+              "pct_poor": 98.1,
+              "rating": "D",
+              "score": 69,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905115",
+              "campus_name": "HARRELL BUDD EL",
+              "school_type": "Elementary",
+              "students": 457,
+              "pct_poor": 95.8,
+              "rating": "D",
+              "score": 68,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905072",
+              "campus_name": "DR FREDERICK DOUGLASS TODD SR MIDDLE",
+              "school_type": "Middle School",
+              "students": 427,
+              "pct_poor": 98.4,
+              "rating": "D",
+              "score": 69,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905225",
+              "campus_name": "DANIEL WEBSTER EL",
+              "school_type": "Elementary",
+              "students": 395,
+              "pct_poor": 97.5,
+              "rating": "D",
+              "score": 69,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905178",
+              "campus_name": "H I HOLLAND EL AT LISBON",
+              "school_type": "Elementary",
+              "students": 361,
+              "pct_poor": 98.6,
+              "rating": "D",
+              "score": 66,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905372",
+              "campus_name": "WEST DALLAS J H",
+              "school_type": "Middle School",
+              "students": 353,
+              "pct_poor": 97.5,
+              "rating": "D",
+              "score": 67,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905131",
+              "campus_name": "IGNACIO ZARAGOZA EL",
+              "school_type": "Elementary",
+              "students": 292,
+              "pct_poor": 94.5,
+              "rating": "D",
+              "score": 69,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905185",
+              "campus_name": "WILLIAM B MILLER EL",
+              "school_type": "Elementary",
+              "students": 286,
+              "pct_poor": 99.7,
+              "rating": "D",
+              "score": 69,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905235",
+              "campus_name": "BIRDIE ALEXANDER EL",
+              "school_type": "Elementary",
+              "students": 259,
+              "pct_poor": 96.1,
+              "rating": "D",
+              "score": 69,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905015",
+              "campus_name": "SEAGOVILLE H S",
+              "school_type": "High School",
+              "students": 1782,
+              "pct_poor": 91.3,
+              "rating": "C",
+              "score": 75,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905014",
+              "campus_name": "W W SAMUELL H S",
+              "school_type": "High School",
+              "students": 1708,
+              "pct_poor": 95.7,
+              "rating": "C",
+              "score": 75,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905017",
+              "campus_name": "H GRADY SPRUCE H S",
+              "school_type": "High School",
+              "students": 1370,
+              "pct_poor": 96.4,
+              "rating": "C",
+              "score": 72,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905024",
+              "campus_name": "NORTH DALLAS H S",
+              "school_type": "High School",
+              "students": 1300,
+              "pct_poor": 91.1,
+              "rating": "C",
+              "score": 79,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905008",
+              "campus_name": "JUSTIN F KIMBALL H S",
+              "school_type": "High School",
+              "students": 1175,
+              "pct_poor": 89.5,
+              "rating": "C",
+              "score": 76,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905023",
+              "campus_name": "DAVID W CARTER H S",
+              "school_type": "High School",
+              "students": 1097,
+              "pct_poor": 91.2,
+              "rating": "C",
+              "score": 78,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905353",
+              "campus_name": "ANN RICHARDS STEAM ACADEMY",
+              "school_type": "Middle School",
+              "students": 1010,
+              "pct_poor": 96.5,
+              "rating": "C",
+              "score": 78,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905304",
+              "campus_name": "GEORGE HERBERT WALKER BUSH EL",
+              "school_type": "Elementary",
+              "students": 834,
+              "pct_poor": 86.7,
+              "rating": "C",
+              "score": 78,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905244",
+              "campus_name": "SEAGOVILLE NORTH EL",
+              "school_type": "Elementary",
+              "students": 774,
+              "pct_poor": 94.3,
+              "rating": "C",
+              "score": 78,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905142",
+              "campus_name": "J N ERVIN EL",
+              "school_type": "Elementary",
+              "students": 743,
+              "pct_poor": 100,
+              "rating": "C",
+              "score": 77,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905076",
+              "campus_name": "HAROLD WENDELL LANG SR MIDDLE",
+              "school_type": "Middle School",
+              "students": 740,
+              "pct_poor": 96.1,
+              "rating": "C",
+              "score": 79,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905059",
+              "campus_name": "L V STOCKARD MIDDLE",
+              "school_type": "Middle School",
+              "students": 728,
+              "pct_poor": 97.3,
+              "rating": "C",
+              "score": 77,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905305",
+              "campus_name": "EBBY HALLIDAY EL",
+              "school_type": "Elementary",
+              "students": 722,
+              "pct_poor": 94,
+              "rating": "C",
+              "score": 73,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905182",
+              "campus_name": "MARCUS LEADERSHIP ACADEMY",
+              "school_type": "Elementary",
+              "students": 718,
+              "pct_poor": 98.5,
+              "rating": "C",
+              "score": 75,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905052",
+              "campus_name": "PIEDMONT GLOBAL ACADEMY",
+              "school_type": "Middle School",
+              "students": 692,
+              "pct_poor": 98.6,
+              "rating": "C",
+              "score": 77,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905286",
+              "campus_name": "LEE A MCSHAN JR EL",
+              "school_type": "Elementary",
+              "students": 670,
+              "pct_poor": 99.1,
+              "rating": "C",
+              "score": 79,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905079",
+              "campus_name": "FRANCISCO PANCHO MEDRANO J H",
+              "school_type": "Middle School",
+              "students": 669,
+              "pct_poor": 99.9,
+              "rating": "C",
+              "score": 77,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905211",
+              "campus_name": "STEVENS PARK EL",
+              "school_type": "Elementary",
+              "students": 631,
+              "pct_poor": 99.8,
+              "rating": "C",
+              "score": 77,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905147",
+              "campus_name": "CHARLES A GILL EL",
+              "school_type": "Elementary",
+              "students": 630,
+              "pct_poor": 95.7,
+              "rating": "C",
+              "score": 75,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905145",
+              "campus_name": "STEPHEN C FOSTER EL",
+              "school_type": "Elementary",
+              "students": 604,
+              "pct_poor": 97,
+              "rating": "C",
+              "score": 75,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905045",
+              "campus_name": "E B COMSTOCK MIDDLE",
+              "school_type": "Middle School",
+              "students": 599,
+              "pct_poor": 98.5,
+              "rating": "C",
+              "score": 76,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905354",
+              "campus_name": "ROYCE WEST LEADERSHIP SCHOOL",
+              "school_type": "Middle School",
+              "students": 578,
+              "pct_poor": 95.2,
+              "rating": "C",
+              "score": 71,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905104",
+              "campus_name": "WILLIAM M ANDERSON EL",
+              "school_type": "Elementary",
+              "students": 572,
+              "pct_poor": 99.1,
+              "rating": "C",
+              "score": 79,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905105",
+              "campus_name": "ARCADIA PARK EL",
+              "school_type": "Elementary",
+              "students": 568,
+              "pct_poor": 95.4,
+              "rating": "C",
+              "score": 77,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905129",
+              "campus_name": "S S CONNER EL",
+              "school_type": "Elementary",
+              "students": 557,
+              "pct_poor": 99.5,
+              "rating": "C",
+              "score": 79,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905068",
+              "campus_name": "RAUL QUINTANILLA SR MIDDLE STEAM ACADEMY",
+              "school_type": "Middle School",
+              "students": 556,
+              "pct_poor": 95.1,
+              "rating": "C",
+              "score": 77,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905120",
+              "campus_name": "F P CAILLET EL",
+              "school_type": "Elementary",
+              "students": 552,
+              "pct_poor": 97.8,
+              "rating": "C",
+              "score": 78,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905265",
+              "campus_name": "ELADIO R MARTINEZ LEARNING CENTER",
+              "school_type": "Elementary",
+              "students": 547,
+              "pct_poor": 99.3,
+              "rating": "C",
+              "score": 79,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905164",
+              "campus_name": "ANSON JONES EL",
+              "school_type": "Elementary",
+              "students": 539,
+              "pct_poor": 98.1,
+              "rating": "C",
+              "score": 77,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905159",
+              "campus_name": "L L HOTCHKISS EL",
+              "school_type": "Elementary",
+              "students": 506,
+              "pct_poor": 95.8,
+              "rating": "C",
+              "score": 78,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905303",
+              "campus_name": "THELMA ELIZABETH PAGE RICHARDSON EL",
+              "school_type": "Elementary",
+              "students": 497,
+              "pct_poor": 96.2,
+              "rating": "C",
+              "score": 78,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905133",
+              "campus_name": "BARBARA JORDAN EL",
+              "school_type": "Elementary",
+              "students": 492,
+              "pct_poor": 97.8,
+              "rating": "C",
+              "score": 79,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905043",
+              "campus_name": "T W BROWNE MIDDLE",
+              "school_type": "Middle School",
+              "students": 491,
+              "pct_poor": 97.8,
+              "rating": "C",
+              "score": 76,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905266",
+              "campus_name": "FREDERICK DOUGLASS EL",
+              "school_type": "Elementary",
+              "students": 453,
+              "pct_poor": 96.2,
+              "rating": "C",
+              "score": 78,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905054",
+              "campus_name": "THOMAS C MARSH MIDDLE",
+              "school_type": "Middle School",
+              "students": 445,
+              "pct_poor": 97.3,
+              "rating": "C",
+              "score": 78,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905233",
+              "campus_name": "NATHAN ADAMS EL",
+              "school_type": "Elementary",
+              "students": 435,
+              "pct_poor": 95.4,
+              "rating": "C",
+              "score": 78,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905322",
+              "campus_name": "PRESTONWOOD MONTESSORI AT E D WALKER",
+              "school_type": "Elementary",
+              "students": 410,
+              "pct_poor": 57.8,
+              "rating": "C",
+              "score": 77,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905103",
+              "campus_name": "GABE P ALLEN NEW TECH ACADEMY",
+              "school_type": "Elementary",
+              "students": 395,
+              "pct_poor": 99.2,
+              "rating": "C",
+              "score": 78,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905055",
+              "campus_name": "THOMAS J RUSK MIDDLE",
+              "school_type": "Middle School",
+              "students": 373,
+              "pct_poor": 94.1,
+              "rating": "C",
+              "score": 78,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905260",
+              "campus_name": "LORENZO DE ZAVALA EL",
+              "school_type": "Elementary",
+              "students": 369,
+              "pct_poor": 96.7,
+              "rating": "C",
+              "score": 76,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905202",
+              "campus_name": "ORAN M ROBERTS EL",
+              "school_type": "Elementary",
+              "students": 340,
+              "pct_poor": 97.4,
+              "rating": "C",
+              "score": 71,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905277",
+              "campus_name": "THOMAS TOLBERT EL",
+              "school_type": "Elementary",
+              "students": 335,
+              "pct_poor": 98.5,
+              "rating": "C",
+              "score": 76,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905051",
+              "campus_name": "JOHN LEWIS SOCIAL JUSTICE ACADEMY AT O W HOLMES",
+              "school_type": "Middle School",
+              "students": 324,
+              "pct_poor": 100,
+              "rating": "C",
+              "score": 76,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905157",
+              "campus_name": "HOGG NEW TECH CENTER",
+              "school_type": "Elementary",
+              "students": 322,
+              "pct_poor": 98.4,
+              "rating": "C",
+              "score": 78,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905158",
+              "campus_name": "LIDA HOOE EL",
+              "school_type": "Elementary",
+              "students": 310,
+              "pct_poor": 97.7,
+              "rating": "C",
+              "score": 79,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905184",
+              "campus_name": "BEN MILAM EL",
+              "school_type": "Elementary",
+              "students": 298,
+              "pct_poor": 85.2,
+              "rating": "C",
+              "score": 75,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905388",
+              "campus_name": "DR FREDERICK HAYNES III GLOBAL PREP AT PAUL QUINN",
+              "school_type": "Elem/Secondary",
+              "students": 232,
+              "pct_poor": 96.6,
+              "rating": "C",
+              "score": 76,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905121",
+              "campus_name": "JOHN W CARPENTER EL",
+              "school_type": "Elementary",
+              "students": 208,
+              "pct_poor": 97.6,
+              "rating": "C",
+              "score": 78,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905382",
+              "campus_name": "INNOVATION DESIGN ENTREPRENEURSHIP ACADEMY",
+              "school_type": "High School",
+              "students": 149,
+              "pct_poor": 85.2,
+              "rating": "C",
+              "score": 79,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905025",
+              "campus_name": "SKYLINE H S",
+              "school_type": "High School",
+              "students": 3837,
+              "pct_poor": 92.2,
+              "rating": "B",
+              "score": 85,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905021",
+              "campus_name": "W T WHITE H S",
+              "school_type": "High School",
+              "students": 2204,
+              "pct_poor": 90,
+              "rating": "B",
+              "score": 81,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905001",
+              "campus_name": "BRYAN ADAMS H S LEADERSHIP ACADEMY",
+              "school_type": "High School",
+              "students": 2203,
+              "pct_poor": 92.6,
+              "rating": "B",
+              "score": 85,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905018",
+              "campus_name": "SUNSET H S",
+              "school_type": "High School",
+              "students": 2164,
+              "pct_poor": 93.5,
+              "rating": "B",
+              "score": 86,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905005",
+              "campus_name": "MOISES E MOLINA H S",
+              "school_type": "High School",
+              "students": 2005,
+              "pct_poor": 93.2,
+              "rating": "B",
+              "score": 82,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905022",
+              "campus_name": "WOODROW WILSON H S",
+              "school_type": "High School",
+              "students": 1829,
+              "pct_poor": 61.2,
+              "rating": "B",
+              "score": 83,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905006",
+              "campus_name": "HILLCREST H S",
+              "school_type": "High School",
+              "students": 1571,
+              "pct_poor": 82.4,
+              "rating": "B",
+              "score": 85,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905016",
+              "campus_name": "SOUTH OAK CLIFF H S",
+              "school_type": "High School",
+              "students": 1559,
+              "pct_poor": 97.9,
+              "rating": "B",
+              "score": 89,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905007",
+              "campus_name": "THOMAS JEFFERSON H S",
+              "school_type": "High School",
+              "students": 1516,
+              "pct_poor": 97.6,
+              "rating": "B",
+              "score": 84,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905028",
+              "campus_name": "EMMETT J CONRAD H S",
+              "school_type": "High School",
+              "students": 1321,
+              "pct_poor": 96.4,
+              "rating": "B",
+              "score": 85,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905102",
+              "campus_name": "PREK PARTNERSHIP CENTER",
+              "school_type": "Elementary",
+              "students": 1295,
+              "pct_poor": 98.7,
+              "rating": "B",
+              "score": 83,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905012",
+              "campus_name": "DR L G PINKSTON SR H S",
+              "school_type": "High School",
+              "students": 1264,
+              "pct_poor": 95.3,
+              "rating": "B",
+              "score": 84,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905280",
+              "campus_name": "ANNE FRANK EL",
+              "school_type": "Elementary",
+              "students": 1119,
+              "pct_poor": 89.9,
+              "rating": "B",
+              "score": 87,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905049",
+              "campus_name": "W E GREINER EXPLORATORY ARTS ACADEMY",
+              "school_type": "Middle School",
+              "students": 1116,
+              "pct_poor": 90.9,
+              "rating": "B",
+              "score": 89,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905053",
+              "campus_name": "J L LONG MIDDLE",
+              "school_type": "Middle School",
+              "students": 1079,
+              "pct_poor": 63.7,
+              "rating": "B",
+              "score": 82,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905069",
+              "campus_name": "SEAGOVILLE MIDDLE",
+              "school_type": "Middle School",
+              "students": 1063,
+              "pct_poor": 92.6,
+              "rating": "B",
+              "score": 84,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905167",
+              "campus_name": "KLEBERG EL",
+              "school_type": "Elementary",
+              "students": 870,
+              "pct_poor": 95.7,
+              "rating": "B",
+              "score": 81,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905047",
+              "campus_name": "BENJAMIN FRANKLIN INTERNATIONAL EXPLORATORY ACAD",
+              "school_type": "Middle School",
+              "students": 808,
+              "pct_poor": 90.8,
+              "rating": "B",
+              "score": 83,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905206",
+              "campus_name": "ALEX SANGER PREPARATORY SCHOOL",
+              "school_type": "Elementary",
+              "students": 769,
+              "pct_poor": 72.6,
+              "rating": "B",
+              "score": 89,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905050",
+              "campus_name": "ROBERT T HILL MIDDLE",
+              "school_type": "Middle School",
+              "students": 762,
+              "pct_poor": 92.4,
+              "rating": "B",
+              "score": 87,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905048",
+              "campus_name": "W H GASTON MIDDLE",
+              "school_type": "Middle School",
+              "students": 757,
+              "pct_poor": 94.7,
+              "rating": "B",
+              "score": 81,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905083",
+              "campus_name": "SAM TASBY MIDDLE",
+              "school_type": "Middle School",
+              "students": 752,
+              "pct_poor": 99.2,
+              "rating": "B",
+              "score": 84,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905352",
+              "campus_name": "YOUNG WOMEN'S STEAM ACADEMY AT BALCH SPRINGS MIDDL",
+              "school_type": "Middle School",
+              "students": 751,
+              "pct_poor": 95.9,
+              "rating": "B",
+              "score": 89,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905208",
+              "campus_name": "SEAGOVILLE EL",
+              "school_type": "Elementary",
+              "students": 733,
+              "pct_poor": 94.5,
+              "rating": "B",
+              "score": 80,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905013",
+              "campus_name": "FRANKLIN D ROOSEVELT H S OF INNOVATION",
+              "school_type": "High School",
+              "students": 720,
+              "pct_poor": 97.6,
+              "rating": "B",
+              "score": 81,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905270",
+              "campus_name": "EDUARDO MATA MONTESSORI SCHOOL",
+              "school_type": "Elementary",
+              "students": 720,
+              "pct_poor": 66.7,
+              "rating": "B",
+              "score": 85,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905276",
+              "campus_name": "GILBERT CUELLAR SR EL",
+              "school_type": "Elementary",
+              "students": 715,
+              "pct_poor": 98.3,
+              "rating": "B",
+              "score": 89,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905279",
+              "campus_name": "JERRY R JUNKINS EL",
+              "school_type": "Elementary",
+              "students": 702,
+              "pct_poor": 86.3,
+              "rating": "B",
+              "score": 80,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905229",
+              "campus_name": "WINNETKA EL",
+              "school_type": "Elementary",
+              "students": 693,
+              "pct_poor": 90.5,
+              "rating": "B",
+              "score": 85,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905110",
+              "campus_name": "ANNIE WEBB BLANTON EL",
+              "school_type": "Elementary",
+              "students": 685,
+              "pct_poor": 97.8,
+              "rating": "B",
+              "score": 88,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905216",
+              "campus_name": "EDWARD TITCHE EL",
+              "school_type": "Elementary",
+              "students": 676,
+              "pct_poor": 99.4,
+              "rating": "B",
+              "score": 86,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905173",
+              "campus_name": "JESUS MOROLES EXPRESSIVE ARTS VANGUARD",
+              "school_type": "Elementary",
+              "students": 633,
+              "pct_poor": 77.7,
+              "rating": "B",
+              "score": 86,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905116",
+              "campus_name": "DAVID G BURNET EL",
+              "school_type": "Elementary",
+              "students": 631,
+              "pct_poor": 97.3,
+              "rating": "B",
+              "score": 87,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905187",
+              "campus_name": "NANCY MOSELEY EL",
+              "school_type": "Elementary",
+              "students": 610,
+              "pct_poor": 96.4,
+              "rating": "B",
+              "score": 87,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905139",
+              "campus_name": "PAUL L DUNBAR LEARNING CENTER",
+              "school_type": "Elementary",
+              "students": 608,
+              "pct_poor": 99,
+              "rating": "B",
+              "score": 81,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905210",
+              "campus_name": "LESLIE A STEMMONS EL",
+              "school_type": "Elementary",
+              "students": 603,
+              "pct_poor": 95.7,
+              "rating": "B",
+              "score": 85,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905062",
+              "campus_name": "BILLY EARL DADE MIDDLE",
+              "school_type": "Middle School",
+              "students": 599,
+              "pct_poor": 99.2,
+              "rating": "B",
+              "score": 84,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905172",
+              "campus_name": "JIMMIE TYLER BRASHEAR EL",
+              "school_type": "Elementary",
+              "students": 596,
+              "pct_poor": 91.8,
+              "rating": "B",
+              "score": 88,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905009",
+              "campus_name": "LINCOLN HUMANITIES/COMMUNICATIONS MAGNET HIGH SCH",
+              "school_type": "High School",
+              "students": 579,
+              "pct_poor": 96.9,
+              "rating": "B",
+              "score": 83,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905056",
+              "campus_name": "EWELL D WALKER MIDDLE",
+              "school_type": "Middle School",
+              "students": 577,
+              "pct_poor": 92.2,
+              "rating": "B",
+              "score": 89,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905100",
+              "campus_name": "ZAN WESLEY HOLMES JR MIDDLE",
+              "school_type": "Middle School",
+              "students": 570,
+              "pct_poor": 97,
+              "rating": "B",
+              "score": 81,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905312",
+              "campus_name": "EDDIE BERNICE JOHNSON STEM ACADEMY",
+              "school_type": "Elementary",
+              "students": 554,
+              "pct_poor": 94.9,
+              "rating": "B",
+              "score": 81,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905198",
+              "campus_name": "MARTHA TURNER REILLY EL",
+              "school_type": "Elementary",
+              "students": 547,
+              "pct_poor": 75.5,
+              "rating": "B",
+              "score": 86,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905307",
+              "campus_name": "H S THOMPSON LEARNING CENTER",
+              "school_type": "Elementary",
+              "students": 545,
+              "pct_poor": 98.7,
+              "rating": "B",
+              "score": 82,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905209",
+              "campus_name": "ASCHER SILBERSTEIN EL",
+              "school_type": "Elementary",
+              "students": 544,
+              "pct_poor": 96.3,
+              "rating": "B",
+              "score": 88,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905281",
+              "campus_name": "CESAR CHAVEZ LEARNING CENTER",
+              "school_type": "Elementary",
+              "students": 541,
+              "pct_poor": 99.3,
+              "rating": "B",
+              "score": 85,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905166",
+              "campus_name": "EDWIN J KIEST EL",
+              "school_type": "Elementary",
+              "students": 535,
+              "pct_poor": 96.3,
+              "rating": "B",
+              "score": 83,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905180",
+              "campus_name": "B H MACON EL",
+              "school_type": "Elementary",
+              "students": 535,
+              "pct_poor": 95.3,
+              "rating": "B",
+              "score": 88,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905275",
+              "campus_name": "LOUISE WOLFF KAHN EL",
+              "school_type": "Elementary",
+              "students": 533,
+              "pct_poor": 94,
+              "rating": "B",
+              "score": 88,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905125",
+              "campus_name": "CASA VIEW EL",
+              "school_type": "Elementary",
+              "students": 530,
+              "pct_poor": 95.7,
+              "rating": "B",
+              "score": 82,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905278",
+              "campus_name": "LEONIDES GONZALEZ CIGARROA MD EL",
+              "school_type": "Elementary",
+              "students": 528,
+              "pct_poor": 98.3,
+              "rating": "B",
+              "score": 86,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905130",
+              "campus_name": "LEILA P COWART EL",
+              "school_type": "Elementary",
+              "students": 515,
+              "pct_poor": 94.4,
+              "rating": "B",
+              "score": 86,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905234",
+              "campus_name": "HENRY B GONZALEZ PERSONALIZED LEARNING ACADEMY",
+              "school_type": "Elementary",
+              "students": 513,
+              "pct_poor": 98.1,
+              "rating": "B",
+              "score": 80,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905181",
+              "campus_name": "MAPLE LAWN EL",
+              "school_type": "Elementary",
+              "students": 511,
+              "pct_poor": 95.1,
+              "rating": "B",
+              "score": 88,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905222",
+              "campus_name": "URBAN PARK STEAM ACADEMY",
+              "school_type": "Elementary",
+              "students": 507,
+              "pct_poor": 98.2,
+              "rating": "B",
+              "score": 87,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905212",
+              "campus_name": "HARRY STONE MONTESSORI ACADEMY",
+              "school_type": "Elementary",
+              "students": 505,
+              "pct_poor": 79,
+              "rating": "B",
+              "score": 86,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905128",
+              "campus_name": "DR MARTIN LUTHER KING JR ARTS ACADEMY",
+              "school_type": "Elementary",
+              "students": 499,
+              "pct_poor": 94.6,
+              "rating": "B",
+              "score": 80,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905247",
+              "campus_name": "ADELFA BOTELLO CALLEJO EL",
+              "school_type": "Elementary",
+              "students": 496,
+              "pct_poor": 98.4,
+              "rating": "B",
+              "score": 88,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905153",
+              "campus_name": "VICTOR H HEXTER EL",
+              "school_type": "Elementary",
+              "students": 481,
+              "pct_poor": 49.9,
+              "rating": "B",
+              "score": 88,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905141",
+              "campus_name": "JILL STONE EL AT VICKERY MEADOW",
+              "school_type": "Elementary",
+              "students": 474,
+              "pct_poor": 98.9,
+              "rating": "B",
+              "score": 88,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905193",
+              "campus_name": "JOHN J PERSHING EL",
+              "school_type": "Elementary",
+              "students": 457,
+              "pct_poor": 91.9,
+              "rating": "B",
+              "score": 86,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905236",
+              "campus_name": "NANCY J COCHRAN EL",
+              "school_type": "Elementary",
+              "students": 455,
+              "pct_poor": 98,
+              "rating": "B",
+              "score": 88,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905114",
+              "campus_name": "JOHN NEELY BRYAN EL",
+              "school_type": "Elementary",
+              "students": 454,
+              "pct_poor": 98.9,
+              "rating": "B",
+              "score": 83,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905386",
+              "campus_name": "SOLAR PREP FOR BOYS AT JOHN F KENNEDY",
+              "school_type": "Elementary",
+              "students": 449,
+              "pct_poor": 49.4,
+              "rating": "B",
+              "score": 85,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905149",
+              "campus_name": "HALL PERSONALIZED LEARNING ACADEMY AT OAK CLIFF",
+              "school_type": "Elementary",
+              "students": 443,
+              "pct_poor": 95.7,
+              "rating": "B",
+              "score": 86,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905156",
+              "campus_name": "NATHANIEL HAWTHORNE EL",
+              "school_type": "Elementary",
+              "students": 434,
+              "pct_poor": 98.8,
+              "rating": "B",
+              "score": 84,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905194",
+              "campus_name": "K B POLK CENTER FOR ACADEMICALLY TALENTED & GIFTED",
+              "school_type": "Elementary",
+              "students": 427,
+              "pct_poor": 85.5,
+              "rating": "B",
+              "score": 88,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905201",
+              "campus_name": "CHARLES RICE LEARNING CENTER",
+              "school_type": "Elementary",
+              "students": 427,
+              "pct_poor": 98.4,
+              "rating": "B",
+              "score": 87,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905239",
+              "campus_name": "ARTURO SALAZAR EL",
+              "school_type": "Elementary",
+              "students": 423,
+              "pct_poor": 97.9,
+              "rating": "B",
+              "score": 85,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905237",
+              "campus_name": "JOHN W RUNYON EL",
+              "school_type": "Elementary",
+              "students": 417,
+              "pct_poor": 97.4,
+              "rating": "B",
+              "score": 89,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905273",
+              "campus_name": "PLEASANT GROVE EL",
+              "school_type": "Elementary",
+              "students": 417,
+              "pct_poor": 96.9,
+              "rating": "B",
+              "score": 83,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905155",
+              "campus_name": "C A TATUM JR EL",
+              "school_type": "Elementary",
+              "students": 415,
+              "pct_poor": 99.5,
+              "rating": "B",
+              "score": 85,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905170",
+              "campus_name": "RICHARD LAGOW EL",
+              "school_type": "Elementary",
+              "students": 415,
+              "pct_poor": 98.1,
+              "rating": "B",
+              "score": 88,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905135",
+              "campus_name": "EVERETTE LEE DEGOLYER EL",
+              "school_type": "Elementary",
+              "students": 413,
+              "pct_poor": 50.8,
+              "rating": "B",
+              "score": 89,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905119",
+              "campus_name": "CHAPEL HILL PREPARATORY-A PERSONALIZED LRNING SCH",
+              "school_type": "Elementary",
+              "students": 404,
+              "pct_poor": 94.3,
+              "rating": "B",
+              "score": 80,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905195",
+              "campus_name": "PRESTON HOLLOW EL",
+              "school_type": "Elementary",
+              "students": 402,
+              "pct_poor": 85.6,
+              "rating": "B",
+              "score": 84,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905360",
+              "campus_name": "D A HULCY STEAM MIDDLE",
+              "school_type": "Middle School",
+              "students": 400,
+              "pct_poor": 93.3,
+              "rating": "B",
+              "score": 89,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905101",
+              "campus_name": "JOHN Q ADAMS EL",
+              "school_type": "Elementary",
+              "students": 399,
+              "pct_poor": 98,
+              "rating": "B",
+              "score": 82,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905169",
+              "campus_name": "ARTHUR KRAMER EL",
+              "school_type": "Elementary",
+              "students": 399,
+              "pct_poor": 74.7,
+              "rating": "B",
+              "score": 89,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905108",
+              "campus_name": "BAYLES EL",
+              "school_type": "Elementary",
+              "students": 392,
+              "pct_poor": 99,
+              "rating": "B",
+              "score": 88,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905183",
+              "campus_name": "THOMAS L MARSALIS EL STEAM ACADEMY",
+              "school_type": "Elementary",
+              "students": 392,
+              "pct_poor": 96.2,
+              "rating": "B",
+              "score": 89,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905177",
+              "campus_name": "WILLIAM LIPSCOMB EL",
+              "school_type": "Elementary",
+              "students": 387,
+              "pct_poor": 76.7,
+              "rating": "B",
+              "score": 88,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905174",
+              "campus_name": "GENEVA HEIGHTS EL",
+              "school_type": "Elementary",
+              "students": 380,
+              "pct_poor": 48.7,
+              "rating": "B",
+              "score": 83,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905148",
+              "campus_name": "TOM C GOOCH EL",
+              "school_type": "Elementary",
+              "students": 374,
+              "pct_poor": 90.6,
+              "rating": "B",
+              "score": 86,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905109",
+              "campus_name": "W A BLAIR EL",
+              "school_type": "Elementary",
+              "students": 367,
+              "pct_poor": 97.5,
+              "rating": "B",
+              "score": 87,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905192",
+              "campus_name": "JOHN F PEELER EL",
+              "school_type": "Elementary",
+              "students": 353,
+              "pct_poor": 95.2,
+              "rating": "B",
+              "score": 82,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905032",
+              "campus_name": "JAMES MADISON H S",
+              "school_type": "High School",
+              "students": 349,
+              "pct_poor": 97.1,
+              "rating": "B",
+              "score": 82,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905197",
+              "campus_name": "JOHN H REAGAN EL",
+              "school_type": "Elementary",
+              "students": 349,
+              "pct_poor": 96,
+              "rating": "B",
+              "score": 83,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905283",
+              "campus_name": "ESPERANZA MEDRANO EL",
+              "school_type": "Elementary",
+              "students": 349,
+              "pct_poor": 96.3,
+              "rating": "B",
+              "score": 80,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905385",
+              "campus_name": "MONTESSORI ACADEMY AT ONESIMO HERNANDEZ EL",
+              "school_type": "Elementary",
+              "students": 346,
+              "pct_poor": 76,
+              "rating": "B",
+              "score": 88,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905272",
+              "campus_name": "MARIA MORENO STEAM ACADEMY",
+              "school_type": "Elementary",
+              "students": 344,
+              "pct_poor": 95.6,
+              "rating": "B",
+              "score": 89,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905136",
+              "campus_name": "L O DONALD EL",
+              "school_type": "Elementary",
+              "students": 324,
+              "pct_poor": 95.7,
+              "rating": "B",
+              "score": 89,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905190",
+              "campus_name": "GEORGE PEABODY EL",
+              "school_type": "Elementary",
+              "students": 318,
+              "pct_poor": 94.7,
+              "rating": "B",
+              "score": 80,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905112",
+              "campus_name": "JAMES BOWIE EL",
+              "school_type": "Elementary",
+              "students": 317,
+              "pct_poor": 95.9,
+              "rating": "B",
+              "score": 88,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905232",
+              "campus_name": "BUCKNER TERRACE MONTESSORI",
+              "school_type": "Elementary",
+              "students": 306,
+              "pct_poor": 86.6,
+              "rating": "B",
+              "score": 88,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905362",
+              "campus_name": "IGNITE MIDDLE AT JW RAY LEARNING CENTER",
+              "school_type": "Middle School",
+              "students": 292,
+              "pct_poor": 94.2,
+              "rating": "B",
+              "score": 82,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905122",
+              "campus_name": "C F CARR EL",
+              "school_type": "Elementary",
+              "students": 259,
+              "pct_poor": 98.8,
+              "rating": "B",
+              "score": 86,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905219",
+              "campus_name": "ADELLE TURNER EL",
+              "school_type": "Elementary",
+              "students": 257,
+              "pct_poor": 96.9,
+              "rating": "B",
+              "score": 83,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905263",
+              "campus_name": "J P STARKS EL",
+              "school_type": "Elementary",
+              "students": 255,
+              "pct_poor": 98.4,
+              "rating": "B",
+              "score": 81,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905189",
+              "campus_name": "CLARA OLIVER EL",
+              "school_type": "Elementary",
+              "students": 251,
+              "pct_poor": 96.8,
+              "rating": "B",
+              "score": 86,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905220",
+              "campus_name": "MARK TWAIN SCHOOL FOR THE TALENTED AND GIFTED",
+              "school_type": "Elementary",
+              "students": 244,
+              "pct_poor": 72.5,
+              "rating": "B",
+              "score": 88,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905215",
+              "campus_name": "OTTO M FRIDIA EL",
+              "school_type": "Elementary",
+              "students": 212,
+              "pct_poor": 98.1,
+              "rating": "B",
+              "score": 88,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905285",
+              "campus_name": "N W HARLLEE EARLY CHILDHOOD CENTER",
+              "school_type": "Elementary",
+              "students": 148,
+              "pct_poor": 85.8,
+              "rating": "B",
+              "score": 83,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905318",
+              "campus_name": "DR ELBA AND DOMINGO GARCIA WEST DALLAS STEM SCHOOL",
+              "school_type": "Elementary",
+              "students": 124,
+              "pct_poor": 74.2,
+              "rating": "B",
+              "score": 88,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905340",
+              "campus_name": "DALLAS HYBRID PREPARATORY AT STEPHEN J HAY",
+              "school_type": "Elementary",
+              "students": 111,
+              "pct_poor": 73.9,
+              "rating": "B",
+              "score": 84,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905200",
+              "campus_name": "JOSEPH J RHOADS LEARNING CENTER",
+              "school_type": "Elementary",
+              "students": 105,
+              "pct_poor": 93.3,
+              "rating": "B",
+              "score": 83,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905300",
+              "campus_name": "ARLINGTON PARK EARLY CHILDHOOD CENTER",
+              "school_type": "Elementary",
+              "students": 77,
+              "pct_poor": 93.5,
+              "rating": "B",
+              "score": 83,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905002",
+              "campus_name": "W H ADAMSON H S",
+              "school_type": "High School",
+              "students": 1353,
+              "pct_poor": 98.7,
+              "rating": "A",
+              "score": 91,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905171",
+              "campus_name": "LAKEWOOD EL",
+              "school_type": "Elementary",
+              "students": 1067,
+              "pct_poor": 9.6,
+              "rating": "A",
+              "score": 94,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905218",
+              "campus_name": "GEORGE W TRUETT EL",
+              "school_type": "Elementary",
+              "students": 987,
+              "pct_poor": 98.9,
+              "rating": "A",
+              "score": 91,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905034",
+              "campus_name": "BOOKER T WASHINGTON SPVA MAGNET",
+              "school_type": "High School",
+              "students": 970,
+              "pct_poor": 38.5,
+              "rating": "A",
+              "score": 97,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905118",
+              "campus_name": "ALBERT C BLACK JR STEAM ACADEMY",
+              "school_type": "Elementary",
+              "students": 828,
+              "pct_poor": 97.8,
+              "rating": "A",
+              "score": 90,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905306",
+              "campus_name": "SOLAR PREPARATORY SCHOOL FOR GIRLS AT BONHAM",
+              "school_type": "Elementary",
+              "students": 703,
+              "pct_poor": 55.9,
+              "rating": "A",
+              "score": 92,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905154",
+              "campus_name": "LARRY G SMITH EL",
+              "school_type": "Elementary",
+              "students": 681,
+              "pct_poor": 95.4,
+              "rating": "A",
+              "score": 91,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905284",
+              "campus_name": "PERSONALIZED LEARNING ACADEMY AT HIGHLAND MEADOWS",
+              "school_type": "Elementary",
+              "students": 676,
+              "pct_poor": 98.7,
+              "rating": "A",
+              "score": 90,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905134",
+              "campus_name": "GEORGE B DEALEY MONTESSORI ACADEMY",
+              "school_type": "Elementary",
+              "students": 634,
+              "pct_poor": 26.8,
+              "rating": "A",
+              "score": 95,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905162",
+              "campus_name": "MOCKINGBIRD EL",
+              "school_type": "Elementary",
+              "students": 630,
+              "pct_poor": 24.9,
+              "rating": "A",
+              "score": 93,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905077",
+              "campus_name": "HECTOR P GARCIA MIDDLE",
+              "school_type": "Middle School",
+              "students": 621,
+              "pct_poor": 97.1,
+              "rating": "A",
+              "score": 91,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905035",
+              "campus_name": "IRMA RANGEL YOUNG WOMEN'S LEADERSHIP SCHOOL",
+              "school_type": "Elem/Secondary",
+              "students": 604,
+              "pct_poor": 79.8,
+              "rating": "A",
+              "score": 99,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905126",
+              "campus_name": "CENTRAL EL",
+              "school_type": "Elementary",
+              "students": 588,
+              "pct_poor": 90.5,
+              "rating": "A",
+              "score": 95,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905289",
+              "campus_name": "FELIX G BOTELLO PERSONALIZED LEARNING EL",
+              "school_type": "Elementary",
+              "students": 581,
+              "pct_poor": 94.8,
+              "rating": "A",
+              "score": 91,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905301",
+              "campus_name": "WILMER-HUTCHINS EL",
+              "school_type": "Elementary",
+              "students": 563,
+              "pct_poor": 96.4,
+              "rating": "A",
+              "score": 90,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905039",
+              "campus_name": "SCHOOL FOR THE TALENTED AND GIFTED",
+              "school_type": "High School",
+              "students": 555,
+              "pct_poor": 39.6,
+              "rating": "A",
+              "score": 100,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905381",
+              "campus_name": "BARACK OBAMA MALE LEADERSHIP ACAD AT A MACEO SMITH",
+              "school_type": "Elem/Secondary",
+              "students": 554,
+              "pct_poor": 91.7,
+              "rating": "A",
+              "score": 92,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905188",
+              "campus_name": "MOUNT AUBURN STEAM ACADEMY",
+              "school_type": "Elementary",
+              "students": 548,
+              "pct_poor": 92.9,
+              "rating": "A",
+              "score": 91,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905274",
+              "campus_name": "MARY MCLEOD BETHUNE EL",
+              "school_type": "Elementary",
+              "students": 538,
+              "pct_poor": 91.6,
+              "rating": "A",
+              "score": 92,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905176",
+              "campus_name": "JACK LOWE SR EL",
+              "school_type": "Elementary",
+              "students": 530,
+              "pct_poor": 98.5,
+              "rating": "A",
+              "score": 94,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905217",
+              "campus_name": "WILLIAM B TRAVIS VANGUARD ACAD OF ACADEMICALLY TAG",
+              "school_type": "Middle School",
+              "students": 517,
+              "pct_poor": 18.2,
+              "rating": "A",
+              "score": 98,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905224",
+              "campus_name": "WALNUT HILL INTERNATIONAL LEADERSHIP ACADEMY",
+              "school_type": "Elementary",
+              "students": 516,
+              "pct_poor": 82.2,
+              "rating": "A",
+              "score": 90,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905026",
+              "campus_name": "SCHOOL OF SCIENCE AND ENGINEERING",
+              "school_type": "High School",
+              "students": 505,
+              "pct_poor": 65.3,
+              "rating": "A",
+              "score": 99,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905036",
+              "campus_name": "SCHOOL OF HEALTH PROFESSIONS",
+              "school_type": "High School",
+              "students": 497,
+              "pct_poor": 83.7,
+              "rating": "A",
+              "score": 98,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905038",
+              "campus_name": "JUDGE BAREFOOT SANDERS LAW MAGNET",
+              "school_type": "High School",
+              "students": 494,
+              "pct_poor": 78.9,
+              "rating": "A",
+              "score": 99,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905058",
+              "campus_name": "ALEX W SPENCE TALENTED/GIFTED ACADEMY",
+              "school_type": "Middle School",
+              "students": 486,
+              "pct_poor": 90.7,
+              "rating": "A",
+              "score": 90,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905033",
+              "campus_name": "MARVIN E ROBINSON SCHOOL OF BUSINESS AND MGMT",
+              "school_type": "High School",
+              "students": 476,
+              "pct_poor": 84.2,
+              "rating": "A",
+              "score": 97,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905088",
+              "campus_name": "TRINIDAD GARZA EARLY COLLEGE AT MT VIEW",
+              "school_type": "High School",
+              "students": 474,
+              "pct_poor": 94.7,
+              "rating": "A",
+              "score": 98,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905117",
+              "campus_name": "RUFUS C BURLESON EL",
+              "school_type": "Elementary",
+              "students": 472,
+              "pct_poor": 97.7,
+              "rating": "A",
+              "score": 92,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905205",
+              "campus_name": "CLINTON P RUSSELL EL",
+              "school_type": "Elementary",
+              "students": 461,
+              "pct_poor": 96.5,
+              "rating": "A",
+              "score": 91,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905359",
+              "campus_name": "ROSEMONT UPPER",
+              "school_type": "Elementary",
+              "students": 459,
+              "pct_poor": 68.8,
+              "rating": "A",
+              "score": 92,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905137",
+              "campus_name": "JULIUS DORSEY LEADERSHIP ACADEMY",
+              "school_type": "Elementary",
+              "students": 458,
+              "pct_poor": 97.2,
+              "rating": "A",
+              "score": 90,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905163",
+              "campus_name": "CEDAR CREST EL",
+              "school_type": "Elementary",
+              "students": 457,
+              "pct_poor": 99.8,
+              "rating": "A",
+              "score": 91,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905204",
+              "campus_name": "ROSEMONT LOWER - CHRIS V SEMOS BUILDING",
+              "school_type": "Elementary",
+              "students": 457,
+              "pct_poor": 53,
+              "rating": "A",
+              "score": 92,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905203",
+              "campus_name": "DAN D ROGERS EL",
+              "school_type": "Elementary",
+              "students": 450,
+              "pct_poor": 76.7,
+              "rating": "A",
+              "score": 92,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905073",
+              "campus_name": "HENRY W LONGFELLOW CAREER EXPLORATION ACADEMY",
+              "school_type": "Middle School",
+              "students": 449,
+              "pct_poor": 78,
+              "rating": "A",
+              "score": 96,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905175",
+              "campus_name": "UMPHREY LEE EL",
+              "school_type": "Elementary",
+              "students": 447,
+              "pct_poor": 97.8,
+              "rating": "A",
+              "score": 95,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905230",
+              "campus_name": "HARRY C WITHERS EL",
+              "school_type": "Elementary",
+              "students": 447,
+              "pct_poor": 49.4,
+              "rating": "A",
+              "score": 90,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905161",
+              "campus_name": "SYLVIA MENDEZ CREW LEADERSHIP ACADEMY",
+              "school_type": "Elementary",
+              "students": 446,
+              "pct_poor": 98.7,
+              "rating": "A",
+              "score": 90,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905384",
+              "campus_name": "SUDIE L WILLIAMS TALENTED AND GIFTED ACADEMY",
+              "school_type": "Middle School",
+              "students": 446,
+              "pct_poor": 13.7,
+              "rating": "A",
+              "score": 99,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905287",
+              "campus_name": "CELESTINO MAURICIO SOTO JR EL",
+              "school_type": "Elementary",
+              "students": 444,
+              "pct_poor": 94.1,
+              "rating": "A",
+              "score": 91,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905207",
+              "campus_name": "SAN JACINTO EL",
+              "school_type": "Elementary",
+              "students": 437,
+              "pct_poor": 96.1,
+              "rating": "A",
+              "score": 94,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905071",
+              "campus_name": "DALLAS ENVIRONMENTAL SCIENCE ACADEMY",
+              "school_type": "Middle School",
+              "students": 431,
+              "pct_poor": 86.8,
+              "rating": "A",
+              "score": 94,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905199",
+              "campus_name": "REINHARDT EL",
+              "school_type": "Elementary",
+              "students": 431,
+              "pct_poor": 93,
+              "rating": "A",
+              "score": 92,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905226",
+              "campus_name": "MARTIN WEISS EL",
+              "school_type": "Elementary",
+              "students": 427,
+              "pct_poor": 98.4,
+              "rating": "A",
+              "score": 93,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905003",
+              "campus_name": "NEW TECH H S AT B F DARRELL H S",
+              "school_type": "High School",
+              "students": 407,
+              "pct_poor": 90.4,
+              "rating": "A",
+              "score": 95,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905186",
+              "campus_name": "TRINITY HEIGHTS GIFTED AND TALENTED SCHOOL",
+              "school_type": "Elementary",
+              "students": 398,
+              "pct_poor": 76.6,
+              "rating": "A",
+              "score": 95,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905363",
+              "campus_name": "SCHOOL FOR THE TALENTED & GIFTED IN PLEASANT GROVE",
+              "school_type": "Middle School",
+              "students": 385,
+              "pct_poor": 92.7,
+              "rating": "A",
+              "score": 97,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905250",
+              "campus_name": "WHITNEY M YOUNG JR EL",
+              "school_type": "Elementary",
+              "students": 371,
+              "pct_poor": 97,
+              "rating": "A",
+              "score": 91,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905213",
+              "campus_name": "T G TERRY EL",
+              "school_type": "Elementary",
+              "students": 352,
+              "pct_poor": 96.3,
+              "rating": "A",
+              "score": 92,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905085",
+              "campus_name": "KATHLYN JOY GILLIAM COLLEGIATE ACADEMY",
+              "school_type": "High School",
+              "students": 342,
+              "pct_poor": 81.3,
+              "rating": "A",
+              "score": 97,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905361",
+              "campus_name": "DOWNTOWN MONTESSORI AT IDA B WELLS ACADEMY",
+              "school_type": "Elementary",
+              "students": 341,
+              "pct_poor": 65.7,
+              "rating": "A",
+              "score": 90,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905152",
+              "campus_name": "MARGARET B HENDERSON EL",
+              "school_type": "Elementary",
+              "students": 336,
+              "pct_poor": 93.5,
+              "rating": "A",
+              "score": 93,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905090",
+              "campus_name": "DR WRIGHT L LASSITER JR EARLY COLLEGE H S",
+              "school_type": "High School",
+              "students": 293,
+              "pct_poor": 86.7,
+              "rating": "A",
+              "score": 99,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905387",
+              "campus_name": "NORTH LAKE EARLY COLLEGE H S",
+              "school_type": "High School",
+              "students": 291,
+              "pct_poor": 87.6,
+              "rating": "A",
+              "score": 95,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905168",
+              "campus_name": "OBADIAH KNIGHT EL",
+              "school_type": "Elementary",
+              "students": 279,
+              "pct_poor": 98.2,
+              "rating": "A",
+              "score": 92,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905160",
+              "campus_name": "PERSONALIZED LEARNING PREPARATORY AT SAM HOUSTON",
+              "school_type": "Elementary",
+              "students": 250,
+              "pct_poor": 61.6,
+              "rating": "A",
+              "score": 90,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905371",
+              "campus_name": "BIOMEDICAL PREPARATORY AT UT SOUTHWESTERN",
+              "school_type": "Elementary",
+              "students": 213,
+              "pct_poor": 55.4,
+              "rating": "A",
+              "score": 94,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905037",
+              "campus_name": "ROSIE SORRELLS EDUCATION AND SOCIAL SERVICES H S",
+              "school_type": "High School",
+              "students": 168,
+              "pct_poor": 79.2,
+              "rating": "A",
+              "score": 97,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905383",
+              "campus_name": "CITYLAB H S",
+              "school_type": "High School",
+              "students": 150,
+              "pct_poor": 81.3,
+              "rating": "A",
+              "score": 92,
+              "is_alternative_education": false
+            },
+            {
+              "campus_number": "057905554",
+              "campus_name": "ILEARN VIRTUAL ACADEMY AT DALLAS ISD",
+              "school_type": "Middle School",
+              "students": 32,
+              "pct_poor": 81.3,
+              "rating": "A",
+              "score": 96,
+              "is_alternative_education": false
+            }
+          ],
+          "best": "A",
+          "worst": "F",
+          "spans_grades": 4,
+          "students_below_a_d": 7786,
+          "limits": [
+            "'Not Rated' is not a bad rating. 525 campuses carry it — too few students, a first year of operation, a data issue — and every one is excluded rather than counted as failure.",
+            "Alternative Education Accountability campuses are rated on a different scale and are excluded from the headline. Both figures are published so the choice is visible rather than trusted.",
+            "No campus is ranked against a campus in another district here. The claim is about the gap INSIDE a district, which is what a district rating conceals.",
+            "One year (2025). A single campus rating moves on small numbers of students and should not be read as a trend.",
+            "A rating is a measure of tested performance against state targets, not of a school."
+          ]
+        },
+        "isError": false
+      }
+    },
+    {
+      "tool": "district_national",
+      "result": {
+        "content": [
+          {
+            "type": "text",
+            "text": "Dallas ISD (057905) spent $15,160 per student in Census current spending, fiscal 2024.\nThat is more per student than 43% of the 9,294 U.S. districts with 500+ students (the middle one spends $15,770).\nTexas as a whole ranks 44 of 51 (50 states and the District of Columbia; territories excluded) at $13,642 per student in average daily attendance, NPEFS fiscal 2024. Dividing by fall membership instead moves Texas only to 45, so the denominator choice is not the story.\nCurrent spending is the Census's own figure and EXCLUDES construction, land and debt — it is smaller than, and never mixed with, the TEA all-funds figures other tools here report. Fiscal 2024 is an earlier year than the TEA data on this site; never blend the two in one number."
+          }
+        ],
+        "structuredContent": {
+          "district_number": "057905",
+          "enroll_f33": 139246,
+          "leaid": "4816230",
+          "pctile": 43,
+          "ppcs": 15160,
+          "states": {
+            "texas": {
+              "denominator_ada": 4998904,
+              "numerator_current_expenditure": 68196188418,
+              "of": 51,
+              "ppe": 13642,
+              "rank": 44,
+              "who": "50 states and the District of Columbia; territories excluded"
+            }
+          },
+          "national": {
+            "districts_in_pool": 9294,
+            "median_ppcs": 15770,
+            "pool_rule": "U.S. districts with 500+ students and a positive per-pupil current spending figure"
+          },
+          "limits": [
+            "Census fiscal 2024 — one year behind the TEA fiscal 2025 figures elsewhere on this site. The two are never mixed in one figure.",
+            "Current spending only: the Census excludes construction, land, debt, and spending for students outside a district's fall membership, so this figure runs below the all-in per-student total shown elsewhere on this site.",
+            "The state ranking divides by average daily attendance, NCES's own denominator; dividing by fall membership instead moves Texas only from 44 to 45 of 51.",
+            "Texas charter schools have no Census F-33 row at all — the Census surveys governments, and charters are not independent governments — so they have no national percentile, by construction rather than by omission.",
+            "Districts under 500 students are shown but not ranked, the same rule used across this site."
+          ]
+        },
+        "isError": false
+      }
+    },
+    {
+      "tool": "compare_districts",
+      "result": {
+        "content": [
+          {
+            "type": "text",
+            "text": "District                     Students  Debt/stu  Oper/stu  Local%  vs pred\nDallas ISD                    139,776    $3,578   $14,210     79%     +5.5\nHouston ISD                   176,039    $2,267   $14,147     77%     +3.9\n\n'vs pred' is percentage points at the Meets bar against what each district's OWN poverty, emergent-bilingual and special-education rates predict — not against the state, which mostly measures poverty. Debt per student sits outside TEA's operating total."
+          }
+        ],
+        "structuredContent": {
+          "districts": [
+            {
+              "district_number": "057905",
+              "district_name": "Dallas ISD",
+              "students": 139776,
+              "debt_per_student": 3578,
+              "operating_per_student": 14210,
+              "local_pct": 79,
+              "tax_on_300k_home": 3041,
+              "recapture_per_student": 376,
+              "points_vs_predicted": 5.5
+            },
+            {
+              "district_number": "101912",
+              "district_name": "Houston ISD",
+              "students": 176039,
+              "debt_per_student": 2267,
+              "operating_per_student": 14147,
+              "local_pct": 77,
+              "tax_on_300k_home": 2605,
+              "recapture_per_student": 316,
+              "points_vs_predicted": 3.9
+            }
+          ],
+          "not_found": [],
+          "limits": [
+            "Nothing here is a finding of wrongdoing. Every flag is a description of a published number against a published threshold, and the thresholds are above so you can disagree with them.",
+            "There is deliberately no combined score. Debt, recapture, ballot history and results measure four unrelated things, and adding them would invent a ranking the data cannot support.",
+            "Debt service sits outside TEA's operating total, so it is composed with it, never subtracted from it.",
+            "Local revenue is gross property collections before recapture is deducted. TEA reports it net, which understates how locally funded a paying district is.",
+            "Ballot amounts are as asked, in the dollars of their year, and are not inflation-adjusted.",
+            "Whether a passed bond changed results is a statewide test, not a district one, and it is fragile — see the bond section."
+          ]
+        },
+        "isError": false
+      }
+    },
+    {
+      "tool": "texas_overview",
+      "result": {
+        "content": [
+          {
+            "type": "text",
+            "text": "Texas school finance, 1,202 districts.\nDebt service OUTSIDE TEA's operating total: $13.9B a year, median $1,538 per student.\nWho pays: 54c local, 37c state, 9c federal, on gross collections. 224 districts pay recapture.\nBallot record: 4,992 propositions since 1958, $327.6B asked, $262.0B approved.\n\nSeventeen years (fiscal 2009-2025, constant 2024 dollars):\n  The classroom's share of the operating dollar has fallen for seventeen years: 57.8% → 54.5%\n  Debt service is where the money went: $1,507 → $2,441 per student\n  Security spending has more than doubled: $96 → $232 per student\n  The federal money that masked it has gone: $2,798 (2022) → $1,432\n  For the first time in seventeen years, Texas districts together spent more on operations than operating revenue brought in: +$3.0B (2022) → −$1.6B (2025)\n  The growth that used to pay for it has stopped: 12,807 students a year, was 68,869\n\nDid passing a bond change results? +1.31 points, CI +0.07 to +2.55, p=0.038 — SUGGESTIVE, NOT SETTLED. It crossed the conventional line only when a district-matching bug was fixed. Do not report it as proof that bonds raise test scores."
+          }
+        ],
+        "structuredContent": {
+          "statewide": {
+            "districts": 1202,
+            "revenue": {
+              "local_pct": 54,
+              "state_pct": 37,
+              "federal_pct": 9,
+              "local": 45287222144,
+              "state": 31165952674,
+              "federal": 8131028444
+            },
+            "recapture": {
+              "districts_ever_paying": 419,
+              "total": 35136550830,
+              "top10_share": 0.499,
+              "top25_share": 0.696,
+              "top100_share": 0.954
+            },
+            "debt_median": 1538,
+            "debt_p90": 4490,
+            "debt_total": 13859452749,
+            "recapture_payers": 224,
+            "absences": {
+              "districts_with_an_empty_section": 410,
+              "pct_of_districts": 34.1,
+              "students_affected": 1248089,
+              "by_section": {
+                "bonds": 257,
+                "tax": 188,
+                "flags": 188,
+                "who_does_better": 58,
+                "where_it_landed": 5
+              },
+              "students_by_section": {
+                "tax": 440240,
+                "bonds": 461490,
+                "flags": 835595,
+                "who_does_better": 77580,
+                "where_it_landed": 1484
+              },
+              "by_kind": {
+                "not_applicable": 366,
+                "did_not_happen": 320,
+                "not_measured": 10
+              }
+            },
+            "ballot": {
+              "propositions": 4992,
+              "districts": 952,
+              "asked": 327565705853,
+              "approved": 262009640741,
+              "matched_pct": 100
+            },
+            "did_it_work": {
+              "bonds_tested": 310,
+              "districts": 153,
+              "passed_n": 202,
+              "passed_change": -0.27,
+              "defeated_n": 108,
+              "defeated_change": -1.58,
+              "difference": 1.31,
+              "ci_low": 0.07,
+              "ci_high": 2.55,
+              "p_value": 0.038,
+              "distinguishable_from_zero": true,
+              "fragile": true,
+              "window": "results 2-4 years after the vote against the 3 years before, each district compared with itself",
+              "caveat": "A bond in a growing district buys seats, not scores, and safety and roofs are real goods a test cannot see. This measures test results only."
+            }
+          },
+          "trend_findings": [
+            {
+              "key": "classroom_share",
+              "headline": "The classroom's share of the operating dollar has fallen for seventeen years",
+              "figure": "57.8% → 54.5%",
+              "detail": "Instruction took 57.8% of every operating dollar in 2009 and 54.5% in 2025, a fall of 3.3 points. In constant dollars that is $369 less per student on teaching, while total spending per student rose. Re-derived on only the 1,142 districts reporting in both years, the fall is 3.2 points — so this is not a change in who reports."
+            },
+            {
+              "key": "debt",
+              "headline": "Debt service is where the money went",
+              "figure": "$1,507 → $2,441 per student",
+              "detail": "Up 62% in constant dollars since 2009. None of it appears in TEA's operating total, so a district can look lean on instruction while carrying the state's heaviest debt."
+            },
+            {
+              "key": "security",
+              "headline": "Security spending has more than doubled",
+              "figure": "$96 → $232 per student",
+              "detail": "A 2.4-fold rise in constant dollars — the largest proportional increase of any function, and it comes out of the same operating dollar as instruction."
+            },
+            {
+              "key": "federal_cliff",
+              "headline": "The federal money that masked it has gone",
+              "figure": "$2,798 (2022) → $1,432",
+              "detail": "Federal revenue per student peaked in 2022 and is down 49% since, in constant dollars — back below where it started in 2009."
+            },
+            {
+              "key": "deficits",
+              "headline": "For the first time in seventeen years, Texas districts together spent more on operations than operating revenue brought in",
+              "figure": "+$3.0B (2022) → −$1.6B (2025)",
+              "detail": "534 of 1,202 districts (44.4%) spent more on operations than operating revenue covered in 2025, and they enrol 67.7% of Texas students. The worst any earlier year in this window reached was 27.1%. Operating revenue against operating spending only: debt service and construction are excluded on both sides, and so is the debt tax levy that pays for them — otherwise a routine building year reads as a crisis."
+            },
+            {
+              "key": "growth_stopped",
+              "headline": "The growth that used to pay for it has stopped",
+              "figure": "12,807 students a year, was 68,869",
+              "detail": "Texas districts added about 68,869 students a year through the 2010s. Over the last two years they added 25,614 in total. Debt service and fixed costs do not shrink when growth does."
+            }
+          ],
+          "trend_change": {
+            "instruction_share": {
+              "first_year": 2009,
+              "first": 57.8,
+              "last_year": 2025,
+              "last": 54.5,
+              "change": -3.3,
+              "pct_change": -5.7
+            },
+            "instruction_ps": {
+              "first_year": 2009,
+              "first": 7249,
+              "last_year": 2025,
+              "last": 6880,
+              "change": -369,
+              "pct_change": -5.1
+            },
+            "debt_ps": {
+              "first_year": 2009,
+              "first": 1507,
+              "last_year": 2025,
+              "last": 2441,
+              "change": 934,
+              "pct_change": 62
+            },
+            "security_ps": {
+              "first_year": 2009,
+              "first": 96,
+              "last_year": 2025,
+              "last": 232,
+              "change": 136,
+              "pct_change": 141.7
+            },
+            "operating_balance_ps": {
+              "first_year": 2009,
+              "first": 47,
+              "last_year": 2025,
+              "last": -278,
+              "change": -325,
+              "pct_change": -691.5
+            },
+            "federal_ps": {
+              "first_year": 2009,
+              "first": 1452,
+              "last_year": 2025,
+              "last": 1432,
+              "change": -20,
+              "pct_change": -1.4
+            }
+          },
+          "deficit_by_year": [
+            {
+              "year": 2009,
+              "districts": 1231,
+              "in_deficit": 313,
+              "pct": 25.4,
+              "students_pct": 59,
+              "statewide_margin": 151412019
+            },
+            {
+              "year": 2010,
+              "districts": 1234,
+              "in_deficit": 309,
+              "pct": 25,
+              "students_pct": 42.6,
+              "statewide_margin": 812979519
+            },
+            {
+              "year": 2011,
+              "districts": 1221,
+              "in_deficit": 238,
+              "pct": 19.5,
+              "students_pct": 31.9,
+              "statewide_margin": 1216652326
+            },
+            {
+              "year": 2012,
+              "districts": 1225,
+              "in_deficit": 207,
+              "pct": 16.9,
+              "students_pct": 18.1,
+              "statewide_margin": 1612355721
+            },
+            {
+              "year": 2013,
+              "districts": 1226,
+              "in_deficit": 306,
+              "pct": 25,
+              "students_pct": 35.4,
+              "statewide_margin": 1001802256
+            },
+            {
+              "year": 2014,
+              "districts": 1223,
+              "in_deficit": 303,
+              "pct": 24.8,
+              "students_pct": 28.9,
+              "statewide_margin": 1417367858
+            },
+            {
+              "year": 2015,
+              "districts": 1207,
+              "in_deficit": 318,
+              "pct": 26.3,
+              "students_pct": 35,
+              "statewide_margin": 1313925571
+            },
+            {
+              "year": 2016,
+              "districts": 1199,
+              "in_deficit": 311,
+              "pct": 25.9,
+              "students_pct": 31.8,
+              "statewide_margin": 1206462926
+            },
+            {
+              "year": 2017,
+              "districts": 1196,
+              "in_deficit": 324,
+              "pct": 27.1,
+              "students_pct": 42.1,
+              "statewide_margin": 827694601
+            },
+            {
+              "year": 2018,
+              "districts": 1199,
+              "in_deficit": 253,
+              "pct": 21.1,
+              "students_pct": 38.8,
+              "statewide_margin": 1059429261
+            },
+            {
+              "year": 2019,
+              "districts": 1200,
+              "in_deficit": 179,
+              "pct": 14.9,
+              "students_pct": 22.2,
+              "statewide_margin": 3015386089
+            },
+            {
+              "year": 2020,
+              "districts": 1200,
+              "in_deficit": 212,
+              "pct": 17.7,
+              "students_pct": 31.6,
+              "statewide_margin": 2217347370
+            },
+            {
+              "year": 2021,
+              "districts": 1203,
+              "in_deficit": 198,
+              "pct": 16.5,
+              "students_pct": 37.6,
+              "statewide_margin": 2155078994
+            },
+            {
+              "year": 2022,
+              "districts": 1206,
+              "in_deficit": 179,
+              "pct": 14.8,
+              "students_pct": 22.5,
+              "statewide_margin": 3028872002
+            },
+            {
+              "year": 2023,
+              "districts": 1207,
+              "in_deficit": 258,
+              "pct": 21.4,
+              "students_pct": 32.5,
+              "statewide_margin": 2387008105
+            },
+            {
+              "year": 2024,
+              "districts": 1205,
+              "in_deficit": 418,
+              "pct": 34.7,
+              "students_pct": 53.6,
+              "statewide_margin": 477927201
+            },
+            {
+              "year": 2025,
+              "districts": 1202,
+              "in_deficit": 534,
+              "pct": 44.4,
+              "students_pct": 67.7,
+              "statewide_margin": -1578110380
+            }
+          ],
+          "balanced_panel_check": {
+            "districts": 1142,
+            "instruction_share_all": -3.3,
+            "instruction_share_panel": -3.2,
+            "instruction_ps_all": -369,
+            "instruction_ps_panel": -356
+          },
+          "limits": [
+            "Nothing here is a finding of wrongdoing. Every flag is a description of a published number against a published threshold, and the thresholds are above so you can disagree with them.",
+            "There is deliberately no combined score. Debt, recapture, ballot history and results measure four unrelated things, and adding them would invent a ranking the data cannot support.",
+            "Debt service sits outside TEA's operating total, so it is composed with it, never subtracted from it.",
+            "Local revenue is gross property collections before recapture is deducted. TEA reports it net, which understates how locally funded a paying district is.",
+            "Ballot amounts are as asked, in the dollars of their year, and are not inflation-adjusted.",
+            "Whether a passed bond changed results is a statewide test, not a district one, and it is fragile — see the bond section.",
+            "A trend describes a direction, not a cause. A falling instruction share can be a district cutting classrooms or a district opening them; this data cannot tell the two apart.",
+            "Operating balance compares operating revenue with operating spending only. Including debt service or capital would count buildings paid for out of bond proceeds as a deficit.",
+            "The shift between functions is real reallocation, not reclassification: the 16 function codes still sum to the reported operating total in every year, risers and fallers cancel to a zero residual, no single function absorbs the decline, and it predates COVID and continues after the federal money left. See meta.reclassification_check.",
+            "Districts under 500 students keep their series but are left out of the rankings: one retirement moves a small district's per-student figure more than a policy would.",
+            "Fiscal 2025 is the newest release and has had the least time to be corrected."
+          ]
+        },
+        "isError": false
+      }
+    }
+  ]
+}

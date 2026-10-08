@@ -277,7 +277,7 @@ def test_no_stale_prototype_domain_in_pages():
     from pathlib import Path
 
     for name in ("index.html", "geomap.html", "map.html"):
-        text = (Path("static") / name).read_text()
+        text = (Path("static") / name).read_text(encoding="utf-8")
         assert "texas-isd-finances.vercel.app" not in text, name
 
 
@@ -399,7 +399,7 @@ def test_results_are_reported_at_the_meets_bar_not_approaches(client):
         assert measures["test_all_meets"][0] <= measures["test_all_approaches"][0]
 
     # and the page must not quietly go back to driving off Approaches
-    page = Path("static/index.html").read_text()
+    page = Path("static/index.html").read_text(encoding="utf-8")
     assert "test_all_approaches" not in page
     assert "percent-at-approaches" not in page
 
@@ -418,7 +418,7 @@ def test_negative_scaling_keeps_intervals_ordered(client):
     lo, hi = sorted([e["ci_low"] * -10, e["ci_high"] * -10])
     assert lo <= e["per_unit"] * -10 <= hi
     # the page must re-sort rather than assume ci_low stays the lower bound
-    page = Path("static/index.html").read_text()
+    page = Path("static/index.html").read_text(encoding="utf-8")
     assert "Math.min(a, b)" in page and "Math.max(a, b)" in page
 
 
@@ -426,17 +426,26 @@ def test_hero_credentials_match_the_data(client):
     """The hero states four counted facts. Each has to be true of the whole
     portal, not of its longest single source — "67 years of records" was true
     only of the bond elections while every other dataset spans 17 years."""
+    import json
     from pathlib import Path
 
-    page = Path("static/index.html").read_text()
-    assert ">17</b><i>years of budgets" in page, \
-        "the years figure must describe the finance data, not the deepest source"
-    assert "years of records" not in page, "that phrasing overstated every source but one"
+    page = Path("static/index.html").read_text(encoding="utf-8")
+    recorded = json.loads(
+        (Path("tests/browser/fixtures/public-endpoints.json")).read_text(encoding="utf-8")
+    )
+    stats = recorded["payloads"]["stats"]
+    assert recorded["captured_at"], "the recorded finance-count fixture needs a vintage"
+    assert ">17</b><i>actual financial years" in page
+    assert ">20,587</b><i>actual-finance records" in page
+    assert "years of records" not in page, "that phrasing overstated the finance source"
+    assert stats["total_years"] == 17
+    assert stats["total_records"] == 20_587
 
-    stats = client.get("/stats").json() if client.get("/stats").status_code == 200 else None
-    if stats:
-        span = stats["end_year"] - stats["start_year"] + 1
-        assert span == 17, f"finance data spans {span} years; the hero says 17"
+    response = client.get("/stats")
+    if response.status_code == 200:
+        live = response.json()
+        assert live["total_years"] == stats["total_years"]
+        assert live["total_records"] == stats["total_records"]
 
 
 def test_equity_headlines_the_level_not_the_gap(client):
@@ -521,7 +530,7 @@ def test_vercel_json_has_no_rewrites(client):
     import json as _json
     from pathlib import Path
 
-    cfg = _json.loads(Path("vercel.json").read_text())
+    cfg = _json.loads(Path("vercel.json").read_text(encoding="utf-8"))
     assert "rewrites" not in cfg, \
         "a rewrite here silently 404s every route in production"
     # the entrypoint the preset looks for must exist
@@ -535,7 +544,7 @@ def test_tutorial_covers_every_section_on_the_page(client):
     import re
     from pathlib import Path
 
-    page = Path("static/index.html").read_text()
+    page = Path("static/index.html").read_text(encoding="utf-8")
     sections = set(re.findall(r'<section id="([a-z-]+)"', page))
     tour = set(re.findall(r"'([a-z-]+-section)'\]", page.split("const TOUR = [")[1]
                           .split("];")[0]))
@@ -551,7 +560,7 @@ def test_tutorial_doc_uses_the_corrected_bar(client):
     it teaches people to read the wrong number."""
     from pathlib import Path
 
-    doc = Path("docs/TUTORIAL.md").read_text()
+    doc = Path("docs/TUTORIAL.md").read_text(encoding="utf-8")
     assert "Meets" in doc and "46.5" in doc
     assert "Approaches is not grade level" in doc
     for topic in ("recapture", "bond", "low-income", "takeover"):
@@ -569,7 +578,7 @@ def test_displayed_figures_add_up_for_every_district(client):
     path = Path("static/economics_data.json")
     if not path.exists():
         pytest.skip("economics_data.json not built in this checkout")
-    data = _json.loads(path.read_text())
+    data = _json.loads(path.read_text(encoding="utf-8"))
     for num, r in data["districts"].items():
         a = r["allocation"]
         assert a["instruction_per_student"] + a["other_operating_per_student"] == \
@@ -628,7 +637,7 @@ def test_maps_ship_a_table_twin():
     from pathlib import Path
 
     for name in ("geomap.html", "map.html"):
-        text = (Path("static") / name).read_text()
+        text = (Path("static") / name).read_text(encoding="utf-8")
         assert '<details class="a11y"' in text, f"{name}: no table twin markup"
         assert "function renderA11yTable()" in text, f"{name}: no render function"
         assert "renderA11yTable();" in text, f"{name}: render function never called"
@@ -745,12 +754,13 @@ def test_fallback_districts_all_have_static_content():
     from pathlib import Path
 
     static = Path(__file__).resolve().parent.parent / "static"
-    listed = {d["district_number"] for d in json.loads((static / "fallback_index.json").read_text())["districts"]}
+    fallback = json.loads((static / "fallback_index.json").read_text(encoding="utf-8"))
+    listed = {d["district_number"] for d in fallback["districts"]}
     covered = set()
     for name, key in (("economics_data.json", "districts"), ("outcomes_data.json", "districts"),
                       ("equity_data.json", "districts"), ("bond_data.json", "districts"),
                       ("district_geo.json", "d")):
-        covered |= set(json.loads((static / name).read_text())[key])
+        covered |= set(json.loads((static / name).read_text(encoding="utf-8"))[key])
     orphans = listed - covered
     assert not orphans, f"{len(orphans)} districts in the picker have no data to show: {sorted(orphans)[:5]}"
 
@@ -846,7 +856,7 @@ def test_usage_table_is_not_readable_by_the_metered_role():
     """nlp_reader is what the language model runs as. It must not be able to
     read its own meter, and certainly not edit it."""
     from pathlib import Path
-    sql = (Path(__file__).resolve().parent.parent / "sql" / "create_nlp_usage.sql").read_text()
+    sql = (Path(__file__).resolve().parent.parent / "sql" / "create_nlp_usage.sql").read_text(encoding="utf-8")
     assert "REVOKE ALL ON public.nlp_usage FROM nlp_reader" in sql
     assert "REVOKE ALL ON public.nlp_usage FROM anon, authenticated" in sql
     assert "ENABLE ROW LEVEL SECURITY" in sql
@@ -989,7 +999,7 @@ def test_vercel_json_still_has_no_rewrites():
     addition must not have introduced one."""
     import json
     from pathlib import Path
-    cfg = json.loads((Path(__file__).resolve().parent.parent / "vercel.json").read_text())
+    cfg = json.loads((Path(__file__).resolve().parent.parent / "vercel.json").read_text(encoding="utf-8"))
     assert "rewrites" not in cfg
     assert cfg["crons"][0]["path"] == "/api/cron/isd-intelligence"
 
@@ -1017,7 +1027,7 @@ def test_vercelignore_ships_the_runtime_script():
     .vercelignore excludes it, the daily run ImportErrors in production and the
     feed can never refresh past its snapshot. Ship the package marker + module."""
     from pathlib import Path
-    lines = (Path(__file__).resolve().parent.parent / ".vercelignore").read_text().splitlines()
+    lines = (Path(__file__).resolve().parent.parent / ".vercelignore").read_text(encoding="utf-8").splitlines()
     assert "!scripts/isd_intel.py" in lines, "cron's module is not un-ignored for deploy"
     assert "!scripts/__init__.py" in lines, "scripts package marker is not un-ignored"
     # And a blanket `scripts/` (without the negations) must not slip back in —
@@ -1107,6 +1117,6 @@ def test_vercel_json_has_no_rewrites_and_no_stale_header_block():
     app, so a leftover headers block here would silently override them."""
     import json
     from pathlib import Path
-    d = json.loads((Path(__file__).resolve().parents[1] / "vercel.json").read_text())
+    d = json.loads((Path(__file__).resolve().parents[1] / "vercel.json").read_text(encoding="utf-8"))
     assert "rewrites" not in d
     assert "headers" not in d, "cache rules belong in the app, next to the gate"

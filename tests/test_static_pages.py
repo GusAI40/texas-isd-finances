@@ -31,9 +31,13 @@ from scripts.check_static_js import STATIC, check_page, inline_scripts  # noqa: 
 # noindexed at /report/first-671. It sits with the private pages here because
 # this set means "not part of the portal design system", not "secret".
 PRIVATE_PAGES = {"opsmap.html", "opsintel.html", "report_first671.html", "opsreview.html"}
+# This is delivered only through the versioned MCP resource.  It remains in
+# ALL_PAGES for raw JavaScript parsing; its composed-resource contract is
+# tested in test_mcp_resources rather than being treated as portal chrome.
+EMBEDDED_PAGES = {"mcp-app.html"}
 
 ALL_PAGES = sorted(STATIC.glob("*.html"))
-PAGES = [p for p in ALL_PAGES if p.name not in PRIVATE_PAGES]
+PAGES = [p for p in ALL_PAGES if p.name not in PRIVATE_PAGES | EMBEDDED_PAGES]
 
 needs_node = pytest.mark.skipif(
     shutil.which("node") is None, reason="node is required to parse JavaScript"
@@ -45,6 +49,11 @@ def test_expected_pages_exist():
         "index.html", "map.html", "geomap.html", "intel.html", "heatmap.html", "feed.html",
         "about.html", "forensics.html", "sources.html", "transparency.html",
     }
+
+
+def test_embedded_resource_is_explicitly_classified_not_exempted():
+    assert {page.name for page in ALL_PAGES} >= EMBEDDED_PAGES
+    assert not {page.name for page in PAGES} & EMBEDDED_PAGES
 
 
 @needs_node
@@ -396,7 +405,7 @@ def test_the_trust_question_is_asked_and_answered_in_plain_language():
     checking, corrections, the AI's role, and check-it-yourself. The Wills
     Point correction is named because a real mistake, fixed in public, is the
     strongest trust evidence the site owns."""
-    html = (ROOT / "static" / "index.html").read_text()
+    html = (ROOT / "static" / "index.html").read_text(encoding="utf-8")
     assert 'id="trust"' in html
     assert "Can I trust these numbers?" in html
     for must in ("/sources", "/provenance", "/transparency"):

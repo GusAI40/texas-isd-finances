@@ -1,0 +1,14 @@
+{
+  "revision": "2b59328767d5373a5cb8f4ead4dcbc5894b88642",
+  "captured_at": "2026-10-07T20:54:53.479564+00:00",
+  "origin": "committed artifact plus recorded read-only https://txisd.dev public API fixtures; see public-endpoints.json for route hashes",
+  "states": {
+    "statewide": { "route": "/", "storage": "empty", "expected": { "districts": 1310 } },
+    "dallas": { "route": "/?d=057905", "expected": { "district_number": "057905", "finance_year": 2025, "outcomes_year": 2024, "turnover": [16.8, 18.1] } },
+    "small": { "route": "/?d=091907", "expected": { "district_number": "091907", "economics_enrollment": 662 } },
+    "charter": { "route": "/?d=003801", "expected": { "district_number": "003801", "national_absent_reason": "charter" } },
+    "compare": { "route": "/?d=057905", "comparison": "101912", "expected": { "districts": ["057905", "101912"] } },
+    "unavailable": { "route": "/?d=057905", "intercept": "db and query endpoints unavailable", "expected": { "artifact_sections_remain": true } },
+    "missing": { "origin": "synthetic edge case", "expected": { "null": "missing", "zero": "value", "invalid_denominator": "unavailable" } }
+  }
+}

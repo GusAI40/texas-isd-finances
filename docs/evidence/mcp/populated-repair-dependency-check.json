@@ -1,0 +1,51 @@
+{
+  "checked_at": "2026-10-08T00:37:32.757218+00:00",
+  "revision": "76cacacfd41bc3cf855feaafd3ce7761a964c108",
+  "dependencies": [
+    {
+      "name": "fixture",
+      "path": "tests/fixtures/mcp_visual_payloads.json",
+      "raw_sha256": "397df787300b7bf749cd86c6df7f528b455f5b00dd175a35bffdbc55bb65ade9",
+      "normalized_utf8_lf_sha256": "397df787300b7bf749cd86c6df7f528b455f5b00dd175a35bffdbc55bb65ade9",
+      "status": "UNCHANGED"
+    },
+    {
+      "name": "widget",
+      "path": "static/mcp-app.html",
+      "raw_sha256": "f57a124e613ca75865e656503f75e4d94885bcd040039fdfe706c2e2ab1874a3",
+      "normalized_utf8_lf_sha256": "f57a124e613ca75865e656503f75e4d94885bcd040039fdfe706c2e2ab1874a3",
+      "status": "UNCHANGED"
+    },
+    {
+      "name": "helper",
+      "path": "static/visual-components.js",
+      "raw_sha256": "b9e65880946ed9f84efe0e0135c9270b36577630e0b7ec33b96132dd413d1fe9",
+      "normalized_utf8_lf_sha256": "b9e65880946ed9f84efe0e0135c9270b36577630e0b7ec33b96132dd413d1fe9",
+      "status": "UNCHANGED"
+    },
+    {
+      "name": "design",
+      "path": "static/design.css",
+      "raw_sha256": "982f1403c7482d4514f858c37adbeca7493506c0edf53568ca0e55b8825cf983",
+      "normalized_utf8_lf_sha256": "4fe9c8f41ca8297005e251acfbb57b04c01836e932fabefd16ca7294368b0fae",
+      "status": "UNCHANGED"
+    },
+    {
+      "name": "manifest",
+      "path": "tests/browser/visual-regions-mcp.json",
+      "raw_sha256": "579e3efae078c713ccbafdf0b0da95f732e360cdf938cfc388fee1f1f0721eae",
+      "normalized_utf8_lf_sha256": "579e3efae078c713ccbafdf0b0da95f732e360cdf938cfc388fee1f1f0721eae",
+      "status": "UNCHANGED"
+    },
+    {
+      "name": "collector",
+      "path": "tests/browser/capture-mcp-visuals.mjs",
+      "raw_sha256": "483481a07002b4aa82856d17ad141da12579c2b89616fac6fd348d4966f02729",
+      "normalized_utf8_lf_sha256": "483481a07002b4aa82856d17ad141da12579c2b89616fac6fd348d4966f02729",
+      "status": "UNCHANGED"
+    }
+  ],
+  "scope": "The populated-report repair changed the main portal and its selector adapter. Widget, helper, design, fixture, widget manifest and collector are byte-identical to the independently reviewed 36-cell evidence. The main shared classifier has no Git changes since the widget verification checkpoint.",
+  "carried_evidence": "docs/evidence/mcp/final-widget-independent-verification.md",
+  "actual_host": "UNVERIFIED"
+}

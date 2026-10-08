@@ -16,8 +16,8 @@ published claims and the code they describe cannot drift apart.
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-INDEX = (ROOT / "static" / "index.html").read_text()
-GEOMAP = (ROOT / "static" / "geomap.html").read_text()
+INDEX = (ROOT / "static" / "index.html").read_text(encoding="utf-8")
+GEOMAP = (ROOT / "static" / "geomap.html").read_text(encoding="utf-8")
 
 
 # ---------------------------------------------------------------- the clock
@@ -139,7 +139,7 @@ def test_the_brand_is_home_and_never_carries_the_district():
     view-switching tabs are. Both the parse-time decoration and the
     click-time resolver must skip it, on every page."""
     for page in sorted((ROOT / "static").glob("*.html")):
-        html = page.read_text()
+        html = page.read_text(encoding="utf-8")
         if 'id="masthead"' not in html:
             continue
         assert html.count("a.classList.contains('m-brand')") == 2, (

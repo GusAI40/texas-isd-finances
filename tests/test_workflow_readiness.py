@@ -19,8 +19,8 @@ WORKFLOWS = ROOT / ".github" / "workflows"
 
 def test_monitor_names_every_vercel_cron_and_never_relies_on_api_default():
     """A bare /api/cron/runs request only observes isd-intelligence."""
-    monitor = (WORKFLOWS / "monitor.yml").read_text()
-    config = json.loads((ROOT / "vercel.json").read_text())
+    monitor = (WORKFLOWS / "monitor.yml").read_text(encoding="utf-8")
+    config = json.loads((ROOT / "vercel.json").read_text(encoding="utf-8"))
     jobs = {entry["path"].rsplit("/", 1)[-1] for entry in config["crons"]}
 
     assert jobs == {"isd-intelligence", "outreach-drain"}
@@ -162,7 +162,7 @@ def test_secret_dependent_workflows_publish_explicit_readiness():
         "outreach-kpi.yml": {"RESEND_API_KEY", "SUPABASE_PAT"},
     }
     for filename, secret_names in expected.items():
-        workflow = (WORKFLOWS / filename).read_text()
+        workflow = (WORKFLOWS / filename).read_text(encoding="utf-8")
         assert 'id: readiness' in workflow
         assert 'configured=false" >> "$GITHUB_OUTPUT"' in workflow
         assert 'configured=true" >> "$GITHUB_OUTPUT"' in workflow
@@ -177,14 +177,14 @@ def test_secret_dependent_workflows_publish_explicit_readiness():
 
 def test_scheduled_secret_monitors_fail_loudly_when_unconfigured():
     for filename in ("replies.yml", "outreach-kpi.yml", "llm-balance.yml"):
-        workflow = (WORKFLOWS / filename).read_text()
+        workflow = (WORKFLOWS / filename).read_text(encoding="utf-8")
         assert "github.event_name == 'schedule'" in workflow
         assert "exit 1" in workflow
 
 
 def test_network_monitors_and_deploy_gate_require_reachability():
-    monitor = (WORKFLOWS / "monitor.yml").read_text()
-    deploy = (WORKFLOWS / "deploy.yml").read_text()
+    monitor = (WORKFLOWS / "monitor.yml").read_text(encoding="utf-8")
+    deploy = (WORKFLOWS / "deploy.yml").read_text(encoding="utf-8")
     assert "verify_live.py --with-query --require-network" in monitor
     assert monitor.count('--expect-revision "$GITHUB_SHA"') == 1
     assert 'h.get("tracking_schema") != "ready"' in monitor
@@ -240,7 +240,7 @@ def test_live_verifier_rejects_an_old_or_missing_deployment_revision(monkeypatch
 def test_readiness_logs_names_not_secret_values():
     """No diagnostic command may print a secret-bearing environment value."""
     for filename in ("replies.yml", "outreach-kpi.yml"):
-        workflow = (WORKFLOWS / filename).read_text()
+        workflow = (WORKFLOWS / filename).read_text(encoding="utf-8")
         for line in workflow.splitlines():
             if "echo " not in line:
                 continue

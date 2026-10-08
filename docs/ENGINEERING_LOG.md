@@ -17,6 +17,58 @@ Entry template:
 
 ---
 
+## 2026-10-07 — Public reports satisfy independently measured 95/5; package ready
+
+**What changed.** Completed the public report composition, financial scope/period labels, maps, focus/dialog handling, honest exports/print/offline behavior, public MCP resource, schema/metadata checks and portable plugin archive. All 72 final report cells pass initial/full 95/5 with independent agent inspection: 95.83% minimum full-report visual share; 98.29% minimum initial visual share. The 36 widget cells and 56 bridge checks pass. All 37 public recorded GETs and populated insights/turnarounds are retained; source hashes and compressed evidence identify the captured implementation. Root documentation inventories, dictionary and index are complete. Full Windows suite passed 1,227/60 skipped in each encoding mode; isolated finance verification passed 29 integration plus four runner checks. Actual preview tools/resources and source/health/figure checks passed at their recorded revision.
+
+**Why.** The user required meaningful visuals for parents and taxpayers, with readable years, units and limits. Explanatory details remain accessible beside actual numeric comparisons. All-funds and operating figures are visibly separate, and modeled associations are not causal savings or personal forecasts.
+
+**Gotchas.** An incomplete browser fixture omitted actual optional GETs and falsely reduced prose. Restoring all 37 responses exposed 24 full and four initial ratio failures. The invalid apparent pass and a prematurely read semantic verdict were withdrawn; the bounded populated-report refinement repaired real composition without reclassifying narrative, shrinking fonts or dropping records. Capture generations must be fully compressed/validated and hash-frozen before independent review. Windows raw source bytes can differ from Git LF blobs, so normalized hashes are recorded separately. Protected preview checks use authenticated CLI responses, not SSO HTML. The package upload requires browser local-file permission; it was attempted but did not complete.
+
+**Transfer note.** GitHub timed out on the single large screenshot push (HTTP408). The unpushed snapshot was retained locally, and the identical image tree was published in twelve bounded commits with an exact remote-revision check after each. All770 image files are preserved; the final image checkpoint tree equals the original saved tree. Windows rejected a770-path comparison command (WinError206), so whole-tree Git identities verified equality without the oversized argument list. See docs/evidence/visual/github-evidence-transfer.json.
+
+**Open items.** Production remains at `73df1896ed0818020ec1c15c06f5ee823db7ec0f`; explicit merge/release and guarded finance SQL authority remain separate. Development registration is not public availability. Local-file permission, complete host installation/new frames, independent-account/public-directory review, disabled Linux CI, raw rebuild inputs, native zoom/screen reader, participant study and post-release observation remain UNVERIFIED. No production SQL, paid query, outreach or private-data publication occurred. Use docs/RELEASE_EVIDENCE.md and the finance runbook for target verification/recovery.
+
+---
+
+## 2026-10-07 — Independent finance recovery gates pass; visual scoring remains strict
+
+**What changed.** Saved the focused finance implementation after fresh independent verification: 29 PostgreSQL 17.11 integration checks and four runner checks passed with owned-cluster cleanup. The v2 anomaly transition records a reviewed preimage and committed receipt; recovery verifies the current replacement identity before restoring prior semantics. API projection coverage, effective read-only grants, dependency rejection, arithmetic thresholds, fault rollback, contention and reapplication were exercised. Actual artifact checks in both Windows encoding modes correctly report seven unavailable chains as UNVERIFIED. No production SQL or source ingestion occurred.
+
+**Why.** A successful repair must also preserve public access and provide a tested recovery path. The earlier raw-source classification and post-commit identity gaps are now covered, without treating unavailable inputs as a clean rebuild.
+
+**Gotchas.** The stricter visual collector found real full-report ratio failures after replacing empty inventories and wrapper bounds with visible leaf inventories and painted marks. Animation frames had also produced partial counters in earlier screenshots. The widget's apparent message-bridge failure was a renderer replacing its own chart container. A new source audit found a 2024 outcome metric inheriting a 2025 finance year; its narrowly scoped refinement is pending. All eleven tools at preview checkpoint `0c0c0f3` passed authenticated HTTP and strict recursive schema checks, but those checks do not prove actual ChatGPT rendering or public publication.
+
+**Open items.** Complete the actual 95/5 report matrix, public user flows, outcome-period repair, encoding adversarial checks, plugin assets/package validation, fresh host/install checks and final source revision evidence. Production remains at `73df1896ed0818020ec1c15c06f5ee823db7ec0f`; live headline/source checks pass but known precision repair remains unapplied. GitHub Actions is disabled with CI-only restoration approval pending. Human participant, screen-reader, raw rebuild, independent-account and public-review evidence remain explicit external gates.
+
+---
+
+## 2026-10-07 — Recover approved execution after the workstation crash
+
+**What changed.** Recovered the execution branch and opened draft PR #82. Preserved the detailed data, visual, and plugin plans in checkpoint `37ec5d2`. The production revision remains `73df1896ed0818020ec1c15c06f5ee823db7ec0f` and health/stats respond. Implementation and independent reviews remain in progress; this entry does not certify the working tree or record a release.
+
+**Why.** The user requires the actual public UI to satisfy a measured 95% visual / 5% prose rule. Finder/cohort fixes and prototype screenshots do not establish it. Recorded public endpoint fixtures now allow deterministic populated reports; current Dallas measurements still fail, and the redesign must continue.
+
+**Gotchas.** Actual ChatGPT owner connection and all eleven normalized tool calls succeeded. Downloading the generated plugin ZIP recovered the real `.app.json` mapping; its management page explicitly says DEVELOPMENT. Inspector's exact warning concerns a nullable `students` type array, not a failed call. Strict recursive schema validation exposed a duplicate required field that shallow tests missed. PostgreSQL 17 rejects matview `LOCK TABLE`; Astra revised the bounded replacement mechanism rather than treating a syntax pass as database proof. Use `.venv` tools: default Python produced misleading missing-dependency failures.
+
+**Open items.** Finish independently verified 95/5 initial/full report geometry and public workflows; complete disposable PostgreSQL 17 grant, dependency, rollback, and recovery coverage; validate actual host visuals and package installation; record exact-revision CI/release evidence. Human participant, assistive-technology, full raw-rebuild, independent-account and public-review gates remain explicit. No private contact data or production secrets entered the package/evidence, and synced project sources remain untouched.
+
+**Checkpoint notes.** Fresh T2 verification passed A-DB-02/03/04 on PostgreSQL 17.11 (9 tests). Full remaining data verification still failed its coverage gates despite 11 passing harness cases; the Sol escalation continues. Recursive AJV and actual Inspector now accept all eleven success schemas; actual Inspector also reads the self-contained visual resource after correcting its modern cache fields. Generated dictionary checks passed with 20 artifacts, 617 fields and 79 routes. A read-only production pooler connection independently confirmed PostgreSQL 17.6, 20,587 rows, 1,310 districts and FY2025; no database change occurred. CLI-pulled configuration stays in a local file outside Git, with sensitive placeholders never treated as verified values. GitHub Actions is disabled; restore-CI-only approval is pending, so Linux evidence stays UNVERIFIED. This implementation checkpoint remains a draft and does not establish the 95/5 target or a production release.
+
+---
+
+## 2026-10-07 — Documentation audit establishes the proof boundary before visual/plugin work
+
+**What changed.** Added the dated audit, root navigation index, plain-language dictionary, and services/tools/source inventory. Copied public-only live, MCP, freshness, and finance check metadata into `docs/evidence/2026-10-07/`. No application, SQL, workflow, generated-data, deployment, or external-account change was made.
+
+**Why.** The proposed visual-first experience and ChatGPT plugin need a testable baseline. The audit distinguishes passing fixtures from actual-host compatibility, simulations from user research, and configured providers from certified answers.
+
+**Gotchas.** Production finance view state is 12 columns, not the 30 described by repository SQL; that corrects the 2026-08-25 snapshot as a current production statement. Integer division before cast truncates selected FY2025 per-student values, without evidence aggregate dollars are wrong. `src/mcp_protocol.py` says MRTR is not implemented while current tool behavior/docs implement input-required handling; repair this prose with MCP work. Windows artifact checks can falsely call missing raw `data\\` paths drift, and CRLF checkout changes byte-size metadata.
+
+**Open items.** Reconcile PR #78 before SQL work; repair precision and stale MCP protocol prose; establish raw rebuild inputs; conduct actual-host, visual/mobile, and user tests; review newer source signals before changing vintages or publishing a plugin.
+
+---
+
 ## 2026-08-25 — Coverage measured D→B, and the AI Employee gets its two missing ends
 
 **What changed.**

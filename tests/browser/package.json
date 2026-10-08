@@ -1,0 +1,15 @@
+{
+  "private": true,
+  "name": "tisd-public-portal-browser-tests",
+  "version": "1.0.0",
+  "scripts": {
+    "test:unit": "node --test visual-components.test.cjs",
+    "capture:baseline": "node capture-visuals.mjs baseline",
+    "capture:prototype": "node capture-visuals.mjs prototype",
+    "capture:final": "node capture-visuals.mjs final",
+    "test:public": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.56.1"
+  }
+}

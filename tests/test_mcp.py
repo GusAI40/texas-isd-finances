@@ -191,7 +191,7 @@ def test_client_info_is_optional(client):
 def test_an_unknown_method_is_404_with_a_jsonrpc_body(client):
     """404 lets a client tell a modern server from a legacy one with no MCP
     endpoint; the JSON-RPC body is what makes the difference visible."""
-    res = rpc(client, "resources/list", {})
+    res = rpc(client, "widgets/list", {})
     assert res.status_code == 404
     assert res.json()["error"]["code"] == P.METHOD_NOT_FOUND
 

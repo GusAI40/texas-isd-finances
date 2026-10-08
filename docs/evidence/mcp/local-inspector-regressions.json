@@ -1,0 +1,23 @@
+{
+  "checked_at": "2026-10-07T21:31:39Z",
+  "endpoint": "http://127.0.0.1:8765/mcp",
+  "revision": "working tree based on 37ec5d23c7e8380531db7507bb15c3950ea1d9f1",
+  "client": "MCP Inspector 2.9.0, modern protocol era",
+  "tools_list": {
+    "strict_exit_code": 0,
+    "tool_count": 11,
+    "output_schema_count": 11,
+    "errors": 0,
+    "warnings": 0,
+    "path": "district_debt.outputSchema.properties.history.items.items",
+    "observed": {"not": {}},
+    "result": "PASS: actual Inspector strict tools/list accepted all eleven schemas"
+  },
+  "resources_list": {"exit_code": 0, "uri": "ui://txisd/report/v1.html"},
+  "resources_read": {
+    "exit_code": 1,
+    "issue": "Inspector rejects missing top-level ttlMs and cacheScope in modern resources/read result"
+  },
+  "status": "PARTIAL: strict tools/list repaired and verified; resources/read remains pending its separate focused repair",
+  "limit": "No production or actual ChatGPT resource rendering is established by this local observation."
+}

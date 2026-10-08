@@ -136,11 +136,15 @@ To render *production* in a browser (Chromium can't TLS through the agent
 proxy), run `scratchpad/liveproxy.py` and point Playwright at
 `127.0.0.1:8799`.
 
-## Current Status (updated 2026-08-25 — keep this a snapshot, history goes in the log)
+## Current Status (updated 2026-10-07 — keep this a snapshot, history goes in the log)
 
 The newest bullets control. Dated bullets below retain useful engineering
 history and may contain superseded counts; never let them override the current
 outreach item or `data/outreach_watermark.json`.
+
+- ✅ **Public visual UI and portable plugin implemented (2026-10-07)** — PR #82, branch `feat/visual-public-portal-plugin-20261007`. All 72 final report cells pass unchanged initial/full 95/5 with independent agent semantic review (95.83% minimum full-report visual share; 98.29% minimum initial visual share); all populated records and mandatory qualifications remain. Public browser workflows and focused populated behavior pass; all 36 widget cells and 56 bridge tests pass. Full Windows checks: 1,227 passed / 60 explicitly skipped in each encoding mode; independent PostgreSQL 17.11: 29 integration + four runner PASS. Eleven actual preview outputs and public resource validate at the recorded preview revision. Root INDEX/THIRD_PARTY_SERVICES/DICTIONARY and validated eight-entry plugin ZIP are saved. Production remains `73df1896ed0818020ec1c15c06f5ee823db7ec0f`; finance SQL is unapplied. Explicit release authority, disabled Linux CI, unavailable raw rebuilds, real host/install/public review, screen-reader/native zoom/participant evidence remain external gates. Chrome local-file permission is pending; no complete upload is claimed. See [release evidence](docs/RELEASE_EVIDENCE.md).
+
+- 🟡 **Documentation audit and execution plan; no fixes deployed (2026-10-07)** — [docs/AUDIT_2026-10-07.md](docs/AUDIT_2026-10-07.md) separates verified checks from failures and unknowns; [docs/VISUAL_PLUGIN_EXECUTION_PLAN.md](docs/VISUAL_PLUGIN_EXECUTION_PLAN.md) sequences data/UI/MCP-host proof before public visual/plugin release. Baseline was healthy at `73df1896ed0818020ec1c15c06f5ee823db7ec0f`; 11 MCP fixtures passed, but real ChatGPT/Inspector/listing compatibility, broad mobile testing, parent usability, and AI accuracy remain unverified. Production `v_finance_summary` has 12 columns while repository SQL describes 30, and selected FY2025 per-student values truncate due to integer division before cast. This supersedes the 2026-08-25 12→30 wording as a production-state claim without rewriting history. Reconcile unmerged PR #78 before SQL work.
 
 - 🟡 **Forensic hardening is repository-complete; production requires separate
   proof** (2026-08-22) — the change set explicitly monitors both Vercel crons,

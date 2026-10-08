@@ -1,0 +1,327 @@
+{
+  "base": "https://texas-isd-finances-ddw0ovyus-tag-ai-projects.vercel.app",
+  "checks": [
+    {
+      "check": "bond propositions",
+      "endpoint": "/bonds/texas",
+      "expected": 4992,
+      "live": 4992,
+      "state": "ok",
+      "error": null
+    },
+    {
+      "check": "bond districts",
+      "endpoint": "/bonds/texas",
+      "expected": 952,
+      "live": 952,
+      "state": "ok",
+      "error": null
+    },
+    {
+      "check": "most recent bond year",
+      "endpoint": "/bonds/texas",
+      "expected": 2026,
+      "live": 2026,
+      "state": "ok",
+      "error": null
+    },
+    {
+      "check": "total ever asked at the ballot",
+      "endpoint": "/bonds/texas",
+      "expected": 327565705853.0,
+      "live": 327565705853.0,
+      "state": "ok",
+      "error": null
+    },
+    {
+      "check": "debt still owed",
+      "endpoint": "/debt/texas",
+      "expected": 236668766635,
+      "live": 236668766635,
+      "state": "ok",
+      "error": null
+    },
+    {
+      "check": "interest not yet paid",
+      "endpoint": "/debt/texas",
+      "expected": 88318375274,
+      "live": 88318375274,
+      "state": "ok",
+      "error": null
+    },
+    {
+      "check": "year the debt clears",
+      "endpoint": "/debt/texas",
+      "expected": 2061,
+      "live": 2061,
+      "state": "ok",
+      "error": null
+    },
+    {
+      "check": "districts carrying CABs",
+      "endpoint": "/debt/texas",
+      "expected": 169,
+      "live": 169,
+      "state": "ok",
+      "error": null
+    },
+    {
+      "check": "districts with a trend",
+      "endpoint": "/trends/texas",
+      "expected": 1201,
+      "live": 1201,
+      "state": "ok",
+      "error": null
+    },
+    {
+      "check": "trend last year",
+      "endpoint": "/trends/texas",
+      "expected": 2025,
+      "live": 2025,
+      "state": "ok",
+      "error": null
+    },
+    {
+      "check": "districts in the forensic file",
+      "endpoint": "/forensics/texas",
+      "expected": 1202,
+      "live": 1202,
+      "state": "ok",
+      "error": null
+    },
+    {
+      "check": "statewide debt service",
+      "endpoint": "/forensics/texas",
+      "expected": 13859452749,
+      "live": 13859452749,
+      "state": "ok",
+      "error": null
+    },
+    {
+      "check": "recapture payers",
+      "endpoint": "/forensics/texas",
+      "expected": 224,
+      "live": 224,
+      "state": "ok",
+      "error": null
+    },
+    {
+      "check": "propositions in the ballot record",
+      "endpoint": "/forensics/texas",
+      "expected": 4992,
+      "live": 4992,
+      "state": "ok",
+      "error": null
+    },
+    {
+      "check": "students in a D/F campus inside an A/B district",
+      "endpoint": "/campuses/texas",
+      "expected": 138664,
+      "live": 138664,
+      "state": "ok",
+      "error": null
+    },
+    {
+      "check": "campuses hidden by the district average",
+      "endpoint": "/campuses/texas",
+      "expected": 221,
+      "live": 221,
+      "state": "ok",
+      "error": null
+    },
+    {
+      "check": "districts whose campuses differ",
+      "endpoint": "/campuses/texas",
+      "expected": 779,
+      "live": 779,
+      "state": "ok",
+      "error": null
+    },
+    {
+      "check": "districts with debt and no approved bond",
+      "endpoint": "/forensics/quality",
+      "expected": 93,
+      "live": 93,
+      "state": "ok",
+      "error": null
+    },
+    {
+      "check": "figures tested by Benford",
+      "endpoint": "/forensics/quality",
+      "expected": 1197310,
+      "live": 1197310,
+      "state": "ok",
+      "error": null
+    },
+    {
+      "check": "lineage numerator (Dallas ISD)",
+      "endpoint": "/district/057905/lineage/total_per_student",
+      "expected": 2383669437,
+      "live": 2383669437,
+      "state": "ok",
+      "error": null
+    },
+    {
+      "check": "lineage denominator (Dallas ISD)",
+      "endpoint": "/district/057905/lineage/total_per_student",
+      "expected": 139776,
+      "live": 139776,
+      "state": "ok",
+      "error": null
+    },
+    {
+      "check": "lineage value (Dallas ISD)",
+      "endpoint": "/district/057905/lineage/total_per_student",
+      "expected": 17053,
+      "live": 17053,
+      "state": "ok",
+      "error": null
+    },
+    {
+      "check": "spending lineage value (Dallas ISD)",
+      "endpoint": "/district/057905/lineage/spend_debt_per_student",
+      "expected": 3578,
+      "live": 3578,
+      "state": "ok",
+      "error": null
+    },
+    {
+      "check": "statewide headline lineage",
+      "endpoint": "/lineage/texas/statewide_total_spend",
+      "expected": 109448637486,
+      "live": 109448637486,
+      "state": "ok",
+      "error": null
+    },
+    {
+      "check": "Texas state rank in per-pupil spending",
+      "endpoint": "/national/texas",
+      "expected": 44,
+      "live": 44,
+      "state": "ok",
+      "error": null
+    },
+    {
+      "check": "states ranked",
+      "endpoint": "/national/texas",
+      "expected": 51,
+      "live": 51,
+      "state": "ok",
+      "error": null
+    },
+    {
+      "check": "districts in the national pool",
+      "endpoint": "/national/texas",
+      "expected": 9294,
+      "live": 9294,
+      "state": "ok",
+      "error": null
+    },
+    {
+      "check": "national per-pupil figure (Dallas ISD)",
+      "endpoint": "/district/057905/national",
+      "expected": 15160,
+      "live": 15160,
+      "state": "ok",
+      "error": null
+    },
+    {
+      "check": "national percentile (Dallas ISD)",
+      "endpoint": "/district/057905/national",
+      "expected": 43,
+      "live": 43,
+      "state": "ok",
+      "error": null
+    },
+    {
+      "check": "E-Rate districts attributed",
+      "endpoint": "/erate/texas",
+      "expected": 1078,
+      "live": 1078,
+      "state": "ok",
+      "error": null
+    },
+    {
+      "check": "E-Rate committed (Dallas ISD)",
+      "endpoint": "/district/057905/erate",
+      "expected": 60252066,
+      "live": 60252066,
+      "state": "ok",
+      "error": null
+    },
+    {
+      "check": "bond publisher named on /sources",
+      "endpoint": "/sources",
+      "state": "ok",
+      "error": null
+    },
+    {
+      "check": "the retired Secretary of State citation is gone",
+      "endpoint": "/sources",
+      "state": "ok",
+      "error": null
+    },
+    {
+      "check": "the lineage gate still certifies a known-good figure",
+      "endpoint": "/district/057905/lineage/total_per_student",
+      "state": "ok",
+      "error": null
+    },
+    {
+      "check": "lineage never certifies a figure against itself",
+      "endpoint": "/district/057905/lineage/total_per_student",
+      "state": "ok",
+      "error": null
+    },
+    {
+      "check": "the statewide headline passes the gate as a sum",
+      "endpoint": "/lineage/texas/statewide_total_spend",
+      "state": "ok",
+      "error": null
+    },
+    {
+      "check": "deployment revision",
+      "endpoint": "/health",
+      "expected": "76cacacfd41bc3cf855feaafd3ce7761a964c108",
+      "live": "76cacacfd41bc3cf855feaafd3ce7761a964c108",
+      "state": "ok",
+      "error": null
+    },
+    {
+      "check": "deployment health and schema migration",
+      "endpoint": "/health",
+      "expected": {
+        "status": "healthy",
+        "database": "connected",
+        "tracking_schema": "ready"
+      },
+      "live": {
+        "status": "healthy",
+        "database": "connected",
+        "tracking_schema": "ready"
+      },
+      "state": "ok",
+      "error": null
+    },
+    {
+      "check": "clock DB total matches its lineage artefact",
+      "endpoint": "/dollar/texas",
+      "state": "ok",
+      "error": null
+    },
+    {
+      "check": "big files served from the cache",
+      "endpoint": "/bonds/texas",
+      "state": "SKIP",
+      "error": "not Vercel \u2014 the cache header only exists in production"
+    }
+  ],
+  "drift": [],
+  "not_deployed": [],
+  "unreachable": [],
+  "checked_at": "2026-10-08T00:36:39.853655+00:00",
+  "deployment_revision": "76cacacfd41bc3cf855feaafd3ce7761a964c108",
+  "transport": "Vercel CLI 60.1.3 authenticated GET transport; unchanged repository verifier checks",
+  "with_query": false,
+  "actual_chatgpt_frame": "UNVERIFIED"
+}

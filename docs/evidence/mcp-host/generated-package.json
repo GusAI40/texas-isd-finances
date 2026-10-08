@@ -1,0 +1,24 @@
+{
+  "checked_date": "2026-10-07",
+  "origin": "ChatGPT registered cloud plugin page: More actions > Download plugin ZIP",
+  "registered_plugin_url": "https://chatgpt.com/plugins/plugin_asdk_app_6ac6a4e3abac81918eb91eb558cb5b9e",
+  "download_bytes": 612,
+  "management_observation": {
+    "server_url": "https://txisd.dev/mcp",
+    "authorization_supported": "None",
+    "authorization_used": "None",
+    "review_status": "DEVELOPMENT",
+    "version": "dev mode",
+    "version_id": "asdk_app_v_6ac6a4e3abb88191a62a55fc72f0d72d"
+  },
+  "download_sha256": "c5fcda6585cd1f09ef3ecb871e301645f0890c2197ac7b1a03ddfff13065197e",
+  "files": [".app.json", ".codex-plugin/plugin.json"],
+  "generated_app_mapping": {
+    "apps": {
+      "dev-6ac6a4e3abac81918eb91eb558cb5b9e": {
+        "id": "asdk_app_6ac6a4e3abac81918eb91eb558cb5b9e"
+      }
+    }
+  },
+  "boundary": "Actual host-generated mapping. This proves development registration/export, not independent-account availability, portable-package installation, visual-resource rendering, or directory approval."
+}

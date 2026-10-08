@@ -1,0 +1,175 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-10-07T23:32:59.8379838Z",
+  "sourceRevision": "de49c2f6c21baf4e818c8be284deec8512e0a692",
+  "workingTree": true,
+  "criterion": "E-BRIDGE-01",
+  "status": "LOCAL_PASS_ACTUAL_CHATGPT_RENDER_UNVERIFIED",
+  "implementation": {
+    "widget": "static/mcp-app.html",
+    "browserSpec": "tests/browser/mcp-app.spec.js",
+    "fixture": "tests/fixtures/mcp_visual_payloads.json",
+    "resourceUri": "ui://txisd/report/v1.html",
+    "widgetSha256": "f57a124e613ca75865e656503f75e4d94885bcd040039fdfe706c2e2ab1874a3",
+    "widgetNormalizedUtf8LfSha256": "f57a124e613ca75865e656503f75e4d94885bcd040039fdfe706c2e2ab1874a3",
+    "composedWidgetSha256": "8c9a97b7fecd3e6bdc538d9a1ecd64b9b312b69685f579ca15acb7eea6e30a9d"
+  },
+  "fixtureProvenance": {
+    "result": "PASS",
+    "method": "Fresh call_tool structured visual captures: Dallas/Houston comparison retains finance 2025 and outcome 2024; selected-district populations are retained.",
+    "normalCases": [
+      "district_money 057905",
+      "compare_districts 057905 + 101912",
+      "texas_overview"
+    ],
+    "edgeCases": "Negative, zero, missing, malformed, unsafe-URL, ambiguous-input and mixed-period cases are explicit in-test mutations and are not represented as public source facts."
+  },
+  "browserVerification": {
+    "command": "npx playwright test mcp-app.spec.js",
+    "result": "56 passed",
+    "playwright": "1.56.1",
+    "browsers": {
+      "chromium": "141.0.7390.37",
+      "firefox": "142.0.1"
+    },
+    "matrix": {
+      "views": [
+        "district",
+        "comparison",
+        "statewide"
+      ],
+      "hostViewports": [
+        {
+          "width": 1440,
+          "height": 900
+        },
+        {
+          "width": 768,
+          "height": 1024
+        },
+        {
+          "width": 390,
+          "height": 844
+        }
+      ],
+      "widgetFrameViewports": [
+        {
+          "width": 1440,
+          "height": 860
+        },
+        {
+          "width": 768,
+          "height": 984
+        },
+        {
+          "width": 390,
+          "height": 804
+        }
+      ],
+      "themes": [
+        "light",
+        "dark"
+      ],
+      "exactAssertions": [
+        "numeric values",
+        "period",
+        "unit",
+        "population",
+        "denominator",
+        "status",
+        "source label, URL and period",
+        "district name and six-digit ID",
+        "deduplicated source limits",
+        "deep link"
+      ]
+    },
+    "bridgeCases": [
+      "initialize request and initialized notification",
+      "delayed initialize response and visible loading state",
+      "initialize error",
+      "eight-second pending-request timeout",
+      "top-level load without a parent bridge",
+      "repeated tool-result updates without stale or duplicate DOM",
+      "tool error",
+      "absent and malformed visual payload",
+      "ambiguous district input-required fallback without tools/call",
+      "stale, unsolicited and malformed response envelopes",
+      "genuine sibling-frame spoof rejection",
+      "unsafe URL rejection"
+    ],
+    "chartSemantics": [
+      "Comparison scales are partitioned by metric definition, period, unit and denominator.",
+      "Negative groups use a visible zero baseline and direction attribute; zero and missing states remain distinct.",
+      "Singleton groups render numeric cards rather than decorative full-width bars.",
+      "The semantic table remains keyboard reachable and scrolls inside its own region at mobile width."
+    ],
+    "transport": {
+      "parent": "http://host.test/",
+      "widget": "http://widget.test/app in a sandbox=allow-scripts iframe",
+      "sourceCheck": "event.source === parent remains required in production and passed with native postMessage delivery",
+      "spoof": "A real sibling iframe invoked postMessage into the widget; its tool-result notification was rejected.",
+      "targetOrigin": "* is retained because the MCP Apps sandbox can have an opaque origin; trust is bound to the parent WindowProxy and JSON-RPC envelope."
+    },
+    "externalRequests": "PASS: every normal matrix case observed only the allowlisted local host, sibling and widget harness documents; no payload URL or third-party resource was fetched."
+  },
+  "resourceVerification": {
+    "command": ".venv\\Scripts\\python.exe -m pytest tests\\test_mcp_resources.py tests\\test_static_pages.py -q",
+    "result": "115 passed",
+    "csp": "Resource metadata keeps connectDomains, resourceDomains and frameDomains empty."
+  },
+  "screenshots": [
+    {
+      "path": "docs/evidence/mcp/e1-district-desktop-light-chromium.png",
+      "sha256": "c90cd99859fe17da1df78f1974395c42f0e0aa2b614bc340f7fb6ad0d570384a",
+      "bytes": 64908,
+      "hostViewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "widgetFrame": {
+        "width": 1440,
+        "height": 860
+      },
+      "theme": "light",
+      "view": "district",
+      "capturedAt": "2026-10-07T23:32:16.5673777Z"
+    },
+    {
+      "path": "docs/evidence/mcp/e1-comparison-tablet-dark-chromium.png",
+      "sha256": "c31e6f58903b6ed438db89f77f8aad1215a3f60b39e29e3ec7aed63829a221a4",
+      "bytes": 91266,
+      "hostViewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "widgetFrame": {
+        "width": 768,
+        "height": 984
+      },
+      "theme": "dark",
+      "view": "comparison",
+      "capturedAt": "2026-10-07T23:32:22.3140609Z"
+    },
+    {
+      "path": "docs/evidence/mcp/e1-statewide-mobile-light-chromium.png",
+      "sha256": "91884ff43910e40955e859a3c1f578eb2c77fc5ebc8a7e232178daed78a1fda6",
+      "bytes": 42275,
+      "hostViewport": {
+        "width": 390,
+        "height": 844
+      },
+      "widgetFrame": {
+        "width": 390,
+        "height": 804
+      },
+      "theme": "light",
+      "view": "statewide",
+      "capturedAt": "2026-10-07T23:32:24.3713446Z"
+    }
+  ],
+  "knownUpstreamDataIssues": [],
+  "remainingGates": [
+    "Actual ChatGPT must render the implemented resource at this revision before E-BRIDGE-01 can be marked fully PASS.",
+    "The automated 95/5 semantic painted-mark collector passes all 36 local cases; fresh independent semantic review remains pending."
+  ]
+}

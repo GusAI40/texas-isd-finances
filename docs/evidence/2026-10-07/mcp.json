@@ -1,0 +1,270 @@
+[
+  {
+    "tool": "find_district",
+    "http": 200,
+    "is_error": false,
+    "result_keys": [
+      "_meta",
+      "content",
+      "isError",
+      "resultType",
+      "structuredContent"
+    ],
+    "structured_keys": [
+      "limits",
+      "matches"
+    ],
+    "limits_present": true
+  },
+  {
+    "tool": "district_money",
+    "http": 200,
+    "is_error": false,
+    "result_keys": [
+      "_meta",
+      "content",
+      "isError",
+      "resultType",
+      "structuredContent"
+    ],
+    "structured_keys": [
+      "allocation",
+      "district_name",
+      "district_number",
+      "limits",
+      "own",
+      "recapture",
+      "reliability",
+      "revenue",
+      "students",
+      "tax",
+      "who_does_better",
+      "year"
+    ],
+    "limits_present": true
+  },
+  {
+    "tool": "district_lineage",
+    "http": 200,
+    "is_error": false,
+    "result_keys": [
+      "_meta",
+      "content",
+      "isError",
+      "resultType",
+      "structuredContent"
+    ],
+    "structured_keys": [
+      "aim_ok",
+      "artifact",
+      "available_metrics",
+      "calculation_version",
+      "denominator",
+      "denominator_type",
+      "district_number",
+      "fiscal_year",
+      "formula",
+      "fresh",
+      "gate",
+      "independent_test",
+      "limits",
+      "metric",
+      "notes",
+      "numerator",
+      "recomputed_from",
+      "recomputed_value",
+      "refused_because",
+      "rounding",
+      "source",
+      "source_url",
+      "source_vintage",
+      "unit",
+      "value"
+    ],
+    "limits_present": true
+  },
+  {
+    "tool": "district_forensics",
+    "http": 200,
+    "is_error": false,
+    "result_keys": [
+      "_meta",
+      "content",
+      "isError",
+      "resultType",
+      "structuredContent"
+    ],
+    "structured_keys": [
+      "absence_summary",
+      "absences",
+      "ballot",
+      "district_name",
+      "district_number",
+      "flags",
+      "limits",
+      "outside_operating",
+      "students",
+      "thresholds",
+      "where_it_landed",
+      "who_pays",
+      "year"
+    ],
+    "limits_present": true
+  },
+  {
+    "tool": "district_trends",
+    "http": 200,
+    "is_error": false,
+    "result_keys": [
+      "_meta",
+      "content",
+      "isError",
+      "resultType",
+      "structuredContent"
+    ],
+    "structured_keys": [
+      "change",
+      "district_name",
+      "district_number",
+      "limits",
+      "note",
+      "series",
+      "small_district",
+      "vs_state",
+      "years"
+    ],
+    "limits_present": true
+  },
+  {
+    "tool": "district_bonds",
+    "http": 200,
+    "is_error": false,
+    "result_keys": [
+      "_meta",
+      "content",
+      "isError",
+      "resultType",
+      "structuredContent"
+    ],
+    "structured_keys": [
+      "district_name",
+      "district_number",
+      "elections",
+      "limits",
+      "match",
+      "totals"
+    ],
+    "limits_present": true
+  },
+  {
+    "tool": "district_debt",
+    "http": 200,
+    "is_error": false,
+    "result_keys": [
+      "_meta",
+      "content",
+      "isError",
+      "resultType",
+      "structuredContent"
+    ],
+    "structured_keys": [
+      "clears_in",
+      "district_name",
+      "history",
+      "interest",
+      "interest_share_pct",
+      "limits",
+      "per_student",
+      "principal",
+      "students",
+      "total"
+    ],
+    "limits_present": true
+  },
+  {
+    "tool": "district_campuses",
+    "http": 200,
+    "is_error": false,
+    "result_keys": [
+      "_meta",
+      "content",
+      "isError",
+      "resultType",
+      "structuredContent"
+    ],
+    "structured_keys": [
+      "best",
+      "campuses",
+      "district_name",
+      "district_rating",
+      "district_score",
+      "limits",
+      "spans_grades",
+      "students_below_a_d",
+      "worst"
+    ],
+    "limits_present": true
+  },
+  {
+    "tool": "district_national",
+    "http": 200,
+    "is_error": false,
+    "result_keys": [
+      "_meta",
+      "content",
+      "isError",
+      "resultType",
+      "structuredContent"
+    ],
+    "structured_keys": [
+      "district_number",
+      "enroll_f33",
+      "leaid",
+      "limits",
+      "national",
+      "pctile",
+      "ppcs",
+      "states"
+    ],
+    "limits_present": true
+  },
+  {
+    "tool": "texas_overview",
+    "http": 200,
+    "is_error": false,
+    "result_keys": [
+      "_meta",
+      "content",
+      "isError",
+      "resultType",
+      "structuredContent"
+    ],
+    "structured_keys": [
+      "balanced_panel_check",
+      "deficit_by_year",
+      "limits",
+      "statewide",
+      "trend_change",
+      "trend_findings"
+    ],
+    "limits_present": true
+  },
+  {
+    "tool": "compare_districts",
+    "http": 200,
+    "is_error": false,
+    "result_keys": [
+      "_meta",
+      "content",
+      "isError",
+      "resultType",
+      "structuredContent"
+    ],
+    "structured_keys": [
+      "districts",
+      "limits",
+      "not_found"
+    ],
+    "limits_present": true
+  }
+]

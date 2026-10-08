@@ -133,8 +133,8 @@ def test_both_callers_resolve_the_same_provider(monkeypatch):
     providers — that would bill two accounts and half-fail."""
     clear(monkeypatch)
     monkeypatch.setenv("DEEPSEEK_API_KEY", "sk-ds")
-    engine_src = (Path(__file__).resolve().parent.parent / "src" / "nlp_engine.py").read_text()
-    intel_src = (Path(__file__).resolve().parent.parent / "scripts" / "isd_intel.py").read_text()
+    engine_src = (Path(__file__).resolve().parent.parent / "src" / "nlp_engine.py").read_text(encoding="utf-8")
+    intel_src = (Path(__file__).resolve().parent.parent / "scripts" / "isd_intel.py").read_text(encoding="utf-8")
     assert "resolve_llm_config" in engine_src
     assert "resolve_llm_config" in intel_src
     # Neither may read a provider key directly any more.
@@ -146,12 +146,12 @@ def test_operator_maps_and_render_blueprint_match_provider_selection():
     """Operator prose must not turn the alternate into the primary or imply
     request failover that the implementation does not perform."""
     root = Path(__file__).resolve().parent.parent
-    project_map = (root / "PROJECT_MAP.md").read_text()
+    project_map = (root / "PROJECT_MAP.md").read_text(encoding="utf-8")
     assert "DeepSeek active; OpenAI alternate" in project_map
     assert "No automatic request failover" in project_map
     assert "failed DeepSeek request is **not** retried against OpenAI" in project_map
 
-    render = (root / "render.yaml").read_text()
+    render = (root / "render.yaml").read_text(encoding="utf-8")
     assert "- key: NLP_PROVIDER\n        value: deepseek" in render
     assert "- key: DEEPSEEK_API_KEY" in render
     assert "not automatic failover" in render

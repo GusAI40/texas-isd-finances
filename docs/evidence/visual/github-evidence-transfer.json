@@ -1,0 +1,99 @@
+{
+  "original_unpublished_commit": "f868cedd4c46cf0ec45744ee933bbba9867a738c",
+  "recovery_ref": "recovery/report-screenshots-20261007",
+  "batches": [
+    {
+      "batch": 1,
+      "files": 54,
+      "bytes": 48598340,
+      "revision": "cbb4e3146f2eecaa3722c451d06496d97f40c7b0",
+      "remote_match": true
+    },
+    {
+      "batch": 2,
+      "files": 49,
+      "bytes": 49844559,
+      "revision": "99d8f709c4f9d92d049069b89f5c1de801601e38",
+      "remote_match": true
+    },
+    {
+      "batch": 3,
+      "files": 54,
+      "bytes": 49496194,
+      "revision": "7e59845d28766da392959557e701bc5223864894",
+      "remote_match": true
+    },
+    {
+      "batch": 4,
+      "files": 67,
+      "bytes": 47470003,
+      "revision": "16ef0e6dbcdf12d4f881403823b3efee2b59998d",
+      "remote_match": true
+    },
+    {
+      "batch": 5,
+      "files": 46,
+      "bytes": 48041849,
+      "revision": "2a3fa5ffdd1114275917ef348cff4653ac0fe406",
+      "remote_match": true
+    },
+    {
+      "batch": 6,
+      "files": 44,
+      "bytes": 49392149,
+      "revision": "8e3fa106c08721e2768837cc702a292cd18e4a73",
+      "remote_match": true
+    },
+    {
+      "batch": 7,
+      "files": 42,
+      "bytes": 47860312,
+      "revision": "38d70006e39a47265467381a54ba4b63f06f4157",
+      "remote_match": true
+    },
+    {
+      "batch": 8,
+      "files": 68,
+      "bytes": 49979585,
+      "revision": "17f5e88bb31e0e36cc0eef2c2aec9bf5d46f80c7",
+      "remote_match": true
+    },
+    {
+      "batch": 9,
+      "files": 71,
+      "bytes": 49956610,
+      "revision": "d5805cbcf4224b06b24c9e397da5af4f1651b1d8",
+      "remote_match": true
+    },
+    {
+      "batch": 10,
+      "files": 94,
+      "bytes": 49513917,
+      "revision": "14b1f1d601deda0dea0e9aa35333e208f05f31fb",
+      "remote_match": true
+    },
+    {
+      "batch": 11,
+      "files": 64,
+      "bytes": 48290800,
+      "revision": "60b5d760cb1f9526377ccfb3be5eca0fda45509a",
+      "remote_match": true
+    },
+    {
+      "batch": 12,
+      "files": 117,
+      "bytes": 41466889,
+      "revision": "f3d9d637c555fa0c1e9676672ed7010184fd3d25",
+      "remote_match": true
+    }
+  ],
+  "checked_at": "2026-10-08T00:59:26.605078+00:00",
+  "status": "PASS",
+  "image_checkpoint": "f3d9d637c555fa0c1e9676672ed7010184fd3d25",
+  "remote_checkpoint": "f3d9d637c555fa0c1e9676672ed7010184fd3d25",
+  "original_tree_sha1": "fc729622590eea76495243630ed39fdc4fdb33a7",
+  "image_checkpoint_tree_sha1": "fc729622590eea76495243630ed39fdc4fdb33a7",
+  "all_image_bytes_and_source_tree_preserved": true,
+  "initial_transport_attempt": "Single large archive push failed HTTP408; remote remained at76cacac. Full local snapshot kept recoverable.",
+  "verification_note": "All12 bounded pushes each matched their actual GitHub branch revision. The final long file-list comparison hit Windows WinError206; an independent whole-tree object comparison passed and verifies the same content without an oversized argument list. No source file was changed or removed."
+}

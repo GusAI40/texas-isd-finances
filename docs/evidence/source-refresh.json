@@ -1,0 +1,436 @@
+{
+  "review_date": "2026-10-07",
+  "evidence_scope": "Publisher product/schema/metadata plus explicitly bounded content samples; no served vintage changes.",
+  "register_corrections_to_plan": [
+    "TIGER register prose says2024/1005 but served metadata and freshness register say2025/1016.",
+    "Source module asserts every source requires no login; current district STAAR bulk export is verification gated.",
+    "freshness output recorded2026-08-12 identifies register date, not this retrieval date."
+  ],
+  "entries": [
+    {
+      "source_id": "tea_peims",
+      "product": "Summarized PEIMS Actual Financial Data",
+      "publisher": "Texas Education Agency",
+      "source_url": "https://tea.texas.gov/finance-and-grants/state-funding/state-funding-reports-and-data/peims-financial-data-downloads",
+      "check_url": "https://tea.texas.gov/finance-and-grants/state-funding/state-funding-reports-and-data/peims-financial-data-downloads",
+      "checked_at_utc": "2026-10-07T19:51:56.519359+00:00",
+      "served_coverage_register": "fiscal 2009–2025, every Texas school district",
+      "served_vintage": {
+        "vintage_year": 2025
+      },
+      "signal": {
+        "id": "tea_peims",
+        "method": "page_year",
+        "state": "OK",
+        "detail": "latest advertised release is 2025, which we have"
+      },
+      "disposition": "unresolved",
+      "conclusion": "latest advertised release is 2025, which we have. No full raw rebuild was performed.",
+      "retrieval_evidence": [],
+      "follow_up": "Recheck publisher before release; preserve current served vintage. Metadata/release parity does not certify all current rows.",
+      "raw_rebuild": "UNVERIFIED",
+      "served_artifact_changed": false
+    },
+    {
+      "source_id": "tea_snapshot",
+      "product": "Snapshot — District and Charter Detail",
+      "publisher": "Texas Education Agency",
+      "source_url": "https://rptsvr1.tea.texas.gov/perfreport/snapshot/download.html",
+      "check_url": "https://rptsvr1.tea.texas.gov/perfreport/snapshot/download.html",
+      "checked_at_utc": "2026-10-07T19:51:56.519359+00:00",
+      "served_coverage_register": "2009–2024",
+      "served_vintage": {
+        "vintage_year": 2024
+      },
+      "signal": {
+        "id": "tea_snapshot",
+        "method": "page_year",
+        "state": "NEWER",
+        "detail": "page now advertises 2025; we have 2024"
+      },
+      "disposition": "compatible_refresh_required",
+      "conclusion": "Publisher district detail2025: 1208 records/136columns; existing mapping43/44; accountability_rating absent.",
+      "retrieval_evidence": [
+        {
+          "file": "snap2025.dat",
+          "bytes": 742965,
+          "sha256": "2002513c984bb66ffd0d40863c40f93b2ada60d2489f1d2c6d373545cce2968a",
+          "captured_at_utc": "2026-10-07T19:49:02.991874+00:00"
+        },
+        {
+          "file": "snap2025.lyt",
+          "bytes": 10628,
+          "sha256": "890a2da3594370bce5637c704183ba0fa71bf28e8da6305458cdc90ce525304b",
+          "captured_at_utc": "2026-10-07T19:49:03.105088+00:00"
+        },
+        {
+          "file": "snapshot2025_report.json",
+          "bytes": 251,
+          "sha256": "5d23317a8dbba148b95e0e94773296659f2c282e35eb1533efae6881cc0f43b5",
+          "captured_at_utc": "2026-10-07T19:49:16.425691+00:00"
+        }
+      ],
+      "follow_up": "Download historical2009–2025 sources; preserve missing rating; validate mappings and dependent artifact diffs before serving2025.",
+      "raw_rebuild": "UNVERIFIED",
+      "served_artifact_changed": false
+    },
+    {
+      "source_id": "tea_staar_district",
+      "product": "STAAR Aggregate District-Level Results",
+      "publisher": "Texas Education Agency",
+      "source_url": "https://tea.texas.gov/student-assessment/student-assessment-results/statewide-summary-reports",
+      "check_url": "https://tea.texas.gov/student-assessment/student-assessment-results/statewide-summary-reports",
+      "checked_at_utc": "2026-10-07T19:51:56.519359+00:00",
+      "served_coverage_register": "school years 2024 and 2025",
+      "served_vintage": {
+        "vintage_year": 2025
+      },
+      "signal": {
+        "id": "tea_staar_district",
+        "method": "page_year",
+        "state": "NEWER",
+        "detail": "page now advertises 2026; we have 2025"
+      },
+      "disposition": "unresolved",
+      "conclusion": "Public page signal is statewide2025–2026 PDF, a different product. District bulk2026 CSV remains email-verification gated; no CSV obtained.",
+      "retrieval_evidence": [
+        {
+          "file": "staar_page.html",
+          "bytes": 255763,
+          "sha256": "da970564a015d02d5207c3f7e2eb213513ac9e317d6afb260427a620db66489a",
+          "captured_at_utc": "2026-10-07T19:48:39.292234+00:00"
+        }
+      ],
+      "follow_up": "Obtain authorized district aggregate export, validate actual period/schema, ingest and rebuild equity. Keep served2025 stale; do not bypass access gate.",
+      "raw_rebuild": "UNVERIFIED",
+      "served_artifact_changed": false
+    },
+    {
+      "source_id": "tea_property",
+      "product": "School District Property Values and Tax Rates",
+      "publisher": "Texas Education Agency with the Texas Comptroller",
+      "source_url": "https://tea.texas.gov/finance-and-grants/state-funding/additional-finance-resources/school-district-property-values-and-tax-rates",
+      "check_url": "https://tea.texas.gov/finance-and-grants/state-funding/additional-finance-resources/school-district-property-values-and-tax-rates",
+      "checked_at_utc": "2026-10-07T19:51:56.519359+00:00",
+      "served_coverage_register": "certified property values tax years 2015–2025; adopted tax rates 2005-06 to 2023-24",
+      "served_vintage": {
+        "vintage_year": 2025
+      },
+      "signal": {
+        "id": "tea_property",
+        "method": "page_year",
+        "state": "OK",
+        "detail": "latest advertised release is 2025, which we have"
+      },
+      "disposition": "unresolved",
+      "conclusion": "latest advertised release is 2025, which we have. No full raw rebuild was performed.",
+      "retrieval_evidence": [],
+      "follow_up": "Recheck publisher before release; preserve current served vintage. Metadata/release parity does not certify all current rows.",
+      "raw_rebuild": "UNVERIFIED",
+      "served_artifact_changed": false
+    },
+    {
+      "source_id": "tea_recapture",
+      "product": "Excess Local Revenue (recapture) paid by district",
+      "publisher": "Texas Education Agency",
+      "source_url": "https://tea.texas.gov/finance-and-grants/state-funding/excess-local-revenue",
+      "check_url": "https://tea.texas.gov/about-tea/state-funding/state-funding-reports-and-data/recapture-paid-by-district-1994-2026-nov-2025xlsx-0.xlsx",
+      "checked_at_utc": "2026-10-07T19:51:56.519359+00:00",
+      "served_coverage_register": "fiscal 1994–2026",
+      "served_vintage": {},
+      "signal": {
+        "id": "tea_recapture",
+        "method": "etag",
+        "state": "OK",
+        "detail": "Last-Modified unchanged since our ingest"
+      },
+      "disposition": "unresolved",
+      "conclusion": "Last-Modified unchanged since our ingest. No full raw rebuild was performed.",
+      "retrieval_evidence": [],
+      "follow_up": "Recheck publisher before release; preserve current served vintage. Metadata/release parity does not certify all current rows.",
+      "raw_rebuild": "UNVERIFIED",
+      "served_artifact_changed": false
+    },
+    {
+      "source_id": "bond_elections",
+      "product": "Texas school district bond election results",
+      "publisher": "Texas Bond Review Board",
+      "source_url": "https://data.texas.gov/d/kbmc-qmvg",
+      "check_url": "https://data.texas.gov/api/views/kbmc-qmvg.json",
+      "checked_at_utc": "2026-10-07T19:51:56.519359+00:00",
+      "served_coverage_register": "4,992 decided propositions, 1958–2026",
+      "served_vintage": {
+        "vintage_utc": "2026-08-14T04:02:26Z"
+      },
+      "signal": {
+        "id": "bond_elections",
+        "method": "socrata",
+        "state": "NEWER",
+        "detail": "portal says data updated 2026-10-06 19:25 UTC; our vintage is 2026-08-14T04:02:26Z"
+      },
+      "disposition": "unresolved",
+      "conclusion": "Current4992 decided ISD rows;3587carried/1405defeated; asked327565705853/approved262009640741;4000crediblevote rows. Aggregate parity with served artifact only.",
+      "retrieval_evidence": [
+        {
+          "file": "bond_meta.json",
+          "bytes": 19438,
+          "sha256": "a1758d2fe962e5fdcfdbfd5342ea5cb7b8a92ae7d4a2e6024172f91d4de0b8e4",
+          "captured_at_utc": "2026-10-07T19:49:25.793080+00:00"
+        },
+        {
+          "file": "bond_isd_decided.csv",
+          "bytes": 676771,
+          "sha256": "7a4d723331fd11c1df4e49ae5e2f1e213ab6589708f7bfa9691101decd6f3761",
+          "captured_at_utc": "2026-10-07T19:49:50.287252+00:00"
+        }
+      ],
+      "follow_up": "Compare every normalized proposition and district match using name+county. Equal counts/totals do not prove unchanged rows.",
+      "raw_rebuild": "UNVERIFIED",
+      "served_artifact_changed": false
+    },
+    {
+      "source_id": "tea_accountability",
+      "product": "Enhanced Statewide Summary — A–F accountability ratings",
+      "publisher": "Texas Education Agency",
+      "source_url": "https://tea.texas.gov/texas-schools/accountability/academic-accountability/performance-reporting/2025-enhanced-statewide-summary.xlsx",
+      "check_url": "https://tea.texas.gov/texas-schools/accountability/academic-accountability/performance-reporting/2026-enhanced-statewide-summary.xlsx",
+      "checked_at_utc": "2026-10-07T19:51:56.519359+00:00",
+      "served_coverage_register": "2025 ratings for 9,084 campuses and 1,208 districts, with enrolment and student need; the workbook also carries a longitudinal sheet back to 2011",
+      "served_vintage": {
+        "vintage_year": 2025
+      },
+      "signal": {
+        "id": "tea_accountability",
+        "method": "next_url",
+        "state": "OK",
+        "detail": "next release (2026-enhanced-statewide-summary.xlsx) is not published yet"
+      },
+      "disposition": "not_published",
+      "conclusion": "next release (2026-enhanced-statewide-summary.xlsx) is not published yet. No full raw rebuild was performed.",
+      "retrieval_evidence": [],
+      "follow_up": "Recheck publisher before release; preserve current served vintage. Metadata/release parity does not certify all current rows.",
+      "raw_rebuild": "UNVERIFIED",
+      "served_artifact_changed": false
+    },
+    {
+      "source_id": "brb_debt_outstanding",
+      "product": "Local government debt outstanding — school districts",
+      "publisher": "Texas Bond Review Board",
+      "source_url": "https://data.brb.texas.gov/",
+      "check_url": "https://data.brb.texas.gov/main_search.json",
+      "checked_at_utc": "2026-10-07T19:51:56.519359+00:00",
+      "served_coverage_register": "fiscal 2005–2025 actual, plus the amortisation schedule for debt already sold out to 2061; 967 districts",
+      "served_vintage": {},
+      "signal": {
+        "id": "brb_debt_outstanding",
+        "method": "etag",
+        "state": "NEWER",
+        "detail": "file changed upstream: ETag 'e8af0b3e06bc7cb4931b4fbc5aca1cfa' vs recorded '4bd6e99944bde968dc2f1369269e4696'"
+      },
+      "disposition": "unresolved",
+      "conclusion": "Publisher index changedETag e8af0b3e06bc7cb4931b4fbc5aca1cfa;1039ISD issuers. Dallas838 FY2025 principal4613765000 and interest2635128832.91 match served sample.",
+      "retrieval_evidence": [
+        {
+          "file": "brb_index.json",
+          "bytes": 1068009,
+          "sha256": "45251896cf53e66ec8d7d4b5750c0ac4d30c229326013cc56871d8bd525dfaec",
+          "captured_at_utc": "2026-10-07T19:50:05.815320+00:00"
+        },
+        {
+          "file": "brb_dallas_debt.csv",
+          "bytes": 2160,
+          "sha256": "ea36add9b0afc5bbff6b389e80e252f53ebe5d11b11bafe2e4c1d2c7cc7601f6",
+          "captured_at_utc": "2026-10-07T19:50:28.638338+00:00"
+        }
+      ],
+      "follow_up": "Fetch all1039 issuer series, deduplicate publisherID, validate all matches/periods against full served debt artifact. One sample cannot clear freshness.",
+      "raw_rebuild": "UNVERIFIED",
+      "served_artifact_changed": false
+    },
+    {
+      "source_id": "census_f33",
+      "product": "Annual Survey of School System Finances (F-33), district file, fiscal 2024",
+      "publisher": "US Census Bureau (public domain)",
+      "source_url": "https://www2.census.gov/programs-surveys/school-finances/tables/2024/secondary-education-finance/elsec24t.xlsx",
+      "check_url": "https://www2.census.gov/programs-surveys/school-finances/tables/2025/secondary-education-finance/elsec25t.xlsx",
+      "checked_at_utc": "2026-10-07T19:51:56.519359+00:00",
+      "served_coverage_register": "fiscal 2024, every U.S. public school system",
+      "served_vintage": {
+        "vintage_year": 2024
+      },
+      "signal": {
+        "id": "census_f33",
+        "method": "next_url",
+        "state": "OK",
+        "detail": "next release (elsec25t.xlsx) is not published yet"
+      },
+      "disposition": "not_published",
+      "conclusion": "next release (elsec25t.xlsx) is not published yet. No full raw rebuild was performed.",
+      "retrieval_evidence": [],
+      "follow_up": "Recheck publisher before release; preserve current served vintage. Metadata/release parity does not certify all current rows.",
+      "raw_rebuild": "UNVERIFIED",
+      "served_artifact_changed": false
+    },
+    {
+      "source_id": "nces_npefs",
+      "product": "National Public Education Financial Survey (NPEFS), state file, fiscal 2024",
+      "publisher": "National Center for Education Statistics",
+      "source_url": "https://nces.ed.gov/ccd/Data/txt/stfis24_1a.txt",
+      "check_url": "https://nces.ed.gov/ccd/Data/txt/stfis25_1a.txt",
+      "checked_at_utc": "2026-10-07T19:51:56.519359+00:00",
+      "served_coverage_register": "fiscal 2024, the 50 states, DC and 5 territories",
+      "served_vintage": {
+        "vintage_year": 2024
+      },
+      "signal": {
+        "id": "nces_npefs",
+        "method": "next_url",
+        "state": "OK",
+        "detail": "next release (stfis25_1a.txt) is not published yet"
+      },
+      "disposition": "not_published",
+      "conclusion": "next release (stfis25_1a.txt) is not published yet. No full raw rebuild was performed.",
+      "retrieval_evidence": [],
+      "follow_up": "Recheck publisher before release; preserve current served vintage. Metadata/release parity does not certify all current rows.",
+      "raw_rebuild": "UNVERIFIED",
+      "served_artifact_changed": false
+    },
+    {
+      "source_id": "ccd_lea_directory",
+      "product": "CCD Local Education Agency Directory, SY 2024-25 (v.1a)",
+      "publisher": "National Center for Education Statistics",
+      "source_url": "https://nces.ed.gov/ccd/Data/zip/ccd_lea_029_2425_w_1a_073025.zip",
+      "check_url": "https://nces.ed.gov/ccd/Data/zip/ccd_lea_029_2425_w_1a_073025.zip",
+      "checked_at_utc": "2026-10-07T19:51:56.519359+00:00",
+      "served_coverage_register": "SY 2024-25, every U.S. local education agency",
+      "served_vintage": {},
+      "signal": {
+        "id": "ccd_lea_directory",
+        "method": "etag",
+        "state": "OK",
+        "detail": "ETag unchanged since our ingest"
+      },
+      "disposition": "unresolved",
+      "conclusion": "ETag unchanged since our ingest. No full raw rebuild was performed.",
+      "retrieval_evidence": [],
+      "follow_up": "Recheck publisher before release; preserve current served vintage. Metadata/release parity does not certify all current rows.",
+      "raw_rebuild": "UNVERIFIED",
+      "served_artifact_changed": false
+    },
+    {
+      "source_id": "census_tiger",
+      "product": "TIGER/Line Unified School Districts, Texas",
+      "publisher": "US Census Bureau (public domain)",
+      "source_url": "https://www2.census.gov/geo/tiger/TIGER2025/UNSD/tl_2025_48_unsd.zip",
+      "check_url": "https://www2.census.gov/geo/tiger/TIGER2026/UNSD/tl_2026_48_unsd.zip",
+      "checked_at_utc": "2026-10-07T19:51:56.519359+00:00",
+      "served_coverage_register": "2024 boundaries, 1,005 districts",
+      "served_vintage": {
+        "vintage_year": 2025
+      },
+      "signal": {
+        "id": "census_tiger",
+        "method": "next_url",
+        "state": "NEWER",
+        "detail": "next release exists upstream (application/zip): https://www2.census.gov/geo/tiger/TIGER2026/UNSD/tl_2026_48_unsd.zip"
+      },
+      "disposition": "compatible_refresh_required",
+      "conclusion": "Publisher2026ZIP CRC passed;1016records/15DBFfields, structural match to served2025. Geometry difference not yet checked.",
+      "retrieval_evidence": [
+        {
+          "file": "tl_2026_48_unsd.zip",
+          "bytes": 16910208,
+          "sha256": "2490ecfd8047a1b0d1e2ec2c31d0bc2edde075e7b85b2d052ad600aca128c68f",
+          "captured_at_utc": "2026-10-07T19:50:40.726948+00:00"
+        }
+      ],
+      "follow_up": "Compare old/new geometry; validate sixdigit district/county crosswalks and thirteen shared-name pairs; rebuild map with explicit2026 metadata.",
+      "raw_rebuild": "UNVERIFIED",
+      "served_artifact_changed": false
+    },
+    {
+      "source_id": "usac_erate",
+      "product": "E-Rate Request for Discount on Services: FRN Status (FCC Form 471)",
+      "publisher": "Universal Service Administrative Company",
+      "source_url": "https://opendata.usac.org/Ancillary/E-Rate-Request-for-Discount-on-Services-FRN-Status/qdmp-ygft",
+      "check_url": "https://opendata.usac.org/api/views/qdmp-ygft.json",
+      "checked_at_utc": "2026-10-07T19:51:56.519359+00:00",
+      "served_coverage_register": "funding years 2016–2026, every Texas funding request",
+      "served_vintage": {
+        "vintage_utc": "2026-08-17T00:00:00Z"
+      },
+      "signal": {
+        "id": "usac_erate",
+        "method": "socrata",
+        "state": "NEWER",
+        "detail": "portal says data updated 2026-10-07 09:37 UTC; our vintage is 2026-08-17T00:00:00Z"
+      },
+      "disposition": "compatible_refresh_required",
+      "conclusion": "Metadata updated2026-10-07. TX91921FRNs vs served91332. Funded41867 requests; commitments2361216998.29, authorized disbursements1950443006.74.",
+      "retrieval_evidence": [
+        {
+          "file": "usac_qdmp-ygft.json",
+          "bytes": 210688,
+          "sha256": "afb484abace34d18067eb3697b22ada06a8aabe2390ce89d11b7b4b5180a9382",
+          "captured_at_utc": "2026-10-07T19:50:54.191954+00:00"
+        }
+      ],
+      "follow_up": "Co-ingest FRN/entity files into isolated inputs; retain Funded-only commitments and refusal on competing match disagreement; independently reconcile totals before serving.",
+      "raw_rebuild": "UNVERIFIED",
+      "served_artifact_changed": false
+    },
+    {
+      "source_id": "usac_entities",
+      "product": "E-Rate Supplemental Entity Information",
+      "publisher": "Universal Service Administrative Company",
+      "source_url": "https://opendata.usac.org/Ancillary/E-Rate-Supplemental-Entity-Information/7i5i-83qf",
+      "check_url": "https://opendata.usac.org/api/views/7i5i-83qf.json",
+      "checked_at_utc": "2026-10-07T19:51:56.519359+00:00",
+      "served_coverage_register": "every Texas E-Rate entity (applicants and their schools)",
+      "served_vintage": {
+        "vintage_utc": "2026-08-17T00:00:00Z"
+      },
+      "signal": {
+        "id": "usac_entities",
+        "method": "socrata",
+        "state": "NEWER",
+        "detail": "portal says data updated 2026-10-07 09:37 UTC; our vintage is 2026-08-17T00:00:00Z"
+      },
+      "disposition": "compatible_refresh_required",
+      "conclusion": "Metadata updated2026-10-07. TX19825entities;105metadata columns; required identity/match fields exist.",
+      "retrieval_evidence": [
+        {
+          "file": "usac_7i5i-83qf.json",
+          "bytes": 149653,
+          "sha256": "0553ae47166894862ab15ad8d920d06d49577e282289cdc9003f5aa62cb0ca09",
+          "captured_at_utc": "2026-10-07T19:50:55.062115+00:00"
+        }
+      ],
+      "follow_up": "Co-ingest with FRNs; preserve unanimous child-code and name+county resolver, quantify unmatched/refused records before rebuilding.",
+      "raw_rebuild": "UNVERIFIED",
+      "served_artifact_changed": false
+    },
+    {
+      "source_id": "bls_cpi",
+      "product": "CPI-U, annual average",
+      "publisher": "US Bureau of Labor Statistics",
+      "source_url": "https://www.bls.gov/cpi/",
+      "check_url": "https://www.bls.gov/cpi/",
+      "checked_at_utc": "2026-10-07T19:51:56.519359+00:00",
+      "served_coverage_register": "2009–2025",
+      "served_vintage": {},
+      "signal": {
+        "id": "bls_cpi",
+        "method": "unverifiable",
+        "state": "UNVERIF",
+        "detail": "Dynamic page: no Last-Modified, no ETag, no dataset metadata API. CPI-U annual averages change once a year in mid-January; the constant-dollar base year (2024) is pinned deliberately and does not track releases."
+      },
+      "disposition": "unresolved",
+      "conclusion": "No stable machine-readable freshness signal. Constant-dollar base2024 intentionally pinned.",
+      "retrieval_evidence": [],
+      "follow_up": "Verify annual CPI inputs from publisher before any base-year change; a current landing page is insufficient.",
+      "raw_rebuild": "UNVERIFIED",
+      "served_artifact_changed": false
+    }
+  ]
+}

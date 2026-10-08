@@ -121,7 +121,7 @@ def test_only_health_and_cron_are_exempt():
 def test_auth_uses_constant_time_comparison():
     """A plain == leaks the password one character at a time to anyone patient
     enough to measure. Assert the module uses compare_digest."""
-    src = (Path(__file__).resolve().parent.parent / "src" / "site_gate.py").read_text()
+    src = (Path(__file__).resolve().parent.parent / "src" / "site_gate.py").read_text(encoding="utf-8")
     assert "compare_digest" in src
     assert check_basic_auth(basic("u", "p"), "u", "p") is True
     assert check_basic_auth(basic("u", "p"), "u", "q") is False
@@ -131,12 +131,12 @@ def test_password_is_never_hardcoded():
     """The password lives in the environment, never in the repository — so
     rotating it is an env-var change, and git history never carries it."""
     root = Path(__file__).resolve().parent.parent
-    src = (root / "src" / "site_gate.py").read_text()
+    src = (root / "src" / "site_gate.py").read_text(encoding="utf-8")
     assert "SITE_PASSWORD" in src, "the password must come from the environment"
     # No string literal is ever compared against as the password.
     assert 'SITE_PASSWORD", "' not in src, "no default password may be baked in"
     # And the real password must not appear anywhere in the tracked tree.
     for path in (root / "src").rglob("*.py"):
-        assert "txisd1000" not in path.read_text(), path
+        assert "txisd1000" not in path.read_text(encoding="utf-8"), path
     for path in (root / "static").glob("*.html"):
-        assert "txisd1000" not in path.read_text(), path
+        assert "txisd1000" not in path.read_text(encoding="utf-8"), path
