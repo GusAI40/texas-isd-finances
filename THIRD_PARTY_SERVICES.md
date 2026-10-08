@@ -68,3 +68,20 @@ Current implementation checks, source vintages, production state, and distributi
 limits are recorded in [docs/RELEASE_EVIDENCE.md](docs/RELEASE_EVIDENCE.md). A
 development registration, portable ZIP, and public directory listing are separate
 states; none should be inferred from the others.
+
+## Candidate reviewed during completion: OpenAI Decisions
+
+The user supplied the Decisions API documentation on 2026-10-07. The
+[official guide](https://developers.openai.com/api/docs/guides/decisions) was
+checked the same day. Its typed predicate, choice, and score answers could
+support a future screenshot review queue, for example flagging missing visible
+fiscal years or choosing which report needs inspection. This is a proposed use,
+not an active integration: no SDK upgrade, request, credential change, or new
+runtime dependency was introduced. Account access and actual charges were not
+tested.
+
+A model's confidence or rubric score would not establish the 95/5 area ratio,
+financial accuracy, accessibility, or public plugin availability. The current
+release uses measured painted marks, source/fixture hashes, and independent
+review. A future Decisions pilot would need labeled examples, explicit failure
+thresholds, and checks against that evidence before influencing a release.

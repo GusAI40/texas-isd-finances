@@ -875,6 +875,16 @@
   .guide .gstake { font-size:var(--fs-sm); color:var(--ink); margin:.65rem 0 0; }
   .guide .gstake b { font-variant-numeric:tabular-nums; }
   .guide .ghint { font-size:var(--fs-xs); color:var(--muted); margin-top:.6rem; }
+  .guide .guide-facts, .numeric-facts { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.4rem; margin-top:.7rem; }
+  .guide .guide-facts span, .numeric-facts span { display:block; min-width:0; padding:.38rem .45rem; background:color-mix(in srgb,var(--surface) 72%,transparent); border-radius:var(--r-sm); overflow-wrap:anywhere; }
+  .guide .guide-facts b, .numeric-facts b { display:block; font-variant-numeric:tabular-nums; color:var(--ink); }
+  .guide .guide-facts small, .numeric-facts small { display:block; color:var(--muted); font-size:var(--fs-micro); line-height:1.2; }
+  .guide details, .flagcard details { margin-top:.55rem; color:var(--ink-2); font-size:var(--fs-sm); }
+  .guide summary, .flagcard summary { cursor:pointer; color:var(--muted); }
+  .flagcard .numeric-facts { grid-template-columns:repeat(3,minmax(0,1fr)); }
+  .flagcard .numeric-facts span { background:var(--surface); }
+  .flagcard .record-type { color:var(--muted); font-size:var(--fs-xs); }
+  @media (max-width:620px) { .guide .guide-facts, .numeric-facts, .flagcard .numeric-facts { grid-template-columns:repeat(2,minmax(0,1fr)); } }
   /* three 100¢ bars: you / similar districts / all Texas */
   .cmpbars { margin:1.3rem 0 .2rem; max-width:760px; }
   .cmprow { display:grid; grid-template-columns:8.5rem minmax(0,1fr) 3.2rem; align-items:center;
@@ -1590,11 +1600,9 @@
 
     <hr class="rule">
     <section id="turnaround-section" class="hidden" data-section="turnaround">
-      <div class="eyebrow">Proof it's doable</div>
+      <div class="eyebrow">Historical peer records</div>
       <h2 class="action" id="turnaround-title"></h2>
-      <p class="support">Found by scanning the 17-year history of your structurally similar
-        districts for sustained problems that later reversed. Worth a phone call — they solved
-        a problem shaped like yours.</p>
+      <div class="support" id="turnaround-context"></div>
       <div id="turnaroundlist"></div>
       <div class="cite" id="turnaround-cite"></div>
     </section>
@@ -1956,8 +1964,7 @@ function focusCat(k) {
   c.querySelectorAll('.bar span').forEach(el => el.classList.toggle('on', el.dataset.k === k));
   setCmpValues(k);
   $('guide').innerHTML = (defaulted
-    ? `<div class="rest">Showing the biggest penny. <strong>Point at any square</strong> — ` +
-      `or tap one — to see what that one pays for instead.</div>`
+    ? `<div class="rest">Select a spending category.</div>`
     : '') + guideHTML(k);
 }
 function hoverCat(k) { state.dollarHover = k; focusCat(k || state.dollarPin); }
@@ -1971,28 +1978,28 @@ function guideHTML(k) {
       `how it compares with districts like this one and with all of Texas, and what the difference is ` +
       `worth in real dollars. Click to open the full detail.</div>`;
   }
-  const cmp = [];
-  if (p.peer_cents != null) cmp.push(`districts like this one put <b>${p.peer_cents}¢</b> here`);
-  if (p.state_cents != null) cmp.push(`Texas as a whole, <b>${p.state_cents}¢</b>`);
   const v = p.dollars_vs_peers;
-  let stake = '';
-  if (v != null) {
-    const per = Math.abs(v) / d.enrollment;
-    stake = per < 25
-      ? `That is within a rounding difference of similar districts.`
-      : `That is <b>${fmtMoney(Math.abs(v))} ${v > 0 ? 'more' : 'less'} a year</b> than similar ` +
-        `districts spend here — about <b>${fmtMoney(per)} per student</b>.`;
-  }
-  const trend = p.cents_prev != null && state.dollar.prev_year
-    ? `Was ${p.cents_prev}¢ in ${state.dollar.prev_year}. ` : '';
+  const per = v != null && d.enrollment > 0 ? Math.abs(v) / d.enrollment : null;
+  const change = v == null ? 'Not available' : `${v >= 0 ? '+' : '−'}${fmtMoney(Math.abs(v))}`;
+  const changeLabel = v == null ? 'Peer annual difference' : `Peer annual difference (${v >= 0 ? 'above' : 'below'})`;
+  const facts = [
+    ['District share', `${p.cents}¢`],
+    ['Similar districts', p.peer_cents == null ? 'Not available' : `${p.peer_cents}¢`],
+    ['Texas', p.state_cents == null ? 'Not available' : `${p.state_cents}¢`],
+    ['Category total', fmtMoney(p.amount)],
+    ['Per student', p.per_student == null ? 'Not available' : fmtMoney(p.per_student)],
+    [changeLabel, change],
+    [`Previous (${state.dollar.prev_year || 'year unavailable'})`, p.cents_prev == null ? 'Not available' : `${p.cents_prev}¢`],
+    ['Peer difference / student', per == null ? 'Not available' : fmtMoney(per)],
+  ].map(([label, value]) => `<span><small>${label}</small><b>${value}</b></span>`).join('');
   return `<div class="gcat"><i style="background:${p.color}"></i>${p.name}</div>` +
-    `<div class="gbig">${p.cents}¢</div>` +
-    `<div class="gsub">${fmtMoney(p.amount)} total · ${fmtMoney(p.per_student)} per student</div>` +
-    `<div class="gwhat"><strong>What's counted here:</strong> ${p.contents}</div>` +
+    `<div class="gsub">All-funds spending · fiscal ${d.year} · ${fmtNum(d.enrollment)} students</div>` +
+    `<div class="guide-facts" data-visual-component="penny-comparison">${facts}</div>` +
+    `<div class="gwhat"><strong>Included:</strong> ${p.contents}</div>` +
     `<div class="gcodes">${p.codes}</div>` +
-    (cmp.length ? `<div class="gstake">For comparison, ${cmp.join('; ')}. ${stake}</div>`
-                : (stake ? `<div class="gstake">${stake}</div>` : '')) +
-    `<div class="ghint">${trend}${state.dollarPin === k ? 'Open below <svg class="ico" aria-hidden="true"><use href="#i-arrow-down"/></svg>' : 'Click for the full detail <svg class="ico" aria-hidden="true"><use href="#i-arrow-down"/></svg>'}</div>`;
+    `<details><summary>Category definition and comparison method</summary>` +
+    `<div>The district value is this category's share of its all-funds spending. Similar districts (${fmtNum(state.dollar.peer_count)}) and Texas (${fmtNum(state.dollar.state_count)}) show rescaled median category shares, not a particular peer's budget. Structural peers are matched on size, enrollment trend, and funding capacity, never on spending.</div></details>` +
+    `<div class="ghint">${state.dollarPin === k ? 'Pinned category; use the detail below for its history.' : 'Select a category to pin its history and source detail.'}</div>`;
 }
 
 /* ---- atom: the pinned category, all the way down ---- */
@@ -3746,14 +3753,14 @@ function renderMoney() {
 
 /* ---------- flags with before/after numbers ---------- */
 const FLAG_META = {
-  revenue_drop_flag: ['Revenue dropped more than 15%', f => `Revenue went from ${fmtMoney(f.prev_revenue)} to ${fmtMoney(f.total_revenue)}`,
-    'Often innocent: a one-time grant ended, pandemic funds expired, or property values were re-assessed.'],
-  spend_spike_flag: ['All-funds spending jumped more than 20% with flat enrollment', f => `Total outlay went from ${fmtMoney(f.prev_spend)} to ${fmtMoney(f.total_spend)} while enrollment stayed near ${fmtNum(f.enrollment)} — in most districts this is a bond construction year, not an operating change`,
-    'Often innocent: a construction year, a settlement, or a large one-time purchase.'],
-  per_student_spike_flag: ['Per-student spending rose more than 15%', f => `From ${fmtMoney(f.prev_spend_per_student)} to ${fmtMoney(f.spend_per_student)} per student`,
-    'In small districts a few students leaving causes this by division alone — check enrollment.'],
-  enrollment_decline_flag: ['Enrollment fell more than 10% in one year', f => `From ${fmtNum(f.prev_enrollment)} to ${fmtNum(f.enrollment)} students`,
-    'Check whether it is a one-year dip (boundary change, new charter) or a multi-year slide.'],
+  revenue_drop_flag: ['Revenue dropped more than 15%', 'Revenue', f => [fmtMoney(f.prev_revenue), fmtMoney(f.total_revenue)],
+    'Possible review context includes one-time grants ending, pandemic funds expiring, or property-value reassessments.'],
+  spend_spike_flag: ['All-funds spending (including construction and debt) jumped more than 20% with flat enrollment', 'All-funds outlay', f => [fmtMoney(f.prev_spend), fmtMoney(f.total_spend)],
+    'Construction, settlements, and one-time purchases can affect all-funds spending. Construction and debt are not operating spending.'],
+  per_student_spike_flag: ['Per-student spending rose more than 15%', 'Spending / student', f => [fmtMoney(f.prev_spend_per_student), fmtMoney(f.spend_per_student)],
+    'Per-student calculations can move because spending, enrollment, or both change. In smaller districts, a few students can materially affect a ratio.'],
+  enrollment_decline_flag: ['Enrollment fell more than 10% in one year', 'Enrollment', f => [fmtNum(f.prev_enrollment), fmtNum(f.enrollment)],
+    'A one-year change can reflect a boundary change or a new charter; a multi-year trend needs separate review.'],
 };
 function renderFlags() {
   const el = $('flaglist');
@@ -3770,16 +3777,19 @@ function renderFlags() {
     el.innerHTML = '<div class="flagcard ok">Nothing tripped the automatic checks for this district in any year.</div>';
     return;
   }
-  const notes = new Set();
   const cards = flagged.sort((a, b) => b.year - a.year).map(f => {
     const items = Object.keys(FLAG_META).filter(k => f[k]).map(k => {
-      const [what, nums, why] = FLAG_META[k];
-      notes.add(why);
-      return `<strong>${what}.</strong> <span class="nums">${nums(f)}.</span>`;
+      const [what, measure, values, note] = FLAG_META[k];
+      const [before, after] = values(f);
+      return `<div class="flag-measure"><strong>${what}</strong>` +
+        `<div class="numeric-facts" data-visual-component="anomaly-values"><span><small>${measure} before</small><b>${before}</b></span>` +
+        `<span><small>${measure} flagged year</small><b>${after}</b></span></div>` +
+        `<details><summary>Review context</summary><div>${note}</div></details></div>`;
     }).join('<br>');
-    return `<div class="flagcard"><strong>Fiscal ${f.year}</strong><br>${items}</div>`;
+    return `<div class="flagcard"><strong>Fiscal ${f.year}</strong>${items}</div>`;
   }).join('');
-  el.innerHTML = cards + `<div class="flagcard flag-notes">${[...notes].join(' ')}</div>`;
+  el.innerHTML = `<div class="flagcard flag-notes"><strong>How to read these checks</strong><br>` +
+    `Automatic flags are review prompts, not findings. Per-student changes depend on both spending and enrollment.</div>` + cards;
 }
 
 /* ---------- actionable intelligence (peer-benchmarked findings) ---------- */
@@ -4929,10 +4939,17 @@ function renderInsights() {
     const arrow = up ? '<svg class="ico" aria-hidden="true"><use href="#i-chevron-up"/></svg>' : '<svg class="ico" aria-hidden="true"><use href="#i-chevron-down"/></svg>';
     const val = it.unit.includes('per student') ? fmtMoney(it.your_value) : (it.your_value * 100).toFixed(1) + '%';
     const pm = it.unit.includes('per student') ? fmtMoney(it.peer_median) : (it.peer_median * 100).toFixed(1) + '%';
+    const difference = `${Math.abs(it.pct_vs_peers)}% ${it.direction} peer median`;
     return `<div class="flagcard ${cls}">
-      <strong>${it.metric}: ${Math.abs(it.pct_vs_peers)}% ${it.direction} peers</strong>
-      &nbsp;<span style="font-weight:650">${it.annual_dollars_vs_peers}</span><br>
-      <span class="nums">You: ${val} ${it.unit} · peer median: ${pm}.</span> ${arrow} ${it.finding}
+      <strong>${it.metric}</strong><span class="record-type"> · fiscal ${data.year}</span>
+      <div class="numeric-facts" data-visual-component="peer-outlier-values">
+        <span><small>District (${it.unit})</small><b>${val}</b></span>
+        <span><small>Peer median (${it.unit})</small><b>${pm}</b></span>
+        <span><small>Difference</small><b>${difference}</b></span>
+        <span><small>Annual peer comparison</small><b>${it.annual_dollars_vs_peers}</b></span>
+      </div>
+      <div class="record-type">Descriptive comparison; not a cause or finding of waste. ${arrow}</div>
+      <details><summary>Interpretation and method</summary><div>${it.finding} This comparison uses ${data.peer_count} structural peers in fiscal ${data.year}; it does not establish a cause or predict a change.</div></details>
     </div>`;
   }).join('');
   cite('insights-cite', `benchmarked against ${data.peer_count} structural peers, fiscal ${data.year}`);
@@ -5015,14 +5032,30 @@ function renderTurnarounds() {
   sec.classList.remove('hidden');
   const nDef = t.filter(x => x.type === 'deficit_reversal').length;
   const nEnr = t.filter(x => x.type === 'enrollment_reversal').length;
+  const peersScanned = state.turnarounds?.peers_scanned;
   $('turnaround-title').textContent =
     `Peer turnaround records · ${nDef} deficit · ${nEnr} enrollment`;
-  $('turnaroundlist').innerHTML = t.map(x =>
-    `<div class="flagcard ok"><strong>${titleCase(x.district_name)}</strong> — ` +
-    (x.type === 'deficit_reversal'
-      ? `ran deficits ${x.struggled}, back in surplus since ${x.recovered_since}.`
-      : `lost enrollment ${x.struggled}, growing again since ${x.recovered_since}.`) +
-    `</div>`).join('');
+  const context = $('turnaround-context');
+  context.hidden = false;
+  context.removeAttribute('aria-hidden');
+  context.innerHTML = `<strong>Historical peer records only.</strong> ` +
+    (peersScanned == null ? '' : `${fmtNum(peersScanned)} structural peers scanned. `) +
+    `Fiscal periods are reported on each card; source and matching method are cited below. ` +
+    `They do not establish causes or predict this district.`;
+  $('turnaroundlist').innerHTML = t.map(x => {
+    const deficit = x.type === 'deficit_reversal';
+    const type = deficit ? 'Deficit reversal' : 'Enrollment reversal';
+    const measure = deficit ? 'Fiscal deficit period' : 'Fiscal enrollment decline period';
+    const recovery = deficit ? 'First fiscal surplus year' : 'First fiscal growth year';
+    const interpretation = deficit
+      ? `The supplied record reports deficits in ${x.struggled} and a surplus beginning ${x.recovered_since}.`
+      : `The supplied record reports enrollment decline in ${x.struggled} and growth beginning ${x.recovered_since}.`;
+    return `<div class="flagcard ok"><strong>${titleCase(x.district_name)}</strong><span class="record-type"> · ${type}</span>` +
+      `<div class="numeric-facts" data-visual-component="turnaround-period-values">` +
+      `<span><small>${measure}</small><b>${x.struggled || 'Not available'}</b></span>` +
+      `<span><small>${recovery}</small><b>${x.recovered_since || 'Not available'}</b></span></div>` +
+      `<details><summary>Historical record and limit</summary><div>${interpretation} Historical peer examples do not establish causes or predict this district's results.</div></details></div>`;
+  }).join('');
   cite('turnaround-cite');
 }
 

@@ -750,3 +750,76 @@ test('C-FLOW-01 public route render inventory stays available', async ({ page, b
   }
   assertPassiveIsolation(audit);
 });
+
+test('POP-COMP-01 populated report cards retain numeric evidence and accessible detail', async ({ page }) => {
+  test.setTimeout(90000);
+  await page.setViewportSize(viewports[2]);
+  const audit = await fixturePage(page);
+  await page.goto('/?d=061910');
+  await waitForDashboard(page);
+
+  const guide = page.locator('#guide');
+  await expect(guide).toContainText(/all-funds spending.*fiscal 2025/i);
+  await expect(guide.locator('[data-visual-component="penny-comparison"]')).toContainText(/Similar districts/);
+  await expect(guide.locator('[data-visual-component="penny-comparison"]')).toContainText(/Texas/);
+  const guideDetail = guide.locator('summary', { hasText: /category definition and comparison method/i });
+  await expect(guideDetail.locator('..')).not.toHaveAttribute('open', '');
+  await expect(guide.locator('.gsub')).toBeVisible();
+  await expect(guide.locator('[data-visual-component="penny-comparison"]')).toBeVisible();
+  await guideDetail.focus(); await page.keyboard.press('Enter');
+  await expect(guideDetail.locator('..')).toHaveAttribute('open', '');
+  await expect(guideDetail.locator('..')).toContainText(/rescaled median category shares/i);
+
+  const construction = page.locator('#penny-legend button[data-k="construction"]');
+  await construction.hover();
+  await expect(guide).toContainText(/Construction/);
+  await page.evaluate(() => pinCat('construction'));
+  await expect(page.locator('#atom')).toBeVisible();
+  await expect(guide).toContainText(/Pinned category/i);
+  const zeroMissingGuide = await page.evaluate(() => {
+    state.dollarHover = null;
+    const zero = state.dollar.parts.find(part => part.key === 'community');
+    zero.peer_cents = null;
+    zero.state_cents = null;
+    zero.dollars_vs_peers = null;
+    return guideHTML('community');
+  });
+  expect(zeroMissingGuide).toMatch(/Category total<\/small><b>\$0<\/b>/);
+  expect(zeroMissingGuide).toContain('Not available');
+
+  const insight = page.locator('#insightlist .flagcard').first();
+  await expect(insight.locator('[data-visual-component="peer-outlier-values"]')).toContainText(/District/);
+  await expect(insight).toContainText(/Descriptive comparison; not a cause or finding of waste/i);
+  const insightDetail = insight.locator('summary', { hasText: /interpretation and method/i });
+  await expect(insightDetail.locator('..')).not.toHaveAttribute('open', '');
+  await expect(insight.locator('.record-type').first()).toBeVisible();
+  await insightDetail.focus(); await page.keyboard.press('Enter');
+  await expect(insightDetail.locator('..')).toContainText(/Debt payments per student are heavier than peers/i);
+
+  const turnaround = page.locator('#turnaroundlist .flagcard').first();
+  await expect(turnaround.locator('[data-visual-component="turnaround-period-values"]')).toContainText(/2011-2013/);
+  const turnaroundDetail = turnaround.locator('summary', { hasText: /historical record and limit/i });
+  await expect(turnaroundDetail.locator('..')).not.toHaveAttribute('open', '');
+  await turnaroundDetail.focus(); await page.keyboard.press('Enter');
+  await expect(turnaroundDetail.locator('..')).toContainText(/do not establish causes or predict/i);
+  await expect(page.locator('#turnaround-context')).toBeVisible();
+  await expect(page.locator('#turnaround-context')).toContainText(/12 structural peers scanned/i);
+  await expect(page.locator('#turnaround-context')).toContainText(/do not establish causes or predict this district/i);
+
+  await page.goto('/?d=091907');
+  await waitForDashboard(page);
+  await expect(page.locator('#turnaroundlist .flagcard')).toHaveCount(9);
+  await expect(page.locator('#insightlist .flagcard')).toHaveCount(1);
+  await expect(page.locator('#turnaround-context')).toContainText(/12 structural peers scanned/i);
+  await expect(page.locator('#turnaround-context')).toContainText(/Fiscal periods are reported on each card/i);
+  await expect(page.locator('#turnaround-context')).toContainText(/do not establish causes or predict this district/i);
+
+  await page.goto('/?d=057905');
+  await waitForDashboard(page);
+  await expect(page.locator('#flaglist')).toContainText(/Automatic flags are review prompts/i);
+  await expect(page.locator('#flaglist')).not.toContainText(/In small districts a few students leaving causes this/i);
+  const flagDetail = page.locator('#flaglist details summary').first();
+  await flagDetail.focus(); await page.keyboard.press('Enter');
+  await expect(flagDetail.locator('..')).toContainText(/Possible review context|Construction, settlements|Per-student calculations/i);
+  assertPassiveIsolation(audit);
+});
