@@ -11,6 +11,7 @@ This is the short route through the public-data portal documentation. It does no
 | Safe finance migration and recovery instructions | [Finance reconciliation runbook](docs/FINANCE_SUMMARY_RECONCILIATION.md) |
 | Measured 95% visual / 5% prose rule | [Visual implementation plan](docs/VISUAL_IMPLEMENTATION_PLAN.md), [design contract](docs/VISUAL_DESIGN_CONTRACT.md) |
 | Honest historical and prototype visual evidence | [Evidence scope refinement](docs/VISUAL_EVIDENCE_REFINEMENT.md) |
+| Fully populated report composition under the unchanged 95/5 rule | [Populated-report refinement](docs/POPULATED_REPORT_95_REFINEMENT.md) |
 | Financial framing and keyboard/map repairs | [Framing refinement](docs/FRAMING_TEST_REFINEMENT.md), [workflow repair refinement](docs/PUBLIC_WORKFLOW_REPAIR_REFINEMENT.md) |
 | ChatGPT connection, visual resource, and portable package | [Plugin implementation plan](docs/MCP_PLUGIN_IMPLEMENTATION_PLAN.md), [ChatGPT guide](docs/CHATGPT_PLUGIN.md) |
 | Downloadable plugin and archive integrity | [Portable ZIP](docs/artifacts/texas-isd-finances-plugin.zip), [archive validation](docs/evidence/mcp/portable-archive.json) |

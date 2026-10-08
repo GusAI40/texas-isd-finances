@@ -1,8 +1,3816 @@
 {
-  "checked_at": "2026-10-07T21:54:51.000835+00:00",
-  "deployment_revision": "0c0c0f36af91a43203a3d4160089eae085df42d4",
-  "endpoint": "https://texas-isd-finances-r02nbo0b1-tag-ai-projects.vercel.app/mcp",
+  "checked_at": "2026-10-07T23:57:37.990825+00:00",
+  "deployment_revision": "1526236dc6153354257f5c41a54385c81ace25de",
+  "endpoint": "https://texas-isd-finances-4637p9ee8-tag-ai-projects.vercel.app/mcp",
   "client": "Vercel CLI 60.1.3 authenticated HTTP probe; not an actual ChatGPT frame",
+  "health": {
+    "status": "healthy",
+    "database": "connected",
+    "llm": "openai:gpt-4o-mini via api.openai.com (NO KEY SET)",
+    "tracking_schema": "ready",
+    "revision": "1526236dc6153354257f5c41a54385c81ace25de"
+  },
+  "discovery": {
+    "tools": {
+      "jsonrpc": "2.0",
+      "id": 1,
+      "result": {
+        "resultType": "complete",
+        "tools": [
+          {
+            "name": "find_district",
+            "title": "Find a Texas school district",
+            "description": "Turn a district name into its six-digit TEA district number. Call this first: Texas has thirteen pairs of districts that share a name, so a name alone cannot identify one.",
+            "inputSchema": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "minLength": 2,
+                  "description": "Part of a district name, e.g. 'Dallas' or 'Wylie'."
+                }
+              },
+              "required": [
+                "name"
+              ],
+              "additionalProperties": false
+            },
+            "outputSchema": {
+              "type": "object",
+              "properties": {
+                "matches": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "district_number": {
+                        "type": "string",
+                        "pattern": "^[0-9]{6}$"
+                      },
+                      "district_name": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "students": {
+                        "anyOf": [
+                          {
+                            "type": "integer",
+                            "minimum": 0
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    },
+                    "required": [
+                      "district_number",
+                      "district_name",
+                      "students"
+                    ]
+                  },
+                  "minItems": 1,
+                  "maxItems": 12
+                },
+                "limits": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              },
+              "required": [
+                "matches",
+                "limits"
+              ]
+            },
+            "annotations": {
+              "readOnlyHint": true,
+              "openWorldHint": false
+            }
+          },
+          {
+            "name": "district_money",
+            "title": "What a district raises and spends",
+            "description": "Per-student spending split between operations and debt service, the local/state/federal revenue mix measured on GROSS property collections, and the school tax on a $300,000 home including what leaves under recapture.",
+            "inputSchema": {
+              "type": "object",
+              "properties": {
+                "district_number": {
+                  "type": "string",
+                  "description": "Six-digit TEA district number, e.g. 057905 for Dallas ISD. Leading zeros matter. Use find_district to look one up.",
+                  "pattern": "^[0-9]{6}$",
+                  "x-mcp-header": "District"
+                }
+              },
+              "required": [
+                "district_number"
+              ],
+              "additionalProperties": false
+            },
+            "annotations": {
+              "readOnlyHint": true,
+              "openWorldHint": false
+            },
+            "outputSchema": {
+              "type": "object",
+              "properties": {
+                "district_number": {
+                  "type": "string",
+                  "pattern": "^[0-9]{6}$"
+                },
+                "district_name": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "year": {
+                  "type": "integer",
+                  "minimum": 1900,
+                  "maximum": 3000
+                },
+                "students": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "tax": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "mo_rate": {
+                          "anyOf": [
+                            {
+                              "type": "number",
+                              "minimum": 0
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "is_rate": {
+                          "anyOf": [
+                            {
+                              "type": "number",
+                              "minimum": 0
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "total_rate": {
+                          "anyOf": [
+                            {
+                              "type": "number",
+                              "minimum": 0
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "bill_on_home": {
+                          "anyOf": [
+                            {
+                              "type": "number",
+                              "minimum": 0
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "leaves_district": {
+                          "anyOf": [
+                            {
+                              "type": "number",
+                              "minimum": 0
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "home_value": {
+                          "anyOf": [
+                            {
+                              "type": "number",
+                              "minimum": 0
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "tax_price": {
+                          "anyOf": [
+                            {
+                              "type": "number",
+                              "minimum": 0
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        }
+                      },
+                      "required": [
+                        "mo_rate",
+                        "is_rate",
+                        "total_rate",
+                        "bill_on_home",
+                        "leaves_district",
+                        "home_value",
+                        "tax_price"
+                      ]
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "allocation": {
+                  "type": "object",
+                  "properties": {
+                    "instruction_per_student": {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    "debt_per_student": {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    "other_operating_per_student": {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    "operating_per_student": {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    "total_per_student": {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    "payroll_per_student": {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    "cents_on_debt_per_dollar_taught": {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    "teachers_equivalent_of_debt": {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    "lineage": {
+                      "type": "object",
+                      "properties": {
+                        "denominator": {
+                          "type": "number",
+                          "minimum": 0
+                        },
+                        "recomputed_from": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "figures": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "object",
+                            "properties": {
+                              "value": {
+                                "type": "number"
+                              },
+                              "numerator": {
+                                "type": "number"
+                              },
+                              "recomputed_value": {
+                                "type": "number"
+                              }
+                            },
+                            "required": [
+                              "value",
+                              "numerator",
+                              "recomputed_value"
+                            ]
+                          }
+                        }
+                      },
+                      "required": [
+                        "denominator",
+                        "recomputed_from",
+                        "figures"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "instruction_per_student",
+                    "debt_per_student",
+                    "operating_per_student",
+                    "total_per_student",
+                    "lineage"
+                  ]
+                },
+                "revenue": {
+                  "type": "object",
+                  "properties": {
+                    "local_per_student": {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    "state_per_student": {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    "federal_per_student": {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    "total_per_student": {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    "local_pct": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 100
+                    },
+                    "state_pct": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 100
+                    },
+                    "federal_pct": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 100
+                    },
+                    "note": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "lineage": {
+                      "type": "object",
+                      "properties": {
+                        "denominator": {
+                          "type": "number",
+                          "minimum": 0
+                        },
+                        "recomputed_from": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "figures": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "object",
+                            "properties": {
+                              "value": {
+                                "type": "number"
+                              },
+                              "numerator": {
+                                "type": "number"
+                              },
+                              "recomputed_value": {
+                                "type": "number"
+                              }
+                            },
+                            "required": [
+                              "value",
+                              "numerator",
+                              "recomputed_value"
+                            ]
+                          }
+                        }
+                      },
+                      "required": [
+                        "denominator",
+                        "recomputed_from",
+                        "figures"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "local_per_student",
+                    "state_per_student",
+                    "federal_per_student",
+                    "total_per_student",
+                    "lineage"
+                  ]
+                },
+                "recapture": {
+                  "type": "object",
+                  "properties": {
+                    "paid": {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    "per_student": {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    "share_of_local_mo": {
+                      "type": "number",
+                      "minimum": 0
+                    }
+                  },
+                  "required": [
+                    "paid",
+                    "per_student",
+                    "share_of_local_mo"
+                  ]
+                },
+                "own": {
+                  "type": "object",
+                  "properties": {
+                    "pct_poor": {
+                      "anyOf": [
+                        {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 100
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "turnover": {
+                      "anyOf": [
+                        {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 100
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "pct_poor",
+                    "turnover"
+                  ]
+                },
+                "reliability": {
+                  "type": "object",
+                  "properties": {
+                    "score": {
+                      "anyOf": [
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "years_measured": {
+                      "anyOf": [
+                        {
+                          "type": "integer",
+                          "minimum": 0
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "percentile": {
+                      "anyOf": [
+                        {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 100
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "score",
+                    "years_measured",
+                    "percentile"
+                  ]
+                },
+                "who_does_better": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "district_number": {
+                        "type": "string",
+                        "pattern": "^[0-9]{6}$"
+                      },
+                      "name": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "students": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "pct_poor": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 100
+                      },
+                      "beats_by": {
+                        "type": "number"
+                      },
+                      "turnover": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 100
+                      },
+                      "spend_per_student": {
+                        "type": "number",
+                        "minimum": 0
+                      }
+                    },
+                    "required": [
+                      "district_number",
+                      "name",
+                      "students",
+                      "pct_poor",
+                      "beats_by",
+                      "turnover",
+                      "spend_per_student"
+                    ]
+                  },
+                  "maxItems": 5
+                },
+                "visual": {
+                  "type": "object",
+                  "properties": {
+                    "schemaVersion": {
+                      "const": 1
+                    },
+                    "view": {
+                      "const": "district"
+                    },
+                    "districts": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "district_number": {
+                            "type": "string",
+                            "pattern": "^[0-9]{6}$"
+                          },
+                          "district_name": {
+                            "type": "string",
+                            "minLength": 1
+                          }
+                        },
+                        "required": [
+                          "district_number",
+                          "district_name"
+                        ]
+                      },
+                      "maxItems": 6
+                    },
+                    "metrics": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "key": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "label": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "value": {
+                            "anyOf": [
+                              {
+                                "type": "number"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "unit": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "period": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "population": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "denominator": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "status": {
+                            "enum": [
+                              "observed",
+                              "modeled",
+                              "missing",
+                              "not_applicable",
+                              "unverified"
+                            ]
+                          },
+                          "source": {
+                            "type": "object",
+                            "properties": {
+                              "label": {
+                                "type": "string",
+                                "minLength": 1
+                              },
+                              "url": {
+                                "type": "string",
+                                "pattern": "^https://txisd\\.dev/"
+                              },
+                              "period": {
+                                "type": "string",
+                                "minLength": 1
+                              }
+                            },
+                            "required": [
+                              "label",
+                              "url",
+                              "period"
+                            ]
+                          },
+                          "limits": {
+                            "type": "array",
+                            "items": {
+                              "type": "string",
+                              "minLength": 1
+                            }
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "key",
+                          "label",
+                          "value",
+                          "unit",
+                          "period",
+                          "population",
+                          "denominator",
+                          "status",
+                          "source",
+                          "limits"
+                        ]
+                      },
+                      "minItems": 4,
+                      "maxItems": 4
+                    },
+                    "limits": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    },
+                    "websiteUrl": {
+                      "type": "string",
+                      "pattern": "^https://txisd\\.dev/"
+                    }
+                  },
+                  "required": [
+                    "schemaVersion",
+                    "view",
+                    "districts",
+                    "metrics",
+                    "limits",
+                    "websiteUrl"
+                  ]
+                },
+                "limits": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              },
+              "required": [
+                "district_number",
+                "district_name",
+                "year",
+                "students",
+                "allocation",
+                "revenue",
+                "tax",
+                "limits"
+              ]
+            },
+            "_meta": {
+              "ui": {
+                "resourceUri": "ui://txisd/report/v1.html"
+              }
+            }
+          },
+          {
+            "name": "district_lineage",
+            "title": "Why is this number this number",
+            "description": "The working behind a published per-student revenue figure: numerator, denominator, which student count the denominator IS, the formula, the publisher, and the verdict of the publication gate \u2014 whether an independent re-read of TEA's own file agreed, whether the source is current, and whether the source check was aimed at the file actually published from. Call this before quoting a figure as settled. The verdict may be UNVERIFIED, STALE or REFUSED, and those are returned as plainly as VERIFIED.",
+            "inputSchema": {
+              "type": "object",
+              "properties": {
+                "district_number": {
+                  "type": "string",
+                  "description": "Six-digit TEA district number, e.g. 057905 for Dallas ISD. Leading zeros matter. Use find_district to look one up.",
+                  "pattern": "^[0-9]{6}$",
+                  "x-mcp-header": "District"
+                },
+                "metric": {
+                  "type": "string",
+                  "enum": [
+                    "total_per_student",
+                    "local_per_student",
+                    "state_per_student",
+                    "federal_per_student",
+                    "spend_instruction_per_student",
+                    "spend_debt_per_student",
+                    "spend_operating_per_student"
+                  ],
+                  "description": "Which published figure to open up: the four revenue figures or the three spending divisions. Defaults to total_per_student."
+                }
+              },
+              "required": [
+                "district_number"
+              ],
+              "additionalProperties": false
+            },
+            "annotations": {
+              "readOnlyHint": true,
+              "openWorldHint": false
+            },
+            "outputSchema": {
+              "type": "object",
+              "properties": {
+                "metric": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "value": {
+                  "type": "number"
+                },
+                "numerator": {
+                  "anyOf": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "denominator": {
+                  "anyOf": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "denominator_type": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "formula": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "unit": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "fiscal_year": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 1900,
+                      "maximum": 3000
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "district_number": {
+                  "type": "string",
+                  "pattern": "^[0-9]{6}$"
+                },
+                "source": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "source_url": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "source_vintage": {
+                  "type": "string"
+                },
+                "calculation_version": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "rounding": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "recomputed_value": {
+                  "anyOf": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "recomputed_from": {
+                  "type": "string"
+                },
+                "artifact": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "independent_test": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "fresh": {
+                  "type": "boolean"
+                },
+                "aim_ok": {
+                  "type": "boolean"
+                },
+                "refused_because": {
+                  "type": "string"
+                },
+                "notes": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "gate": {
+                  "type": "object",
+                  "properties": {
+                    "verdict": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "checks": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    },
+                    "why": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "verdict",
+                    "checks",
+                    "why"
+                  ]
+                },
+                "available_metrics": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "minItems": 1
+                },
+                "limits": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              },
+              "required": [
+                "metric",
+                "value",
+                "gate",
+                "available_metrics",
+                "limits"
+              ]
+            }
+          },
+          {
+            "name": "district_forensics",
+            "title": "The four money questions Texas reports separately",
+            "description": "What sits OUTSIDE TEA's operating total (debt service), who actually pays before recapture is deducted, what the ballot said the debt was for, and where results landed against what the district's own student need predicts. Returns descriptive flags with the published threshold behind each one.",
+            "inputSchema": {
+              "type": "object",
+              "properties": {
+                "district_number": {
+                  "type": "string",
+                  "description": "Six-digit TEA district number, e.g. 057905 for Dallas ISD. Leading zeros matter. Use find_district to look one up.",
+                  "pattern": "^[0-9]{6}$",
+                  "x-mcp-header": "District"
+                }
+              },
+              "required": [
+                "district_number"
+              ],
+              "additionalProperties": false
+            },
+            "annotations": {
+              "readOnlyHint": true,
+              "openWorldHint": false
+            },
+            "outputSchema": {
+              "type": "object",
+              "properties": {
+                "district_number": {
+                  "type": "string",
+                  "pattern": "^[0-9]{6}$"
+                },
+                "district_name": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "students": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "year": {
+                  "type": "integer",
+                  "minimum": 1900,
+                  "maximum": 3000
+                },
+                "absences": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "section": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "kind": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "sentence": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "is_finding": {
+                        "type": "boolean"
+                      }
+                    },
+                    "required": [
+                      "section",
+                      "kind",
+                      "sentence",
+                      "is_finding"
+                    ]
+                  }
+                },
+                "absence_summary": {
+                  "type": "object",
+                  "properties": {
+                    "count": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "findings": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "sections": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    },
+                    "kinds": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    }
+                  },
+                  "required": [
+                    "count",
+                    "findings",
+                    "sections",
+                    "kinds"
+                  ]
+                },
+                "outside_operating": {
+                  "type": "object",
+                  "properties": {
+                    "per_student": {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    "percentile": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 100
+                    },
+                    "state_median": {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    "cents_per_dollar_taught": {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    "teachers_equivalent": {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    "operating_per_student": {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    "total_per_student": {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    "annual_total": {
+                      "type": "number",
+                      "minimum": 0
+                    }
+                  },
+                  "required": [
+                    "per_student",
+                    "percentile",
+                    "state_median"
+                  ]
+                },
+                "who_pays": {
+                  "type": "object",
+                  "properties": {
+                    "local_pct": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 100
+                    },
+                    "state_pct": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 100
+                    },
+                    "federal_pct": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 100
+                    },
+                    "local_percentile": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 100
+                    },
+                    "state_local_pct": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 100
+                    },
+                    "tax_bill_on_home": {
+                      "anyOf": [
+                        {
+                          "type": "number",
+                          "minimum": 0
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "home_value": {
+                      "anyOf": [
+                        {
+                          "type": "number",
+                          "minimum": 0
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "leaves_district": {
+                      "anyOf": [
+                        {
+                          "type": "number",
+                          "minimum": 0
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "recapture_per_student": {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    "recapture_paid": {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    "recapture_share_of_local_mo": {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    "recapture_percentile": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 100
+                    },
+                    "basis": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "required": [
+                    "local_pct",
+                    "state_pct",
+                    "federal_pct",
+                    "basis"
+                  ]
+                },
+                "ballot": {
+                  "type": "object",
+                  "properties": {
+                    "props": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "passed": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "pass_rate": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 100
+                    },
+                    "asked": {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    "approved": {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    "approved_per_student": {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    "refused": {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    "first_year": {
+                      "type": "integer",
+                      "minimum": 1900,
+                      "maximum": 3000
+                    },
+                    "last_year": {
+                      "type": "integer",
+                      "minimum": 1900,
+                      "maximum": 3000
+                    },
+                    "athletics_asked": {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    "athletics_share_pct": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 100
+                    },
+                    "match_method": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "match_exact": {
+                      "type": "boolean"
+                    },
+                    "last_election": {
+                      "type": "object",
+                      "properties": {
+                        "date": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "year": {
+                          "type": "integer",
+                          "minimum": 1900,
+                          "maximum": 3000
+                        },
+                        "outcomes_year": {
+                          "anyOf": [
+                            {
+                              "type": "integer",
+                              "minimum": 1900,
+                              "maximum": 3000
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "amount": {
+                          "type": "number",
+                          "minimum": 0
+                        },
+                        "purpose": {
+                          "type": "string"
+                        },
+                        "category": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "passed": {
+                          "type": "boolean"
+                        },
+                        "for": {
+                          "type": "integer",
+                          "minimum": 0
+                        },
+                        "against": {
+                          "type": "integer",
+                          "minimum": 0
+                        },
+                        "votes_reported": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "date",
+                        "year",
+                        "amount",
+                        "purpose",
+                        "category",
+                        "passed",
+                        "for",
+                        "against",
+                        "votes_reported"
+                      ]
+                    }
+                  }
+                },
+                "where_it_landed": {
+                  "type": "object",
+                  "properties": {
+                    "actual": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 100
+                    },
+                    "expected": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 100
+                    },
+                    "gap": {
+                      "type": "number"
+                    },
+                    "model_r2": {
+                      "type": "number"
+                    },
+                    "spend_per_student": {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    "spend_state_median": {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    "need": {
+                      "type": "object",
+                      "properties": {
+                        "pct_econ_disadv": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 100
+                        },
+                        "pct_emergent_bilingual": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 100
+                        },
+                        "pct_special_ed": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 100
+                        }
+                      },
+                      "required": [
+                        "pct_econ_disadv",
+                        "pct_emergent_bilingual",
+                        "pct_special_ed"
+                      ]
+                    },
+                    "year": {
+                      "type": "integer",
+                      "minimum": 1900,
+                      "maximum": 3000
+                    }
+                  }
+                },
+                "flags": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "key": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "tone": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "label": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "detail": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    },
+                    "required": [
+                      "key",
+                      "tone",
+                      "label",
+                      "detail"
+                    ]
+                  }
+                },
+                "thresholds": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "number"
+                  }
+                },
+                "limits": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              },
+              "required": [
+                "district_number",
+                "district_name",
+                "year",
+                "outside_operating",
+                "who_pays",
+                "limits"
+              ]
+            }
+          },
+          {
+            "name": "district_trends",
+            "title": "Seventeen years, and which way a district is moving",
+            "description": "Fiscal 2009-2025 in constant 2024 dollars: instruction's share of the operating dollar, instruction per student, debt service, security, operating balance and federal revenue \u2014 each against the statewide line, with a flag when the district is moving the worrying way faster than Texas.",
+            "inputSchema": {
+              "type": "object",
+              "properties": {
+                "district_number": {
+                  "type": "string",
+                  "description": "Six-digit TEA district number, e.g. 057905 for Dallas ISD. Leading zeros matter. Use find_district to look one up.",
+                  "pattern": "^[0-9]{6}$",
+                  "x-mcp-header": "District"
+                }
+              },
+              "required": [
+                "district_number"
+              ],
+              "additionalProperties": false
+            },
+            "annotations": {
+              "readOnlyHint": true,
+              "openWorldHint": false
+            },
+            "outputSchema": {
+              "type": "object",
+              "properties": {
+                "district_number": {
+                  "type": "string",
+                  "pattern": "^[0-9]{6}$"
+                },
+                "district_name": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "years": {
+                  "type": "array",
+                  "items": {
+                    "type": "integer",
+                    "minimum": 1900,
+                    "maximum": 3000
+                  },
+                  "minItems": 8,
+                  "maxItems": 17
+                },
+                "series": {
+                  "type": "object",
+                  "properties": {
+                    "enrollment": {
+                      "type": "array",
+                      "items": {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "minItems": 8,
+                      "maxItems": 17
+                    },
+                    "debt_share": {
+                      "type": "array",
+                      "items": {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "minItems": 8,
+                      "maxItems": 17
+                    },
+                    "instruction_share": {
+                      "type": "array",
+                      "items": {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "minItems": 8,
+                      "maxItems": 17
+                    },
+                    "instruction_ps": {
+                      "type": "array",
+                      "items": {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "minItems": 8,
+                      "maxItems": 17
+                    },
+                    "debt_ps": {
+                      "type": "array",
+                      "items": {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "minItems": 8,
+                      "maxItems": 17
+                    },
+                    "security_ps": {
+                      "type": "array",
+                      "items": {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "minItems": 8,
+                      "maxItems": 17
+                    },
+                    "operating_balance_ps": {
+                      "type": "array",
+                      "items": {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "minItems": 8,
+                      "maxItems": 17
+                    },
+                    "federal_ps": {
+                      "type": "array",
+                      "items": {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "minItems": 8,
+                      "maxItems": 17
+                    }
+                  },
+                  "required": [
+                    "enrollment",
+                    "debt_share",
+                    "instruction_share",
+                    "instruction_ps",
+                    "debt_ps",
+                    "security_ps",
+                    "operating_balance_ps",
+                    "federal_ps"
+                  ]
+                },
+                "change": {
+                  "type": "object",
+                  "properties": {
+                    "instruction_share": {
+                      "type": "object",
+                      "properties": {
+                        "first_year": {
+                          "type": "integer",
+                          "minimum": 1900,
+                          "maximum": 3000
+                        },
+                        "first": {
+                          "type": "number"
+                        },
+                        "last_year": {
+                          "type": "integer",
+                          "minimum": 1900,
+                          "maximum": 3000
+                        },
+                        "last": {
+                          "type": "number"
+                        },
+                        "change": {
+                          "type": "number"
+                        },
+                        "pct_change": {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        }
+                      },
+                      "required": [
+                        "first_year",
+                        "first",
+                        "last_year",
+                        "last",
+                        "change",
+                        "pct_change"
+                      ]
+                    },
+                    "instruction_ps": {
+                      "type": "object",
+                      "properties": {
+                        "first_year": {
+                          "type": "integer",
+                          "minimum": 1900,
+                          "maximum": 3000
+                        },
+                        "first": {
+                          "type": "number"
+                        },
+                        "last_year": {
+                          "type": "integer",
+                          "minimum": 1900,
+                          "maximum": 3000
+                        },
+                        "last": {
+                          "type": "number"
+                        },
+                        "change": {
+                          "type": "number"
+                        },
+                        "pct_change": {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        }
+                      },
+                      "required": [
+                        "first_year",
+                        "first",
+                        "last_year",
+                        "last",
+                        "change",
+                        "pct_change"
+                      ]
+                    },
+                    "debt_ps": {
+                      "type": "object",
+                      "properties": {
+                        "first_year": {
+                          "type": "integer",
+                          "minimum": 1900,
+                          "maximum": 3000
+                        },
+                        "first": {
+                          "type": "number"
+                        },
+                        "last_year": {
+                          "type": "integer",
+                          "minimum": 1900,
+                          "maximum": 3000
+                        },
+                        "last": {
+                          "type": "number"
+                        },
+                        "change": {
+                          "type": "number"
+                        },
+                        "pct_change": {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        }
+                      },
+                      "required": [
+                        "first_year",
+                        "first",
+                        "last_year",
+                        "last",
+                        "change",
+                        "pct_change"
+                      ]
+                    },
+                    "security_ps": {
+                      "type": "object",
+                      "properties": {
+                        "first_year": {
+                          "type": "integer",
+                          "minimum": 1900,
+                          "maximum": 3000
+                        },
+                        "first": {
+                          "type": "number"
+                        },
+                        "last_year": {
+                          "type": "integer",
+                          "minimum": 1900,
+                          "maximum": 3000
+                        },
+                        "last": {
+                          "type": "number"
+                        },
+                        "change": {
+                          "type": "number"
+                        },
+                        "pct_change": {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        }
+                      },
+                      "required": [
+                        "first_year",
+                        "first",
+                        "last_year",
+                        "last",
+                        "change",
+                        "pct_change"
+                      ]
+                    },
+                    "operating_balance_ps": {
+                      "type": "object",
+                      "properties": {
+                        "first_year": {
+                          "type": "integer",
+                          "minimum": 1900,
+                          "maximum": 3000
+                        },
+                        "first": {
+                          "type": "number"
+                        },
+                        "last_year": {
+                          "type": "integer",
+                          "minimum": 1900,
+                          "maximum": 3000
+                        },
+                        "last": {
+                          "type": "number"
+                        },
+                        "change": {
+                          "type": "number"
+                        },
+                        "pct_change": {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        }
+                      },
+                      "required": [
+                        "first_year",
+                        "first",
+                        "last_year",
+                        "last",
+                        "change",
+                        "pct_change"
+                      ]
+                    },
+                    "federal_ps": {
+                      "type": "object",
+                      "properties": {
+                        "first_year": {
+                          "type": "integer",
+                          "minimum": 1900,
+                          "maximum": 3000
+                        },
+                        "first": {
+                          "type": "number"
+                        },
+                        "last_year": {
+                          "type": "integer",
+                          "minimum": 1900,
+                          "maximum": 3000
+                        },
+                        "last": {
+                          "type": "number"
+                        },
+                        "change": {
+                          "type": "number"
+                        },
+                        "pct_change": {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        }
+                      },
+                      "required": [
+                        "first_year",
+                        "first",
+                        "last_year",
+                        "last",
+                        "change",
+                        "pct_change"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "instruction_share",
+                    "instruction_ps",
+                    "debt_ps",
+                    "security_ps",
+                    "operating_balance_ps",
+                    "federal_ps"
+                  ]
+                },
+                "vs_state": {
+                  "type": "object",
+                  "properties": {
+                    "instruction_share": {
+                      "type": "object",
+                      "properties": {
+                        "gap_vs_state": {
+                          "type": "number"
+                        },
+                        "steeper_than_state": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "gap_vs_state",
+                        "steeper_than_state"
+                      ]
+                    },
+                    "instruction_ps": {
+                      "type": "object",
+                      "properties": {
+                        "gap_vs_state": {
+                          "type": "number"
+                        },
+                        "steeper_than_state": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "gap_vs_state",
+                        "steeper_than_state"
+                      ]
+                    },
+                    "debt_ps": {
+                      "type": "object",
+                      "properties": {
+                        "gap_vs_state": {
+                          "type": "number"
+                        },
+                        "steeper_than_state": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "gap_vs_state",
+                        "steeper_than_state"
+                      ]
+                    },
+                    "security_ps": {
+                      "type": "object",
+                      "properties": {
+                        "gap_vs_state": {
+                          "type": "number"
+                        },
+                        "steeper_than_state": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "gap_vs_state",
+                        "steeper_than_state"
+                      ]
+                    },
+                    "operating_balance_ps": {
+                      "type": "object",
+                      "properties": {
+                        "gap_vs_state": {
+                          "type": "number"
+                        },
+                        "steeper_than_state": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "gap_vs_state",
+                        "steeper_than_state"
+                      ]
+                    },
+                    "federal_ps": {
+                      "type": "object",
+                      "properties": {
+                        "gap_vs_state": {
+                          "type": "number"
+                        },
+                        "steeper_than_state": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "gap_vs_state",
+                        "steeper_than_state"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "instruction_share",
+                    "instruction_ps",
+                    "debt_ps",
+                    "security_ps",
+                    "operating_balance_ps",
+                    "federal_ps"
+                  ]
+                },
+                "small_district": {
+                  "type": "boolean"
+                },
+                "note": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "limits": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              },
+              "required": [
+                "district_number",
+                "district_name",
+                "years",
+                "series",
+                "change",
+                "vs_state",
+                "small_district",
+                "note",
+                "limits"
+              ]
+            }
+          },
+          {
+            "name": "district_bonds",
+            "title": "Every bond a district put on a ballot",
+            "description": "All decided bond propositions 1958-2024 with date, stated purpose, amount, and whether voters carried or defeated it. The ballot is the only public record of what school debt was for \u2014 TEA does not itemise facilities.",
+            "inputSchema": {
+              "type": "object",
+              "properties": {
+                "district_number": {
+                  "type": "string",
+                  "description": "Six-digit TEA district number, e.g. 057905 for Dallas ISD. Leading zeros matter. Use find_district to look one up.",
+                  "pattern": "^[0-9]{6}$",
+                  "x-mcp-header": "District"
+                }
+              },
+              "required": [
+                "district_number"
+              ],
+              "additionalProperties": false
+            },
+            "annotations": {
+              "readOnlyHint": true,
+              "openWorldHint": false
+            },
+            "outputSchema": {
+              "type": "object",
+              "properties": {
+                "district_number": {
+                  "type": "string",
+                  "pattern": "^[0-9]{6}$"
+                },
+                "district_name": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "match": {
+                  "type": "object",
+                  "properties": {
+                    "method": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "exact": {
+                      "type": "boolean"
+                    },
+                    "source_names": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "minItems": 1
+                    }
+                  },
+                  "required": [
+                    "method",
+                    "exact",
+                    "source_names"
+                  ]
+                },
+                "totals": {
+                  "type": "object",
+                  "properties": {
+                    "props": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "passed": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "pass_rate": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 100
+                    },
+                    "asked": {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    "approved": {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    "approved_share": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 100
+                    },
+                    "first_year": {
+                      "type": "integer",
+                      "minimum": 1900,
+                      "maximum": 3000
+                    },
+                    "last_year": {
+                      "type": "integer",
+                      "minimum": 1900,
+                      "maximum": 3000
+                    },
+                    "athletics_asked": {
+                      "type": "number",
+                      "minimum": 0
+                    }
+                  },
+                  "required": [
+                    "props",
+                    "passed",
+                    "pass_rate",
+                    "asked",
+                    "approved",
+                    "first_year",
+                    "last_year"
+                  ]
+                },
+                "elections": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "date": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "year": {
+                        "type": "integer",
+                        "minimum": 1900,
+                        "maximum": 3000
+                      },
+                      "outcomes_year": {
+                        "anyOf": [
+                          {
+                            "type": "integer",
+                            "minimum": 1900,
+                            "maximum": 3000
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "amount": {
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      "purpose": {
+                        "type": "string"
+                      },
+                      "category": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "passed": {
+                        "type": "boolean"
+                      },
+                      "for": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "against": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "votes_reported": {
+                        "type": "boolean"
+                      }
+                    },
+                    "required": [
+                      "date",
+                      "year",
+                      "amount",
+                      "purpose",
+                      "category",
+                      "passed",
+                      "for",
+                      "against",
+                      "votes_reported"
+                    ]
+                  },
+                  "minItems": 1
+                },
+                "limits": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              },
+              "required": [
+                "district_number",
+                "district_name",
+                "match",
+                "totals",
+                "elections",
+                "limits"
+              ]
+            }
+          },
+          {
+            "name": "district_debt",
+            "title": "What a district still owes, and the year it clears",
+            "description": "Principal and interest still outstanding as the Texas Bond Review Board reports it \u2014 the balance, not the yearly payment every other figure here describes. Includes the interest share, the per-student balance, the year the debt clears, and any capital appreciation bonds, which pay nothing until maturity.",
+            "inputSchema": {
+              "type": "object",
+              "properties": {
+                "district_number": {
+                  "type": "string",
+                  "description": "Six-digit TEA district number, e.g. 057905 for Dallas ISD. Leading zeros matter. Use find_district to look one up.",
+                  "pattern": "^[0-9]{6}$",
+                  "x-mcp-header": "District"
+                }
+              },
+              "required": [
+                "district_number"
+              ],
+              "additionalProperties": false
+            },
+            "annotations": {
+              "readOnlyHint": true,
+              "openWorldHint": false
+            },
+            "outputSchema": {
+              "type": "object",
+              "properties": {
+                "fiscal_year": {
+                  "type": "integer",
+                  "minimum": 1900,
+                  "maximum": 3000
+                },
+                "district_name": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "students": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "total": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "principal": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "interest": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "per_student": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "interest_share_pct": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 100
+                },
+                "clears_in": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 1900,
+                      "maximum": 3000
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "history": {
+                  "type": "array",
+                  "items": {
+                    "type": "array",
+                    "prefixItems": [
+                      {
+                        "type": "integer",
+                        "minimum": 1900,
+                        "maximum": 3000
+                      },
+                      {
+                        "type": "number",
+                        "minimum": 0
+                      }
+                    ],
+                    "items": {
+                      "not": {}
+                    },
+                    "minItems": 2,
+                    "maxItems": 2
+                  },
+                  "minItems": 1
+                },
+                "cab": {
+                  "type": "object",
+                  "properties": {
+                    "principal_outstanding": {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    "deferred_interest": {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    "peak": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "year": {
+                              "type": "integer",
+                              "minimum": 1900,
+                              "maximum": 3000
+                            },
+                            "repaid_per_dollar_borrowed": {
+                              "type": "number",
+                              "minimum": 0
+                            },
+                            "principal": {
+                              "type": "number",
+                              "minimum": 0
+                            }
+                          },
+                          "required": [
+                            "year",
+                            "repaid_per_dollar_borrowed",
+                            "principal"
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "principal_outstanding",
+                    "deferred_interest",
+                    "peak"
+                  ]
+                },
+                "limits": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              },
+              "required": [
+                "district_name",
+                "students",
+                "total",
+                "principal",
+                "interest",
+                "per_student",
+                "clears_in",
+                "history",
+                "limits"
+              ]
+            }
+          },
+          {
+            "name": "district_campuses",
+            "title": "The campuses inside a district, and what the district rating hides",
+            "description": "Every campus TEA rated in this district, worst first, against the district's own A-F rating. A district rating is an average and hides its tails: 138,664 Texas students attend a campus rated D or F inside a district rated A or B. Unrated campuses are excluded as missing data, not failure.",
+            "inputSchema": {
+              "type": "object",
+              "properties": {
+                "district_number": {
+                  "type": "string",
+                  "description": "Six-digit TEA district number, e.g. 057905 for Dallas ISD. Leading zeros matter. Use find_district to look one up.",
+                  "pattern": "^[0-9]{6}$",
+                  "x-mcp-header": "District"
+                }
+              },
+              "required": [
+                "district_number"
+              ],
+              "additionalProperties": false
+            },
+            "annotations": {
+              "readOnlyHint": true,
+              "openWorldHint": false
+            },
+            "outputSchema": {
+              "type": "object",
+              "properties": {
+                "year": {
+                  "type": "integer",
+                  "minimum": 1900,
+                  "maximum": 3000
+                },
+                "district_name": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "district_rating": {
+                  "enum": [
+                    "A",
+                    "B",
+                    "C",
+                    "D",
+                    "F"
+                  ]
+                },
+                "district_score": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 100
+                },
+                "campuses": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "campus_number": {
+                        "type": "string",
+                        "pattern": "^[0-9]{9}$"
+                      },
+                      "campus_name": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "school_type": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "students": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "pct_poor": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 100
+                      },
+                      "rating": {
+                        "enum": [
+                          "A",
+                          "B",
+                          "C",
+                          "D",
+                          "F"
+                        ]
+                      },
+                      "score": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 100
+                      },
+                      "is_alternative_education": {
+                        "type": "boolean"
+                      }
+                    },
+                    "required": [
+                      "campus_number",
+                      "campus_name",
+                      "school_type",
+                      "students",
+                      "pct_poor",
+                      "rating",
+                      "score",
+                      "is_alternative_education"
+                    ]
+                  },
+                  "minItems": 1
+                },
+                "best": {
+                  "enum": [
+                    "A",
+                    "B",
+                    "C",
+                    "D",
+                    "F"
+                  ]
+                },
+                "worst": {
+                  "enum": [
+                    "A",
+                    "B",
+                    "C",
+                    "D",
+                    "F"
+                  ]
+                },
+                "spans_grades": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 4
+                },
+                "students_below_a_d": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "limits": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              },
+              "required": [
+                "district_name",
+                "district_rating",
+                "district_score",
+                "campuses",
+                "best",
+                "worst",
+                "spans_grades",
+                "limits"
+              ]
+            }
+          },
+          {
+            "name": "district_national",
+            "title": "A district against every other U.S. district",
+            "description": "The Census Bureau's own per-pupil current spending for this district and its percentile among the U.S. districts with 500+ students, plus where Texas ranks among the states. The fiscal year travels in the result \u2014 it is earlier than the TEA data here, and current spending excludes construction and debt, so never mix it with the all-funds figures other tools report. Charters have no Census row anywhere in the country, by construction.",
+            "inputSchema": {
+              "type": "object",
+              "properties": {
+                "district_number": {
+                  "type": "string",
+                  "description": "Six-digit TEA district number, e.g. 057905 for Dallas ISD. Leading zeros matter. Use find_district to look one up.",
+                  "pattern": "^[0-9]{6}$",
+                  "x-mcp-header": "District"
+                }
+              },
+              "required": [
+                "district_number"
+              ],
+              "additionalProperties": false
+            },
+            "annotations": {
+              "readOnlyHint": true,
+              "openWorldHint": false
+            },
+            "outputSchema": {
+              "type": "object",
+              "properties": {
+                "district_number": {
+                  "type": "string",
+                  "pattern": "^[0-9]{6}$"
+                },
+                "fiscal_year": {
+                  "type": "integer",
+                  "minimum": 1900,
+                  "maximum": 3000
+                },
+                "enroll_f33": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "leaid": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "ppcs": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "pctile": {
+                  "anyOf": [
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 100
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "states": {
+                  "type": "object",
+                  "properties": {
+                    "texas": {
+                      "type": "object",
+                      "properties": {
+                        "denominator_ada": {
+                          "type": "number",
+                          "minimum": 0
+                        },
+                        "numerator_current_expenditure": {
+                          "type": "number",
+                          "minimum": 0
+                        },
+                        "of": {
+                          "type": "integer",
+                          "minimum": 0
+                        },
+                        "ppe": {
+                          "type": "number",
+                          "minimum": 0
+                        },
+                        "rank": {
+                          "type": "integer",
+                          "minimum": 0
+                        },
+                        "who": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      },
+                      "required": [
+                        "denominator_ada",
+                        "numerator_current_expenditure",
+                        "of",
+                        "ppe",
+                        "rank",
+                        "who"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "texas"
+                  ]
+                },
+                "national": {
+                  "type": "object",
+                  "properties": {
+                    "districts_in_pool": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "median_ppcs": {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    "pool_rule": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "required": [
+                    "districts_in_pool",
+                    "median_ppcs",
+                    "pool_rule"
+                  ]
+                },
+                "limits": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              },
+              "required": [
+                "district_number",
+                "leaid",
+                "ppcs",
+                "states",
+                "national",
+                "limits"
+              ]
+            }
+          },
+          {
+            "name": "texas_overview",
+            "title": "Statewide Texas school finance and the seventeen-year trend",
+            "description": "Statewide totals plus the six measured trends: instruction's falling share of the operating dollar, rising debt service and security, the federal funding cliff, the first statewide operating deficit in the window, and stalled enrolment growth. Includes the balanced-panel robustness check.",
+            "inputSchema": {
+              "type": "object",
+              "additionalProperties": false
+            },
+            "annotations": {
+              "readOnlyHint": true,
+              "openWorldHint": false
+            },
+            "outputSchema": {
+              "type": "object",
+              "properties": {
+                "year": {
+                  "type": "integer",
+                  "minimum": 1900,
+                  "maximum": 3000
+                },
+                "statewide": {
+                  "type": "object",
+                  "properties": {
+                    "districts": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "revenue": {
+                      "type": "object",
+                      "properties": {
+                        "local_pct": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 100
+                        },
+                        "state_pct": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 100
+                        },
+                        "federal_pct": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 100
+                        },
+                        "local": {
+                          "type": "number",
+                          "minimum": 0
+                        },
+                        "state": {
+                          "type": "number",
+                          "minimum": 0
+                        },
+                        "federal": {
+                          "type": "number",
+                          "minimum": 0
+                        }
+                      },
+                      "required": [
+                        "local_pct",
+                        "state_pct",
+                        "federal_pct",
+                        "local",
+                        "state",
+                        "federal"
+                      ]
+                    },
+                    "recapture": {
+                      "type": "object",
+                      "properties": {
+                        "districts_ever_paying": {
+                          "type": "integer",
+                          "minimum": 0
+                        },
+                        "total": {
+                          "type": "number",
+                          "minimum": 0
+                        },
+                        "top10_share": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1
+                        },
+                        "top25_share": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1
+                        },
+                        "top100_share": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1
+                        }
+                      },
+                      "required": [
+                        "districts_ever_paying",
+                        "total",
+                        "top10_share",
+                        "top25_share",
+                        "top100_share"
+                      ]
+                    },
+                    "debt_median": {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    "debt_p90": {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    "debt_total": {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    "recapture_payers": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "ballot": {
+                      "type": "object",
+                      "properties": {
+                        "propositions": {
+                          "type": "integer",
+                          "minimum": 0
+                        },
+                        "districts": {
+                          "type": "integer",
+                          "minimum": 0
+                        },
+                        "asked": {
+                          "type": "number",
+                          "minimum": 0
+                        },
+                        "approved": {
+                          "type": "number",
+                          "minimum": 0
+                        },
+                        "matched_pct": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 100
+                        }
+                      },
+                      "required": [
+                        "propositions",
+                        "districts",
+                        "asked",
+                        "approved",
+                        "matched_pct"
+                      ]
+                    },
+                    "did_it_work": {
+                      "type": "object",
+                      "properties": {
+                        "bonds_tested": {
+                          "type": "integer",
+                          "minimum": 0
+                        },
+                        "districts": {
+                          "type": "integer",
+                          "minimum": 0
+                        },
+                        "passed_n": {
+                          "type": "integer",
+                          "minimum": 0
+                        },
+                        "passed_change": {
+                          "type": "number"
+                        },
+                        "defeated_n": {
+                          "type": "integer",
+                          "minimum": 0
+                        },
+                        "defeated_change": {
+                          "type": "number"
+                        },
+                        "difference": {
+                          "type": "number"
+                        },
+                        "ci_low": {
+                          "type": "number"
+                        },
+                        "ci_high": {
+                          "type": "number"
+                        },
+                        "p_value": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1
+                        },
+                        "distinguishable_from_zero": {
+                          "type": "boolean"
+                        },
+                        "fragile": {
+                          "type": "boolean"
+                        },
+                        "window": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "caveat": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      },
+                      "required": [
+                        "difference",
+                        "ci_low",
+                        "ci_high",
+                        "p_value",
+                        "fragile",
+                        "window",
+                        "caveat"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "districts",
+                    "revenue",
+                    "recapture",
+                    "debt_total",
+                    "ballot",
+                    "did_it_work"
+                  ]
+                },
+                "trend_findings": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "key": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "headline": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "figure": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "detail": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    },
+                    "required": [
+                      "key",
+                      "headline",
+                      "figure",
+                      "detail"
+                    ]
+                  },
+                  "minItems": 1
+                },
+                "trend_change": {
+                  "type": "object",
+                  "properties": {
+                    "instruction_share": {
+                      "type": "object",
+                      "properties": {
+                        "first_year": {
+                          "type": "integer",
+                          "minimum": 1900,
+                          "maximum": 3000
+                        },
+                        "first": {
+                          "type": "number"
+                        },
+                        "last_year": {
+                          "type": "integer",
+                          "minimum": 1900,
+                          "maximum": 3000
+                        },
+                        "last": {
+                          "type": "number"
+                        },
+                        "change": {
+                          "type": "number"
+                        },
+                        "pct_change": {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        }
+                      },
+                      "required": [
+                        "first_year",
+                        "first",
+                        "last_year",
+                        "last",
+                        "change",
+                        "pct_change"
+                      ]
+                    },
+                    "instruction_ps": {
+                      "type": "object",
+                      "properties": {
+                        "first_year": {
+                          "type": "integer",
+                          "minimum": 1900,
+                          "maximum": 3000
+                        },
+                        "first": {
+                          "type": "number"
+                        },
+                        "last_year": {
+                          "type": "integer",
+                          "minimum": 1900,
+                          "maximum": 3000
+                        },
+                        "last": {
+                          "type": "number"
+                        },
+                        "change": {
+                          "type": "number"
+                        },
+                        "pct_change": {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        }
+                      },
+                      "required": [
+                        "first_year",
+                        "first",
+                        "last_year",
+                        "last",
+                        "change",
+                        "pct_change"
+                      ]
+                    },
+                    "debt_ps": {
+                      "type": "object",
+                      "properties": {
+                        "first_year": {
+                          "type": "integer",
+                          "minimum": 1900,
+                          "maximum": 3000
+                        },
+                        "first": {
+                          "type": "number"
+                        },
+                        "last_year": {
+                          "type": "integer",
+                          "minimum": 1900,
+                          "maximum": 3000
+                        },
+                        "last": {
+                          "type": "number"
+                        },
+                        "change": {
+                          "type": "number"
+                        },
+                        "pct_change": {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        }
+                      },
+                      "required": [
+                        "first_year",
+                        "first",
+                        "last_year",
+                        "last",
+                        "change",
+                        "pct_change"
+                      ]
+                    },
+                    "security_ps": {
+                      "type": "object",
+                      "properties": {
+                        "first_year": {
+                          "type": "integer",
+                          "minimum": 1900,
+                          "maximum": 3000
+                        },
+                        "first": {
+                          "type": "number"
+                        },
+                        "last_year": {
+                          "type": "integer",
+                          "minimum": 1900,
+                          "maximum": 3000
+                        },
+                        "last": {
+                          "type": "number"
+                        },
+                        "change": {
+                          "type": "number"
+                        },
+                        "pct_change": {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        }
+                      },
+                      "required": [
+                        "first_year",
+                        "first",
+                        "last_year",
+                        "last",
+                        "change",
+                        "pct_change"
+                      ]
+                    },
+                    "operating_balance_ps": {
+                      "type": "object",
+                      "properties": {
+                        "first_year": {
+                          "type": "integer",
+                          "minimum": 1900,
+                          "maximum": 3000
+                        },
+                        "first": {
+                          "type": "number"
+                        },
+                        "last_year": {
+                          "type": "integer",
+                          "minimum": 1900,
+                          "maximum": 3000
+                        },
+                        "last": {
+                          "type": "number"
+                        },
+                        "change": {
+                          "type": "number"
+                        },
+                        "pct_change": {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        }
+                      },
+                      "required": [
+                        "first_year",
+                        "first",
+                        "last_year",
+                        "last",
+                        "change",
+                        "pct_change"
+                      ]
+                    },
+                    "federal_ps": {
+                      "type": "object",
+                      "properties": {
+                        "first_year": {
+                          "type": "integer",
+                          "minimum": 1900,
+                          "maximum": 3000
+                        },
+                        "first": {
+                          "type": "number"
+                        },
+                        "last_year": {
+                          "type": "integer",
+                          "minimum": 1900,
+                          "maximum": 3000
+                        },
+                        "last": {
+                          "type": "number"
+                        },
+                        "change": {
+                          "type": "number"
+                        },
+                        "pct_change": {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        }
+                      },
+                      "required": [
+                        "first_year",
+                        "first",
+                        "last_year",
+                        "last",
+                        "change",
+                        "pct_change"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "instruction_share",
+                    "instruction_ps",
+                    "debt_ps",
+                    "security_ps",
+                    "operating_balance_ps",
+                    "federal_ps"
+                  ]
+                },
+                "deficit_by_year": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "year": {
+                        "type": "integer",
+                        "minimum": 1900,
+                        "maximum": 3000
+                      },
+                      "districts": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "in_deficit": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "pct": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 100
+                      },
+                      "students_pct": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 100
+                      },
+                      "statewide_margin": {
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "year",
+                      "districts",
+                      "in_deficit",
+                      "pct",
+                      "students_pct",
+                      "statewide_margin"
+                    ]
+                  },
+                  "minItems": 1,
+                  "maxItems": 17
+                },
+                "balanced_panel_check": {
+                  "type": "object",
+                  "properties": {
+                    "districts": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "instruction_share_all": {
+                      "type": "number"
+                    },
+                    "instruction_share_panel": {
+                      "type": "number"
+                    },
+                    "instruction_ps_all": {
+                      "type": "number"
+                    },
+                    "instruction_ps_panel": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "districts",
+                    "instruction_share_all",
+                    "instruction_share_panel",
+                    "instruction_ps_all",
+                    "instruction_ps_panel"
+                  ]
+                },
+                "visual": {
+                  "type": "object",
+                  "properties": {
+                    "schemaVersion": {
+                      "const": 1
+                    },
+                    "view": {
+                      "const": "statewide"
+                    },
+                    "districts": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "district_number": {
+                            "type": "string",
+                            "pattern": "^[0-9]{6}$"
+                          },
+                          "district_name": {
+                            "type": "string",
+                            "minLength": 1
+                          }
+                        },
+                        "required": [
+                          "district_number",
+                          "district_name"
+                        ]
+                      },
+                      "maxItems": 6
+                    },
+                    "metrics": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "key": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "label": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "value": {
+                            "anyOf": [
+                              {
+                                "type": "number"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "unit": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "period": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "population": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "denominator": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "status": {
+                            "enum": [
+                              "observed",
+                              "modeled",
+                              "missing",
+                              "not_applicable",
+                              "unverified"
+                            ]
+                          },
+                          "source": {
+                            "type": "object",
+                            "properties": {
+                              "label": {
+                                "type": "string",
+                                "minLength": 1
+                              },
+                              "url": {
+                                "type": "string",
+                                "pattern": "^https://txisd\\.dev/"
+                              },
+                              "period": {
+                                "type": "string",
+                                "minLength": 1
+                              }
+                            },
+                            "required": [
+                              "label",
+                              "url",
+                              "period"
+                            ]
+                          },
+                          "limits": {
+                            "type": "array",
+                            "items": {
+                              "type": "string",
+                              "minLength": 1
+                            }
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "key",
+                          "label",
+                          "value",
+                          "unit",
+                          "period",
+                          "population",
+                          "denominator",
+                          "status",
+                          "source",
+                          "limits"
+                        ]
+                      },
+                      "minItems": 2,
+                      "maxItems": 2
+                    },
+                    "limits": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    },
+                    "websiteUrl": {
+                      "type": "string",
+                      "pattern": "^https://txisd\\.dev/"
+                    }
+                  },
+                  "required": [
+                    "schemaVersion",
+                    "view",
+                    "districts",
+                    "metrics",
+                    "limits",
+                    "websiteUrl"
+                  ]
+                },
+                "limits": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              },
+              "required": [
+                "statewide",
+                "trend_findings",
+                "trend_change",
+                "deficit_by_year",
+                "balanced_panel_check",
+                "limits"
+              ]
+            },
+            "_meta": {
+              "ui": {
+                "resourceUri": "ui://txisd/report/v1.html"
+              }
+            }
+          },
+          {
+            "name": "compare_districts",
+            "title": "Compare districts side by side",
+            "description": "Two to six districts on students, debt service per student, operating spend per student, local revenue share, the tax on a $300,000 home, and points above or below what each district's own student need predicts.",
+            "inputSchema": {
+              "type": "object",
+              "properties": {
+                "district_numbers": {
+                  "type": "array",
+                  "minItems": 2,
+                  "maxItems": 6,
+                  "items": {
+                    "type": "string",
+                    "pattern": "^[0-9]{6}$"
+                  },
+                  "description": "Six-digit TEA district numbers."
+                }
+              },
+              "required": [
+                "district_numbers"
+              ],
+              "additionalProperties": false
+            },
+            "annotations": {
+              "readOnlyHint": true,
+              "openWorldHint": false
+            },
+            "outputSchema": {
+              "type": "object",
+              "properties": {
+                "districts": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "district_number": {
+                        "type": "string",
+                        "pattern": "^[0-9]{6}$"
+                      },
+                      "district_name": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "year": {
+                        "type": "integer",
+                        "minimum": 1900,
+                        "maximum": 3000
+                      },
+                      "outcomes_year": {
+                        "anyOf": [
+                          {
+                            "type": "integer",
+                            "minimum": 1900,
+                            "maximum": 3000
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "students": {
+                        "anyOf": [
+                          {
+                            "type": "integer",
+                            "minimum": 0
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "debt_per_student": {
+                        "anyOf": [
+                          {
+                            "type": "number",
+                            "minimum": 0
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "operating_per_student": {
+                        "anyOf": [
+                          {
+                            "type": "number",
+                            "minimum": 0
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "local_pct": {
+                        "anyOf": [
+                          {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 100
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "tax_on_300k_home": {
+                        "anyOf": [
+                          {
+                            "type": "number",
+                            "minimum": 0
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "recapture_per_student": {
+                        "anyOf": [
+                          {
+                            "type": "number",
+                            "minimum": 0
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "points_vs_predicted": {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    },
+                    "required": [
+                      "district_number",
+                      "district_name",
+                      "students",
+                      "debt_per_student",
+                      "operating_per_student",
+                      "local_pct",
+                      "tax_on_300k_home",
+                      "recapture_per_student",
+                      "points_vs_predicted"
+                    ]
+                  },
+                  "minItems": 1,
+                  "maxItems": 6
+                },
+                "not_found": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "maxItems": 6
+                },
+                "visual": {
+                  "type": "object",
+                  "properties": {
+                    "schemaVersion": {
+                      "const": 1
+                    },
+                    "view": {
+                      "const": "comparison"
+                    },
+                    "districts": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "district_number": {
+                            "type": "string",
+                            "pattern": "^[0-9]{6}$"
+                          },
+                          "district_name": {
+                            "type": "string",
+                            "minLength": 1
+                          }
+                        },
+                        "required": [
+                          "district_number",
+                          "district_name"
+                        ]
+                      },
+                      "maxItems": 6
+                    },
+                    "metrics": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "district_number": {
+                            "type": "string",
+                            "pattern": "^[0-9]{6}$"
+                          },
+                          "district_name": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "values": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "type": "string",
+                                  "minLength": 1
+                                },
+                                "key": {
+                                  "type": "string",
+                                  "minLength": 1
+                                },
+                                "label": {
+                                  "type": "string",
+                                  "minLength": 1
+                                },
+                                "value": {
+                                  "anyOf": [
+                                    {
+                                      "type": "number"
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ]
+                                },
+                                "unit": {
+                                  "type": "string",
+                                  "minLength": 1
+                                },
+                                "period": {
+                                  "type": "string",
+                                  "minLength": 1
+                                },
+                                "population": {
+                                  "type": "string",
+                                  "minLength": 1
+                                },
+                                "denominator": {
+                                  "type": "string",
+                                  "minLength": 1
+                                },
+                                "status": {
+                                  "enum": [
+                                    "observed",
+                                    "modeled",
+                                    "missing",
+                                    "not_applicable",
+                                    "unverified"
+                                  ]
+                                },
+                                "source": {
+                                  "type": "object",
+                                  "properties": {
+                                    "label": {
+                                      "type": "string",
+                                      "minLength": 1
+                                    },
+                                    "url": {
+                                      "type": "string",
+                                      "pattern": "^https://txisd\\.dev/"
+                                    },
+                                    "period": {
+                                      "type": "string",
+                                      "minLength": 1
+                                    }
+                                  },
+                                  "required": [
+                                    "label",
+                                    "url",
+                                    "period"
+                                  ]
+                                },
+                                "limits": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string",
+                                    "minLength": 1
+                                  }
+                                }
+                              },
+                              "required": [
+                                "id",
+                                "key",
+                                "label",
+                                "value",
+                                "unit",
+                                "period",
+                                "population",
+                                "denominator",
+                                "status",
+                                "source",
+                                "limits"
+                              ]
+                            },
+                            "minItems": 4,
+                            "maxItems": 4
+                          }
+                        },
+                        "required": [
+                          "district_number",
+                          "district_name",
+                          "values"
+                        ]
+                      },
+                      "minItems": 1,
+                      "maxItems": 6
+                    },
+                    "limits": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    },
+                    "websiteUrl": {
+                      "type": "string",
+                      "pattern": "^https://txisd\\.dev/"
+                    }
+                  },
+                  "required": [
+                    "schemaVersion",
+                    "view",
+                    "districts",
+                    "metrics",
+                    "limits",
+                    "websiteUrl"
+                  ]
+                },
+                "limits": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              },
+              "required": [
+                "districts",
+                "not_found",
+                "limits"
+              ]
+            },
+            "_meta": {
+              "ui": {
+                "resourceUri": "ui://txisd/report/v1.html"
+              }
+            }
+          }
+        ],
+        "ttlMs": 86400000,
+        "cacheScope": "public",
+        "_meta": {
+          "io.modelcontextprotocol/serverInfo": {
+            "name": "txisd",
+            "version": "1.0.0"
+          }
+        }
+      }
+    },
+    "resources": {
+      "jsonrpc": "2.0",
+      "id": 1,
+      "result": {
+        "resultType": "complete",
+        "resources": [
+          {
+            "uri": "ui://txisd/report/v1.html",
+            "name": "Texas ISD visual report",
+            "description": "Accessible visual report for selected public finance tools.",
+            "mimeType": "text/html;profile=mcp-app",
+            "_meta": {
+              "ui": {
+                "prefersBorder": true,
+                "csp": {
+                  "connectDomains": [],
+                  "resourceDomains": [],
+                  "frameDomains": []
+                }
+              }
+            }
+          }
+        ],
+        "ttlMs": 86400000,
+        "cacheScope": "public",
+        "_meta": {
+          "io.modelcontextprotocol/serverInfo": {
+            "name": "txisd",
+            "version": "1.0.0"
+          }
+        }
+      }
+    }
+  },
+  "resource": {
+    "uri": "ui://txisd/report/v1.html",
+    "mimeType": "text/html;profile=mcp-app",
+    "normalized_utf8_lf_sha256": "8439d3460410b7347bc4c44f8148ddcd71c9b96db5e1f3b50fc4fd6722e72915",
+    "matches_current_local_composition": true
+  },
+  "recursive_schema_validation": {
+    "status": "PASS",
+    "cases": 11,
+    "validator": "AJV 8.20.0 strict recursive draft-2020-12",
+    "stdout": "PASS: strict AJV recursively validated 11 tool-output cases"
+  },
   "records": [
     {
       "tool": "find_district",
@@ -234,7 +4042,7 @@
                   "value": 17788,
                   "unit": "USD per student",
                   "period": "2025",
-                  "population": "Texas public school districts",
+                  "population": "Dallas ISD",
                   "denominator": "fall survey enrollment",
                   "status": "observed",
                   "source": {
@@ -255,7 +4063,7 @@
                   "value": 14210,
                   "unit": "USD per student",
                   "period": "2025",
-                  "population": "Texas public school districts",
+                  "population": "Dallas ISD",
                   "denominator": "fall survey enrollment",
                   "status": "observed",
                   "source": {
@@ -276,7 +4084,7 @@
                   "value": 3578,
                   "unit": "USD per student",
                   "period": "2025",
-                  "population": "Texas public school districts",
+                  "population": "Dallas ISD",
                   "denominator": "fall survey enrollment",
                   "status": "observed",
                   "source": {
@@ -297,7 +4105,7 @@
                   "value": 7206,
                   "unit": "USD per student",
                   "period": "2025",
-                  "population": "Texas public school districts",
+                  "population": "Dallas ISD",
                   "denominator": "fall survey enrollment",
                   "status": "observed",
                   "source": {
@@ -4071,7 +7879,7 @@
           "content": [
             {
               "type": "text",
-              "text": "District                     Students  Debt/stu  Oper/stu  Local%  vs pred\nDallas ISD                    139,776    $3,578   $14,210     79%     +5.5\nHouston ISD                   176,039    $2,267   $14,147     77%     +3.9\n\n'vs pred' is percentage points at the Meets bar against what each district's OWN poverty, emergent-bilingual and special-education rates predict \u2014 not against the state, which mostly measures poverty. Debt per student sits outside TEA's operating total."
+              "text": "District                     Students  Debt/stu  Oper/stu  Local%  vs pred\nDallas ISD                     139776    $3,578   $14,210     79%     +5.5\nHouston ISD                    176039    $2,267   $14,147     77%     +3.9\n\n'vs pred' is percentage points at the Meets bar against what each district's OWN poverty, emergent-bilingual and special-education rates predict \u2014 not against the state, which mostly measures poverty. Debt per student sits outside TEA's operating total.\n\nDallas ISD: Finance year 2025; outcome year 2024.\nHouston ISD: Finance year 2025; outcome year 2024."
             }
           ],
           "structuredContent": {
@@ -4080,6 +7888,7 @@
                 "district_number": "057905",
                 "district_name": "Dallas ISD",
                 "year": 2025,
+                "outcomes_year": 2024,
                 "students": 139776,
                 "debt_per_student": 3578,
                 "operating_per_student": 14210,
@@ -4092,6 +7901,7 @@
                 "district_number": "101912",
                 "district_name": "Houston ISD",
                 "year": 2025,
+                "outcomes_year": 2024,
                 "students": 176039,
                 "debt_per_student": 2267,
                 "operating_per_student": 14147,
@@ -4135,7 +7945,7 @@
                       "value": 14210,
                       "unit": "USD per student",
                       "period": "2025",
-                      "population": "Texas public school districts",
+                      "population": "Dallas ISD",
                       "denominator": "fall survey enrollment",
                       "status": "observed",
                       "source": {
@@ -4159,7 +7969,7 @@
                       "value": 3578,
                       "unit": "USD per student",
                       "period": "2025",
-                      "population": "Texas public school districts",
+                      "population": "Dallas ISD",
                       "denominator": "fall survey enrollment",
                       "status": "observed",
                       "source": {
@@ -4183,7 +7993,7 @@
                       "value": 79,
                       "unit": "percent",
                       "period": "2025",
-                      "population": "Texas public school districts",
+                      "population": "Dallas ISD",
                       "denominator": "gross local + state + federal revenue",
                       "status": "observed",
                       "source": {
@@ -4206,14 +8016,14 @@
                       "label": "Points vs predicted",
                       "value": 5.5,
                       "unit": "percentage points",
-                      "period": "2025",
-                      "population": "Texas public school districts",
+                      "period": "2024",
+                      "population": "Dallas ISD",
                       "denominator": "predicted Meets rate from the district need model",
                       "status": "modeled",
                       "source": {
                         "label": "Texas Education Agency public artifacts",
                         "url": "https://txisd.dev/transparency",
-                        "period": "2025"
+                        "period": "2024"
                       },
                       "limits": [
                         "Nothing here is a finding of wrongdoing. Every flag is a description of a published number against a published threshold, and the thresholds are above so you can disagree with them.",
@@ -4237,7 +8047,7 @@
                       "value": 14147,
                       "unit": "USD per student",
                       "period": "2025",
-                      "population": "Texas public school districts",
+                      "population": "Houston ISD",
                       "denominator": "fall survey enrollment",
                       "status": "observed",
                       "source": {
@@ -4261,7 +8071,7 @@
                       "value": 2267,
                       "unit": "USD per student",
                       "period": "2025",
-                      "population": "Texas public school districts",
+                      "population": "Houston ISD",
                       "denominator": "fall survey enrollment",
                       "status": "observed",
                       "source": {
@@ -4285,7 +8095,7 @@
                       "value": 77,
                       "unit": "percent",
                       "period": "2025",
-                      "population": "Texas public school districts",
+                      "population": "Houston ISD",
                       "denominator": "gross local + state + federal revenue",
                       "status": "observed",
                       "source": {
@@ -4308,14 +8118,14 @@
                       "label": "Points vs predicted",
                       "value": 3.9,
                       "unit": "percentage points",
-                      "period": "2025",
-                      "population": "Texas public school districts",
+                      "period": "2024",
+                      "population": "Houston ISD",
                       "denominator": "predicted Meets rate from the district need model",
                       "status": "modeled",
                       "source": {
                         "label": "Texas Education Agency public artifacts",
                         "url": "https://txisd.dev/transparency",
-                        "period": "2025"
+                        "period": "2024"
                       },
                       "limits": [
                         "Nothing here is a finding of wrongdoing. Every flag is a description of a published number against a published threshold, and the thresholds are above so you can disagree with them.",
@@ -4361,13 +8171,7 @@
           "message": "Unknown tool: unknown_tool"
         },
         "id": 1
-      },
-      "expectation": "Unknown tool is rejected with -32602"
+      }
     }
-  ],
-  "summary": {
-    "public_tool_successes": 11,
-    "negative_rejection_checks": 1,
-    "failed": 0
-  }
+  ]
 }

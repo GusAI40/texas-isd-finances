@@ -26,14 +26,18 @@ Why it is hand-written rather than an SDK
 -----------------------------------------
 Vercel builds this function from the `[project]` table with a 500 MB bundle
 cap, and a missing or unbuildable dependency fails every deploy, not just this
-feature. The protocol surface actually needed here — three methods, no
-sampling, no elicitation, no subscriptions, no resources — is small enough that
+feature. The bounded discovery, tool and public-resource surface, without
+sampling, elicitation or subscriptions, is small enough that
 the standard library is a smaller risk than a new dependency. This module is
 the wire format; `mcp_tools.py` is the content.
 
 What is implemented, exactly
 ----------------------------
-- `server/discover`, `tools/list`, `tools/call` over a single POST endpoint.
+- `server/discover`, `tools/list`, `tools/call`, `resources/list` and
+  `resources/read` over a single POST endpoint.
+- MRTR input-required replies and stateless retries for ambiguous district
+  choices; the client echoes its input responses alongside the arguments.
+- An optional bounded public MCP App resource through injected callbacks.
 - Required `_meta`: `io.modelcontextprotocol/protocolVersion` and
   `io.modelcontextprotocol/clientCapabilities`; missing -> -32602 / HTTP 400.
 - Header mirroring: `MCP-Protocol-Version`, `Mcp-Method`, `Mcp-Name`, validated
@@ -50,9 +54,7 @@ What is deliberately NOT implemented
 ------------------------------------
 - **Sampling and elicitation.** Both are deprecated in this revision anyway,
   and this server has nothing to ask a model for: every answer is a lookup.
-- **MRTR / `InputRequiredResult`.** Follows from the above — no tool here ever
-  needs more input than its arguments.
-- **Resources, prompts, subscriptions, tasks.** No state, nothing long-running.
+- **Prompts, subscriptions, tasks.** No state, nothing long-running.
 - **Legacy `initialize`.** A legacy client gets an error naming the versions
   this server speaks, which the spec asks for because legacy clients have no
   way to fall forward.

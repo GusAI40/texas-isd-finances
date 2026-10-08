@@ -22,7 +22,8 @@ accessible table alternatives are itemized exclusions. Overlap is invalid;
 narrative overlapping a visual has prose precedence. Both the initial analytic
 viewport and full default report must independently satisfy `V/(V+P) >= .95`
 and `P/(V+P) <= .05`. This is a presentation target, not an accuracy or
-usability claim. Screenshots need manual classification review.
+usability claim. Screenshots require independent semantic classification review;
+agent inspection is identified separately from a human participant study.
 
 ## Retention model
 
