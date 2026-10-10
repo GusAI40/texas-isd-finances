@@ -1,0 +1,22 @@
+{
+  "district_number": "057905",
+  "district_name": "Dallas ISD",
+  "fiscal_year": 2025,
+  "scope": "Recorded all-funds spending, including construction and debt payments",
+  "source": "TEA PEIMS Summarized Actual Financial Data",
+  "recorded_public_url": "https://txisd.dev/district/057905/dollar",
+  "recorded_at": "2026-10-07T23:10:00Z",
+  "recorded_response_sha256": "2c02553325e9b62e18b5bf877e8a9cf37a063447e9b3a9dcc17b811403dae26d",
+  "baseline_source_revision": "da1721a5ea40b60b76e9e3f9efe69fe67305daee",
+  "source_snapshot_date": "2026-08-12",
+  "total_spending_dollars": 3319208715,
+  "students": 139776,
+  "groups": [
+    {"name": "Classroom teaching", "dollars": 1092607589, "basis": "TEA functions 11, 12, 13"},
+    {"name": "Construction", "dollars": 766316261, "basis": "TEA object 6600"},
+    {"name": "Debt payments", "dollars": 500174938, "basis": "TEA object 6500"},
+    {"name": "Other spending, combined", "dollars": 960109927, "basis": "Total minus the three featured groups; includes every remaining category"}
+  ],
+  "presentation": "A labeled real-data example; not a captured ChatGPT response or current budget. Rounded labels use exact amounts for proportions. No savings or causal claim.",
+  "validation_boundary": "Chat screenshots use mocked /query responses with this public-data example. No paid question calls were made."
+}
