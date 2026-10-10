@@ -17,6 +17,73 @@ Entry template:
 
 ---
 
+## 2026-10-10 - Approved isolated redesign published to txisd.dev
+
+**What changed:** Gus explicitly approved publishing the reviewed isolated PR84
+candidate. Vercel promoted production build
+`dpl_9REP3jKBiDs4nkLyUPvNPkDaV1Dg` to `https://txisd.dev` at
+2026-10-10 04:59:57 UTC. Source remains exactly
+`14326baf497f782db702f12427d6432af1df46be`, based on production
+`73df1896ed0818020ec1c15c06f5ee823db7ec0f`. Runtime changes are only
+`static/index.html` (113 additions/27 deletions) and `static/ask.js`
+(202 additions/34 deletions). TAG-ai/project identity and public alias mapping
+are independently recorded. Backend, data, lockfiles, settings, credentials and
+CI were not changed. No district emails, outreach requests, campaign scheduling
+or Michelle work occurred; those remain HOLD.
+
+**Why:** Publish exactly the reviewed landing and website-chat design while
+preserving production backend/data contracts and excluding stacked PR82/83.
+Staging with existing production settings allowed actual build/data checks before
+changing the public domain. The already-built production deployment was promoted
+without another rebuild.
+
+**Validation:** Both locked Python 3.10 and 3.12 suites had 1,169 passes/31 skips
+each; lint, lock, static-JS and syntax checks passed. Local and exact preview
+browser runs each passed 86 cases. The newly staged production build passed
+39 data/provenance checks with one expected preview cache-header skip and
+86 browser checks. After publication, unauthenticated public checks passed
+40/40 (including cache headers), with exact health revision and asset hashes;
+86 Chromium/Firefox cases passed with no skips/unexpected/flaky outcomes.
+Widths 320/390/430/1440, light/dark, accessibility, loading/empty/error,
+Stop/Retry/timeout and safe structured-answer presentation were covered.
+All chat queries were mocked; paid query count was zero. Fresh independent
+staged and public release verification passed. All 56 public screenshot hashes
+were independently checked. The three desktop/mobile review screenshots saved
+in Library have identical bytes to public screenshots.
+
+**Gotchas:** The first CLI production stage omitted Git metadata, so it was not
+promoted. The second stage explicitly recorded the truthful approved SHA in
+deployment metadata and the non-secret deployment revision variable; actual
+source-cleanliness and delivered asset/data checks independently support that
+identity. Existing credential values were never downloaded. Automatic approval
+review rejected a broad production-env download (secret exposure) and a direct
+master push (bypassing normal branch workflow). Neither action executed. The
+safer supported Vercel promotion completed publication. Library prepared saves
+required the current official batch helper and a portable transfer utility;
+all three finalizations succeeded, then Windows `os.setxattr` was unavailable.
+Do not repeat those saves: returned Library IDs/versions are preserved in the
+task workspace's private Library receipts.
+
+**Open items:** `master` remains `73df1896...`; isolated branch is
+`14326baf...`; PR84 remains draft/open; PR82/83 remain draft/unmerged. A future
+master deployment can replace this promoted build. Integrate only the approved
+isolated PR84 through the normal reviewed branch workflow before a later
+production push; never merge stacked PR82/83 to obtain this redesign. This
+documentation branch records the release and is not a new production candidate.
+Strict 95% data-fill metric remains unmet (parent accepted composition without
+making it a technical gate). Independent-account ChatGPT installation, public
+listing and universal plan eligibility remain unverified; the honest custom
+setup availability notice remains. Python 3.11/Linux CI were not available;
+Actions were left disabled. Paid live-query/model-quality validation remains
+outside the approved budget. District outreach and scheduling remain HOLD.
+
+**Notes:** Redacted durable receipts, independent reports and the three public
+review screenshots are in `docs/evidence/release-2026-10-10/`. Full 56-image
+public and staged evidence remains in the task workspace. Private access cookies,
+shareable URLs, environment values and Library identity tokens are excluded from
+Git. Original working checkout remains tracked-clean with all 389 untracked
+files preserved.
+
 ## 2026-10-10 - Isolated visual landing and sourced website chat candidate
 
 **What changed:** A clean branch based on verified production/master

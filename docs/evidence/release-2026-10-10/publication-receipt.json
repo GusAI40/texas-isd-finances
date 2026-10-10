@@ -1,0 +1,139 @@
+{
+  "published_at_utc": "2026-10-10T04:59:57Z",
+  "verified_at_utc": "2026-10-10T05:03:12.781225+00:00",
+  "public_url": "https://txisd.dev",
+  "approved_revision": "14326baf497f782db702f12427d6432af1df46be",
+  "base_revision": "73df1896ed0818020ec1c15c06f5ee823db7ec0f",
+  "deployment_id": "dpl_9REP3jKBiDs4nkLyUPvNPkDaV1Dg",
+  "deployment_url": "https://texas-isd-finances-ks5vte54q-tag-ai-projects.vercel.app",
+  "team": "TAG-ai / tag-ai-projects",
+  "project_id": "prj_Q86h3ZufDMLk7bsyYOj7FP3S9Wqg",
+  "publication_method": "Promoted already-tested staged production build through Vercel; no rebuild or Git merge.",
+  "metadata_boundary": "CLI deployment supplied truthful githubCommitSha and nonsecret VERCEL_GIT_COMMIT_SHA from clean approved checkout. Actual delivered assets and unchanged data verified independently.",
+  "runtime_diff": {
+    "static/index.html": {
+      "insertions": 113,
+      "deletions": 27,
+      "git_blob": "efc2adeaa9aa283606da72f4eac837e86aed3b57"
+    },
+    "static/ask.js": {
+      "insertions": 202,
+      "deletions": 34,
+      "git_blob": "a267582c51e73e51fef4b9a49b5d71e13ce650eb"
+    }
+  },
+  "assets": {
+    "checked_at_utc": "2026-10-10T05:00:17.258486+00:00",
+    "base": "https://txisd.dev",
+    "expected_revision": "14326baf497f782db702f12427d6432af1df46be",
+    "health": {
+      "status": "healthy",
+      "database": "connected",
+      "tracking_schema": "ready",
+      "revision": "14326baf497f782db702f12427d6432af1df46be"
+    },
+    "assets": [
+      {
+        "route": "/",
+        "status": 200,
+        "final_url": "https://txisd.dev/",
+        "expected_rendered_lf_sha256": "32c4d267a334868e47e0a4051f2d7b00ea6868a9367fb74d1f4191bfd2e4f2fb",
+        "served_lf_sha256": "32c4d267a334868e47e0a4051f2d7b00ea6868a9367fb74d1f4191bfd2e4f2fb",
+        "matches": true
+      },
+      {
+        "route": "/static/ask.js",
+        "status": 200,
+        "final_url": "https://txisd.dev/static/ask.js",
+        "expected_rendered_lf_sha256": "c884583514709fe0e0c42e9648d3c5c4aca3c2b94a6cc12bb4347862d81676df",
+        "served_lf_sha256": "c884583514709fe0e0c42e9648d3c5c4aca3c2b94a6cc12bb4347862d81676df",
+        "matches": true
+      }
+    ],
+    "index_boundary": "Compared against unchanged production og.render_head(source,None), not raw source HTML.",
+    "paid_queries": 0
+  },
+  "public_live_checks": {
+    "passed": 40,
+    "skipped": 0,
+    "drift": 0,
+    "not_deployed": 0,
+    "unreachable": 0
+  },
+  "public_browser": {
+    "startTime": "2026-10-10T05:01:18.593Z",
+    "duration": 94249.48400000001,
+    "expected": 86,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "staged_browser": {
+    "expected": 86,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "prior_checks": {
+    "python310": "1169 passed,31 skipped,3 warnings",
+    "python312": "1169 passed,31 skipped,3 warnings",
+    "local_browser": "86 passed",
+    "preview_browser": "86 passed",
+    "ruff": "PASS",
+    "uv_lock": "PASS",
+    "static_js": "14/14 PASS",
+    "ask_js_syntax": "PASS",
+    "npm_ci_in_temporary_copy": "PASS"
+  },
+  "screenshots": {
+    "public_count": 56,
+    "manifest": "release-public-evidence/browser-verification.json",
+    "library_files": [
+      {
+        "file_name": "TXISD-PR84-Isolated-14326baf497f782db702f12427d6432af1df46be-desktop-landing-1440.png",
+        "file_size_bytes": 112954,
+        "status": "succeeded"
+      },
+      {
+        "file_name": "TXISD-PR84-Isolated-14326baf497f782db702f12427d6432af1df46be-mobile-landing-390.png",
+        "file_size_bytes": 57653,
+        "status": "succeeded"
+      },
+      {
+        "file_name": "TXISD-PR84-Isolated-14326baf497f782db702f12427d6432af1df46be-mobile-chat-390.png",
+        "file_size_bytes": 54647,
+        "status": "succeeded"
+      }
+    ],
+    "library_identity_receipt": "Private Library IDs/versions retained separately in task workspace PR84_LIBRARY_FINALIZED_IMAGES.json."
+  },
+  "git": {
+    "master": "73df1896ed0818020ec1c15c06f5ee823db7ec0f",
+    "candidate_branch": "feat/txisd-isolated-landing-chat-20261010",
+    "candidate": "14326baf497f782db702f12427d6432af1df46be",
+    "PR84": "draft/open, unchanged",
+    "PR82": "draft/open, unmerged",
+    "PR83": "draft/open, unmerged",
+    "risk": "A future master deployment can supersede this promotion; reconcile only PR84 through the normal reviewed branch workflow before a later production push."
+  },
+  "boundaries": {
+    "district_emails": "HOLD; no sends",
+    "outreach_scheduling": "HOLD; no changes or triggers",
+    "michelle": "No action",
+    "paid_queries": 0,
+    "credentials_settings_backend_data_CI": "Unchanged",
+    "original_checkout": "Tracked files unchanged;389 untracked files preserved",
+    "new_revision_environment": "Only this build receives exact40-character nonsecret revision; no newline."
+  },
+  "remaining_limitations": [
+    "Strict95%data-fill metric remains unmet; parent accepted reviewed composition.",
+    "Independent-account ChatGPT install/public listing/plan eligibility remains unverified; custom setup availability notice is retained.",
+    "No paid live-query/model-quality test.",
+    "Python3.11/UbuntuCI unavailable; GitHubActions left disabled.",
+    "Official Library helper finalized all3saves but Windows os.setxattr is unavailable; IDs/versions persisted in receipt."
+  ],
+  "automatic_review": {
+    "secret_download": "Rejected broad production-secret download; never executed. Existing production settings were used unchanged and validated through healthy runtime connections.",
+    "master_push": "Rejected direct master push as bypassing normal branch workflow; never executed. Published tested build using authorized Vercel promotion instead."
+  }
+}

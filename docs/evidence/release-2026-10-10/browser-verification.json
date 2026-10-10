@@ -1,0 +1,353 @@
+{
+  "source_revision": "14326baf497f782db702f12427d6432af1df46be",
+  "deployment_id": "dpl_9REP3jKBiDs4nkLyUPvNPkDaV1Dg",
+  "base_url": "https://txisd.dev",
+  "stats": {
+    "startTime": "2026-10-10T05:01:18.593Z",
+    "duration": 94249.48400000001,
+    "expected": 86,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "screenshots": [
+    {
+      "file": "chromium-chat-1440.png",
+      "sha256": "cb927d22d5b76e1ee0978ed93c2a3a00d3add8c4d6730b50c5847007b8f0683b",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "file": "chromium-chat-320.png",
+      "sha256": "263ba91eebe258477f81d70a1bbba5cb8daa553dc5b366b6610736360d83f3d3",
+      "width": 320,
+      "height": 740
+    },
+    {
+      "file": "chromium-chat-390.png",
+      "sha256": "0abe39de5dbc2f20ba449b79dad7e44e696989b7a054581f9d51f0aff1854a4c",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": "chromium-chat-430.png",
+      "sha256": "29c5e6a5636231c1987bb1f4a1512f8d8e9df048d6918a774f8654832d536311",
+      "width": 430,
+      "height": 932
+    },
+    {
+      "file": "chromium-chat-dark-1440.png",
+      "sha256": "9c2a612cb09d1dd31dec4d353c47e206cd72ee0e2979bd07b0cd39c35724da93",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "file": "chromium-chat-dark-320.png",
+      "sha256": "e253fbb8434d6c2a13b172e03d8235bed6eea15b14cf557a2f60096c7c9f4d8c",
+      "width": 320,
+      "height": 844
+    },
+    {
+      "file": "chromium-chat-dark-390.png",
+      "sha256": "7242d59817df679965d58224b5f7f13bb4b8a1c8fce405787c313570e223ae22",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": "chromium-chat-dark-430.png",
+      "sha256": "abd03c6920be24bef012b296d85f09fe184fa158163350f9822524fb0c0a480a",
+      "width": 430,
+      "height": 844
+    },
+    {
+      "file": "chromium-chat-empty-390.png",
+      "sha256": "b35c02612a79d7a2c71cb4826a467a05fa0e12b20c88d8f7857670b8216c2709",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": "chromium-chat-error-390.png",
+      "sha256": "a3d1a8f689fa02f5c3f42e34b00a86056a1aa5a6a2a07ca20a3946efe06fe037",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": "chromium-chat-loading-390.png",
+      "sha256": "e1e975c512c821bc25690b99d6416cf6002afc096bc617bffbe286dd1e315b34",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": "chromium-chat-stopped-390.png",
+      "sha256": "77880c398afc21ce3c9b03559f512a9f3f751acb6a6670ee96d9c53555a674f3",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": "chromium-landing-1440.png",
+      "sha256": "99ac4ebf55069f4a0fe3e3a7c8c1cbd5f53af4fe152860737986f37002fbd276",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "file": "chromium-landing-320.png",
+      "sha256": "5606cfab49f6b9d389cc370e1a128d359ecb4adc38364e28f17263269bbc262a",
+      "width": 320,
+      "height": 740
+    },
+    {
+      "file": "chromium-landing-390.png",
+      "sha256": "2d330faa7d9eafe04feca0bd211e07f64897f21ad77671fd817c7cabbf31628f",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": "chromium-landing-430.png",
+      "sha256": "caf79def5cf91ba8abc206e0217f50dbb2d4ce3c1d385e2dd4462db1e11f1721",
+      "width": 430,
+      "height": 932
+    },
+    {
+      "file": "chromium-landing-dark-1440.png",
+      "sha256": "fc531e889838f56a61183c654a7e0fbdfa44f33367fa797d5677f87fc717b48f",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "file": "chromium-landing-dark-320.png",
+      "sha256": "b1585d68b03e339e08d83fb4205339ca56de64b8913b361f0afbabadbffae3ea",
+      "width": 320,
+      "height": 844
+    },
+    {
+      "file": "chromium-landing-dark-390.png",
+      "sha256": "b6bb8e20e2f981140bcccb29d32949e455c2f6e4b6de76c6a312c9a056d2a486",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": "chromium-landing-dark-430.png",
+      "sha256": "476faf31e24fda58facd601641a8706c79281cf157ab4a8e5444f5942c8e75f3",
+      "width": 430,
+      "height": 844
+    },
+    {
+      "file": "chromium-landing-full-1440.png",
+      "sha256": "69ad0655d418edfe78351971e26e97f8ff93bb2686194daa10fa3538238ecfe6",
+      "width": 1192,
+      "height": 728
+    },
+    {
+      "file": "chromium-landing-full-320.png",
+      "sha256": "ca8928587dd770c073f3ff8513188553937b08692290e3cbda76ca593c4cefb5",
+      "width": 272,
+      "height": 836
+    },
+    {
+      "file": "chromium-landing-full-390.png",
+      "sha256": "f53d5df3827d6c3ac2027c676293fd94c4a324fdbb1da0d2667ff554c607b7e1",
+      "width": 342,
+      "height": 768
+    },
+    {
+      "file": "chromium-landing-full-430.png",
+      "sha256": "5580fa67f9c8073b2095509fd935c0dc4d2f3ccac0dd3506f617cf80849533cc",
+      "width": 382,
+      "height": 742
+    },
+    {
+      "file": "chromium-setup-1440.png",
+      "sha256": "7da44823b58bafa497d90aa72f4c6dea8decaa83d4c36a0ba7e574d86cb8e5bc",
+      "width": 1192,
+      "height": 401
+    },
+    {
+      "file": "chromium-setup-320.png",
+      "sha256": "756e50fcfe930be000adb7b82fa1a75db988fe316e85ff641c1c23b273e559ad",
+      "width": 272,
+      "height": 901
+    },
+    {
+      "file": "chromium-setup-390.png",
+      "sha256": "c369ba074f0cb863027307bb509d88f609030c9687ad5b527059d4d48dd1b867",
+      "width": 342,
+      "height": 876
+    },
+    {
+      "file": "chromium-setup-430.png",
+      "sha256": "bfbe868b4661a615a3f56d75470acffef5ff00bbae28dab7e604684854f093be",
+      "width": 382,
+      "height": 626
+    },
+    {
+      "file": "firefox-chat-1440.png",
+      "sha256": "74eb3a74da1a461d7fea5414e67dc482112c4d0b4478c439bc92b8654aebc81e",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "file": "firefox-chat-320.png",
+      "sha256": "e9cd4760753053ddab58ed5a54ff449ca3f159a7a926867bd640261320a1d64b",
+      "width": 320,
+      "height": 740
+    },
+    {
+      "file": "firefox-chat-390.png",
+      "sha256": "edf28f6480cc576c9677403fa581db2b8c1a7e82f01d41785d5b1fa6991980ea",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": "firefox-chat-430.png",
+      "sha256": "73a0f3f964eff7db8c379fe5969688cbac22c615141d4fd13175db0728851fe9",
+      "width": 430,
+      "height": 932
+    },
+    {
+      "file": "firefox-chat-dark-1440.png",
+      "sha256": "9a7a3d87e39ef11114c66d50801cc9432dd084522115ff0e89544b4459702162",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "file": "firefox-chat-dark-320.png",
+      "sha256": "f5720978b32c708864d4e404773e8dfdab8430f5d203746d323cca44e9daf9dd",
+      "width": 320,
+      "height": 844
+    },
+    {
+      "file": "firefox-chat-dark-390.png",
+      "sha256": "2b1e7c8ceac289334d68a7396fb115f3a1bfb5df877f1a70e0c892591e9bd50f",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": "firefox-chat-dark-430.png",
+      "sha256": "cc176dfa44bbd6e3fb469b5ea59c31fcbfd0cd49c20fa2ccbed937fc7bc0f8e1",
+      "width": 430,
+      "height": 844
+    },
+    {
+      "file": "firefox-chat-empty-390.png",
+      "sha256": "b3a10800887516640c53ad41218398c95e25cb099b9155fdc5f7539b603e4a1c",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": "firefox-chat-error-390.png",
+      "sha256": "be19af93319f6c2772a8cc8239d360fdbecac61ab2c6a31c5f3825227dc7d023",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": "firefox-chat-loading-390.png",
+      "sha256": "595c66e6bdec48607e3d41c252a9ec7869f388e0a7d92efa586881e120f6cf16",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": "firefox-chat-stopped-390.png",
+      "sha256": "9da9840ac7b96f75ff2f86eea3db015c6fe788229f93aae3c739b8e2c39dfb67",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": "firefox-landing-1440.png",
+      "sha256": "cff58d92317624579afcb85a720001edea8ed13b41b5acccdaefb66f3bb402cc",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "file": "firefox-landing-320.png",
+      "sha256": "d2e70274b4e8d8aaa221c713a6b18ccdb08edd894bb3af4ad5da6082f7d46546",
+      "width": 320,
+      "height": 740
+    },
+    {
+      "file": "firefox-landing-390.png",
+      "sha256": "bc0b32b875268ef0af5313ba1a62804f94eb1dc094f1182aa8e727c1a574faa3",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": "firefox-landing-430.png",
+      "sha256": "5ecc464e47d7ca448387168b989ce4915df2bdf5d093f98aef090322d8fe0905",
+      "width": 430,
+      "height": 932
+    },
+    {
+      "file": "firefox-landing-dark-1440.png",
+      "sha256": "8950ebf2f4c868150b92c69e8f55b6fd14a2f9504256319d16a2f860001116a5",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "file": "firefox-landing-dark-320.png",
+      "sha256": "3e68169eab3af65f58c98ad0a28707c482d353b1b965b69f43cdab0b34ef8f63",
+      "width": 320,
+      "height": 844
+    },
+    {
+      "file": "firefox-landing-dark-390.png",
+      "sha256": "c3397e8d17ab98036016286b0cdd13ce073cc6a831f8cee6a530476179ad63ea",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": "firefox-landing-dark-430.png",
+      "sha256": "6d944964c7982bb30258816bee954d42109be43b08b2b25f482a22b3f2100bf8",
+      "width": 430,
+      "height": 844
+    },
+    {
+      "file": "firefox-landing-full-1440.png",
+      "sha256": "9ad71c731c5f2e1287e8b8f632faa9f9a53860d6915d59773f164faed9c1d344",
+      "width": 1192,
+      "height": 728
+    },
+    {
+      "file": "firefox-landing-full-320.png",
+      "sha256": "28f9fdc54e5d4eaa6c9937d55ece0715b15750f2e3631a562a7034cf32509dee",
+      "width": 272,
+      "height": 837
+    },
+    {
+      "file": "firefox-landing-full-390.png",
+      "sha256": "efc074f5ed39c6f5a13042c8cda1329394cfb3ec0d88a14c4de627614e43116b",
+      "width": 342,
+      "height": 769
+    },
+    {
+      "file": "firefox-landing-full-430.png",
+      "sha256": "433fc1586db39b993ed8fc7f38e551f56e487ebd8a64b7fec949448e9c3762a0",
+      "width": 382,
+      "height": 742
+    },
+    {
+      "file": "firefox-setup-1440.png",
+      "sha256": "1bac4467e2fc643e4ae775ddcb1259478292bbbc43917d791fae2b18da866d4c",
+      "width": 1192,
+      "height": 402
+    },
+    {
+      "file": "firefox-setup-320.png",
+      "sha256": "a063e98a4b341e6ce1bc6b6c9152a9aae4a79a69bb9f757c6225403f73922799",
+      "width": 272,
+      "height": 902
+    },
+    {
+      "file": "firefox-setup-390.png",
+      "sha256": "341e35bbd4841637e2cf9125a67a20093103a9865bcc218d2ee57e7e5d88e738",
+      "width": 342,
+      "height": 877
+    },
+    {
+      "file": "firefox-setup-430.png",
+      "sha256": "bcb5c101695ea8b25d287ec7e899f6735248671f996b5c1f100915000f13a4d9",
+      "width": 382,
+      "height": 627
+    }
+  ],
+  "paid_queries": 0,
+  "authentication": "No preview storage state or credentials used; public browser context."
+}

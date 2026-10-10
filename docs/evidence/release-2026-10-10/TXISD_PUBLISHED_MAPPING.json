@@ -1,0 +1,51 @@
+{
+  "before": [
+    {
+      "alias": "txisd.dev",
+      "projectId": "prj_Q86h3ZufDMLk7bsyYOj7FP3S9Wqg",
+      "deploymentId": "dpl_C9cCgpLNiRhqk5R4uBFKC3Wanc4t",
+      "updatedAt": 1791597552900,
+      "redirect": null
+    }
+  ],
+  "after": [
+    {
+      "alias": "txisd.dev",
+      "projectId": "prj_Q86h3ZufDMLk7bsyYOj7FP3S9Wqg",
+      "deploymentId": "dpl_9REP3jKBiDs4nkLyUPvNPkDaV1Dg",
+      "updatedAt": 1791608397026,
+      "redirect": null
+    }
+  ],
+  "deployment": {
+    "id": "dpl_9REP3jKBiDs4nkLyUPvNPkDaV1Dg",
+    "url": "texas-isd-finances-ks5vte54q-tag-ai-projects.vercel.app",
+    "target": "production",
+    "state": "READY",
+    "project": {
+      "id": "prj_Q86h3ZufDMLk7bsyYOj7FP3S9Wqg",
+      "name": "texas-isd-finances",
+      "framework": "fastapi"
+    },
+    "meta": {
+      "githubCommitRef": "feat/txisd-isolated-landing-chat-20261010",
+      "githubCommitSha": "14326baf497f782db702f12427d6432af1df46be"
+    },
+    "source": "cli",
+    "ready": 1791607991845
+  },
+  "promotion_aliases": [
+    {
+      "status": "completed",
+      "alias": "txisd.dev",
+      "id": "3b057f3bf932a98b3a54b2405dda4ab86d7baa8dfdea88608e1d0c6065b7ded669d849def71275cf81731643c82c43a8e195d34245db471cfb618435615d6f02"
+    },
+    {
+      "status": "completed",
+      "alias": "texas-isd-finances.vercel.app",
+      "id": "d176fca7c6a95c42d92ee29136ebfebb81cc359bd6857bbd6c100c2430ea5c350955395351b2c44a96a5fb0bb13a9d8f35a02cbe69c01c63d46b2664c810136b"
+    }
+  ],
+  "approved_source": "14326baf497f782db702f12427d6432af1df46be",
+  "security_settings": "Existing all_except_custom_domains Vercel SSO protection unchanged; public domain checks use no preview credentials."
+}

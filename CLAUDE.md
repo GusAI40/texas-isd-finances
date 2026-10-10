@@ -142,6 +142,30 @@ The newest bullets control. Dated bullets below retain useful engineering
 history and may contain superseded counts; never let them override the current
 outreach item or `data/outreach_watermark.json`.
 
+- **Isolated redesign published (2026-10-10 UTC).** The public domain
+  `https://txisd.dev` maps to TAG-ai production deployment
+  `dpl_9REP3jKBiDs4nkLyUPvNPkDaV1Dg`, serving approved source
+  `14326baf497f782db702f12427d6432af1df46be`. The already-tested production
+  build was promoted through Vercel; no merge or rebuild was used. Public
+  health/database/tracking schema are healthy/connected/ready. Public served
+  landing/ask hashes match approved source; strict data/provenance checks pass
+  40/40, and 86 Chromium/Firefox browser checks pass without preview credentials.
+  56 public screenshots are retained in the task workspace; the three review
+  screenshots saved in Library exactly match public screenshots.
+  Only the two reviewed runtime files are published; backend/data/security/
+  credential/CI settings are unchanged. District emails and scheduling remain
+  **HOLD**, with no sends, campaign scheduling or Michelle work.
+  `master` remains `73df1896ed0818020ec1c15c06f5ee823db7ec0f`; PR84 remains
+  draft/open and PR82/83 are unmerged. A later master deployment can supersede
+  this promotion: reconcile only PR84 through normal review before another
+  production push. Automatic review rejected a direct master push and broad
+  secret download; neither executed. Strict 95% data-fill remains unmet under
+  the documented conservative metric; independent-account ChatGPT installation/
+  public listing remains unverified, and the account-availability notice stays.
+  Chat tests were mocked; no paid/model-quality query test was run.
+  This publication entry supersedes the earlier candidate's pre-approval
+  publication status. Receipt: `docs/evidence/release-2026-10-10/`.
+
 - **Isolated landing and website chat review candidate (2026-10-10).** Branch
   `feat/txisd-isolated-landing-chat-20261010` starts from verified production
   `73df1896ed0818020ec1c15c06f5ee823db7ec0f`. Only `static/index.html` and

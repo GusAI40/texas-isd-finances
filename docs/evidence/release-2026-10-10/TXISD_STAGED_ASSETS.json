@@ -1,0 +1,31 @@
+{
+  "checked_at_utc": "2026-10-10T04:54:21.924452+00:00",
+  "base": "https://texas-isd-finances-ks5vte54q-tag-ai-projects.vercel.app",
+  "expected_revision": "14326baf497f782db702f12427d6432af1df46be",
+  "health": {
+    "status": "healthy",
+    "database": "connected",
+    "tracking_schema": "ready",
+    "revision": "14326baf497f782db702f12427d6432af1df46be"
+  },
+  "assets": [
+    {
+      "route": "/",
+      "status": 200,
+      "final_url": "https://texas-isd-finances-ks5vte54q-tag-ai-projects.vercel.app/",
+      "expected_rendered_lf_sha256": "32c4d267a334868e47e0a4051f2d7b00ea6868a9367fb74d1f4191bfd2e4f2fb",
+      "served_lf_sha256": "32c4d267a334868e47e0a4051f2d7b00ea6868a9367fb74d1f4191bfd2e4f2fb",
+      "matches": true
+    },
+    {
+      "route": "/static/ask.js",
+      "status": 200,
+      "final_url": "https://texas-isd-finances-ks5vte54q-tag-ai-projects.vercel.app/static/ask.js",
+      "expected_rendered_lf_sha256": "c884583514709fe0e0c42e9648d3c5c4aca3c2b94a6cc12bb4347862d81676df",
+      "served_lf_sha256": "c884583514709fe0e0c42e9648d3c5c4aca3c2b94a6cc12bb4347862d81676df",
+      "matches": true
+    }
+  ],
+  "index_boundary": "Compared against unchanged production og.render_head(source,None), not raw source HTML.",
+  "paid_queries": 0
+}
