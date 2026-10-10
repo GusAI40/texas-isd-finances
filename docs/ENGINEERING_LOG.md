@@ -17,6 +17,16 @@ Entry template:
 
 ---
 
+## 2026-10-10 - Authorized protected PR source-control handoff
+
+**What changed:** Prepared PR #85 for the authorized protected-master integration. Compared the complete PR scope and exact GitHub merge tree against the reviewed runtime and tests. Removed an extra EOF blank line in the independent review document; this save changes documentation only. Final PR metadata records the actual merged SHA, resulting production source and new GET-only evidence after execution.
+
+**Why:** Gus's 21:38 UTC "Push all live" authorization includes closing the source-control gap so the production redesign can be reproduced from the normal default-branch history. Reuse the completed source-pinned technical matrix only after proving the candidate has the same runtime and tested code.
+
+**Gotchas:** A clean working-tree `git diff --check` does not check whitespace already committed; check the complete base-to-candidate diff. Synthetic GitHub merge objects can have a different SHA from the final merge commit, so compare the final tree and parents as well as the PR head. Do not promote the keyless preview or bypass branch protection. Preserve older release receipts as historical evidence.
+
+**Open items:** Public ChatGPT distribution and independent-account eligibility remain unverified. Paid model questions, Python 3.11/Linux CI and native browser-zoom certification were not tested. The independent candidate review, normal merge and merged-source public verification are recorded in PR #85 rather than predicted here.
+
 ## 2026-10-10 - Published visual-first redesign
 
 **What changed:** Focused isolated landing/report/chat stages adopt the explicitly approved visual-first acceptance. Chart-bearing chapters remain open, explanatory details are accessible, and material source/period/basis/qualifiers stay visible. Independent VF review and the complete available technical matrix pass. Production source fced6f93e6e5385cd01c41113ddaefc197e7ba67; deployment dpl_DfFKptVkRd4aPMxY4hHYJH48WZMA; live https://txisd.dev; public source and health verified.
