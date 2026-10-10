@@ -1,0 +1,20 @@
+{
+  "source": "https://txisd.dev/district/061910/summary",
+  "checked_at": "2026-10-07T23:03:53.6103926Z",
+  "purpose": "Read-only framing fixture from unreconciled production; reported per-student values retain known integer-division truncation",
+  "row": {
+    "district_number": "061910",
+    "district_name": "ARGYLE ISD",
+    "year": 2025,
+    "total_revenue": 63857251,
+    "total_spend": 193842830,
+    "enrollment": 6114,
+    "spend_per_student": 31704.0,
+    "revenue_per_student": 10444.0,
+    "instruction_spend": 35596379,
+    "debt_service": 31498615,
+    "capital_projects": 98300926,
+    "operating_spend": 63325274
+  },
+  "observed_revision": "73df1896ed0818020ec1c15c06f5ee823db7ec0f"
+}

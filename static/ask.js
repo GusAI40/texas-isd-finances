@@ -140,9 +140,13 @@
     '  background:var(--accent, #1a56a8); color:var(--accent-ink, #fff); }',
     '.ta-row button:focus-visible { outline:3px solid var(--ink, #14171a); outline-offset:2px; }',
     '.ta-row button[disabled] { opacity:.55; cursor:default; }',
+    '.ta-actions { display:flex; gap:.5rem; padding:0 1.25rem .4rem; }',
+    '.ta-actions button { min-height:38px; padding:.4rem .75rem; border-radius:9px; font:600 .9rem/1 system-ui,sans-serif; cursor:pointer; border:1px solid var(--rule,#cfd4d8); background:var(--bg,#fff); color:var(--ink,#14171a); }',
+    '.ta-actions .ta-stop { color:var(--accent,#1a56a8); border-color:var(--accent,#1a56a8); }',
+    '.ta-empty { margin:.2rem 1.25rem .55rem; padding:.65rem .75rem; border-left:2px solid var(--accent,#1a56a8); color:var(--muted,#5a6572); font-size:.88rem; line-height:1.45; }',
     '.ta-fine { margin:0; padding:.15rem 1.25rem calc(1rem + env(safe-area-inset-bottom, 0px));',
-    '  color:var(--faint, #8b95a1); font-size:.78rem; line-height:1.5; }',
-    '.ta-fine a { color:inherit; }',
+    '  color:var(--ink-2, #52606d); font-size:.78rem; line-height:1.5; }',
+    '.ta-fine a { color:var(--accent, #1a56a8); }',
     /* ---- the structured answer, drawn as components ---- */
     '.ta-msg.ai.rich .ta-bub { max-width:100%; background:var(--bg, #fff);',
     '  border-radius:4px 14px 14px 14px; padding:.85rem 1rem 1rem; }',
@@ -165,7 +169,7 @@
     '  letter-spacing:-.02em; font-variant-numeric:tabular-nums; }',
     '.ta-card span { display:block; margin-top:.2rem; font-size:.76rem;',
     '  text-transform:uppercase; letter-spacing:.05em; color:var(--muted, #5a6572); }',
-    '.ta-cap { margin:.4rem 0 0; font-size:.78rem; color:var(--faint, #8b95a1); }',
+    '.ta-cap { margin:.4rem 0 0; font-size:.78rem; color:var(--ink-2, #52606d); }',
     '.ta-lin { margin:.55rem 0 0; padding:.7rem .8rem; border-radius:10px;',
     '  border:1px solid var(--rule, #e3e6e8); background:var(--wash, #f4f5f4); }',
     '.ta-linhead { display:flex; align-items:center; gap:.5rem; flex-wrap:wrap; }',
@@ -196,6 +200,18 @@
     '.ta-tb tr:last-child td { border-bottom:none; }',
     '.ta-tb tr.me td { font-weight:600; background:var(--wash, #f4f5f4); }',
     '.ta-basis { margin:.35rem 0 0; font-size:.78rem; line-height:1.5; color:var(--faint, #8b95a1); }',
+    '.ta-chart { margin:.8rem 0 0; padding:.75rem; border:1px solid var(--rule, #e3e6e8); border-radius:10px; background:var(--surface, #f6f7f6); }',
+    '.ta-chart-title { margin:0 0 .55rem; font-size:.875rem; font-weight:700; color:var(--ink-2, #3d454d); }',
+    '.ta-chart-row { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:.28rem .7rem; align-items:center; margin:.46rem 0; }',
+    '.ta-chart-row strong { font-size:.9rem; line-height:1.25; color:var(--ink,#14171a); }',
+    '.ta-chart-row span { font-size:.88rem; font-variant-numeric:tabular-nums; color:var(--ink,#14171a); }',
+    '.ta-chart-track { grid-column:1 / -1; height:.48rem; overflow:hidden; border-radius:999px; background:var(--rule,#e3e6e8); }',
+    '.ta-chart-bar { display:block; height:100%; min-width:2px; border-radius:inherit; background:var(--accent,#1a56a8); }',
+    '.ta-evidence, .ta-support { margin:.8rem 0 0; font-size:.9rem; color:var(--ink-2,#3d454d); }',
+    '.ta-evidence summary, .ta-support summary { cursor:pointer; color:var(--accent,#1a56a8); font-weight:600; }',
+    '.ta-support p { margin:.55rem 0 0; }',
+    '.ta-context, .ta-answer-source, .ta-limit { margin:.55rem 0 0; font-size:.875rem; line-height:1.45; color:var(--ink-2,#3d454d); }',
+    '.ta-answer-source a { color:var(--accent,#1a56a8); }',
     '.ta-next { display:flex; flex-wrap:wrap; gap:.45rem; margin:.9rem 0 0;',
     '  padding-top:.8rem; border-top:1px solid var(--rule, #e3e6e8); }',
     '.ta-next button { font:inherit; font-size:.9rem; min-height:40px; padding:.4rem .85rem;',
@@ -204,8 +220,8 @@
     '.ta-next button:hover { background:var(--accent, #1a56a8); color:var(--accent-ink, #fff);',
     '  border-color:var(--accent, #1a56a8); }',
     '.ta-next button:focus-visible { outline:3px solid var(--ink, #14171a); outline-offset:2px; }',
-    '.ta-foot { margin:.75rem 0 0; font-size:.78rem; line-height:1.55; color:var(--faint, #8b95a1); }',
-    '.ta-foot a { color:inherit; }',
+    '.ta-foot { margin:.75rem 0 0; font-size:.78rem; line-height:1.55; color:var(--ink-2, #52606d); }',
+    '.ta-foot a { color:var(--accent, #1a56a8); }',
     '.ta-foot + .ta-foot { margin-top:.3rem; }',
     /* ---- beta chip + feedback ---- */
     '.m-beta { display:inline-block; margin-left:.45rem; padding:.1rem .4rem;',
@@ -261,6 +277,8 @@
   }
 
   var wrap, thread, input, sendBtn, chips, fab, sr, lastFocus, busy = false;
+  var controller = null, requestTimer = null, focusTimer = null, retryState = null, activeRequest = null, activeBubble = null;
+  var previousOverflow = '', focusSerial = 0;
 
   function build() {
     if (document.getElementById(STYLE_ID)) return;
@@ -284,6 +302,7 @@
       + '    <button class="ta-x" type="button" aria-label="Close">&times;</button>'
       + '  </div>'
       + '  <div class="ta-thread"></div>'
+      + '  <div class="ta-empty">Ask about a district&rsquo;s spending, debt, students, or a change over time.</div>'
       + '  <div class="ta-sr" aria-live="polite"></div>'
       + '  <div class="ta-chips" aria-label="Example questions"></div>'
       + '  <div class="ta-row">'
@@ -291,6 +310,7 @@
       + '           aria-label="Ask a question about any Texas district">'
       + '    <button type="button">Ask</button>'
       + '  </div>'
+      + '  <div class="ta-actions" hidden><button class="ta-stop" type="button">Stop</button><button class="ta-retry" type="button" hidden>Try again</button></div>'
       + '  <p class="ta-fine">AI answers from official TEA data and can make mistakes '
       + '&mdash; double-check important figures. Questions are kept on their own, with '
       + 'nothing that identifies you (<a href="/about#privacy">what we collect</a>).</p>'
@@ -302,6 +322,11 @@
     sendBtn = wrap.querySelector('.ta-row button');
     chips = wrap.querySelector('.ta-chips');
     sr = wrap.querySelector('.ta-sr');
+
+    wrap.querySelector('.ta-stop').addEventListener('click', stopRequest);
+    wrap.querySelector('.ta-retry').addEventListener('click', function () {
+      if (retryState) submit(retryState.question, retryState.districtNumber);
+    });
 
     STARTERS.forEach(function (q) {
       var b = h('<button type="button"></button>');
@@ -321,7 +346,10 @@
       /* a soft focus loop: Tab from the last control returns to the first,
          so keyboard readers cannot fall out of the dialog into the page */
       if (e.key === 'Tab' && wrap.classList.contains('open')) {
-        var focusables = wrap.querySelectorAll('button, input, a[href]');
+        var focusables = Array.prototype.filter.call(wrap.querySelectorAll('button, input, a[href]'), function (node) {
+          return !node.disabled && !node.hidden && node.offsetParent !== null;
+        });
+        if (!focusables.length) return;
         var first = focusables[0], last = focusables[focusables.length - 1];
         if (e.shiftKey && document.activeElement === first) {
           e.preventDefault(); last.focus();
@@ -334,19 +362,28 @@
 
   function open() {
     build();
+    if (wrap.classList.contains('open') && !wrap.hidden) return;
     lastFocus = document.activeElement;
     wrap.hidden = false;
     /* two frames so the animation class change actually transitions */
     requestAnimationFrame(function () { wrap.classList.add('open'); });
+    previousOverflow = document.documentElement.style.overflow;
     document.documentElement.style.overflow = 'hidden';
-    setTimeout(function () { input.focus(); }, reduce ? 0 : 220);
+    var serial = ++focusSerial;
+    clearTimeout(focusTimer);
+    focusTimer = setTimeout(function () {
+      if (serial === focusSerial && !wrap.hidden && document.activeElement === lastFocus) input.focus();
+    }, reduce ? 0 : 220);
   }
 
   function close() {
     if (!wrap) return;
+    stopRequest(true);
+    ++focusSerial;
+    clearTimeout(focusTimer);
     wrap.classList.remove('open');
     wrap.hidden = true;
-    document.documentElement.style.overflow = '';
+    document.documentElement.style.overflow = previousOverflow;
     if (lastFocus && lastFocus.focus) lastFocus.focus();
   }
 
@@ -510,10 +547,75 @@
       });
   }
 
+  function moneySeries(head, rows) {
+    if (!Array.isArray(head) || head.length !== 2 || !Array.isArray(rows) || rows.length < 2) return null;
+    var labelHead = String(head[0] || '').trim().toLowerCase();
+    var moneyHead = String(head[1] || '').trim().toLowerCase();
+    if (!/^(spending\s+)?(category|item|function|type|program)$/.test(labelHead)
+        || !/^(dollars?|usd|amount(?:\s*\(\s*usd\s*\))?)$/.test(moneyHead)) return null;
+    var values = [];
+    for (var i = 0; i < rows.length; i++) {
+      var row = rows[i];
+      if (!Array.isArray(row) || row.length !== 2) return null;
+      var label = String(row[0] == null ? '' : row[0]).trim();
+      var text = String(row[1] == null ? '' : row[1]).trim();
+      if (/^(total|total spending|grand total)$/i.test(label)) continue;
+      if (!label || !/^\$(?:\d{1,3}(?:,\d{3})*|\d+)(?:\.\d{2})?$/.test(text)) return null;
+      var value = Number(text.replace(/[$,]/g, ''));
+      if (!isFinite(value) || value <= 0) return null;
+      values.push({ label: label, shown: text, value: value });
+    }
+    return values.length > 1 ? values : null;
+  }
+
+  function chartOf(head, rows, s) {
+    if (!s || !s.figures || !s.figures.name || !s.figures.year || !s.figures.note
+        || !s.sources || !s.sources.length) return null;
+    var values = moneySeries(head, rows);
+    if (!values) return null;
+    var max = Math.max.apply(null, values.map(function (v) { return v.value; }));
+    var chart = el('section', 'ta-chart');
+    chart.setAttribute('aria-label', 'Reported dollar comparison; bars are scaled to the largest displayed amount.');
+    chart.appendChild(el('p', 'ta-chart-title', 'Reported dollars'));
+    values.forEach(function (v) {
+      var row = el('div', 'ta-chart-row');
+      row.appendChild(el('strong', null, v.label));
+      row.appendChild(el('span', null, v.shown));
+      var track = el('div', 'ta-chart-track');
+      var bar = el('i', 'ta-chart-bar');
+      bar.setAttribute('data-value', String(v.value));
+      bar.style.width = (v.value / max * 100) + '%';
+      track.appendChild(bar); row.appendChild(track); chart.appendChild(row);
+    });
+    return chart;
+  }
+
   /* Everything below the lead: figures we computed, then the model's blocks,
      then the comparison we computed, then sources and the next questions. */
-  function bodyOf(s) {
+  function bodyOf(s, fullLead) {
     var frag = document.createDocumentFragment();
+    var support = el('details', 'ta-support');
+    support.appendChild(el('summary', null, 'Sources, context, and full answer'));
+    if (fullLead) support.appendChild(el('p', null, fullLead));
+    if (s.sources && s.sources.length) {
+      var earlySource = el('p', 'ta-answer-source');
+      earlySource.appendChild(document.createTextNode('Source: '));
+      s.sources.forEach(function (src, i) {
+        if (i) earlySource.appendChild(document.createTextNode(' · '));
+        var earlyLink = el('a', null, src.name);
+        earlyLink.href = src.url;
+        if (/^https?:/.test(src.url)) { earlyLink.target = '_blank'; earlyLink.rel = 'noopener'; }
+        earlySource.appendChild(earlyLink);
+      });
+      frag.appendChild(earlySource);
+    }
+    (s.limitations || []).forEach(function (t) {
+      frag.appendChild(el('p', 'ta-limit', t));
+    });
+    if (s.figures && s.figures.name && s.figures.year && s.figures.note) {
+      frag.appendChild(el('p', 'ta-context', s.figures.name + ' · Fiscal '
+        + s.figures.year + ' · ' + s.figures.note));
+    }
 
     if (s.figures && s.figures.cards && s.figures.cards.length) {
       var grid = el('div', 'ta-cards');
@@ -533,25 +635,31 @@
         box.appendChild(el('span', null, c.label));
         grid.appendChild(box);
       });
-      frag.appendChild(grid);
-      frag.appendChild(el('p', 'ta-cap',
-        (s.figures.name ? s.figures.name + ', ' : '') + 'fiscal '
-        + s.figures.year + ' · ' + s.figures.note));
+      support.appendChild(grid);
     }
 
     (s.blocks || []).forEach(function (b) {
       if (!b) return;
-      if (b.type === 'heading') frag.appendChild(el('h3', 'ta-h', b.text || ''));
+      if (b.type === 'heading') support.appendChild(el('h3', 'ta-h', b.text || ''));
       else if (b.type === 'list') {
         var ul = el('ul', 'ta-ul');
         (b.items || []).forEach(function (item) {
           ul.appendChild(runsInto(el('li'), item));
         });
-        frag.appendChild(ul);
+        support.appendChild(ul);
       } else if (b.type === 'table') {
-        frag.appendChild(tableOf(b.head, b.rows, null));
+        var chart = chartOf(b.head, b.rows, s);
+        if (chart) {
+          frag.appendChild(chart);
+          var evidence = el('details', 'ta-evidence');
+          evidence.appendChild(el('summary', null, 'View full table - ' + b.rows.length + ' rows'));
+          evidence.appendChild(tableOf(b.head, b.rows, null));
+          frag.appendChild(evidence);
+        } else {
+          frag.appendChild(tableOf(b.head, b.rows, null));
+        }
       } else if (b.type === 'paragraph') {
-        frag.appendChild(runsInto(el('p', 'ta-p'), b.runs));
+        support.appendChild(runsInto(el('p', 'ta-p'), b.runs));
       }
     });
 
@@ -584,7 +692,7 @@
     }
 
     (s.limitations || []).forEach(function (t) {
-      frag.appendChild(el('p', 'ta-foot', t));
+      support.appendChild(el('p', 'ta-foot', t));
     });
     if (s.sources && s.sources.length) {
       var p = el('p', 'ta-foot');
@@ -596,8 +704,9 @@
         if (/^https?:/.test(src.url)) { a.target = '_blank'; a.rel = 'noopener'; }
         p.appendChild(a);
       });
-      frag.appendChild(p);
+      support.appendChild(p);
     }
+    frag.appendChild(support);
     return frag;
   }
 
@@ -637,39 +746,80 @@
     return parts.join(' ').replace(/\s+/g, ' ').trim();
   }
 
-  function submit() {
-    var q = (input.value || '').trim();
+  function setRequestControls(active) {
+    var actions = wrap && wrap.querySelector('.ta-actions');
+    var stop = wrap && wrap.querySelector('.ta-stop');
+    var retry = wrap && wrap.querySelector('.ta-retry');
+    if (actions) actions.hidden = !active && !retryState;
+    if (stop) stop.hidden = !active;
+    if (retry) retry.hidden = active || !retryState;
+  }
+
+  function endRequest() {
+    clearTimeout(requestTimer); requestTimer = null; controller = null;
+    activeRequest = null; activeBubble = null;
+    busy = false;
+    if (sendBtn) sendBtn.disabled = false;
+    setRequestControls(false);
+  }
+
+  function stopRequest(closing) {
+    if (!busy) return;
+    ++token;
+    if (controller) controller.abort();
+    retryState = activeRequest;
+    if (activeBubble) activeBubble.textContent = closing
+      ? 'Request canceled.' : 'Stopped. You can try that question again.';
+    endRequest();
+  }
+
+  function submit(question, requestedDistrict) {
+    if (question && typeof question !== 'string') question = null;
+    var q = String(question == null ? input.value : question).trim();
     if (q.length < 3 || busy) return;
     var mine = ++token;
     busy = true;
     sendBtn.disabled = true;
     input.value = '';
     chips.style.display = 'none';
+    wrap.querySelector('.ta-empty').hidden = true;
+    retryState = null;
+    setRequestControls(true);
 
     bubble('me').textContent = q;
     var bub = bubble('ai');
+    activeBubble = bub;
     bub.innerHTML = '<span class="ta-think">Reading the official data&hellip;</span>'
       + '<span class="ta-skel" aria-hidden="true"><i></i><i></i><i></i></span>';
 
+    var followup = pendingFollowup;
+    pendingFollowup = null; // consume at request start, including aborted requests
+    var district = requestedDistrict || districtNumber();
+    activeRequest = { question: q, districtNumber: district };
+    controller = new AbortController();
+    requestTimer = setTimeout(function () {
+      if (mine === token && controller) controller.abort();
+    }, 45000);
     fetch('/query', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      signal: controller.signal,
       body: JSON.stringify({
         question: q,
-        district_number: districtNumber(),
+        district_number: district,
         conversation_id: conversationId(),
         turn: ++turnNo,
         /* which chip produced this question, if any — the only way to find
            out whether the suggestions help or merely decorate */
-        followup_label: pendingFollowup,
+        followup_label: followup,
       }),
     }).then(function (r) {
-      pendingFollowup = null;      // credited once, to the question it produced
       return r.json().catch(function () { return {}; }).then(function (body) {
         return { status: r.status, body: body };
       });
     }).then(function (res) {
       if (mine !== token) return;
+      endRequest();
       var text;
       if (res.status === 429) {
         text = 'A lot of people are asking right now — please wait a minute '
@@ -686,13 +836,25 @@
         render(bub, res.body.structured, mine);
         return;
       } else {
-        text = res.body.answer || 'No answer came back. Please try rephrasing.';
+        text = res.body.answer || 'No answer came back. Please try again.';
+        if (!res.body.answer) {
+          retryState = { question: q, districtNumber: district };
+          setRequestControls(false);
+        }
+      }
+      if (res.status >= 400 || !res.body || res.body.success === false) {
+        retryState = { question: q, districtNumber: district };
+        setRequestControls(false);
       }
       reveal(bub, text, mine);
-    }).catch(function () {
+    }).catch(function (err) {
       if (mine !== token) return;
-      finish(bub, 'The question service could not be reached. Please check '
-        + 'your connection and try again.');
+      endRequest();
+      retryState = { question: q, districtNumber: district };
+      setRequestControls(false);
+      finish(bub, err && err.name === 'AbortError'
+        ? 'The request timed out. Try again when you are ready.'
+        : 'The question service could not be reached. Please check your connection and try again.');
     });
   }
 
@@ -703,7 +865,7 @@
     if (sr) sr.textContent = text;
     busy = false;
     sendBtn.disabled = false;
-    input.focus();
+    if (wrap && !wrap.hidden) input.focus();
     thread.scrollTop = thread.scrollHeight;
   }
 
@@ -741,7 +903,7 @@
     if (sr) sr.textContent = text;
     busy = false;
     sendBtn.disabled = false;
-    input.focus();
+    if (wrap && !wrap.hidden) input.focus();
     thread.scrollTop = thread.scrollHeight;
   }
 
@@ -763,7 +925,7 @@
     target.textContent = '';
     var rest = function () {
       if (!alive()) return;
-      target.appendChild(bodyOf(s));
+      target.appendChild(bodyOf(s, s.lead || ''));
       if (done) done();
     };
     /* No lead means the model opened with a table or a heading rather than a
@@ -771,17 +933,19 @@
        of such an answer is how `| District | Per student |` ended up as the
        headline. Draw the body and let the answer start where it starts. */
     if (!s.lead_runs || !s.lead_runs.length) { rest(); return; }
-    var leadEl = el('p', 'ta-lead' + (s.lead.length > 200 ? ' long' : ''));
+    var concise = String(s.lead || '').match(/^.*?[.!?](?:\s|$)/);
+    concise = concise ? concise[0].trim() : String(s.lead || '');
+    var leadEl = el('p', 'ta-lead');
     target.appendChild(leadEl);
     /* The reveal writes plain words; the bold arrives with the last one. The
        text is identical either way, so nothing moves when it lands. */
     var done2 = function () {
       leadEl.textContent = '';
-      runsInto(leadEl, s.lead_runs);
+      leadEl.textContent = concise;
       rest();
     };
     if (reduce) { done2(); return; }
-    writeWords(leadEl, s.lead, alive, done2);
+    writeWords(leadEl, concise, alive, done2);
   }
 
   function render(bub, s, mine) {
@@ -959,6 +1123,10 @@
   window.TISDAsk = {
     open: open,
     close: close,
+    ask: function (question, districtNumber) {
+      open();
+      submit(question, districtNumber || null);
+    },
     render: function (target, structured, alive) {
       build();
       renderInto(target, structured, alive, null);

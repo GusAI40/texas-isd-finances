@@ -17,6 +17,46 @@ Entry template:
 
 ---
 
+## 2026-10-10 - Isolated visual landing and sourced website chat candidate
+
+**What changed:** A clean branch based on verified production/master
+`73df1896ed0818020ec1c15c06f5ee823db7ec0f` contains exactly two runtime
+changes: `static/index.html` and `static/ask.js`. The reviewed landing presents
+Dallas FY2025 spending visually, keeps TEA source/snapshot context and exact
+definitions, identifies Gus/TAG as creator, and explains qualified custom
+ChatGPT setup. The existing website chat adds concise, sourced answers and
+strictly qualified financial charts while preserving complete evidence,
+manual Retry, Stop, timeout, stale-response protection and accessible focus.
+Scoped tests, 56 screenshots, data receipts and independent review live in
+`docs/evidence/landing`; details are in `docs/TXISD_ISOLATED_REDESIGN.md`.
+
+**Why:** PRs #82/#83 are stacked on a much larger unreleased portal/plugin
+change. The requested design can be reviewed independently without changing
+backend, SQL, shared stylesheets, runtime dependencies, CI or hosting settings.
+Eight PR #83 index hunks plus the production welcome replacement are retained;
+three PR #82-only hunks are omitted. Two scoped CSS rules preserve the approved
+composition under production's old direct pipeline markup and mobile styles.
+
+**Gotchas:** Windows CP1252 and CRLF inflated unchanged source/data tests.
+Acceptance used UTF-8 mode and exact committed LF bytes for four unchanged
+JSON files; their Git blobs and generated dictionary remain unchanged. Fresh
+locked uv 0.11.33 Python 3.10/3.12 environments each passed 1,169 tests with
+31 skips and 3 warnings. Final mocked Playwright checks passed 86/86 across
+Chromium/Firefox and 320/390/430/1440px, including WCAG AA, light/dark and
+report/map shared chat. Ruff, all 14 static-page JS parses, ask.js syntax,
+lock check and disposable npm ci also pass. Earlier 80-case screenshots and
+incorrect-PATH Python failures are superseded.
+
+**Open items:** Python 3.11 and Ubuntu CI were unavailable locally; GitHub
+Actions were observed disabled and remain unchanged. The parent verified the
+owner-account custom ChatGPT route; independent-account installation and
+public listing remain unverified and the guide states that account/workspace
+availability varies. Conservative data-fill shares fall below the strict 95%
+target (3.1/2.5/2.7/54.3% at 320/390/430/1440px); no 95% success is claimed.
+Exact commit and draft preview verification follow in the handoff. Publication
+to txisd.dev requires separate explicit approval. No paid question, outreach,
+credential/security/configuration change, merge or production promotion occurred.
+
 ## 2026-08-25 — Coverage measured D→B, and the AI Employee gets its two missing ends
 
 **What changed.**

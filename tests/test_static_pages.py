@@ -379,9 +379,9 @@ def test_chart_png_export_serializes_a_clone_and_reports_failure():
 
 
 def test_ask_footer_names_only_the_llm_actually_used():
-    """The ask box must not claim a multi-LLM stack it does not have."""
+    """The compact answer footer stays honest about its public-data basis."""
     html = (STATIC / "index.html").read_text(encoding="utf-8")
-    assert "OpenAI" in html and "LangChain" in html
+    assert 'Answers come from <span id="ask-model">the configured AI model</span> and public records.' in html
     for absent in ("Perplexity", "Pinecone", "MongoDB", "Multi-LLM", "GOAT-UIX"):
         assert absent not in html, f"{absent} is not in this stack and must not appear"
 

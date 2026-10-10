@@ -136,11 +136,23 @@ To render *production* in a browser (Chromium can't TLS through the agent
 proxy), run `scratchpad/liveproxy.py` and point Playwright at
 `127.0.0.1:8799`.
 
-## Current Status (updated 2026-08-25 — keep this a snapshot, history goes in the log)
+## Current Status (updated 2026-10-10 - keep this a snapshot, history goes in the log)
 
 The newest bullets control. Dated bullets below retain useful engineering
 history and may contain superseded counts; never let them override the current
 outreach item or `data/outreach_watermark.json`.
+
+- **Isolated landing and website chat review candidate (2026-10-10).** Branch
+  `feat/txisd-isolated-landing-chat-20261010` starts from verified production
+  `73df1896ed0818020ec1c15c06f5ee823db7ec0f`. Only `static/index.html` and
+  `static/ask.js` change at runtime; PR #82 backend/plugin/portal/CI changes
+  are excluded. Dallas FY2025 recorded evidence, TAG/Gus attribution,
+  qualified custom ChatGPT setup and the independent website chat are reviewed.
+  Both locked Python 3.10/3.12 suites pass 1,169 tests (31 skipped each);
+  86 mocked Chromium/Firefox cases pass with 56 screenshots. Python 3.11
+  and Linux CI were not run; Actions remain disabled. No paid question,
+  outreach, setting change or production publication is authorized here.
+  Review scope and evidence: `docs/TXISD_ISOLATED_REDESIGN.md`.
 
 - 🟡 **Forensic hardening is repository-complete; production requires separate
   proof** (2026-08-22) — the change set explicitly monitors both Vercel crons,
