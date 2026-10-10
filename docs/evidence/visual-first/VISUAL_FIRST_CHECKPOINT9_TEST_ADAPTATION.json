@@ -1,0 +1,77 @@
+{
+  "capturedAt": "2026-10-10T20:37:54.037Z",
+  "runtime": {
+    "static/index.html": "fa0ed1c69985cc0cc63d3f354b0f4f25c999e5c950e9a18e7aa127488ad9f396",
+    "static/ask.js": "29087384c5b897439dded64453362628a074781771cfc252f94fe23c61ada7c4",
+    "static/forensics.html": "270dfe1731bbc50ad95848625c05582ec43ddcc82c6756a36d6215a19552f939"
+  },
+  "runtimeUnchanged": true,
+  "tests": {
+    "tests/test_ask_widget.py": "fcfad3147cb98ab09900e2b246dab56c1cc0e7f9d35ac04ab3fa0c5422a4f49d",
+    "tests/browser/landing-chat.spec.js": "1d5da0d86d426faf7095ed1e81f58f1212dfee1bf8ea06f9232965b3ebf97888"
+  },
+  "integrations": [
+    {
+      "file": "VISUAL_FIRST_CHECKPOINT9_PYTHON_TEST_INTEGRATION.json",
+      "capturedAt": "2026-10-10T20:36:12.470Z",
+      "mode": "applied",
+      "results": [
+        {
+          "target": "tests/test_ask_widget.py",
+          "patch": "visual95-worker-stages/chat-visual-first/test_ask_widget.replacements.json",
+          "base": "3289ab417e2d0b8c69a5b571d9113528e0f3850c75da37b4f0c9efa570a60d25",
+          "stage": "fcfad3147cb98ab09900e2b246dab56c1cc0e7f9d35ac04ab3fa0c5422a4f49d",
+          "edits": [
+            "chat-test-visible-unclassified-qualifications"
+          ]
+        }
+      ],
+      "targets": {
+        "tests/test_ask_widget.py": {
+          "before": "3289ab417e2d0b8c69a5b571d9113528e0f3850c75da37b4f0c9efa570a60d25",
+          "after": "fcfad3147cb98ab09900e2b246dab56c1cc0e7f9d35ac04ab3fa0c5422a4f49d"
+        }
+      },
+      "boundary": "Exact immutable source hashes, staged reconstruction, unique anchors, conflict checks, root sole integration. No data/backend/config changes."
+    },
+    {
+      "file": "VISUAL_FIRST_CHECKPOINT9_BROWSER_TEST_INTEGRATION.json",
+      "capturedAt": "2026-10-10T20:37:06.991Z",
+      "mode": "applied",
+      "results": [
+        {
+          "target": "tests/browser/landing-chat.spec.js",
+          "patch": "visual95-worker-stages/landing-test-round4/edits.json",
+          "base": "c0cec771a45e1b4ceb2433dedd7ac2feaf82da0251fee5eb53738c2332ca76eb",
+          "stage": "1d5da0d86d426faf7095ed1e81f58f1212dfee1bf8ea06f9232965b3ebf97888",
+          "edits": [
+            "setup-caveat-visible-before-guide-and-outbound",
+            "returning-reader-caveat-placement"
+          ]
+        }
+      ],
+      "targets": {
+        "tests/browser/landing-chat.spec.js": {
+          "before": "c0cec771a45e1b4ceb2433dedd7ac2feaf82da0251fee5eb53738c2332ca76eb",
+          "after": "1d5da0d86d426faf7095ed1e81f58f1212dfee1bf8ea06f9232965b3ebf97888"
+        }
+      },
+      "boundary": "Exact immutable source hashes, staged reconstruction, unique anchors, conflict checks, root sole integration. No data/backend/config changes."
+    }
+  ],
+  "initialFailures": {
+    "python": {
+      "file": "VISUAL95_ROUND3_CHECKPOINT9_PY312.log",
+      "reason": "Old source-structure assertion required full-answer wording after only recorded figures/calculations became optional; generic qualifications are now visible."
+    },
+    "browser": {
+      "file": "visual95-evidence/round3-checkpoint9-browser/browser-report.json",
+      "reason": "Ten assertions across engines expected the access caveat inside setup after the approved change intentionally surfaces it before closed setup and outbound access."
+    }
+  },
+  "correctedEvidence": {
+    "prefix": "VISUAL_FIRST_CHECKPOINT9_FINAL",
+    "browserRoot": "visual95-evidence/round3-checkpoint9-browser-corrected"
+  },
+  "boundary": "Exact-anchor test adaptations strengthen actual visible-qualification and caveat-placement verification. Frozen runtime and data remain unchanged; all queries mocked."
+}

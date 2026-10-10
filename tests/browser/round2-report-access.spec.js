@@ -49,6 +49,17 @@ test('primary report chapters start open and remain keyboard accessible',async({
  for(const id of ['moneychart','objchart','progchart','eq-bars','bond-timeline'])expect(await page.locator('#'+id).evaluate(e=>e.viewBox.baseVal.width>0&&e.querySelectorAll('path,rect,circle,line').length>0)).toBe(true);
  await page.setViewportSize({width:320,height:740});await expect.poll(()=>page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
 });
+test('report context is on demand without hiding its chart basis',async({page})=>{
+ await prepare(page);
+ const basis=page.locator('#dollar-basis');await expect(basis).toBeVisible();
+ await expect(basis).toContainText('All funds');await expect(basis).toContainText('debt payments and construction');
+ const details=page.locator('#dash details.report-more');expect(await details.count()).toBe(3);
+ for(const detail of await details.all()){
+  await expect(detail).not.toHaveAttribute('open','');
+  const summary=detail.locator(':scope > summary');await summary.focus();await page.keyboard.press('Enter');
+  await expect(detail).toHaveAttribute('open','');await page.keyboard.press('Enter');await expect(detail).not.toHaveAttribute('open','');
+ }
+});
 for(const id of ['money-section','econ-section','bond-section'])test(`direct ${id} hash opens the ancestor chapter`,async({page})=>{
  await prepare(page,'/?d=057905#'+id);await expect(page.locator('#'+id)).toBeVisible();
  expect(await page.locator('#'+id).evaluate(e=>{for(let p=e.parentElement;p;p=p.parentElement)if(p.tagName==='DETAILS'&&!p.open)return false;return true})).toBe(true);
@@ -61,12 +72,13 @@ test('native hash navigation and back retain selection and reveal the target',as
  await expect(page.locator('#dname')).toContainText(/Dallas/i);
 });
 test('print expansion preserves available chapters and restores disclosure state',async({page})=>{
- await prepare(page);const before=await page.locator('details.report-details').evaluateAll(es=>es.map(e=>e.open));
+ await prepare(page);const before=await page.locator('details.report-details,details.report-more').evaluateAll(es=>es.map(e=>e.open));
  await page.evaluate(()=>dispatchEvent(new Event('beforeprint')));
  for(const id of available)await expect(page.locator('#'+id)).toBeVisible();
+ for(const detail of await page.locator('details.report-more').all())await expect(detail).toHaveAttribute('open','');
  await expect(page.locator('#takeover-section')).toBeHidden();
  await page.evaluate(()=>dispatchEvent(new Event('afterprint')));
- expect(await page.locator('details.report-details').evaluateAll(es=>es.map(e=>e.open))).toEqual(before);
+ expect(await page.locator('details.report-details,details.report-more').evaluateAll(es=>es.map(e=>e.open))).toEqual(before);
 });
 test('peer spending averages stay separate from the selected fiscal-year record',async({page})=>{
  await prepare(page);

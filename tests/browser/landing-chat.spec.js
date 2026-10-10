@@ -157,19 +157,34 @@ for (const width of [320, 390, 430, 1440]) {
       return {x:first.left,y:first.top+scrollY,width:first.width,height:last.bottom-first.top};
     });
     await page.screenshot({path:path.join(evidence,`${info.project.name}-landing-full-${width}.png`),fullPage:true,clip});
+    const routeCaveat = page.locator('.chatgpt-route-caveat');
+    await expect(routeCaveat).toBeVisible();
+    await expect(routeCaveat).toContainText('this route is verified for the owner only');
+    await expect(routeCaveat).toContainText('Public listing and availability for other accounts or workspaces are unverified');
+    await expect(guide).not.toHaveAttribute('open', '');
+    expect(await page.evaluate(() => {
+      const caveat=document.querySelector('.chatgpt-route-caveat');
+      const guide=document.querySelector('#chatgpt-setup');
+      return !!caveat && !!guide &&
+        !!(caveat.compareDocumentPosition(guide)&Node.DOCUMENT_POSITION_FOLLOWING);
+    })).toBe(true);
     await guide.locator(':scope > summary').click();
     await expect(guide).toBeVisible();
     await expect(guide).toHaveAttribute('open', '');
     await expect(guide.locator('.setup-body')).toBeVisible();
     for (const label of ['Texas ISD Finances', 'https://txisd.dev/mcp',
       'No authentication', 'Create as a plugin', 'Personal']) await expect(guide).toContainText(label);
-    await expect(guide).toContainText(/other accounts or workspaces are unverified/);
     const qualification = guide.locator('.setup-qualification');
     await expect(qualification).toBeVisible();
     expect(await guide.evaluate(node => {
       const notice=node.querySelector('.setup-qualification');
       const link=node.querySelector('a[href="https://chatgpt.com/plugins"]');
-      return !!(notice.compareDocumentPosition(link)&Node.DOCUMENT_POSITION_FOLLOWING) &&
+      const caveat=document.querySelector('.chatgpt-route-caveat');
+      return !!notice && !!link && !!caveat &&
+        !!(caveat.compareDocumentPosition(node)&Node.DOCUMENT_POSITION_FOLLOWING) &&
+        !!(caveat.compareDocumentPosition(link)&Node.DOCUMENT_POSITION_FOLLOWING) &&
+        caveat.getBoundingClientRect().bottom<link.getBoundingClientRect().top &&
+        !!(notice.compareDocumentPosition(link)&Node.DOCUMENT_POSITION_FOLLOWING) &&
         notice.getBoundingClientRect().bottom<link.getBoundingClientRect().top;
     })).toBe(true);
     await guide.screenshot({ path: path.join(evidence, `${info.project.name}-setup-${width}.png`) });
@@ -187,6 +202,9 @@ for (const width of [320, 390, 430, 1440]) {
     await expect(chat.locator('.ta-chart-record')).toContainText(/Dallas ISD.*Fiscal 2025.*All funds/);
     await expect(chat.locator('.ta-limit')).toBeVisible();
     await expect(chat.locator('.ta-limit')).toContainText('not a live budget');
+    await expect(chat.locator('.ta-fine')).toContainText('random conversation code');
+    await expect(chat.locator('.ta-fine')).toContainText('Please leave out personal details');
+    await expect(chat.locator('.ta-fine a')).toHaveAttribute('href','/about#privacy');
     await expect(chat.getByRole('button', {name: 'Ask', exact: true})).toBeEnabled();
     await page.screenshot({ path: path.join(evidence, `${info.project.name}-chat-${width}.png`) });
     expect(await chat.locator('.ta-sheet').evaluate(el => el.getBoundingClientRect().width <= innerWidth)).toBe(true);
@@ -327,7 +345,8 @@ test('setup anchor remains usable for a returning district reader', async ({page
   await expect(page.locator('#welcome')).toBeHidden();
   await expect(page.locator('#chatgpt-setup')).toBeVisible();
   await expect(page.locator('#chatgpt-setup')).toContainText('Texas ISD Finances');
-  await expect(page.locator('#chatgpt-setup .setup-qualification')).toContainText('other accounts or workspaces are unverified');
+  await expect(page.locator('.chatgpt-route-caveat')).toBeVisible();
+  await expect(page.locator('.chatgpt-route-caveat')).toContainText('other accounts or workspaces are unverified');
 });
 
 test('single setup disclosure toggles with keyboard and hash navigation opens it', async ({page}) => {
@@ -516,6 +535,9 @@ test('currency answer puts an exact visual before optional complete evidence', a
   bars.forEach((bar,index)=>expect(Math.abs(bar.width / bars[0].width - values[index]/values[0])).toBeLessThan(0.01));
   await expect(chat.locator('.ta-lead')).toHaveText('Classroom teaching was the largest featured category.');
   await expect(chat.locator('.ta-lead')).not.toContainText('second sentence');
+  const qualification = chat.locator('.ta-qualification');
+  await expect(qualification).toBeVisible();
+  await expect(qualification).toContainText('This second sentence remains available with the complete explanation.');
   const evidenceDetails = chat.locator('.ta-evidence').first();
   await expect(evidenceDetails).not.toHaveAttribute('open','');
   await expect(evidenceDetails.locator('summary')).toContainText('5 rows');
@@ -523,10 +545,15 @@ test('currency answer puts an exact visual before optional complete evidence', a
   await expect(evidenceDetails.locator('tbody tr')).toHaveCount(5);
   for(const row of supplied.structured.blocks[0].rows) await expect(evidenceDetails).toContainText(row[1]);
   const support = chat.locator('.ta-support');
+  await expect(support).not.toHaveAttribute('open','');
+  await expect(support.locator('summary')).toContainText('Recorded figures and calculations');
+  await support.locator('summary').focus();
+  await page.keyboard.press('Enter');
   await expect(support).toHaveAttribute('open','');
-  await expect(support).toContainText('This second sentence remains available with the complete explanation.');
+  await expect(support).not.toContainText('This second sentence remains available with the complete explanation.');
   await expect(support).not.toContainText('Classroom teaching was the largest featured category.');
-  await expect(support).toContainText('Additional supplied explanation remains available.');
+  await expect(support).not.toContainText('Additional supplied explanation remains available.');
+  await expect(chat.locator('.ta-p')).toContainText('Additional supplied explanation remains available.');
   const source = chat.getByRole('link',{name:'TEA PEIMS actual finance'});
   await expect(source).toHaveCount(1);
   await expect(source).toBeVisible();

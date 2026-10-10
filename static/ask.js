@@ -346,8 +346,9 @@
       + '  </div>'
       + '  <div class="ta-actions" hidden><button class="ta-stop" type="button">Stop</button><button class="ta-retry" type="button" hidden>Try again</button></div>'
       + '  <p class="ta-fine">AI answers from official TEA data and can make mistakes '
-      + '&mdash; double-check important figures. Questions are kept on their own, with '
-      + 'nothing that identifies you (<a href="/about#privacy">what we collect</a>).</p>'
+      + '&mdash; double-check important figures. Questions are saved together under a '
+      + 'random conversation code. Please leave out personal details '
+      + '(<a href="/about#privacy">what we collect</a>).</p>'
       + '</div></div>');
     document.body.appendChild(wrap);
 
@@ -687,8 +688,11 @@
   function bodyOf(s, supportingLead) {
     var frag = document.createDocumentFragment();
     var support = el('details', 'ta-support');
-    support.appendChild(el('summary', null, 'Full answer, sources, and context'));
-    if (supportingLead) support.appendChild(el('p', null, supportingLead));
+    support.appendChild(el('summary', null, 'Recorded figures and calculations'));
+    /* The renderer cannot safely classify a later lead sentence as optional
+       explanation. Keep it adjacent to the conclusion as visible context;
+       paragraphs stay visible; cards and duplicate records remain in the named disclosure. */
+    if (supportingLead) frag.appendChild(el('p', 'ta-qualification', supportingLead));
     var qualified = hasQualifiedChart(s);
     if (!qualified) {
       var metadata = metadataOf(s);
@@ -721,13 +725,17 @@
 
     (s.blocks || []).forEach(function (b) {
       if (!b) return;
-      if (b.type === 'heading') support.appendChild(el('h3', 'ta-h', b.text || ''));
+      /* Generic blocks carry no field that proves they are merely supporting
+         detail. Keep their supplied conclusion and qualifiers visible rather
+         than guessing from wording or length. Exact tabular rows still have
+         their own named disclosure after a qualified chart. */
+      if (b.type === 'heading') frag.appendChild(el('h3', 'ta-h', b.text || ''));
       else if (b.type === 'list') {
         var ul = el('ul', 'ta-ul');
         (b.items || []).forEach(function (item) {
           ul.appendChild(runsInto(el('li'), item));
         });
-        support.appendChild(ul);
+        frag.appendChild(ul);
       } else if (b.type === 'table') {
         var chart = chartOf(b.head, b.rows, s);
         if (chart) {
@@ -740,7 +748,7 @@
           frag.appendChild(tableOf(b.head, b.rows, null));
         }
       } else if (b.type === 'paragraph') {
-        support.appendChild(runsInto(el('p', 'ta-p'), b.runs));
+        frag.appendChild(runsInto(el('p', 'ta-p'), b.runs));
       }
     });
 
@@ -787,10 +795,7 @@
       });
       support.appendChild(p);
     }
-    if (support.childElementCount > 1) {
-      if (qualified) support.open = true;
-      frag.appendChild(support);
-    }
+    if (support.childElementCount > 1) frag.appendChild(support);
     return frag;
   }
 

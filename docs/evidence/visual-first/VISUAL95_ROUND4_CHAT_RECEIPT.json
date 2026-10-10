@@ -1,0 +1,22 @@
+{
+  "id": "VISUAL95_ROUND4_CHAT_RECEIPT",
+  "candidate": {
+    "ask": "visual95-worker-stages/chat-visual-first/ask.js",
+    "askLfSha256": "29087384c5b897439dded64453362628a074781771cfc252f94fe23c61ada7c4",
+    "test": "visual95-worker-stages/chat-visual-first/landing-chat.spec.js",
+    "testLfSha256": "c0cec771a45e1b4ceb2433dedd7ac2feaf82da0251fee5eb53738c2332ca76eb"
+  },
+  "base": {
+    "askLfSha256": "227a9cf9f85ce6578339b14cc446f7554f7c6dd1fdb4b635eca7672598f13b13",
+    "testLfSha256": "7dab33b1734de4b64f1d424ce4b3b0efdb94bec99a2a611730e53e35a1303e6a"
+  },
+  "anchorValidation": "Both exact-anchor replacement JSON files reconstruct their staged bytes from the recorded bases with every anchor occurring once.",
+  "checks": [
+    "node --check staged ask.js: PASS",
+    "Focused local mocked Playwright: 4/4 default sourced-chat widths (320,390,430,1440): PASS",
+    "Focused local mocked Playwright: 18/18 dark theme, chart/evidence keyboard, Stop/Retry, loading/error/empty, IME, and unsupported text/table cases: PASS"
+  ],
+  "environment": "Local static fixture server and mocked query responses only; no provider or paid network call.",
+  "integration": "Root must add the separately reviewed test target to its integration allowlist before applying; this worker did not edit visual95/static/ask.js or visual95/tests/browser/landing-chat.spec.js.",
+  "numeric95Claim": false
+}

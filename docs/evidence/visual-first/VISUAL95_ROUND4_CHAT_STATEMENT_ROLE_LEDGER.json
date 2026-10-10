@@ -1,0 +1,70 @@
+{
+  "id": "VISUAL95_ROUND4_CHAT_STATEMENT_ROLE_LEDGER",
+  "scope": "Staged chat visual-first candidate only; no runtime edit.",
+  "source": {
+    "askLfSha256": "227a9cf9f85ce6578339b14cc446f7554f7c6dd1fdb4b635eca7672598f13b13",
+    "testLfSha256": "7dab33b1734de4b64f1d424ce4b3b0efdb94bec99a2a611730e53e35a1303e6a"
+  },
+  "staged": {
+    "askLfSha256": "29087384c5b897439dded64453362628a074781771cfc252f94fe23c61ada7c4",
+    "testLfSha256": "c0cec771a45e1b4ceb2433dedd7ac2feaf82da0251fee5eb53738c2332ca76eb"
+  },
+  "roles": [
+    {
+      "content": "First sentence of supplied lead",
+      "role": "visible conclusion",
+      "proof": ".ta-lead remains first in renderInto"
+    },
+    {
+      "content": "Later supplied lead sentence",
+      "role": "visible conservative qualification/context",
+      "proof": ".ta-qualification is appended to the fragment outside details"
+    },
+    {
+      "content": "District, fiscal year, fund/scope, and linked source for chart-qualified responses",
+      "role": "visible context/evidence route",
+      "proof": ".ta-chart-record precedes disclosure and contains source plus figures name/year/note"
+    },
+    {
+      "content": "District, fiscal year, scope, and source for non-chart answers",
+      "role": "visible context/evidence route",
+      "proof": "metadataOf appends .ta-answer-meta before the unqualified table"
+    },
+    {
+      "content": "Every supplied limitation string",
+      "role": "visible material qualification",
+      "proof": "limitations always append .ta-limit to the fragment before details"
+    },
+    {
+      "content": "Generic supplied headings, lists, and paragraphs",
+      "role": "visible conservative interpretation",
+      "proof": "unclassified blocks append to the fragment; no semantic classifier exists"
+    },
+    {
+      "content": "Qualified dollar marks",
+      "role": "visible chart-led evidence",
+      "proof": "chartOf is appended before .ta-evidence and retains common zero scale"
+    },
+    {
+      "content": "Exact rows behind a qualified chart",
+      "role": "on-demand duplicate evidence",
+      "proof": "native .ta-evidence has a row-counted summary and retains tableOf rows"
+    },
+    {
+      "content": "Figure cards/calculation controls",
+      "role": "on-demand recorded figures/calculations",
+      "proof": "native .ta-support defaults closed with the accurate label Recorded figures and calculations"
+    },
+    {
+      "content": "Composer AI-error and privacy warning",
+      "role": "visible action disclosure",
+      "proof": ".ta-fine remains beside the composer and says answers can make mistakes, uses a random conversation code, asks visitors to leave out personal details, and links to /about#privacy"
+    }
+  ],
+  "notClaimed": [
+    "No literal 95% composition claim",
+    "No anonymity or retention guarantee",
+    "No semantic determination that generic prose is optional",
+    "No backend, data, config, provider, or runtime mutation"
+  ]
+}

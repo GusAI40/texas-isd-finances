@@ -142,6 +142,8 @@ The newest bullets control. Dated bullets below retain useful engineering
 history and may contain superseded counts; never let them override the current
 outreach item or `data/outreach_watermark.json`.
 
+- **Visual-first candidate accepted for release (2026-10-10T20:40:50.207Z, newest).** See `docs/TXISD_VISUAL_FIRST_ROUND4.md`. Gus approved chart-led main views and detailed explanations on demand; literal95is no longer a gate and is not claimed. Independent meaning/data review and available release checks pass. Python3.10/3.12 each1169pass/31skip; browser158pass; AA80states; contact/print exports pass; all questions mocked. Publication authorized after exact reviewed commit, production build and public source/health proof; no production change yet. Other-account ChatGPT eligibility/public listing remain unverified. No paid model question, master merge, backend/data/config/credential/security/billing/outreach change. Historical failed95measurements remain recorded.
+
 - **Round-three frozen review candidate (2026-10-10T19:55:34.165Z, newest).** See
   `docs/TXISD_VISUAL95_ROUND3.md`. Index LF SHA `e307cc0e27a049740dbc5c745af2cf45b38fc1952a3883b78a7e3c5b6484cd8c`;
   ask LF SHA `227a9cf9f85ce6578339b14cc446f7554f7c6dd1fdb4b635eca7672598f13b13`.

@@ -1,0 +1,15 @@
+{
+  "schemaVersion": "ROUND4-VF-report-ledger-1",
+  "sourceLfSha256": "e307cc0e27a049740dbc5c745af2cf45b38fc1952a3883b78a7e3c5b6484cd8c",
+  "stagedLfSha256": "fad830a8974142124a829ca02f41f7a5738f0d7b48c8c4bf9b9496a24429155d",
+  "roles": [
+    {"statement":"Snapshot, analysis and record chapters retain their existing title, conclusion, graphics, source citations and caveats.","before":"Open native report chapters","after":"Open native report chapters","role":"visible"},
+    {"statement":"All-funds total is divided by enrollment and includes debt payments and construction; it is not an operating-only per-pupil figure.","before":"Open Scope notes","after":"Visible #dollar-basis beside allocation graphic","role":"visible material basis"},
+    {"statement":"Category exploration, peer/state category shares and exact category amounts.","before":"Open Scope notes plus legend/source record","after":"Closed named Allocation scope and category interaction disclosure plus unchanged legend/source record","role":"on demand + evidence"},
+    {"statement":"Trend title, marks, unit, period, legend, data table and source citation.","before":"Visible; narrative note open","after":"Visible; narrative moved to closed named Trend context and related 17-year records disclosure","role":"visible + on demand"},
+    {"statement":"Peer chart basis, district/state identification, marks, table and citation.","before":"Visible basis; matching narrative open","after":"Visible basis; matching narrative moved to closed named Peer matching and comparison rules disclosure","role":"visible + on demand"},
+    {"statement":"Economics peer spend uses Snapshot averages of available 2022-2024 records; selected FY2025 PEIMS spending remains adjacent separate context. Outcome is a signed multi-year mean residual with available years, not causal or consecutive performance.","before":"Visible in existing economics panels","after":"Visible and unchanged; heading narrowed to Similar districts: recorded student results","role":"visible material caveat"},
+    {"statement":"Exact rows, derivations, category explanations, audits and tables.","before":"Existing native details/reference tables","after":"Unchanged native details/reference tables","role":"evidence/on demand"}
+  ],
+  "retention": "No financial result, negative/zero/missing behavior, source, fund/unit or R08-B period separation was deleted."
+}

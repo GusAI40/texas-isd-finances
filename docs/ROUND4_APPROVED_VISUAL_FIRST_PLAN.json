@@ -1,0 +1,227 @@
+{
+  "id": "ROUND4_APPROVED_VISUAL_FIRST_PLAN",
+  "date": "2026-10-10",
+  "planningOnly": true,
+  "authority": {
+    "assistantTime": "20:08:08",
+    "proposal": "Make main experience visual-first, charts carry story, detailed explanations available on demand, necessary labels/disclosures readable; acceptance rather than literal pixel ratio.",
+    "userTime": "20:09:06",
+    "userReply": "Ok do ot",
+    "verifiedBy": "parent transcript"
+  },
+  "supersedes": [
+    "Literal C95 release/design gate R03",
+    "Mandatory simultaneous-primary-open ratio acceptance",
+    "Implementation stop pending human decision"
+  ],
+  "preserves": [
+    "Historical numeric C FAIL receipts",
+    "R3.2b/R08-B source-period separation",
+    "Truth/negative/missing qualifications",
+    "Readable labels/disclosures",
+    "Chat/control/security/export contracts",
+    "No backend/data/config/dependency/paid/provider/credential/access/outreach changes"
+  ],
+  "source": {
+    "git": "3d3dd59e7b8dd81a88cd0a8c0ffd3d4c9be88194",
+    "index": "e307cc0e27a049740dbc5c745af2cf45b38fc1952a3883b78a7e3c5b6484cd8c",
+    "ask": "227a9cf9f85ce6578339b14cc446f7554f7c6dd1fdb4b635eca7672598f13b13"
+  },
+  "numeric95ClaimAllowed": false,
+  "numericMetricChanged": false,
+  "numericMetricRole": "Historical and ongoing diagnostic, no longer acceptance gate",
+  "ownership": [
+    {
+      "order": 1,
+      "owner": "Root",
+      "task": "Freeze owners and baseline; root sole integration/release"
+    },
+    {
+      "order": 2,
+      "owner": "Terra Medium landing",
+      "files": "Separate staged index patch",
+      "scope": "#welcome,#picker-section,.landing-more/#trust/#proof,#chatgpt-setup,#methods-section and strictly scoped styles",
+      "model": "gpt-5.6-terra",
+      "reasoningEffort": "medium"
+    },
+    {
+      "order": 3,
+      "owner": "Terra Medium report",
+      "files": "Separate staged index patch",
+      "scope": "Report sections/renderers and scoped report styles",
+      "keepChartBearingWrappersOpen": [
+        "#district-snapshot-details",
+        "#district-analysis-details",
+        "#district-record-details"
+      ],
+      "model": "gpt-5.6-terra",
+      "reasoningEffort": "medium"
+    },
+    {
+      "order": 4,
+      "owner": "Terra Medium chat",
+      "files": "Staged static/ask.js only",
+      "scope": "Existing support/evidence disclosures, visible essential context/limitations/privacy, unchanged scale/contracts",
+      "model": "gpt-5.6-terra",
+      "reasoningEffort": "medium"
+    },
+    {
+      "order": 5,
+      "owner": "Root",
+      "task": "Integrate nonoverlapping staged patches; one immutable candidate"
+    },
+    {
+      "order": 6,
+      "owner": "Fresh Luna Medium then root",
+      "task": "Independent VF01-VF07 verdict then release checks/deploy/source health"
+    }
+  ],
+  "criteria": [
+    {
+      "id": "VF01",
+      "title": "Graphics carry visible principal quantitative stories",
+      "test": "Independent complete-journey visual inventory at all widths/themes; subject/unit/period/source identifiable; no decorative/repeated marks"
+    },
+    {
+      "id": "VF02",
+      "title": "Progressive explanation retains every unique fact",
+      "test": "Statement mapping; material context visible, detailed explanation one named disclosure away; default/open/deep-link/export retention"
+    },
+    {
+      "id": "VF03",
+      "title": "Financial fidelity",
+      "test": "Same source/period/basis comparisons, R08-B, exact returned marks/negative/missing behavior, share vs monetary distinctions"
+    },
+    {
+      "id": "VF04",
+      "title": "Legibility and operation",
+      "test": "320/390/430/1440 both themes plus200% reflow;14px information/16px input/44px targets/AA; keyboard/touch/no clipping"
+    },
+    {
+      "id": "VF05",
+      "title": "Identity setup privacy",
+      "test": "Exact contact firstjourney/footer/exports; owner setup route and uncertainty beforeoutbound; privacy readable; no anonymity invention"
+    },
+    {
+      "id": "VF06",
+      "title": "Contracts and exports",
+      "test": "Existing browser/security/chat/IME/StopRetry/abortstale/focus/hash/printrestore/HTMLPNG PDF contracts"
+    },
+    {
+      "id": "VF07",
+      "title": "Independent evidence and publication",
+      "test": "Fresh independent pass, existing release suites, reviewed SHA/source response identity and postdeploy health; no literal95 claim"
+    }
+  ],
+  "pilot": {
+    "name": "Actual per-student monetary comparison",
+    "status": "DEFERRED optional; implement only if independent review establishes current ambiguity",
+    "basis": "Selected latest usable year; sameyear category amounts/own enrollment; peer and statewide medians of eligible districts, not pooled statewide rate",
+    "gap": "round((unrounded selected category dollars/student - unrounded peer median dollars/student) * selected enrollment)",
+    "rounding": "Displayed perstudent values independentlyrounded; preserve authoritative returned gap",
+    "caveats": [
+      "At least4 parsed usable cohort rows",
+      "Other lacks peer/state perstudent values",
+      "Returned peer/state counts precede usable rowfilter",
+      "Median shares separately rescaled100cents cannot generate gap",
+      "No inferred savings/forecast",
+      "Null notzero;negative preserved"
+    ]
+  },
+  "remaining": [
+    "Unsealed statement-retention/visualmeaning review",
+    "Long narrative interrupts default chart flow",
+    "Disclosure discoverability and qualification adjacency after edits",
+    "Integrated regression/export/sourceproof"
+  ],
+  "chatScale": "Already PASS; prior2.33% defect historical",
+  "componentDiagnostic": {
+    "hierarchicalNotAdditive": true,
+    "file": "VISUAL95_ROUND4_COMPONENT_AUDIT.json"
+  },
+  "deployment": {
+    "authorizedOnlyAfter": "VF01–VF06 and VF07-pre-release PASS; VF07-post-release remains PENDING until actual production verification",
+    "owner": "Root",
+    "noOutreach": true
+  },
+  "timing": {
+    "nextReviewMinutes": [
+      30,
+      60
+    ],
+    "conditional": true,
+    "guaranteedDeploymentETA": false
+  },
+  "runtimeEditedByPlanner": false,
+  "modelEscalation": {
+    "initialModel": "gpt-5.6-terra",
+    "initialReasoningEffort": "medium",
+    "escalationModel": "gpt-5.6-sol",
+    "escalationReasoningEffort": "high",
+    "trigger": "Same VF criterion remains FAIL after two counted Terra targeted-change-and-relevant-check attempts",
+    "historicalNumericFailuresCountTowardNewVF": false
+  },
+  "releaseSequencingClarification": {
+    "date": "2026-10-10",
+    "checksChanged": false,
+    "preRelease": {
+      "id": "VF07-pre-release",
+      "requires": [
+        "Independent VF01–VF06 PASS",
+        "Exact reviewed commit/source identity",
+        "All available required release checks PASS"
+      ],
+      "authorizes": "Production build/deployment using existing configuration and publication permission",
+      "doesNotAuthorizeClaim": "Completed publication"
+    },
+    "postRelease": {
+      "id": "VF07-post-release",
+      "requires": [
+        "Actual production deployment READY",
+        "Deployed artifact/source identity matches reviewed source",
+        "Public GET health/load and required public routes PASS"
+      ],
+      "authorizesClaim": "Verified publication and full VF07 completion"
+    },
+    "validBeforeDeploymentStatus": "VF07-pre-release PASS; VF07-post-release PENDING",
+    "numeric95ClaimAllowed": false
+  },
+  "domDescriptionCorrection": {
+    "date": "2026-10-10",
+    "previousIncorrectDescription": "snapshot encloses KPI+dollar",
+    "correctedDescription": "snapshot encloses KPI only; dollar/trend/peers are separate dash children",
+    "evidence": "static/index.html:2179 closes snapshot;2182 starts dollar",
+    "runtimeRelocation": false,
+    "criteriaChanged": false,
+    "allThreeWrappersRemainOpen": true
+  },
+  "finalHumanSteering": {
+    "recordedAt": "2026-10-10T20:39:27.185Z",
+    "direction": [
+      "action-first",
+      "recognizable icons",
+      "minimal reading",
+      "minimalism",
+      "McKinsey clarity",
+      "Apple simplicity"
+    ],
+    "requiredActions": [
+      "lookup",
+      "report navigation",
+      "explanations",
+      "exports",
+      "contact"
+    ],
+    "preserve": [
+      "data",
+      "qualifications",
+      "accessible labels"
+    ],
+    "separateVerdicts": [
+      "design acceptance",
+      "functional tests",
+      "production verification"
+    ],
+    "numeric95Gate": false
+  }
+}

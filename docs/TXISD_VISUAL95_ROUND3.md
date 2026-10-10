@@ -1,5 +1,7 @@
 # Texas ISD visual redesign: current review candidate
 
+> Historical numerical-gate checkpoint. Gus explicitly approved the visual-first standard; current acceptance and release status are in `TXISD_VISUAL_FIRST_ROUND4.md`. These earlier FAIL metrics are preserved, not relabeled as95success.
+
 Review status: **visual acceptance FAIL; production held** (2026-10-10T19:55:34.165Z). This is a functional draft, not a completed 95/5 redesign. The unchanged per-state threshold remains 95 on complete primary journeys. The bounded chat assessment demonstrated no valid next candidate using the current response contract and required visible facts; it does not establish universal impossibility. Further cosmetic score-seeking is stopped under the recorded Astra plan.
 
 ## Source and scope

@@ -17,6 +17,28 @@ Entry template:
 
 ---
 
+## 2026-10-10 - Visual-first candidate accepted for release
+
+**What changed:** Focused isolated landing/report/chat stages adopt the explicitly approved visual-first acceptance. Chart-bearing chapters remain open, explanatory details are accessible, and material source/period/basis/qualifiers stay visible. Independent VF review and the complete available technical matrix pass. Production build and post-release identity/health verification are pending.
+
+**Why:** Gus approved main-story graphics with explanations on demand instead of a literal pixel ratio. Previous numeric FAIL receipts remain historical evidence; this is not a95claim.
+
+**Gotchas:** Generic answer blocks do not guarantee all qualifications are separately classified; unclassified answer meaning stays visible. Selected FY2025 PEIMS spending cannot share a comparison axis with Snapshot2022–2024 peer spending. Build the reviewed production commit using existing production configuration; do not promote the keyless preview or pull secrets.
+
+**Open items:** Public ChatGPT distribution and independent-account eligibility remain unverified. Paid model questions were not tested. Python3.11/LinuxCI are unavailable; browser reflow is equivalent CSS zoom rather than native zoom certification. No district sends, paid calls or backend/config/security changes.
+
+
+## 2026-10-10 - Visual-first candidate accepted for release
+
+**What changed:** Focused isolated landing/report/chat stages adopt the explicitly approved visual-first acceptance. Chart-bearing chapters remain open, explanatory details are accessible, and material source/period/basis/qualifiers stay visible. Independent VF review and the complete available technical matrix pass. Production build and post-release identity/health verification are pending.
+
+**Why:** Gus approved main-story graphics with explanations on demand instead of a literal pixel ratio. Previous numeric FAIL receipts remain historical evidence; this is not a95claim.
+
+**Gotchas:** Generic answer blocks do not guarantee all qualifications are separately classified; unclassified answer meaning stays visible. Selected FY2025 PEIMS spending cannot share a comparison axis with Snapshot2022–2024 peer spending. Build the reviewed production commit using existing production configuration; do not promote the keyless preview or pull secrets.
+
+**Open items:** Public ChatGPT distribution and independent-account eligibility remain unverified. Paid model questions were not tested. Python3.11/LinuxCI are unavailable; browser reflow is equivalent CSS zoom rather than native zoom certification. No district sends, paid calls or backend/config/security changes.
+
+
 ## 2026-10-10 - Exact-source review saved; visual95 still fails
 
 **What changed:** Root integrated isolated, nonoverlapping report/landing/chat

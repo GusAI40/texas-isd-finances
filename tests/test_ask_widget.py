@@ -199,14 +199,19 @@ def test_a_long_table_scrolls_instead_of_burying_everything_under_it():
     assert ".ta-tw.tall .ta-tb th { position:sticky" in JS   # headers stay put
 
 
-def test_the_chat_lead_is_concise_and_preserves_the_full_answer_in_disclosure():
-    """The answer opens with one sentence; remaining source material remains available."""
+def test_the_chat_lead_is_concise_with_visible_unclassified_qualifications():
+    """Only known duplicate/calculation material may be deferred; model prose has no safe optionality field."""
     assert "String(s.lead || '').match(/^.*?[.!?](?:\\s|$)/)" in JS
     assert "var support = el('details', 'ta-support')" in JS
+    assert "frag.appendChild(el('p', 'ta-qualification', supportingLead))" in JS
+    assert "frag.appendChild(el('p', 'ta-limit', t))" in JS
+    assert "if (b.type === 'heading') frag.appendChild" in JS
+    assert "frag.appendChild(ul);" in JS
+    assert "frag.appendChild(runsInto(el('p', 'ta-p'), b.runs));" in JS
     disclosure = re.search(r"support\.appendChild\(el\('summary', null, '([^']+)'\)\)", JS)
-    assert disclosure, "the full-answer disclosure has no accessible summary"
-    for required in ("full answer", "sources", "context"):
-        assert required in disclosure.group(1).lower(), f"summary no longer names {required}"
+    assert disclosure, "the recorded-figures disclosure has no accessible summary"
+    assert disclosure.group(1) == "Recorded figures and calculations"
+    assert "support.open = true" not in JS
 
 
 def test_the_screen_reader_hears_the_figures_and_the_ranking_too():

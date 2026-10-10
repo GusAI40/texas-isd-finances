@@ -1225,6 +1225,11 @@
     color:var(--blue); font-size:14px; font-weight:700;
   }
   .chart-note > p { margin:.2rem 0 .45rem; max-width:46rem; }
+  /* Report-only progressive context: the chart, title, units and citation stay
+     in the normal reading flow.  These native disclosures hold the longer
+     derivation or interaction guidance and are expanded for print below. */
+  #dash .report-more { margin:.25rem 0 .55rem; }
+  #dash .report-more > summary { min-height:44px; }
   .guide-details { margin:0; }
   .guide-details[open] > summary { margin-bottom:.35rem; }
   .guide-details .guide { min-height:0; }
@@ -1701,6 +1706,18 @@
     #chatgpt-setup .setup-field-list span { grid-template-columns:minmax(0,1fr); }
     #chatgpt-setup .setup-field-list code { word-break:break-all; }
   }
+  /* Round four landing disclosure: preserve the allocation/source-flow story,
+     move mixed-unit coverage counts behind a named native control, and keep
+     route uncertainty adjacent to the outbound ChatGPT setup action. */
+  #picker-section .landing-source-context { margin:.65rem 0; padding:.55rem .65rem; border-left:3px solid var(--blue); background:var(--wash); color:var(--ink); font-size:max(14px,var(--fs-xs)); line-height:1.4; }
+  #picker-section .coverage-proof { display:block !important; margin:.65rem 0; padding:.05rem 0; border:0; background:transparent; }
+  #picker-section .coverage-proof > summary { min-height:44px; display:flex; align-items:center; cursor:pointer; color:var(--blue); font-weight:700; }
+  #picker-section .coverage-proof[open] > span { display:block; margin:.35rem 0; padding:.45rem .55rem; border-left:3px solid var(--hairline); background:var(--surface); }
+  #picker-section .coverage-proof[open] > span b,#picker-section .coverage-proof[open] > span i { display:block; }
+  #picker-section .coverage-proof[open] > span i { margin-top:.12rem; color:var(--ink-2); font-size:max(14px,var(--fs-xs)); font-style:normal; }
+  .chatgpt-route-caveat { margin:.8rem 0 .35rem; padding:.55rem .7rem; border-left:3px solid var(--blue); background:var(--wash); color:var(--ink); font-size:max(14px,var(--fs-xs)); line-height:1.4; }
+  #chatgpt-setup { margin-top:.35rem; }
+  @media(max-width:700px){ #picker-section .landing-source-context,.chatgpt-route-caveat { margin-inline:0; } }
 </style>
 </head>
 <body>
@@ -2014,10 +2031,11 @@
     <address class="welcome-contact"><strong>Gus Sanchez, Founder, TAG AI Solutions</strong><a href="tel:+19092686875">909-268-6875</a><a href="https://ubntag.com" target="_blank" rel="noopener">ubntag.com</a></address>
   </section>
 
+  <p class="chatgpt-route-caveat"><strong>ChatGPT access:</strong> this route is verified for the owner only. Public listing and availability for other accounts or workspaces are unverified; no OpenAI endorsement is claimed.</p>
   <details class="setup-guide" id="chatgpt-setup">
-    <summary>Set up in ChatGPT</summary>
+    <summary>Set up in ChatGPT using the owner-tested route</summary>
     <div class="setup-body"><h2 id="setup-title">Set up Texas ISD Finances in ChatGPT</h2>
-    <p class="setup-qualification">The owner verified this custom setup with 11 read-only tools. Public listing and availability for other accounts or workspaces are unverified. No OpenAI endorsement is claimed.</p>
+    <p class="setup-qualification">The owner verified this custom setup with 11 read-only tools. The access uncertainty above still applies before you open the external setup page.</p>
     <ol class="setup-flow">
       <li><b>1. Open the setup page</b><p>Go to <a href="https://chatgpt.com/plugins" target="_blank" rel="noopener">chatgpt.com/plugins</a>.</p></li>
       <li><b>2. Enter these exact fields</b><div class="setup-field-list"><span><strong>Name</strong><code>Texas ISD Finances</code></span><span><strong>Server</strong><code>https://txisd.dev/mcp</code></span><span><strong>Authentication</strong><code>No authentication</code></span></div></li>
@@ -2077,13 +2095,15 @@
       <a href="/transparency">How this was made</a> and <a href="#trust">how we check it</a>.</p>
     <div class="contact-card" id="selected-contact" aria-label="Contact TAG AI Solutions"><strong>Gus Sanchez, Founder, TAG AI Solutions</strong><a href="tel:+19092686875">909-268-6875</a><a href="https://ubntag.com" target="_blank" rel="noopener">ubntag.com</a></div>
     <p class="clock" id="moneyclock" hidden aria-live="off"></p>
-    <div class="proof coverage-proof" id="proof" aria-label="Historical data coverage">
+    <p class="landing-source-context"><strong>Historical Texas public records:</strong> TEA finance records cover FY 2009–2025; this landing example is FY 2025, all funds, with a snapshot dated Aug. 12, 2026. It is not a live budget or savings estimate. <a href="/sources">Open the source register</a>.</p>
+    <details class="proof coverage-proof" id="proof">
+      <summary>Data-coverage counts and record types</summary>
       <span title="2,882,180 finance values · 2,248,478 STAAR · 894,286 Snapshot · 432,327 property and tax · 96,848 boundary coordinates · 51,744 bond records"><b id="proof-points">6.6 million</b><i>data points analysed</i></span>
       <span><b id="proof-districts">1,310</b><i>school districts</i></span>
       <span title="TEA financial data, fiscal 2009-2025. Bond elections go back further, to 1958."><b id="proof-years">17</b><i>years of finance records</i></span>
       <span><b id="proof-sources">10</b><i>official sources</i></span>
-    </div>
-    <details class="landing-more"><summary>Checks and correction history</summary>
+    </details>
+    <details class="landing-more"><summary>Checks, correction history, and why this matters</summary>
     <p class="hero-why" id="hero-why"><b>Why it matters:</b> your school taxes are the largest line on most
       Texas property bills. This shows what yours buys, and the finding that surprised us: <b>spending $2,000 more per student changed results by 0.15 points — too small to
       tell apart from zero.</b> What does move them is in here too.</p>
@@ -2193,7 +2213,8 @@
         <details class="guide-details"><summary>Explore a category</summary><aside class="guide" id="guide" aria-live="polite"></aside></details>
       </div>
       <div class="cmpbars" id="cmpbars"></div>
-      <details class="chart-note" open><summary>Scope notes</summary><p id="dollar-notes"></p></details>
+      <p class="support chart-basis" id="dollar-basis"></p>
+      <details class="chart-note report-more"><summary>Allocation scope and category interaction</summary><p id="dollar-notes"></p></details>
       <div id="atom" class="atom hidden"></div>
       <div class="exports">
         <button class="quiet" id="btn-share">Save this as an image</button>
@@ -2245,7 +2266,7 @@
         <figcaption id="econ-lever-cap" class="cite"></figcaption>
       </figure>
 
-      <h3 class="econ-h">Districts like yours that do better — reliably</h3>
+      <h3 class="econ-h">Similar districts: recorded student results</h3>
       <p class="support" id="econ-peers-support"></p>
       <div class="comparison-visual" id="econ-peers"></div>
 
@@ -2384,7 +2405,7 @@
         <button class="quiet" data-png="trendchart"><svg class="ico" aria-hidden="true"><use href="#i-download"/></svg> Chart as image</button>
         <button class="quiet" id="btn-trendcsv"><svg class="ico" aria-hidden="true"><use href="#i-download"/></svg> Data as CSV</button>
       </div>
-      <details class="chart-note" open><summary>Trend notes</summary><p class="support" id="trend-more"></p></details>
+      <details class="chart-note report-more"><summary>Trend context and related 17-year records</summary><p class="support" id="trend-more"></p></details>
       <div class="cite" id="trend-cite"></div>
     </section>
 
@@ -2393,7 +2414,7 @@
       <div class="eyebrow">Peer comparison · districts of similar size <button class="explain" data-explain="peers" aria-label="What does this mean?" title="What does this mean?">?</button></div>
       <h2 class="action" id="peers-title"></h2>
       <p class="support chart-basis" id="peers-basis"></p>
-      <details class="chart-note" open><summary>Peer matching</summary><p class="support" id="peers-why"></p></details>
+      <details class="chart-note report-more"><summary>Peer matching and comparison rules</summary><p class="support" id="peers-why"></p></details>
       <div class="chartwrap">
         <svg id="peerchart" width="100%" height="360" role="img" aria-label="Peer comparison chart"></svg> <div class="tooltip" id="peertip"></div>
       </div>
@@ -2539,11 +2560,11 @@
       </div>
     </div>
     <details class="tbl">
-      <summary style="font-size:var(--fs-base);color:var(--ink)">Sources</summary>
+      <summary style="font-size:var(--fs-base);color:var(--ink)">Sources and field definitions</summary>
       <p class="support">Open the <a href="/sources">source register</a> for government downloads and field links, or the machine-readable <a href="/provenance">provenance record</a>. Dollar figures are loaded without estimates, modeling, or adjustment.</p>
     </details>
     <details class="tbl">
-      <summary style="font-size:var(--fs-base);color:var(--ink)">Calculations</summary>
+      <summary style="font-size:var(--fs-base);color:var(--ink)">Calculation and comparison basis</summary>
       <div class="support" style="margin-top:.5rem">
         <div class="worked"><div><b>Dallas per student</b><strong>$3,319,208,715 &divide; 139,776 &asymp; $23,747</strong><span>All-funds total divided by fall survey enrollment and rounded to the nearest dollar. The trend chart's $23,746 is the separately returned FY 2025 summary field.</span></div><div><b>Dallas classroom group</b><strong>11 + 12 + 13 = $1,092,607,589</strong><span>Teaching, libraries, and training in this landing example.</span></div><div><b>100-square rounding</b><strong>32.9 + 23.1 + 15.1 + 28.9 = 100%</strong><span>Largest-remainder rounding makes exactly 100 squares.</span></div></div>
         <p><strong>Per student</strong> = the dollar total ÷ fall survey enrollment. Very small districts can
@@ -2568,7 +2589,7 @@
       </div>
     </details>
     <details class="tbl">
-      <summary style="font-size:var(--fs-base);color:var(--ink)">Limits</summary>
+      <summary style="font-size:var(--fs-base);color:var(--ink)">Data limits and overlap</summary>
       <div class="support" style="margin-top:.5rem">
         <p>• The data cannot isolate specific purchases such as HVAC systems or total technology spending;
           the state's summary reports don't break out that detail.</p>
@@ -2684,12 +2705,12 @@ function revealTarget(target, options = {}) {
 }
 let _printDetailState = null;
 addEventListener('beforeprint', () => {
-  _printDetailState = [...document.querySelectorAll('.report-details')].map(d => d.open);
-  document.querySelectorAll('.report-details').forEach(d => { d.open = true; });
+  _printDetailState = [...document.querySelectorAll('.report-details,.report-more')].map(d => d.open);
+  document.querySelectorAll('.report-details,.report-more').forEach(d => { d.open = true; });
   requestAnimationFrame(() => window.dispatchEvent(new Event('resize')));
 });
 addEventListener('afterprint', () => {
-  if (_printDetailState) document.querySelectorAll('.report-details').forEach((d, i) => { d.open = _printDetailState[i]; });
+  if (_printDetailState) document.querySelectorAll('.report-details,.report-more').forEach((d, i) => { d.open = _printDetailState[i]; });
   _printDetailState = null;
   requestAnimationFrame(() => window.dispatchEvent(new Event('resize')));
 });
@@ -2783,10 +2804,11 @@ function renderDollar() {
   $('dollar-support').innerHTML =
     `FY ${d.year} all funds &middot; <strong>${fmtMoney(d.total)}</strong> total &middot; ` +
     `<strong>${fmtMoney(d.perStudent)}/student</strong> &middot; one square = one cent.`;
+  $('dollar-basis').innerHTML =
+    `All funds for ${fmtNum(d.enrollment)} students, including debt payments and construction; this is not an operating-only per-pupil figure.`;
   $('dollar-notes').innerHTML =
-    `The total covers ${fmtNum(d.enrollment)} students and includes debt payments and construction. ` +
-    `That makes it higher than the operating-only “per-pupil” figure often quoted elsewhere. ` +
-    `Point at a square or tap one to see what it buys and compare it with peer and statewide category shares.`;
+    `Point at a square or tap one to see its category and compare peer and statewide category shares. ` +
+    `Exact category amounts remain in the legend and source record.`;
   let cells = '';
   d.parts.forEach(p => {
     for (let i = 0; i < p.cents; i++) cells += `<i data-k="${p.key}" style="background:${p.color}"></i>`;
