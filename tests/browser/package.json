@@ -1,0 +1,12 @@
+{
+  "private": true,
+  "name": "tisd-public-portal-browser-tests",
+  "version": "1.0.0",
+  "scripts": {
+    "test:landing-chat": "playwright test landing-chat.spec.js shared-chat.spec.js"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.56.1",
+    "axe-core": "4.10.3"
+  }
+}

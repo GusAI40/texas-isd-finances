@@ -1,0 +1,19 @@
+{
+  "baseline_revision": "14326baf497f782db702f12427d6432af1df46be",
+  "runtime_lf_sha256": {
+    "static/index.html": "6ad59e4b4452e79e9eae09d31f557fff5c4572a8fa2366a89ae0c1fbbc1bacd3",
+    "static/ask.js": "f88eb476c20e3a4cd046a5a22ec37174248281a74d5dff16e6544aaea3641b75"
+  },
+  "python310": {"passed":1169,"skipped":31,"warnings":3,"seconds":28.00},
+  "python312": {"passed":1169,"skipped":31,"warnings":3,"seconds":26.61},
+  "browsers": {"chromium_and_firefox_passed":106,"skipped":0,"unexpected":0,"flaky":0},
+  "accessibility": {"surfaces":64,"axe_violations":0,"page_overflow":0,"equivalent_200_percent_reflow_overflow":0,"undersized_controls":0,"undersized_svg_labels":0,"undersized_information_text":0,"page_errors":0},
+  "ruff":"PASS",
+  "static_javascript_parses":{"passed":14,"total":14},
+  "ask_js_syntax":"PASS",
+  "uv_lock_check":{"status":"PASS","offline":true,"packages":91,"uv_version":"0.11.33"},
+  "git_diff_check":"PASS",
+  "captures":{"baseline":444,"candidate":437,"supplemental_disclosures":32,"cover_words":3,"capture_failures":0,"page_errors":0,"overflow":0},
+  "query_boundary":"All /query requests mocked or held. Mutating telemetry blocked. No paid calls or model-quality testing.",
+  "limitations":["Python3.11 and Linux CI unavailable; Actions disabled","No separate TypeScript or static-JavaScript typecheck target","Reflow uses equivalent CSS viewport, not certified native browser zoom","Strict 95 percent graphic-area gate fails all437 measured surfaces; N20/20 is separate","Independent-account ChatGPT installation and public listing unverified"]
+}

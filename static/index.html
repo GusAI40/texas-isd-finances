@@ -230,6 +230,7 @@
   .bond-bundle .bb h5 { margin: 0 0 .3rem; font-size: var(--fs-xs); text-transform: uppercase;
     letter-spacing: .05em; color: var(--muted); font-weight: 600; }
   .bond-bundle .bb .pct { font-size: var(--fs-2xl); font-weight: 700; letter-spacing: -.02em; line-height: 1.05; }
+  .bond-bundle .bb .pct.focus-result { color:var(--ink); }
   .bond-bundle .bb .cap { color: var(--ink-2); font-size: var(--fs-sm); margin-top: .25rem; }
   .bond-close { border-top: 1px solid var(--hairline); margin-top: 1.6rem; padding-top: 1rem;
     font-size: var(--fs-md); }
@@ -595,7 +596,7 @@
      on hover, and the strip is focusable so a tap holds it on touch screens.
      Under reduced motion nothing self-updates at all: every item renders at
      once in a strip the reader scrolls themselves. */
-  .ticker-view { flex:1; overflow:hidden; position:relative; display:flex; align-items:center; }
+  .ticker-view { flex:1; min-width:0; overflow:hidden; position:relative; display:flex; align-items:center; }
   .ticker-track {
     display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
     width:100%; padding:.45rem 1.2rem; transition:opacity .3s ease;
@@ -763,9 +764,46 @@
   .welcome-cta a:hover { background: var(--wash); }
   .welcome-cta .cta-primary { background: var(--blue); color: var(--surface); border-color: var(--blue); }
   .welcome-cta .cta-primary:hover { filter: brightness(1.06); }
+  .setup-note { display:block; margin-top:.65rem; color:var(--ink-2); font-size:var(--fs-sm); line-height:1.4; }
   .welcome-strip { display: flex; flex-wrap: wrap; gap: .25rem .7rem; margin: 1rem 0 0;
     font-size: var(--fs-xs); color: var(--muted); }
   .welcome-strip b { color: var(--ink-2); font-weight: 600; }
+  /* Landing: an inspectable record rather than decorative dashboard art. */
+  .welcome { padding:clamp(1rem,3vw,2.2rem); border:1px solid var(--hairline); border-radius:18px;
+    background:linear-gradient(135deg, color-mix(in srgb, var(--surface) 94%, #dce9fb), var(--surface)); }
+  .welcome .hero-grid { gap:2.2rem; align-items:start; }
+  .welcome-h { max-width:15ch; font-size:var(--fs-2xl); }
+  .welcome > .welcome-cta, .welcome > .welcome-method, .welcome > .welcome-strip { display:none; }
+  .dallas-meta { margin:0 0 1rem; color:var(--ink-2); font-size:var(--fs-md); line-height:1.4; }.dallas-meta .dallas-total { color:var(--ink); font-weight:700; }
+  .example-question { display:inline-flex; align-items:center; padding:.68rem 1rem; border:1px solid #174f9b; border-radius:var(--r-lg); background:#174f9b; color:#fff; font-family:inherit; font-weight:600; font-size:var(--fs-md); line-height:1.25; cursor:pointer; }
+  .example-question:hover, .example-question[aria-pressed="true"] { background:#12365f; }
+  .example-answer { margin:.7rem 0 0; color:var(--ink); font-size:var(--fs-md); line-height:1.45; }
+  .dallas-record { margin:0; padding:clamp(1.1rem,2.5vw,1.8rem); border:1px solid var(--hairline); border-radius:14px;
+    background:var(--surface); box-shadow:0 12px 30px rgba(13,48,92,.08); }
+  .dallas-record h2 { margin:0; font-size:var(--fs-md); }
+  .dallas-total { display:inline; }
+  .dallas-map { display:grid; grid-template-columns:61.8435805716fr 38.1564194284fr; gap:2px; height:20rem; overflow:hidden; border-radius:10px; background:var(--surface); }
+  .dallas-column { display:grid; min-width:0; gap:2px; }.dallas-column.left { grid-template-rows:32.9177127085fr 28.9258678631fr; }.dallas-column.right { grid-template-rows:23.0873176952fr 15.0691017332fr; }
+  .dallas-cell { position:relative; display:flex; flex-direction:column; justify-content:flex-end; min-width:0; padding:clamp(.65rem,1.4vw,1.1rem); color:#fff; background:#174f9b; overflow:hidden; }.dallas-cell.other { background:#376fba; }.dallas-cell.construction { background:#4c73a4; }.dallas-cell.debt { background:#334e68; }
+  .dallas-fill { position:absolute; inset:0; background:inherit; }.dallas-label { position:relative; z-index:1; }
+  .dallas-cell strong { display:block; font-size:var(--fs-md); line-height:1.15; }.dallas-cell span { display:block; margin-top:.25rem; font-size:var(--fs-sm); font-variant-numeric:tabular-nums; }.dallas-cell small { display:block; margin-top:.12rem; font-size:var(--fs-sm); }
+  .dallas-map .dallas-cell strong, .dallas-map .dallas-cell span, .dallas-map .dallas-cell small { color:#fff !important; opacity:1; }
+  .dallas-record figcaption { margin-top:1rem; color:var(--ink-2); font-size:var(--fs-sm); line-height:1.45; }
+  .dallas-evidence { margin-top:.85rem; color:var(--ink-2); font-size:var(--fs-sm); line-height:1.45; }.dallas-evidence summary { cursor:pointer; color:var(--blue); }.dallas-evidence p { margin:.55rem 0 0; }
+  .landing-purpose { margin:1rem 0; max-width:54rem; color:var(--ink-2); font-size:var(--fs-md); line-height:1.5; }.landing-purpose p { margin:.35rem 0; }.landing-purpose b { color:var(--ink); }
+  .setup-guide { margin:1rem 0 0; padding:0; border:0; background:none; }.setup-guide summary { display:inline-flex; align-items:center; cursor:pointer; padding:.62rem 1.15rem; border-radius:var(--r-lg); background:var(--blue); color:var(--surface); font-weight:600; }.setup-guide[open] summary { margin-bottom:.8rem; }.setup-guide .setup-body { padding:1.1rem 1.2rem; border-left:3px solid var(--blue); background:var(--wash); border-radius:0 12px 12px 0; }
+  .setup-guide h2 { margin:0; font-size:var(--fs-md); }.setup-guide p,.setup-guide ol { max-width:54rem; color:var(--ink-2); }
+  .setup-guide ol { list-style:none; padding:0; display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.55rem; }.setup-guide li { margin:0; padding:.7rem; border:1px solid var(--hairline); border-radius:9px; background:var(--surface); }.setup-guide li > b:first-child{display:block;color:var(--blue);font-size:var(--fs-micro);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.4rem}.setup-guide .setup-glyph{display:flex;align-items:center;gap:.3rem;min-height:1.9rem;margin-bottom:.45rem;color:var(--ink);font-size:var(--fs-sm);font-weight:700}.setup-guide .setup-glyph i{display:block;width:1.25rem;height:1.25rem;border:2px solid var(--blue);border-radius:3px}.setup-guide .setup-glyph.plus i:after{content:'+';display:block;text-align:center;line-height:1rem;color:var(--blue);font-style:normal}.setup-guide .setup-glyph.url i{border-radius:999px}.setup-guide .setup-glyph.install i{background:linear-gradient(90deg,#174f9b 50%,#dce9fb 50%)}.setup-guide .setup-glyph.at i:after{content:'@';display:block;text-align:center;line-height:1rem;color:var(--blue);font-style:normal}.setup-guide .setup-field{display:block;padding:.3rem .4rem;border:1px solid var(--hairline);border-radius:5px;background:var(--wash);font:var(--fs-sm)/1.25 ui-monospace,SFMono-Regular,monospace;overflow-wrap:anywhere;word-break:break-word}.setup-guide li span{display:block;margin-top:.45rem;font-size:var(--fs-sm);line-height:1.35}.setup-guide code { color:var(--ink); overflow-wrap:anywhere; } .setup-guide details{margin-top:.75rem;font-size:var(--fs-sm);color:var(--ink-2)}
+  .setup-guide, .setup-guide summary, .setup-guide .setup-body, .setup-guide ol, .setup-guide li, .setup-guide .setup-glyph, .setup-guide .setup-field { box-sizing:border-box; min-width:0; max-width:100%; }.setup-guide .setup-body, .setup-guide li, .setup-guide .setup-field { overflow-wrap:anywhere; }
+  @media(max-width:700px){.setup-guide ol{grid-template-columns:1fr 1fr}} @media(max-width:420px){.setup-guide ol{grid-template-columns:1fr}}
+  #welcome, #welcome .hero-grid, .dallas-record { min-width:0; }
+  #welcome #tx-pennies-2, #welcome #tx-cap-2 { display:none; }
+  #welcome > .pipeline { display:none; }
+  #ask-your-own { color:var(--blue); font-weight:600; }
+  html:not(.has-district) .ta-fab { display:none !important; }
+  .dallas-cell.classroom.is-highlighted { outline:3px solid #fff; outline-offset:-5px; box-shadow:inset 0 0 0 3px #12365f; }
+  @media (max-width:700px) { .welcome { margin:0 0 .6rem; padding:.55rem; }.welcome .hero-grid { display:flex; flex-direction:column; gap:.45rem; }.welcome .dallas-record { width:100%; padding:.55rem; }.welcome-h { max-width:none; font-size:var(--fs-xl); margin:0 0 .25rem; }.dallas-meta { margin-bottom:.45rem; }.dallas-record h2, .dallas-record > .dallas-total { display:none; }.dallas-map { display:flex; flex-direction:column; gap:.32rem; height:auto; overflow:visible; background:transparent; border-radius:0; }.dallas-column { display:contents; }.dallas-cell, .dallas-cell.other, .dallas-cell.construction, .dallas-cell.debt { display:block; min-height:3.15rem; padding:.38rem .6rem 1rem; background:transparent; color:var(--ink); border:1px solid var(--hairline); border-radius:7px; overflow:hidden; }.dallas-fill { top:auto; bottom:.36rem; left:.6rem; right:auto; width:var(--share); height:.42rem; opacity:1; }.dallas-cell.classroom .dallas-fill { background:#174f9b; }.dallas-cell.other .dallas-fill { background:#376fba; }.dallas-cell.construction .dallas-fill { background:#4c73a4; }.dallas-cell.debt .dallas-fill { background:#334e68; }.dallas-cell.classroom.is-highlighted .dallas-fill { height:.56rem; bottom:.29rem; }.dallas-map .dallas-cell strong, .dallas-map .dallas-cell span, .dallas-map .dallas-cell small { color:var(--ink) !important; }.dallas-cell strong { white-space:nowrap; }.dallas-label { display:block; }.dallas-cell span, .dallas-cell small { display:inline; margin:0; }.dallas-cell span { margin-left:.65rem; }.dallas-cell small { margin-left:.4rem; }.dallas-record figcaption { margin-top:.5rem; } }
+  @media (max-width:600px) { #welcome .example-question { width:100%; box-sizing:border-box; } }
   .hero-num { color: var(--blue); white-space: nowrap; }
   .nowrap { white-space: nowrap; }
   .hero-row { display: block; }
@@ -916,6 +954,128 @@
     section { page-break-inside: avoid; padding-top: 1.2rem; }
     .exec { border: 1px solid #ddd; }
   }
+  /* Visual95: the landing is a record-led explanation, not a decorative hero. */
+  .welcome { padding:clamp(1rem,2.5vw,2rem); }
+  .welcome .hero-grid { grid-template-columns:minmax(18rem,.72fr) minmax(34rem,1.28fr); gap:1.4rem; align-items:stretch; }
+  .hero-left { display:flex; flex-direction:column; justify-content:flex-start; }
+  .landing-kicker { margin:0 0 .45rem; font-size:var(--fs-xs); color:var(--blue); font-weight:700; letter-spacing:.08em; text-transform:uppercase; }
+  .welcome-h { max-width:13ch; margin-bottom:.45rem; }
+  .welcome-actions { display:flex; flex-wrap:wrap; gap:.55rem; margin:.8rem 0; }
+  .welcome-actions a { display:inline-flex; align-items:center; min-height:44px; padding:.45rem .75rem; border:1px solid var(--hairline); border-radius:9px; font-size:var(--fs-sm); font-weight:700; text-decoration:none; color:var(--ink); }
+  .welcome-actions a.primary-link { background:var(--blue); border-color:var(--blue); color:var(--surface); }
+  .hero-notice { margin:.55rem 0 0; padding:.55rem .7rem; border-left:3px solid var(--blue); background:var(--wash); color:var(--ink-2); font-size:var(--fs-sm); line-height:1.42; }
+  .dallas-record { display:grid; grid-template-columns:minmax(0,1fr); align-content:start; }
+  .dallas-static { min-width:0; }
+  .mobile-purpose { display:none; }
+  .dallas-record h2 { grid-column:1/-1; margin-bottom:.65rem; }
+  .dallas-map { height:27rem; }
+  .dallas-record figcaption, .dallas-evidence { grid-column:1/-1; }
+  .dallas-grid, .dallas-grid-note { display:none; }
+  .dallas-key { display:none; }
+  .dallas-key button { min-height:0; text-align:left; border:1px solid var(--hairline); border-radius:8px; background:var(--wash); color:var(--ink); padding:.55rem; font:inherit; cursor:pointer; }
+  .dallas-key b,.dallas-key span { display:block; } .dallas-key span { margin-top:.2rem; color:var(--ink-2); font-size:var(--fs-xs); font-variant-numeric:tabular-nums; }
+  .dallas-key .classroom { border-left:5px solid #174f9b; }.dallas-key .other { border-left:5px solid #376fba; }.dallas-key .construction { border-left:5px solid #4c73a4; }.dallas-key .debt { border-left:5px solid #334e68; }
+  .source-path { margin:1rem 0 .2rem; padding:clamp(.8rem,2vw,1.2rem); border:1px solid var(--hairline); border-radius:14px; background:var(--surface); }
+  .source-path figcaption { display:flex; justify-content:space-between; align-items:baseline; gap:1rem; margin-bottom:.75rem; color:var(--ink-2); font-size:var(--fs-xs); }
+  .source-path figcaption b { color:var(--ink); font-size:var(--fs-md); }
+  .source-question { margin:0 0 .7rem; padding:.55rem .75rem; border-left:4px solid var(--blue); background:var(--wash); color:var(--ink); font-size:var(--fs-sm); font-weight:700; }
+  .source-route { display:grid; grid-template-columns:minmax(17rem,1.2fr) minmax(8.5rem,.55fr) minmax(18rem,1.25fr); gap:1.35rem; align-items:stretch; }
+  .source-stage { position:relative; min-width:0; padding:.65rem; border:1px solid var(--hairline); border-radius:10px; background:var(--bg); }
+  .source-stage:not(:last-child)::after { content:''; position:absolute; z-index:2; left:100%; top:50%; width:1.4rem; border-top:3px solid var(--blue); }
+  .source-stage > b { display:block; margin-bottom:.45rem; font-size:var(--fs-sm); }
+  .record-stack { display:grid; gap:4px; }
+  .record-row { position:relative; display:grid; grid-template-columns:5.4rem minmax(0,1fr) auto; gap:.45rem; align-items:center; min-height:2rem; padding:.25rem .4rem; overflow:hidden; border:1px solid var(--hairline); border-radius:5px; font-size:14px; font-style:normal; font-variant-numeric:tabular-nums; }
+  .record-row::before { content:''; position:absolute; inset:0 auto 0 0; width:var(--share); background:color-mix(in srgb,var(--blue) 16%,transparent); }
+  .record-row > * { position:relative; z-index:1; }.record-row em { font-style:normal; color:var(--ink-2); }.record-row strong { white-space:nowrap; }
+  .district-match { display:grid; place-items:center; text-align:center; }
+  .district-match .match-code { display:block; margin:.25rem 0; padding:.42rem .55rem; border:3px solid var(--blue); border-radius:8px; color:var(--blue); font-size:clamp(1.25rem,3vw,1.8rem); font-weight:800; letter-spacing:.08em; font-variant-numeric:tabular-nums; }
+  .district-match small { color:var(--ink-2); font-size:14px; }
+  .answer-stack { display:flex; height:4.6rem; overflow:hidden; border-radius:8px; background:var(--wash); }
+  .answer-stack i { display:flex; align-items:flex-end; min-width:2px; padding:.3rem; color:#fff; font-style:normal; font-size:14px; font-weight:800; line-height:1; }
+  .answer-stack .classroom { width:32.9177%; background:#174f9b; }.answer-stack .construction { width:23.0873%; background:#4c73a4; }.answer-stack .debt { width:15.0691%; background:#334e68; }.answer-stack .other { width:28.9259%; background:#376fba; }
+  .source-result { display:flex; justify-content:space-between; gap:.7rem; align-items:baseline; margin:.55rem 0 0; font-size:14px; color:var(--ink-2); }.source-result strong { color:var(--ink); font-size:var(--fs-md); font-variant-numeric:tabular-nums; }.source-result a { white-space:nowrap; font-weight:700; }
+  .landing-purpose { display:none; }
+  #picker-section { margin-top:1rem; padding-top:1rem; border-top:1px solid var(--hairline); }
+  #picker-section .hero-grid { gap:1.6rem; align-items:start; }
+  #picker-section .hero-sub { margin:.35rem 0 .75rem; }
+  #picker-section .hero-truth { margin:.6rem 0; }
+  .landing-more { margin:.65rem 0; padding:.65rem .8rem; border:1px solid var(--hairline); border-radius:9px; background:var(--surface); font-size:var(--fs-sm); }.landing-more summary { cursor:pointer; color:var(--blue); font-weight:700; }
+  #picker-section .finder { max-width:100%; padding:.85rem; border:1px solid var(--hairline); border-radius:12px; background:var(--surface); }
+  #picker-section .finder-ask { margin:.55rem 0 0; }
+  #picker-section .hero-fig { padding:.85rem; border:1px solid var(--hairline); border-radius:12px; background:var(--surface); }
+  #ask-section, #statewide-section, #methods-section { max-width:100%; }
+  #ask-section { display:grid; grid-template-columns:minmax(0,1fr) minmax(18rem,.72fr); column-gap:1.4rem; align-items:start; }
+  #ask-section .eyebrow, #ask-section h2, #ask-section .support, #ask-section .row, #ask-section .answer, #ask-section .cite { grid-column:1; }
+  #ask-section::after { content:'Question to official record to sourced answer'; grid-column:2; grid-row:1/6; align-self:stretch; display:flex; align-items:center; justify-content:center; padding:1rem; border:1px solid var(--hairline); border-radius:12px; background:linear-gradient(135deg,var(--wash),var(--surface)); color:var(--ink-2); font-size:var(--fs-md); line-height:1.35; }
+  .state-trend { margin:.75rem 0; padding:1rem; border:1px solid var(--hairline); border-radius:12px; background:var(--surface); }.trend-head { display:flex; justify-content:space-between; gap:1rem; font-size:var(--fs-sm); }.trend-head b { color:var(--blue); white-space:nowrap; }.state-trend svg { width:100%; height:auto; margin:.5rem 0; }.state-trend .trend-grid { stroke:var(--hairline); stroke-width:1; }.state-trend .trend-line { fill:none; stroke:var(--blue); stroke-width:5; stroke-linejoin:round; stroke-linecap:round; }.state-trend circle { fill:var(--blue); }.trend-labels { display:flex; justify-content:space-between; gap:.4rem; font-size:14px; color:var(--ink-2); font-variant-numeric:tabular-nums; }.state-trend figcaption { font-size:var(--fs-xs); color:var(--ink-2); }
+  html:not(.has-district) #statewide-section .kpis { display:none; }
+  /* Accessible local repairs for dynamic district figures and narrow reflow. */
+  .cite, .cite a, #ask-model, .guide .gcodes, #cmphead, .onechild .note, .graph-caption, .chart-caption { color:var(--ink-2); font-size:max(14px,var(--fs-xs)); }
+  .source-route { grid-template-columns:minmax(0,1.2fr) minmax(0,.55fr) minmax(0,1.25fr); }
+  .source-route > * { min-width:0; overflow-wrap:anywhere; }
+  .chips button, .m-beta, .mast-theme, details.tbl summary, .dallas-evidence summary, .landing-more summary, .explain, .quiet, #mm-tour, #mm-disclaimer, #mm-print { min-height:44px; box-sizing:border-box; }
+  .explain { min-width:44px; }.m-beta { min-width:44px; display:inline-flex; align-items:center; justify-content:center; }
+  @media (max-width:980px) { .source-route { grid-template-columns:1fr; gap:.85rem; }.source-stage:not(:last-child)::after { left:50%; top:100%; width:0; height:.85rem; border-top:0; border-left:3px solid var(--blue); } }
+  @media (max-width:240px) { .row { flex-direction:column; }.row input,.row button { width:100%; min-width:0; box-sizing:border-box; }.ta-example-flow { grid-template-columns:1fr !important; } }
+  /* Final small-viewport and keyboard target repairs. */
+  #masthead .m-more > summary, #mast-theme, #example-dallas, footer details > summary,
+  .tabs button, .lensbar button, .penny-legend button, #lad-state, .lin { min-height:44px !important; min-width:44px; box-sizing:border-box; }
+  /* Statewide rank is a neutral comparison, not a warning. Keep its large
+     figure on the theme's tested foreground instead of styling one recorded
+     value through its accessible name. */
+  .kpi .percentile-value { color:var(--ink); }
+  @media (max-width:720px) { #ask-section { display:block; } #ask-section::after { display:none; } }
+  /* The legacy charts scale their viewBox slightly inside the plot frame. A
+     15px source size lands at 14px on screen at the narrow test widths. */
+  #dash svg text, .chartwrap svg text { font-size:15px !important; }
+  footer, footer a, #ai-note { font-size:14px !important; }
+  @media (max-width:980px) { .welcome .hero-grid { grid-template-columns:minmax(0,1fr); } .dallas-record { width:100%; box-sizing:border-box; } }
+  @media (max-width:240px) { .m-tabs,.ticker,.newsticker { display:none !important; } #welcome .dallas-key { grid-template-columns:minmax(0,1fr); } #welcome .dallas-key button,.source-result { width:100%; min-width:0; overflow-wrap:anywhere; white-space:normal; } .record-row { grid-template-columns:minmax(0,1fr); } .record-row > * { overflow-wrap:anywhere; } }
+  #methods-section details:not([open]) { margin:.35rem 0; }
+  footer .block { max-width:62rem; font-size:var(--fs-sm); }
+  @media (max-width:700px) {
+    #picker-section .hero-grid, #ask-section { display:block; }
+    .welcome { padding:.75rem; }.welcome .hero-grid { display:flex; flex-direction:column; gap:.65rem; }.welcome-h { font-size:clamp(1.65rem,8vw,2.1rem); }.welcome .hero-left { order:2; }.dallas-record { order:1; display:block; padding:.75rem; }.dallas-record h2 { display:block; font-size:var(--fs-sm); }.mobile-purpose { display:block; margin:.2rem 0 .5rem; font-size:var(--fs-xs); line-height:1.35; color:var(--ink-2); }.mobile-purpose a { color:var(--blue); font-weight:700; }
+    .dallas-map, .dallas-key { display:none; }.dallas-grid { display:grid; grid-template-columns:repeat(10,1fr); gap:3px; margin:.65rem 0 .45rem; }.dallas-grid i { display:block; aspect-ratio:1; border-radius:2px; }.dallas-grid .classroom{background:#174f9b}.dallas-grid .construction{background:#4c73a4}.dallas-grid .debt{background:#334e68}.dallas-grid .other{background:#376fba}
+    .dallas-grid-note { display:block; margin:.25rem 0 .6rem; font-size:var(--fs-sm); color:var(--ink-2); }.dallas-key { display:grid; grid-template-columns:1fr 1fr; }.dallas-key button { min-height:44px; }
+    .source-path figcaption { display:block; }.source-path figcaption span { display:block; margin-top:.15rem; }.source-route { grid-template-columns:1fr; gap:.85rem; }.source-stage:not(:last-child)::after { left:50%; top:100%; width:0; height:.9rem; border-top:0; border-left:3px solid var(--blue); }.record-row { grid-template-columns:5rem minmax(0,1fr) auto; }.answer-stack { height:4rem; }
+    #picker-section .hero-fig { margin-top:.75rem; } #ask-section::after { display:none; } #ask-section .row input { font-size:16px; }
+  }
+  /* This must follow the 700px rules above: the half-size viewport used for
+     200% reflow is 160-215px wide, and the broader rule otherwise restores
+     the three-column record rows. Every value remains visible and readable. */
+  @media (max-width:240px) {
+    #hero-num, .trend-head b { white-space:normal; overflow-wrap:anywhere; }
+    .hero-truth a { white-space:normal; overflow-wrap:anywhere; }
+    .trend-head { align-items:flex-start; flex-wrap:wrap; }
+    .record-row { grid-template-columns:minmax(0,1fr); }
+    .record-row strong { white-space:normal; overflow-wrap:anywhere; }
+    .source-result { display:grid; grid-template-columns:minmax(0,1fr); align-items:start; }
+    .source-result a { white-space:normal; overflow-wrap:anywhere; }
+    .kpis, .onechild .beats, .drivers { grid-template-columns:minmax(0,1fr); }
+    .kpi, .onechild, .onechild .beat, .driver, .econ-card,
+    .bond-bundle .bb, .tk-checks .chk { min-width:0; max-width:100%; }
+    .onechild, .exec, .econ-card, .bond-bundle .bb { padding:.7rem; }
+    .cmprow, .vsbar .row, .lever .lrow { grid-template-columns:minmax(0,1fr) auto; gap:.3rem; }
+    .cmprow .lab, .vsbar .lab { text-align:left; }
+    .cmprow .bar, .vsbar .track, .lever .lrow i { grid-column:1/-1; grid-row:2; }
+    .driver .dcmp .nb { white-space:normal; overflow-wrap:anywhere; }
+    #dollar-section .pennies { grid-template-columns:repeat(10,minmax(0,1fr)); }
+    #dollar-section .dollar-lay { grid-template-columns:minmax(0,1fr); }
+    #dollar-section .support { overflow-wrap:anywhere; }
+    #dollar-section .penny-legend button { display:block; width:100%; white-space:normal; overflow-wrap:anywhere; }
+    #dollar-section .guide .gcat { display:block; overflow-wrap:anywhere; }
+    #dollar-section .guide .gsub, #dollar-section .guide .gstake { overflow-wrap:anywhere; }
+    .onechild .beat .big, .driver .dv, .econ-big {
+      font-size:clamp(1.35rem,14vw,2rem); overflow-wrap:anywhere;
+    }
+    .flagcard, .flagcard *, .econ-card, .econ-card * { overflow-wrap:anywhere; }
+    #statewide-section .nowrap { white-space:normal; overflow-wrap:anywhere; }
+    #statewide-section .kpi { overflow-wrap:anywhere; }
+    .proof { grid-template-columns:minmax(0,1fr); }
+  }
+  .navchips button, .a11y summary { min-height:44px; box-sizing:border-box; }
+  .setup-guide .setup-body details summary { display:flex; align-items:center; min-height:44px; box-sizing:border-box; }
 </style>
 </head>
 <body>
@@ -1088,8 +1248,8 @@
   </header>
 
   <div class="ticker" id="ticker" hidden>
-    <span class="ticker-tag">Live figures</span>
-    <div class="ticker-view"><div class="ticker-track" id="ticker-track" tabindex="0" aria-label="Live figures from this page — tap or focus to hold the current one"></div></div>
+    <span class="ticker-tag">Recorded figures</span>
+    <div class="ticker-view"><div class="ticker-track" id="ticker-track" tabindex="0" aria-label="Recorded figures from this page - tap or focus to hold the current one"></div></div>
   </div>
 
   <!-- The Feed's newest stories, on the front page. Same discipline as the
@@ -1104,36 +1264,69 @@
   <div class="warnbar" id="dbwarn">The database is not reachable right now. If this persists,
     the project may be paused — an administrator can wake it in the Supabase dashboard.</div>
 
-  <section class="welcome" id="welcome" aria-labelledby="welcome-h">
+  <section class="welcome" id="welcome" aria-label="Texas school money, made clear">
     <div class="hero-grid">
     <div class="hero-left">
-    <h1 class="welcome-h" id="welcome-h">Where your Texas school district's money comes from,
-      where it goes, and what it buys.</h1>
-    <p class="welcome-sub">A free, plain-English guide to all 1,310 Texas school districts — built
-      entirely from the state's own official records, with a source on every number. No login, no
-      spin, nothing to sell.</p>
-    <p class="welcome-who">Made for the people the money belongs to — <b>parents, taxpayers, teachers,
-      reporters, and school board members</b> — not the agencies that spend it.</p>
+    <p class="landing-kicker">Texas school money, made checkable</p>
+    <h1 class="welcome-h" id="welcome-h">See the record behind the school dollar.</h1>
+    <p class="dallas-meta">Dallas ISD &middot; FY 2025 &middot; Recorded spending &middot; All funds &middot; <span class="dallas-total" aria-label="$3,319,208,715 total recorded spending">$3.32B total</span></p>
+    <p class="welcome-sub">A free, independent Texas school-finance tool by Gus at TAG. Use it with ChatGPT or ask here; every answer starts with historical public records.</p>
+    <div class="welcome-actions"><a class="primary-link" href="#picker-section">Find a district</a><a id="ask-your-own" href="/#ask-section">Ask with website chat</a></div>
+    <button class="example-question" id="example-dallas" type="button" aria-controls="example-answer" aria-pressed="false">Highlight classroom spending</button>
+    <p class="example-answer" id="example-answer" role="status" hidden>Classroom teaching accounted for $1.09B of recorded spending.</p>
+    <p class="hero-notice">Historical records, not a live budget or savings estimate. AI can make mistakes; check the linked source before relying on a figure.</p>
     </div>
-    <figure class="hero-fig" id="welcome-fig">
+    <figure class="dallas-record" id="welcome-fig" aria-labelledby="dallas-title">
+      <div class="dallas-static"><h2 id="dallas-title">Dallas ISD recorded spending</h2>
+      <p class="mobile-purpose">Free, independent records by Gus at TAG. Use <a href="/#ask-section">website chat</a> or <a href="#chatgpt-setup">ChatGPT setup</a>.</p>
+      <div class="dallas-map" role="img" aria-label="Dallas ISD FY 2025 all-funds recorded spending: Classroom $1,092,607,589, 32.9 percent; Other combined $960,109,927, 28.9 percent; Construction $766,316,261, 23.1 percent; Debt $500,174,938, 15.1 percent.">
+        <div class="dallas-column left"><div class="dallas-cell classroom" data-group="classroom" data-dollars="1092607589" style="--share:32.9177127085%"><i class="dallas-fill" aria-hidden="true"></i><div class="dallas-label"><strong>Classroom</strong><span>$1.09B</span><small>32.9%</small></div></div><div class="dallas-cell other" data-group="other" data-dollars="960109927" style="--share:28.9258678631%"><i class="dallas-fill" aria-hidden="true"></i><div class="dallas-label"><strong>Other combined</strong><span>$960.1M</span><small>28.9%</small></div></div></div>
+        <div class="dallas-column right"><div class="dallas-cell construction" data-group="construction" data-dollars="766316261" style="--share:23.0873176952%" aria-label="Construction: $766.3 million, 23.1 percent"><i class="dallas-fill" aria-hidden="true"></i><div class="dallas-label"><strong>Construction</strong><span>$766.3M</span><small>23.1%</small></div></div><div class="dallas-cell debt" data-group="debt" data-dollars="500174938" style="--share:15.0691017332%"><i class="dallas-fill" aria-hidden="true"></i><div class="dallas-label"><strong>Debt</strong><span>$500.2M</span><small>15.1%</small></div></div></div>
+      </div>
+      <p class="dallas-grid-note">Each square is about 1% of Dallas ISD&rsquo;s recorded spending.</p>
+      <div class="dallas-grid" aria-hidden="true">
+        <i class="classroom"></i><i class="classroom"></i><i class="classroom"></i><i class="classroom"></i><i class="classroom"></i><i class="classroom"></i><i class="classroom"></i><i class="classroom"></i><i class="classroom"></i><i class="classroom"></i>
+        <i class="classroom"></i><i class="classroom"></i><i class="classroom"></i><i class="classroom"></i><i class="classroom"></i><i class="classroom"></i><i class="classroom"></i><i class="classroom"></i><i class="classroom"></i><i class="classroom"></i>
+        <i class="classroom"></i><i class="classroom"></i><i class="classroom"></i><i class="classroom"></i><i class="classroom"></i><i class="classroom"></i><i class="classroom"></i><i class="classroom"></i><i class="classroom"></i><i class="classroom"></i>
+        <i class="classroom"></i><i class="classroom"></i><i class="classroom"></i><i class="construction"></i><i class="construction"></i><i class="construction"></i><i class="construction"></i><i class="construction"></i><i class="construction"></i><i class="construction"></i>
+        <i class="construction"></i><i class="construction"></i><i class="construction"></i><i class="construction"></i><i class="construction"></i><i class="construction"></i><i class="construction"></i><i class="construction"></i><i class="construction"></i><i class="construction"></i>
+        <i class="construction"></i><i class="construction"></i><i class="construction"></i><i class="construction"></i><i class="construction"></i><i class="construction"></i><i class="debt"></i><i class="debt"></i><i class="debt"></i><i class="debt"></i>
+        <i class="debt"></i><i class="debt"></i><i class="debt"></i><i class="debt"></i><i class="debt"></i><i class="debt"></i><i class="debt"></i><i class="debt"></i><i class="debt"></i><i class="debt"></i>
+        <i class="debt"></i><i class="other"></i><i class="other"></i><i class="other"></i><i class="other"></i><i class="other"></i><i class="other"></i><i class="other"></i><i class="other"></i><i class="other"></i>
+        <i class="other"></i><i class="other"></i><i class="other"></i><i class="other"></i><i class="other"></i><i class="other"></i><i class="other"></i><i class="other"></i><i class="other"></i><i class="other"></i>
+        <i class="other"></i><i class="other"></i><i class="other"></i><i class="other"></i><i class="other"></i><i class="other"></i><i class="other"></i><i class="other"></i><i class="other"></i><i class="other"></i>
+      </div>
+      <div class="dallas-key" aria-label="Dallas spending legend"><button class="classroom" type="button"><b>Classroom · 33%</b><span>$1,092,607,589</span></button><button class="construction" type="button"><b>Construction · 23%</b><span>$766,316,261</span></button><button class="debt" type="button"><b>Debt · 15%</b><span>$500,174,938</span></button><button class="other" type="button"><b>Other combined · 29%</b><span>$960,109,927</span></button></div>
+      <figcaption class="landing-caption">TEA PEIMS &middot; FY 2025 all funds &middot; Snapshot Aug. 12, 2026. <a href="/sources">Source</a>.</figcaption></div>
+      <details class="dallas-evidence"><summary>Exact figures and definitions</summary><p>Total recorded spending: $3,319,208,715. Classroom: $1,092,607,589. Construction: $766,316,261. Debt: $500,174,938. Other combined: $960,109,927, calculated as the remaining all-funds recorded spending after those three categories. Enrollment: 139,776. Classroom combines TEA 11, 12, and 13: teaching, libraries, and training. Construction is TEA 6600, including land, buildings, renovations, and equipment. Debt is TEA 6500.</p></details>
       <div class="pennies" id="tx-pennies-2" role="img"
            aria-label="One hundred pennies showing where each cent of the statewide dollar goes"></div>
       <figcaption id="tx-cap-2">Loading the statewide dollar…</figcaption>
     </figure>
     </div>
-    <div class="welcome-cta">
-      <a class="cta-primary" href="#search" id="wc-find"><svg class="ico" aria-hidden="true"><use href="#i-search"/></svg> Find your district</a>
-      <a href="/feed"><svg class="ico" aria-hidden="true"><use href="#i-activity"/></svg> What's happening now</a>
-      <a href="/geomap"><svg class="ico" aria-hidden="true"><use href="#i-map"/></svg> Explore the map</a>
-      <a href="/forensics"><svg class="ico" aria-hidden="true"><use href="#i-scale"/></svg> Follow the money</a>
-      <a href="/about"><svg class="ico" aria-hidden="true"><use href="#i-book"/></svg> Why we built this</a>
-      <a href="#" id="wc-tour"><svg class="ico" aria-hidden="true"><use href="#i-play"/></svg> 60-second tour</a>
-    </div>
-    <!-- The five-second answer to "what is this?": the state's scattered
-         files go in one side, plain-English answers come out the other. The
-         figures are real and live elsewhere on this page; nothing here is
-         decoration. Reads as three stacked cards on phones (see CSS). -->
-    <div class="pipeline" aria-label="How this site works">
+    <!-- One verified example carries the relationship: four separately coded
+         state record groups match to Dallas's six-digit ID, then reappear as
+         proportionate marks in the answer. The marks encode the actual data. -->
+    <figure class="source-path" aria-labelledby="source-path-title">
+      <figcaption><b id="source-path-title">One question, checked against the state record</b><span>Example &middot; Dallas ISD &middot; FY 2025 all funds</span></figcaption>
+      <p class="source-question">Question: How much of Dallas ISD&rsquo;s recorded spending went to classrooms?</p>
+      <div class="source-route">
+        <div class="source-stage source-records"><b>Separate TEA PEIMS record groups</b>
+          <div class="record-stack" role="img" aria-label="Four Dallas ISD FY 2025 all-funds record groups: classroom 1,092,607,589 dollars; construction 766,316,261 dollars; debt 500,174,938 dollars; other combined 960,109,927 dollars.">
+            <i class="record-row" style="--share:32.9177%"><em>11 + 12 + 13</em><span>Classroom</span><strong>$1.093B</strong></i>
+            <i class="record-row" style="--share:23.0873%"><em>6600</em><span>Construction</span><strong>$766.3M</strong></i>
+            <i class="record-row" style="--share:15.0691%"><em>6500</em><span>Debt</span><strong>$500.2M</strong></i>
+            <i class="record-row" style="--share:28.9259%"><em>remainder</em><span>Other combined</span><strong>$960.1M</strong></i>
+          </div>
+        </div>
+        <div class="source-stage district-match"><b>Match the district</b><span class="match-code">057905</span><strong>Dallas ISD</strong><small>same ID on every row</small></div>
+        <div class="source-stage source-answer"><b>Sourced quantitative answer</b>
+          <div class="answer-stack" role="img" aria-label="Dallas ISD FY 2025 all-funds spending: classroom 32.9 percent, construction 23.1 percent, debt 15.1 percent, other combined 28.9 percent."><i class="classroom">32.9%</i><i class="construction">23.1%</i><i class="debt">15.1%</i><i class="other">28.9%</i></div>
+          <p class="source-result"><span><strong>$1,092,607,589</strong><br>classroom record</span><a href="/sources">Check the source</a></p>
+        </div>
+      </div>
+    </figure>
+    <div class="pipeline" aria-label="How this site works" hidden>
       <div class="pipe-col">
         <div class="pipe-head">10 official sources</div>
         <ul class="pipe-list">
@@ -1174,6 +1367,56 @@
       <span>·</span><span>17 years, fiscal 2009–2025</span><span>·</span><span>Open source</span>
     </div>
   </section>
+    <div class="landing-purpose"><p><a href="/#ask-section">Ask your own question</a> with the website chat.</p><p>A free, independent Texas school-finance tool for ChatGPT, built by Gus at TAG. It explains historical public records; it does not provide a live budget or savings estimate.</p></div>
+
+  <details class="setup-guide" id="chatgpt-setup">
+    <summary>Set up in ChatGPT</summary>
+    <div class="setup-body"><h2 id="setup-title">Set up Texas ISD Finances in ChatGPT</h2>
+    <p class="setup-qualification">Custom setup is required. Availability depends on your ChatGPT account and workspace.</p>
+    <ol><li><b>1. Add server</b><div class="setup-glyph plus"><i aria-hidden="true"></i><span>+ Add custom MCP server</span></div><span>Open <a href="https://chatgpt.com/plugins" target="_blank" rel="noopener">chatgpt.com/plugins</a>.</span></li>
+      <li><b>2. Add details</b><div class="setup-glyph url"><i aria-hidden="true"></i><span>Texas ISD Finances</span></div><span class="setup-field">https://txisd.dev/mcp</span><span>No authentication</span></li>
+      <li><b>3. Install</b><div class="setup-glyph install"><i aria-hidden="true"></i><span>Create as a plugin</span></div><span>Review warning. Choose Personal, then + install.</span></li>
+      <li><b>4. Ask</b><div class="setup-glyph at"><i aria-hidden="true"></i><span>@ select app</span></div><span>Start a new chat and choose Texas ISD Finances.</span></li></ol>
+    <p>Concept illustration, not a ChatGPT screenshot.</p>
+    <details><summary>Developer references</summary><a href="https://developers.openai.com/api/docs/guides/custom-mcp-server" target="_blank" rel="noopener">Custom MCP servers</a> and <a href="https://learn.chatgpt.com/docs/plugins" target="_blank" rel="noopener">plugins</a>.</details>
+    </div>
+  </details>
+  <script>
+    (function () {
+      var setup = document.getElementById('chatgpt-setup');
+      var figures = document.getElementById('ticker');
+      var news = document.getElementById('newsticker');
+      if (!setup || !figures) return;
+      function placeTickers() {
+        var picker = document.getElementById('picker-section');
+        if (!picker) return;
+        picker.after(figures);
+        if (news) figures.after(news);
+      }
+      document.addEventListener('DOMContentLoaded', placeTickers);
+      function openSetupHash() { if (location.hash === '#chatgpt-setup') setup.open = true; }
+      openSetupHash();
+      addEventListener('hashchange', openSetupHash);
+      document.addEventListener('click', function (event) {
+        if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) return;
+        var link = event.target.closest && event.target.closest('a[href="#chatgpt-setup"]');
+        if (link) setup.open = true;
+      });
+    }());
+  </script>
+  <script>
+    (function () {
+      var question = document.getElementById('example-dallas');
+      var answer = document.getElementById('example-answer');
+      var classroom = document.querySelector('.dallas-cell.classroom');
+      if (!question || !answer || !classroom) return;
+      question.addEventListener('click', function () {
+        answer.hidden = false;
+        question.setAttribute('aria-pressed', 'true');
+        classroom.classList.add('is-highlighted');
+      });
+    }());
+  </script>
 
   <section id="picker-section" class="hero" tabindex="-1" data-section="picker">
     <div class="eyebrow">Storytelling with data · a story of Texas ISD</div>
@@ -1181,16 +1424,12 @@
     <div class="hero-left">
     <h2 class="hero-h" id="picker-title">Texas school districts spend
       <span class="hero-num" id="hero-num" style="opacity:.25">$—</span> a year. Here is where every penny goes.</h2>
-    <p class="hero-sub" id="hero-sub"><b>What this is:</b> a public record of what every Texas school
-      district collects, spends, borrows and achieves — in plain English, from official state figures,
-      with a source on every number.</p>
+    <p class="hero-sub" id="hero-sub">Official Texas school-finance records, made readable and source-linked.</p>
     <p class="hero-truth" id="hero-truth"><svg class="ico" aria-hidden="true" style="width:.95em;height:.95em;vertical-align:-.1em;"><use href="#i-layers"/></svg>
-      <b>Built with AI, in the open:</b> a computer program helped build this site. Every number is
-      checked against the State of Texas&rsquo;s own files, thousands of times. It can still make
-      mistakes, and we say that here, not in fine print.
-      <a href="#trust">Can I trust these numbers?</a> &middot;
-      <a href="/transparency">How this was made, and the full terms&nbsp;&rarr;</a></p>
+      <b>Built with AI; figures come from official records.</b> Independent historical information. AI can err; check important figures.
+      <a href="/transparency">How this was made</a> and <a href="#trust">how we check it</a>.</p>
     <p class="clock" id="moneyclock" hidden aria-live="off"></p>
+    <details class="landing-more"><summary>Data coverage, checks and correction history</summary>
     <div class="proof" id="proof">
       <span title="2,882,180 finance values · 2,248,478 STAAR · 894,286 Snapshot · 432,327 property and tax · 96,848 boundary coordinates · 51,744 bond records"><b id="proof-points">6.6 million</b><i>data points analysed</i></span>
       <span><b id="proof-districts">1,310</b><i>school districts</i></span>
@@ -1229,6 +1468,7 @@
           by that number, from this file. You do not have to take our word for anything.</li>
       </ol>
     </section>
+    </details>
     <div class="hero-row">
       <div class="finder finder-solo">
         <label class="finder-lab" for="search" id="finder-lab"><span class="lbl-new">Find your district</span><span class="lbl-return">Look up a different district</span></label>
@@ -1585,10 +1825,9 @@
        (2026-08-17). It renders on the landing, on district views, and every
        page's More menu links here. -->
   <section id="ask-section" data-section="ask">
-    <div class="eyebrow">Ask anything <button class="explain" data-explain="ask" aria-label="What does this mean?" title="What does this mean?">?</button></div>
-    <h2 class="action">Plain English works here</h2>
-    <p class="support">"How did our debt service change since 2020?" — an AI turns it into a database query
-      against the same read-only data. Limited to 10 questions a minute.</p>
+    <div class="eyebrow">Ask a question <button class="explain" data-explain="ask" aria-label="What does this mean?" title="What does this mean?">?</button></div>
+    <h2 class="action">Get a source-connected answer</h2>
+    <p class="support">Try: &ldquo;Where does Dallas school money go?&rdquo; Answers use the public records behind this site.</p>
     <div class="row">
       <input type="text" id="question" maxlength="500" placeholder="Type a question about any Texas district…" aria-label="Ask a question">
       <button class="primary" id="askbtn">Ask</button>
@@ -1600,9 +1839,7 @@
          wrong company, on the one page whose whole argument is that its
          claims can be checked. The service already knows the answer, so the
          page asks it instead of repeating it. -->
-    <div class="cite">Answers by <span id="ask-model">the configured AI model</span> via LangChain,
-      run as a read-only role over the
-      two public views — nothing else is reachable. Built by
+    <div class="cite">Answers come from <span id="ask-model">the configured AI model</span> and public records. Built by
       <a href="https://ubntag.com" target="_blank" rel="noopener">TAG ai</a>.
       Double-check important figures against
       <a href="https://tea.texas.gov/finance-and-grants/state-funding/state-funding-reports-and-data/peims-financial-data-downloads" target="_blank" rel="noopener">official TEA releases</a>.
@@ -1613,7 +1850,13 @@
   <hr class="rule">
   <section id="statewide-section" data-section="statewide">
     <div class="eyebrow">Statewide context <button class="explain" data-explain="statewide" aria-label="What does this mean?" title="What does this mean?">?</button></div>
-    <h2 class="action" id="state-title">Texas at a glance</h2>
+    <h2 class="action" id="state-title">Texas&rsquo;s operating dollar, over time</h2>
+    <figure class="state-trend" aria-labelledby="state-trend-title">
+      <div class="trend-head"><strong id="state-trend-title">Instruction share of statewide operating spending</strong><b>57.8% to 54.5%</b></div>
+      <svg viewBox="0 0 680 140" role="img" aria-label="Texas statewide instruction share of operating spending: 57.8, 58.2, 57.8, 57.4, 56.9, 56.8, 57.0, 56.9, 56.4, 56.1, 56.1, 57.0, 57.3, 55.9, 55.3, 54.8, and 54.5 percent from 2009 through 2025. Axis is 54 to 59 percent."><path class="trend-grid" d="M20 30H660M20 80H660M20 130H660"/><path class="trend-line" d="M20 54 L60 46 L100 54 L140 62 L180 72 L220 74 L260 70 L300 72 L340 82 L380 88 L420 88 L460 70 L500 64 L540 92 L580 104 L620 114 L660 120"/><circle cx="20" cy="54" r="5"/><circle cx="660" cy="120" r="5"/></svg>
+      <div class="trend-labels"><span>2009 · 57.8%</span><span>Axis: 54–59%</span><span>2025 · 54.5%</span></div>
+      <figcaption>Statewide operating spending only, not Dallas&rsquo;s all-funds 33% classroom share. TEA Summarized PEIMS Actual Financial Data, FY 2009&ndash;2025.</figcaption>
+    </figure>
     <div class="kpis">
       <div class="kpi"><div class="label">Districts</div><div class="value nowrap" id="t-districts">—</div></div>
       <div class="kpi"><div class="label">Years</div><div class="value nowrap" id="t-years">—</div></div>
@@ -1629,7 +1872,7 @@
     <h2 class="action">Every number here can be traced back to the state's own records</h2>
     <p class="support">This guide is meant to be quoted in board meetings, news stories, and policy work —
       so nothing is a black box. Here is exactly where the numbers come from and how they're calculated.</p>
-    <details class="tbl" open>
+    <details class="tbl">
       <summary style="font-size:var(--fs-base);color:var(--ink)">Where the data comes from</summary>
       <p class="support"><b>Every number, traced:</b> <a href="/sources">the source register</a> lists each government file this site is built from with a download link, and ties every published figure to the exact column it came from and the test that recomputes it from the state's own file. Machine-readable at <a href="/provenance">/provenance</a>.</p>
       <p class="support" style="margin-top:.5rem">Every figure originates in the Texas Education Agency's
@@ -1688,8 +1931,8 @@
       <a href="https://tea.texas.gov" target="_blank" rel="noopener">official TEA publications</a>
       before quoting it, publishing it, or making a decision.
     </div>
-    <div class="block">
-      <strong>Data disclaimer:</strong> Independent transparency tool presenting Texas Education Agency
+    <details class="block"><summary><strong>Data, privacy and independence details</strong></summary>
+      <p><strong>Data disclaimer:</strong> Independent transparency tool presenting Texas Education Agency
       (TEA) summarized PEIMS financial data, fiscal 2009–2025, for informational purposes only. Not an
       official TEA product, not an audit, not financial, legal, or investment advice. Anomaly flags and
       peer comparisons are automatic statistical checks — <em>questions worth asking</em>, not findings
@@ -1701,9 +1944,9 @@
       (<a href="/about#privacy">what we collect</a>). Open source (MIT) ·
       <a href="/docs">API</a> ·
       <a href="https://github.com/GusAI40/texas-isd-finances" target="_blank" rel="noopener">source code</a> ·
-      <a href="#" id="open-disc">full data notes</a>.
-    </div>
-    <div class="block collab">
+      <a href="#" id="open-disc">full data notes</a>.</p>
+    </details>
+    <details class="block collab"><summary><strong>About TAG and this project</strong></summary>
       <div class="collab-h">A collaboration</div>
       <p>This guide was built by the team at <strong>Technology Automation Group (TAG ai)</strong>,
         with one goal: helping families make better-informed decisions about where they raise their
@@ -1723,7 +1966,7 @@
         datasets, agencies and states.
         <a href="mailto:gus@ubntag.com?subject=Building%20a%20portal%20like%20this">Tell us what
         you are trying to open up</a> and we will tell you honestly whether it is worth doing.</p>
-    </div>
+    </details>
     <div class="tag">
       <span class="brand">Technology Automation Group — TAG ai</span>
       <span><a href="tel:+18398882424">839-888-2424</a> — speak to one of our AI assistants</span>
@@ -2718,7 +2961,7 @@ function renderKPIs() {
       ${delta(cur.spend_per_student, prev?.spend_per_student)}
       <div class="plain">State median ${fmtMoney(st.statewide_median_spend)}${cmp ? ' · ' + state.compare.name.split(' ')[0] + ' ' + fmtMoney(cmp.spend_per_student) : ''}${opsPerStudentNote(cur)}</div></div>
     <div class="kpi"><div class="label">Statewide rank ${xb('rank')}</div>
-      <div class="value">${pctile == null ? '—'
+      <div class="value percentile-value">${pctile == null ? '-'
         : pctile + '<span style="font-size:.55em;vertical-align:.5em;letter-spacing:.02em">' + ordSuf(pctile) + '</span>'}</div>
       <div class="plain">${pctile == null ? '' : 'Spends more per student than ' + pctile + '% of Texas districts, counting construction & debt.'}</div></div>
     <div class="kpi"><div class="label">Enrollment ${xb('enrollment')}</div>
@@ -4602,7 +4845,7 @@ function renderBonds() {
   $('bond-b4-sub').innerHTML =
     'A vote for classrooms is often a vote for the field house too.';
   const card = (h, r, cap, hi) =>
-    `<div class="bb${hi ? ' hi' : ''}"><h5>${h}</h5><div class="pct"${hi ? ` style="color:${BOND_C.focus}"` : ''}>` +
+    `<div class="bb${hi ? ' hi' : ''}"><h5>${h}</h5><div class="pct${hi ? ' focus-result' : ''}">` +
     `${Math.round(r.pass_rate)}%</div><div class="cap">${cap}<br>${r.props.toLocaleString()} on the ballot · ` +
     `typical ask ${usd(r.median_ask)}</div></div>`;
   $('bond-bundle').innerHTML =
@@ -4799,6 +5042,12 @@ let _askToken = 0;   // guards against an old answer streaming over a newer one
 async function ask() {
   const q = $('question').value.trim();
   if (q.length < 3) return;
+  /* The sheet owns request lifecycle and retry semantics. Keep this inline
+     fallback for a page whose deferred widget did not load. */
+  if (window.TISDAsk && window.TISDAsk.ask) {
+    window.TISDAsk.ask(q, state.district?.num || null);
+    return;
+  }
   const box = $('answer');
   const mine = ++_askToken;
   box.style.display = 'block';
@@ -5195,7 +5444,7 @@ async function loadStatewide() {
     const last = bm[bm.length - 1];
     $('t-med').textContent = fmtMoney(last?.median_spend_per_student);
     const g = pct(+last?.median_spend_per_student, +bm[bm.length - 6]?.median_spend_per_student);
-    if (g != null) $('state-title').textContent = `The typical Texas district now spends ${fmtMoney(last.median_spend_per_student)} per student — up ${g}% in five years`;
+    if (g != null) $('state-title').textContent = `In fiscal ${last.year}, the typical Texas district spent ${fmtMoney(last.median_spend_per_student)} per student - up ${g}% in five years`;
   } catch (e) { /* banner */ }
 }
 
@@ -5433,5 +5682,29 @@ async function nameTheModel() {
 </div>
 <script src="/static/track.js" defer></script>
 <script src="/static/ask.js" defer></script>
+<script>
+  /* Dynamic district charts can overflow horizontally on narrow screens. Give
+     each scroll region a keyboard entry point and label the macro SVG when it
+     is inserted by the existing renderer. */
+  (function () {
+    function labelDynamicCharts() {
+      document.querySelectorAll('.chartwrap').forEach(function (node) {
+        if (!node.hasAttribute('tabindex')) node.tabIndex = 0;
+        if (!node.hasAttribute('aria-label')) node.setAttribute('aria-label', 'Scrollable chart; use shift and mouse wheel or arrow keys to review the full chart.');
+      });
+      var macro = document.getElementById('econ-macro');
+      if (macro) {
+        var cap = document.getElementById('econ-macro-cap');
+        var detail = cap && cap.textContent.trim();
+        macro.setAttribute('aria-label', 'Statewide per-student total spending, teaching, and buildings and debt' +
+          (detail ? '. ' + detail : '. See the adjacent caption and data table for exact values.'));
+      }
+    }
+    document.addEventListener('DOMContentLoaded', function () {
+      labelDynamicCharts();
+      new MutationObserver(labelDynamicCharts).observe(document.body, {childList:true, subtree:true});
+    });
+  }());
+</script>
 </body>
 </html>

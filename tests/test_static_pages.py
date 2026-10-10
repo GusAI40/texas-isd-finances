@@ -320,9 +320,13 @@ def test_type_scale_is_bounded():
     import re
     literals = set()
     for page in PAGES:
-        for value in re.findall(r"font-size:\s*([^;}\n]+)", page.read_text(encoding="utf-8")):
-            v = value.strip()
-            if v.startswith("var(") or v.startswith("clamp(") or v.startswith("inherit"):
+        for value in re.findall(r'font-size:\s*([^;}"\n]+)', page.read_text(encoding="utf-8")):
+            # An inline attribute ends at the quote; !important changes
+            # precedence, not the size. An accessible floor around a scale
+            # token still uses that scale rather than adding another size.
+            v = re.sub(r"\s*!important\s*$", "", value).strip()
+            if (v.startswith("var(") or v.startswith("clamp(") or v.startswith("inherit")
+                    or re.fullmatch(r"max\(14px,\s*var\(--fs-[a-z]+\)\)", v)):
                 continue
             literals.add(v)
     assert len(literals) <= 6, (
@@ -379,9 +383,9 @@ def test_chart_png_export_serializes_a_clone_and_reports_failure():
 
 
 def test_ask_footer_names_only_the_llm_actually_used():
-    """The ask box must not claim a multi-LLM stack it does not have."""
+    """The compact answer footer stays honest about its public-data basis."""
     html = (STATIC / "index.html").read_text(encoding="utf-8")
-    assert "OpenAI" in html and "LangChain" in html
+    assert 'Answers come from <span id="ask-model">the configured AI model</span> and public records.' in html
     for absent in ("Perplexity", "Pinecone", "MongoDB", "Multi-LLM", "GOAT-UIX"):
         assert absent not in html, f"{absent} is not in this stack and must not appear"
 

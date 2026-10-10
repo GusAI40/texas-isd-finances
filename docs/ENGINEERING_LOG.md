@@ -17,6 +17,88 @@ Entry template:
 
 ---
 
+## 2026-10-10 - Visual redesign prepared for review; strict visual gate unresolved
+
+**What changed:** A new isolated branch `feat/txisd-visual95-20261010` starts
+from actual published `14326baf497f782db702f12427d6432af1df46be`. Runtime
+scope is still only index.html and ask.js. The landing now leads with the
+recorded Dallas composition, separate source groups -> district match ->
+sourced answer, statewide grid/finder and actual historical trend. Shared
+website chat uses chart-first qualified dollar comparisons with readable
+source/date context, accessible disclosures and recovery states. Tests,
+recorded health, screenshots and independent review accompany the change.
+Both locked Python matrices pass 1,169/31 skipped, browser cases 106/106,
+accessibility surfaces 64/64. Capture ledger has 444 baseline/437 candidate
+images plus disclosure/cover-words evidence. Repository lint/syntax/lock and
+whitespace checks pass. See `docs/TXISD_VISUAL95_REDESIGN.md`.
+
+**Why:** The earlier hero-led revision retained a long textual journey. This
+candidate makes source-to-answer and real data more visible while preserving
+backend contracts, independent website chat, notices and honest fallbacks.
+Global LATL workflow used Luna audit, Astra plan, Terra implementation,
+targeted Sol escalations and fresh Luna verification. A01-A11 now pass;
+the strict area gate A12 does not: every measured surface is below 95%.
+N20/20 is a separate semantic check and never establishes an area pass.
+
+**Gotchas:** Current public health proves production source 14326, not master
+73df, correcting the older entry's live-source implication. Earlier approved
+PR #84 was promoted but remains draft/open; master has not moved. Preserve
+PR #82/#83 and unrelated original-checkout files. A static typography test
+mistook `!important` and inline markup for sizes; parsing now distinguishes
+them while retaining its six-size bound. Transient motion affected a broad
+axe run; reproducible reduced-motion audits and both browsers pass. C is
+semantic frame/text geometry, not painted area; P excludes SVG paint and
+generated CSS prose is omitted, preventing a certified 95% claim.
+
+**Open items:** This task authorizes draft PR/preview only. Obtain explicit
+design direction on the failed 95% gate and Gus's approval before any
+production-target build, merge, domain assignment or promotion. Independent
+ChatGPT account/public distribution is unverified; the owner route is
+qualified visibly. Python 3.11/Linux CI unavailable; Actions disabled. All
+chat checks are mocked, no paid quality test. No credentials/security/config
+changes, no outreach/contact mutation, no district emails. Production remains
+healthy at its prior approved revision.
+
+## 2026-10-10 - Isolated visual landing and sourced website chat candidate
+
+**What changed:** A clean branch based on verified production/master
+`73df1896ed0818020ec1c15c06f5ee823db7ec0f` contains exactly two runtime
+changes: `static/index.html` and `static/ask.js`. The reviewed landing presents
+Dallas FY2025 spending visually, keeps TEA source/snapshot context and exact
+definitions, identifies Gus/TAG as creator, and explains qualified custom
+ChatGPT setup. The existing website chat adds concise, sourced answers and
+strictly qualified financial charts while preserving complete evidence,
+manual Retry, Stop, timeout, stale-response protection and accessible focus.
+Scoped tests, 56 screenshots, data receipts and independent review live in
+`docs/evidence/landing`; details are in `docs/TXISD_ISOLATED_REDESIGN.md`.
+
+**Why:** PRs #82/#83 are stacked on a much larger unreleased portal/plugin
+change. The requested design can be reviewed independently without changing
+backend, SQL, shared stylesheets, runtime dependencies, CI or hosting settings.
+Eight PR #83 index hunks plus the production welcome replacement are retained;
+three PR #82-only hunks are omitted. Two scoped CSS rules preserve the approved
+composition under production's old direct pipeline markup and mobile styles.
+
+**Gotchas:** Windows CP1252 and CRLF inflated unchanged source/data tests.
+Acceptance used UTF-8 mode and exact committed LF bytes for four unchanged
+JSON files; their Git blobs and generated dictionary remain unchanged. Fresh
+locked uv 0.11.33 Python 3.10/3.12 environments each passed 1,169 tests with
+31 skips and 3 warnings. Final mocked Playwright checks passed 86/86 across
+Chromium/Firefox and 320/390/430/1440px, including WCAG AA, light/dark and
+report/map shared chat. Ruff, all 14 static-page JS parses, ask.js syntax,
+lock check and disposable npm ci also pass. Earlier 80-case screenshots and
+incorrect-PATH Python failures are superseded.
+
+**Open items:** Python 3.11 and Ubuntu CI were unavailable locally; GitHub
+Actions were observed disabled and remain unchanged. The parent verified the
+owner-account custom ChatGPT route; independent-account installation and
+public listing remain unverified and the guide states that account/workspace
+availability varies. Conservative data-fill shares fall below the strict 95%
+target (3.1/2.5/2.7/54.3% at 320/390/430/1440px); no 95% success is claimed.
+Exact commit and draft preview verification follow in the handoff. Publication
+to txisd.dev requires separate explicit approval. No paid question, outreach,
+credential/security/configuration change, merge or production promotion occurred.
+
 ## 2026-08-25 — Coverage measured D→B, and the AI Employee gets its two missing ends
 
 **What changed.**

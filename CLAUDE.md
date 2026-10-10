@@ -136,11 +136,41 @@ To render *production* in a browser (Chromium can't TLS through the agent
 proxy), run `scratchpad/liveproxy.py` and point Playwright at
 `127.0.0.1:8799`.
 
-## Current Status (updated 2026-08-25 — keep this a snapshot, history goes in the log)
+## Current Status (updated 2026-10-10 - keep this a snapshot, history goes in the log)
 
 The newest bullets control. Dated bullets below retain useful engineering
 history and may contain superseded counts; never let them override the current
 outreach item or `data/outreach_watermark.json`.
+
+- **Visual redesign review candidate (2026-10-10, newest).** Branch
+  `feat/txisd-visual95-20261010` starts from actual published source
+  `14326baf497f782db702f12427d6432af1df46be`, TAG-ai deployment
+  `dpl_9REP3jKBiDs4nkLyUPvNPkDaV1Dg`. Public read-only checks pass 40/40;
+  master remains `73df1896ed0818020ec1c15c06f5ee823db7ec0f` and PR #84 is
+  draft/open after its earlier authorized promotion. This new design changes
+  only index.html/ask.js at runtime. Python 3.10/3.12 each pass 1,169 tests
+  (31 skipped); 106 mocked Chromium/Firefox cases and 64 accessibility
+  surfaces pass. Full before/after capture count is 444/437. A01-A11 pass
+  independent review; A12 FAIL: all measured surfaces remain below the strict
+  95% meaningful-graphic gate (N20/20 does not substitute for area). Return
+  draft PR/protected preview for design approval; no new production build,
+  promotion or merge is authorized. ChatGPT custom setup remains qualified
+  by account/workspace; independent availability/public listing unverified.
+  No paid query/outreach/settings change. Python 3.11/Linux CI unavailable.
+  See `docs/TXISD_VISUAL95_REDESIGN.md` and its evidence. Historical bullets
+  below describe earlier work and do not override the actual live revision.
+
+- **Isolated landing and website chat review candidate (2026-10-10).** Branch
+  `feat/txisd-isolated-landing-chat-20261010` starts from verified production
+  `73df1896ed0818020ec1c15c06f5ee823db7ec0f`. Only `static/index.html` and
+  `static/ask.js` change at runtime; PR #82 backend/plugin/portal/CI changes
+  are excluded. Dallas FY2025 recorded evidence, TAG/Gus attribution,
+  qualified custom ChatGPT setup and the independent website chat are reviewed.
+  Both locked Python 3.10/3.12 suites pass 1,169 tests (31 skipped each);
+  86 mocked Chromium/Firefox cases pass with 56 screenshots. Python 3.11
+  and Linux CI were not run; Actions remain disabled. No paid question,
+  outreach, setting change or production publication is authorized here.
+  Review scope and evidence: `docs/TXISD_ISOLATED_REDESIGN.md`.
 
 - 🟡 **Forensic hardening is repository-complete; production requires separate
   proof** (2026-08-22) — the change set explicitly monitors both Vercel crons,
