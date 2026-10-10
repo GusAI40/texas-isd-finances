@@ -1,6 +1,6 @@
 {
   "method": "Closed welcome, product explanation, and setup summary: actual filled four-region Dallas desktop treemap or total-scaled mobile bar fills vs all visible text ranges. Headings, chart labels, buttons and instructions count as text; overlapping text is subtracted from graphic fill, so it is not double-counted. Transparent mobile card tracks, whitespace/card backgrounds and decorative outlines never count. Global masthead, following tickers/finder/report, and unopened disclosure content are outside this landing observation.",
-  "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
+  "source_sha256": "24090a9b2ea7d2e48a3e48c26ba6df36142c26b52719abb6d2c2f77cc92dca19",
   "cases": [
     {
       "width": 320,
@@ -697,11 +697,59 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(1)>b:nth-child(1)::text(1)[line=1]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>p:nth-child(2)::text(1)[line=1]",
+          "left": 46.1875,
+          "top": 1027.046875,
+          "right": 226.46875,
+          "bottom": 1048.046875,
+          "visible": true,
+          "opacity": 1,
+          "text": "Custom setup is required. Availability depends on your ChatGPT account and workspace.",
+          "kind": "excluded",
+          "reason": "closed native disclosure content is not painted"
+        },
+        {
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>p:nth-child(2)::text(1)[line=2]",
+          "left": 46.1875,
+          "top": 1051.84375,
+          "right": 246.234375,
+          "bottom": 1072.84375,
+          "visible": true,
+          "opacity": 1,
+          "text": "Custom setup is required. Availability depends on your ChatGPT account and workspace.",
+          "kind": "excluded",
+          "reason": "closed native disclosure content is not painted"
+        },
+        {
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>p:nth-child(2)::text(1)[line=3]",
+          "left": 46.1875,
+          "top": 1076.640625,
+          "right": 198.25,
+          "bottom": 1097.640625,
+          "visible": true,
+          "opacity": 1,
+          "text": "Custom setup is required. Availability depends on your ChatGPT account and workspace.",
+          "kind": "excluded",
+          "reason": "closed native disclosure content is not painted"
+        },
+        {
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>p:nth-child(2)::text(1)[line=4]",
+          "left": 46.1875,
+          "top": 1101.4375,
+          "right": 124.203125,
+          "bottom": 1122.4375,
+          "visible": true,
+          "opacity": 1,
+          "text": "Custom setup is required. Availability depends on your ChatGPT account and workspace.",
+          "kind": "excluded",
+          "reason": "closed native disclosure content is not painted"
+        },
+        {
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(1)>b:nth-child(1)::text(1)[line=1]",
           "left": 58.375,
-          "top": 1055.234375,
+          "top": 1154.421875,
           "right": 156.9375,
-          "bottom": 1071.234375,
+          "bottom": 1170.421875,
           "visible": true,
           "opacity": 1,
           "text": "1. Add server",
@@ -709,11 +757,11 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(1)>div:nth-child(2)>span:nth-child(2)::text(1)[line=1]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(1)>div:nth-child(2)>span:nth-child(2)::text(1)[line=1]",
           "left": 83.171875,
-          "top": 1087.5625,
+          "top": 1186.75,
           "right": 255.03125,
-          "bottom": 1106.5625,
+          "bottom": 1205.75,
           "visible": true,
           "opacity": 1,
           "text": "+ Add custom MCP server",
@@ -721,11 +769,11 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(1)>span:nth-child(3)::text(1)[line=1]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(1)>span:nth-child(3)::text(1)[line=1]",
           "left": 58.375,
-          "top": 1115.796875,
+          "top": 1214.984375,
           "right": 96.25,
-          "bottom": 1134.796875,
+          "bottom": 1233.984375,
           "visible": true,
           "opacity": 1,
           "text": "Open",
@@ -733,11 +781,11 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(1)>span:nth-child(3)>a:nth-child(1)::text(1)[line=1]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(1)>span:nth-child(3)>a:nth-child(1)::text(1)[line=1]",
           "left": 96.25,
-          "top": 1115.796875,
+          "top": 1214.984375,
           "right": 224,
-          "bottom": 1134.796875,
+          "bottom": 1233.984375,
           "visible": true,
           "opacity": 1,
           "text": "chatgpt.com/plugins",
@@ -745,11 +793,11 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(1)>span:nth-child(3)::text(2)[line=1]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(1)>span:nth-child(3)::text(2)[line=1]",
           "left": 224,
-          "top": 1115.796875,
+          "top": 1214.984375,
           "right": 227.046875,
-          "bottom": 1134.796875,
+          "bottom": 1233.984375,
           "visible": true,
           "opacity": 1,
           "text": ".",
@@ -757,11 +805,11 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(2)>b:nth-child(1)::text(1)[line=1]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(2)>b:nth-child(1)::text(1)[line=1]",
           "left": 58.375,
-          "top": 1169.859375,
+          "top": 1269.046875,
           "right": 161.359375,
-          "bottom": 1185.859375,
+          "bottom": 1285.046875,
           "visible": true,
           "opacity": 1,
           "text": "2. Add details",
@@ -769,11 +817,11 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(2)>div:nth-child(2)>span:nth-child(2)::text(1)[line=1]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(2)>div:nth-child(2)>span:nth-child(2)::text(1)[line=1]",
           "left": 83.171875,
-          "top": 1202.1875,
+          "top": 1301.375,
           "right": 205.640625,
-          "bottom": 1221.1875,
+          "bottom": 1320.375,
           "visible": true,
           "opacity": 1,
           "text": "Texas ISD Finances",
@@ -781,11 +829,11 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(2)>span:nth-child(3)::text(1)[line=1]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(2)>span:nth-child(3)::text(1)[line=1]",
           "left": 65.765625,
-          "top": 1237.21875,
+          "top": 1336.40625,
           "right": 227.421875,
-          "bottom": 1254.21875,
+          "bottom": 1353.40625,
           "visible": true,
           "opacity": 1,
           "text": "https://txisd.dev/mcp",
@@ -793,11 +841,11 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(2)>span:nth-child(4)::text(1)[line=1]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(2)>span:nth-child(4)::text(1)[line=1]",
           "left": 58.375,
-          "top": 1266.703125,
+          "top": 1365.890625,
           "right": 169.828125,
-          "bottom": 1285.703125,
+          "bottom": 1384.890625,
           "visible": true,
           "opacity": 1,
           "text": "No authentication",
@@ -805,11 +853,11 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(3)>b:nth-child(1)::text(1)[line=1]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(3)>b:nth-child(1)::text(1)[line=1]",
           "left": 58.375,
-          "top": 1320.765625,
+          "top": 1419.953125,
           "right": 128.359375,
-          "bottom": 1336.765625,
+          "bottom": 1435.953125,
           "visible": true,
           "opacity": 1,
           "text": "3. Install",
@@ -817,11 +865,11 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(3)>div:nth-child(2)>span:nth-child(2)::text(1)[line=1]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(3)>div:nth-child(2)>span:nth-child(2)::text(1)[line=1]",
           "left": 83.171875,
-          "top": 1353.09375,
+          "top": 1452.28125,
           "right": 200.5625,
-          "bottom": 1372.09375,
+          "bottom": 1471.28125,
           "visible": true,
           "opacity": 1,
           "text": "Create as a plugin",
@@ -829,11 +877,11 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(3)>span:nth-child(3)::text(1)[line=1]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(3)>span:nth-child(3)::text(1)[line=1]",
           "left": 58.375,
-          "top": 1381.328125,
+          "top": 1480.515625,
           "right": 207.75,
-          "bottom": 1400.328125,
+          "bottom": 1499.515625,
           "visible": true,
           "opacity": 1,
           "text": "Review warning. Choose Personal, then + install.",
@@ -841,11 +889,11 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(3)>span:nth-child(3)::text(1)[line=2]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(3)>span:nth-child(3)::text(1)[line=2]",
           "left": 58.375,
-          "top": 1400.21875,
+          "top": 1499.40625,
           "right": 201.4375,
-          "bottom": 1419.21875,
+          "bottom": 1518.40625,
           "visible": true,
           "opacity": 1,
           "text": "Review warning. Choose Personal, then + install.",
@@ -853,11 +901,11 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(4)>b:nth-child(1)::text(1)[line=1]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(4)>b:nth-child(1)::text(1)[line=1]",
           "left": 58.375,
-          "top": 1454.28125,
+          "top": 1553.46875,
           "right": 100.5625,
-          "bottom": 1470.28125,
+          "bottom": 1569.46875,
           "visible": true,
           "opacity": 1,
           "text": "4. Ask",
@@ -865,11 +913,11 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(4)>div:nth-child(2)>span:nth-child(2)::text(1)[line=1]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(4)>div:nth-child(2)>span:nth-child(2)::text(1)[line=1]",
           "left": 83.171875,
-          "top": 1486.609375,
+          "top": 1585.796875,
           "right": 166.609375,
-          "bottom": 1505.609375,
+          "bottom": 1604.796875,
           "visible": true,
           "opacity": 1,
           "text": "@ select app",
@@ -877,11 +925,11 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(4)>span:nth-child(3)::text(1)[line=1]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(4)>span:nth-child(3)::text(1)[line=1]",
           "left": 58.375,
-          "top": 1514.84375,
+          "top": 1614.03125,
           "right": 232.109375,
-          "bottom": 1533.84375,
+          "bottom": 1633.03125,
           "visible": true,
           "opacity": 1,
           "text": "Start a new chat and choose Texas ISD Finances.",
@@ -889,11 +937,11 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(4)>span:nth-child(3)::text(1)[line=2]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(4)>span:nth-child(3)::text(1)[line=2]",
           "left": 58.375,
-          "top": 1533.734375,
+          "top": 1632.921875,
           "right": 175.765625,
-          "bottom": 1552.734375,
+          "bottom": 1651.921875,
           "visible": true,
           "opacity": 1,
           "text": "Start a new chat and choose Texas ISD Finances.",
@@ -901,71 +949,35 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>p:nth-child(3)::text(1)[line=1]",
-          "left": 46.1875,
-          "top": 1582.8125,
-          "right": 228.046875,
-          "bottom": 1603.8125,
-          "visible": true,
-          "opacity": 1,
-          "text": "Concept illustration, not a ChatGPT screenshot. Custom setup is required. Availability depends on your ChatGPT account and workspace.",
-          "kind": "excluded",
-          "reason": "closed native disclosure content is not painted"
-        },
-        {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>p:nth-child(3)::text(1)[line=2]",
-          "left": 46.1875,
-          "top": 1607.609375,
-          "right": 249.765625,
-          "bottom": 1628.609375,
-          "visible": true,
-          "opacity": 1,
-          "text": "Concept illustration, not a ChatGPT screenshot. Custom setup is required. Availability depends on your ChatGPT account and workspace.",
-          "kind": "excluded",
-          "reason": "closed native disclosure content is not painted"
-        },
-        {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>p:nth-child(3)::text(1)[line=3]",
-          "left": 46.1875,
-          "top": 1632.40625,
-          "right": 248.046875,
-          "bottom": 1653.40625,
-          "visible": true,
-          "opacity": 1,
-          "text": "Concept illustration, not a ChatGPT screenshot. Custom setup is required. Availability depends on your ChatGPT account and workspace.",
-          "kind": "excluded",
-          "reason": "closed native disclosure content is not painted"
-        },
-        {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>p:nth-child(3)::text(1)[line=4]",
-          "left": 46.1875,
-          "top": 1657.203125,
-          "right": 231.171875,
-          "bottom": 1678.203125,
-          "visible": true,
-          "opacity": 1,
-          "text": "Concept illustration, not a ChatGPT screenshot. Custom setup is required. Availability depends on your ChatGPT account and workspace.",
-          "kind": "excluded",
-          "reason": "closed native disclosure content is not painted"
-        },
-        {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>p:nth-child(3)::text(1)[line=5]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>p:nth-child(4)::text(1)[line=1]",
           "left": 46.1875,
           "top": 1682,
-          "right": 215.421875,
+          "right": 228.046875,
           "bottom": 1703,
           "visible": true,
           "opacity": 1,
-          "text": "Concept illustration, not a ChatGPT screenshot. Custom setup is required. Availability depends on your ChatGPT account and workspace.",
+          "text": "Concept illustration, not a ChatGPT screenshot.",
           "kind": "excluded",
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>details:nth-child(4)>summary:nth-child(1)::text(1)[line=1]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>p:nth-child(4)::text(1)[line=2]",
+          "left": 46.1875,
+          "top": 1706.796875,
+          "right": 191.0625,
+          "bottom": 1727.796875,
+          "visible": true,
+          "opacity": 1,
+          "text": "Concept illustration, not a ChatGPT screenshot.",
+          "kind": "excluded",
+          "reason": "closed native disclosure content is not painted"
+        },
+        {
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>details:nth-child(5)>summary:nth-child(1)::text(1)[line=1]",
           "left": 64.578125,
-          "top": 1728.703125,
+          "top": 1753.5,
           "right": 198.890625,
-          "bottom": 1747.703125,
+          "bottom": 1772.5,
           "visible": true,
           "opacity": 1,
           "text": "Developer references",
@@ -973,11 +985,11 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>details:nth-child(4)>a:nth-child(2)::text(1)[line=1]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>details:nth-child(5)>a:nth-child(2)::text(1)[line=1]",
           "left": 46.1875,
-          "top": 1760.296875,
+          "top": 1785.09375,
           "right": 173.453125,
-          "bottom": 1779.296875,
+          "bottom": 1804.09375,
           "visible": true,
           "opacity": 1,
           "text": "Custom MCP servers",
@@ -985,11 +997,11 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>details:nth-child(4)::text(1)[line=1]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>details:nth-child(5)::text(1)[line=1]",
           "left": 173.453125,
-          "top": 1760.296875,
+          "top": 1785.09375,
           "right": 204.421875,
-          "bottom": 1779.296875,
+          "bottom": 1804.09375,
           "visible": true,
           "opacity": 1,
           "text": "and",
@@ -997,11 +1009,11 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>details:nth-child(4)>a:nth-child(3)::text(1)[line=1]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>details:nth-child(5)>a:nth-child(3)::text(1)[line=1]",
           "left": 204.421875,
-          "top": 1760.296875,
+          "top": 1785.09375,
           "right": 249.46875,
-          "bottom": 1779.296875,
+          "bottom": 1804.09375,
           "visible": true,
           "opacity": 1,
           "text": "plugins",
@@ -1009,11 +1021,11 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>details:nth-child(4)::text(2)[line=1]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>details:nth-child(5)::text(2)[line=1]",
           "left": 249.46875,
-          "top": 1760.296875,
+          "top": 1785.09375,
           "right": 252.515625,
-          "bottom": 1779.296875,
+          "bottom": 1804.09375,
           "visible": true,
           "opacity": 1,
           "text": ".",
@@ -1231,7 +1243,15 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(1)>b:nth-child(1)::text(1)",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>p:nth-child(2)::text(1)",
+          "node_type": "text",
+          "text": "Custom setup is required. Availability depends on your ChatGPT account and workspace.",
+          "classification": "excluded",
+          "semantic_role": null,
+          "reason": "closed native disclosure content is not painted"
+        },
+        {
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(1)>b:nth-child(1)::text(1)",
           "node_type": "text",
           "text": "1. Add server",
           "classification": "excluded",
@@ -1239,7 +1259,7 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(1)>div:nth-child(2)>span:nth-child(2)::text(1)",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(1)>div:nth-child(2)>span:nth-child(2)::text(1)",
           "node_type": "text",
           "text": "+ Add custom MCP server",
           "classification": "excluded",
@@ -1247,7 +1267,7 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(1)>span:nth-child(3)::text(1)",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(1)>span:nth-child(3)::text(1)",
           "node_type": "text",
           "text": "Open",
           "classification": "excluded",
@@ -1255,7 +1275,7 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(1)>span:nth-child(3)>a:nth-child(1)::text(1)",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(1)>span:nth-child(3)>a:nth-child(1)::text(1)",
           "node_type": "text",
           "text": "chatgpt.com/plugins",
           "classification": "excluded",
@@ -1263,7 +1283,7 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(1)>span:nth-child(3)::text(2)",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(1)>span:nth-child(3)::text(2)",
           "node_type": "text",
           "text": ".",
           "classification": "excluded",
@@ -1271,7 +1291,7 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(2)>b:nth-child(1)::text(1)",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(2)>b:nth-child(1)::text(1)",
           "node_type": "text",
           "text": "2. Add details",
           "classification": "excluded",
@@ -1279,7 +1299,7 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(2)>div:nth-child(2)>span:nth-child(2)::text(1)",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(2)>div:nth-child(2)>span:nth-child(2)::text(1)",
           "node_type": "text",
           "text": "Texas ISD Finances",
           "classification": "excluded",
@@ -1287,7 +1307,7 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(2)>span:nth-child(3)::text(1)",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(2)>span:nth-child(3)::text(1)",
           "node_type": "text",
           "text": "https://txisd.dev/mcp",
           "classification": "excluded",
@@ -1295,7 +1315,7 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(2)>span:nth-child(4)::text(1)",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(2)>span:nth-child(4)::text(1)",
           "node_type": "text",
           "text": "No authentication",
           "classification": "excluded",
@@ -1303,7 +1323,7 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(3)>b:nth-child(1)::text(1)",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(3)>b:nth-child(1)::text(1)",
           "node_type": "text",
           "text": "3. Install",
           "classification": "excluded",
@@ -1311,7 +1331,7 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(3)>div:nth-child(2)>span:nth-child(2)::text(1)",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(3)>div:nth-child(2)>span:nth-child(2)::text(1)",
           "node_type": "text",
           "text": "Create as a plugin",
           "classification": "excluded",
@@ -1319,7 +1339,7 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(3)>span:nth-child(3)::text(1)",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(3)>span:nth-child(3)::text(1)",
           "node_type": "text",
           "text": "Review warning. Choose Personal, then + install.",
           "classification": "excluded",
@@ -1327,7 +1347,7 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(4)>b:nth-child(1)::text(1)",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(4)>b:nth-child(1)::text(1)",
           "node_type": "text",
           "text": "4. Ask",
           "classification": "excluded",
@@ -1335,7 +1355,7 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(4)>div:nth-child(2)>span:nth-child(2)::text(1)",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(4)>div:nth-child(2)>span:nth-child(2)::text(1)",
           "node_type": "text",
           "text": "@ select app",
           "classification": "excluded",
@@ -1343,7 +1363,7 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(4)>span:nth-child(3)::text(1)",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(4)>span:nth-child(3)::text(1)",
           "node_type": "text",
           "text": "Start a new chat and choose Texas ISD Finances.",
           "classification": "excluded",
@@ -1351,15 +1371,15 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>p:nth-child(3)::text(1)",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>p:nth-child(4)::text(1)",
           "node_type": "text",
-          "text": "Concept illustration, not a ChatGPT screenshot. Custom setup is required. Availability depends on your ChatGPT account and workspace.",
+          "text": "Concept illustration, not a ChatGPT screenshot.",
           "classification": "excluded",
           "semantic_role": null,
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>details:nth-child(4)>summary:nth-child(1)::text(1)",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>details:nth-child(5)>summary:nth-child(1)::text(1)",
           "node_type": "text",
           "text": "Developer references",
           "classification": "excluded",
@@ -1367,7 +1387,7 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>details:nth-child(4)>a:nth-child(2)::text(1)",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>details:nth-child(5)>a:nth-child(2)::text(1)",
           "node_type": "text",
           "text": "Custom MCP servers",
           "classification": "excluded",
@@ -1375,7 +1395,7 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>details:nth-child(4)::text(1)",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>details:nth-child(5)::text(1)",
           "node_type": "text",
           "text": "and",
           "classification": "excluded",
@@ -1383,7 +1403,7 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>details:nth-child(4)>a:nth-child(3)::text(1)",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>details:nth-child(5)>a:nth-child(3)::text(1)",
           "node_type": "text",
           "text": "plugins",
           "classification": "excluded",
@@ -1391,7 +1411,7 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>details:nth-child(4)::text(2)",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>details:nth-child(5)::text(2)",
           "node_type": "text",
           "text": ".",
           "classification": "excluded",
@@ -2063,11 +2083,47 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(1)>b:nth-child(1)::text(1)[line=1]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>p:nth-child(2)::text(1)[line=1]",
+          "left": 46.1875,
+          "top": 959.046875,
+          "right": 306.75,
+          "bottom": 980.046875,
+          "visible": true,
+          "opacity": 1,
+          "text": "Custom setup is required. Availability depends on your ChatGPT account and workspace.",
+          "kind": "excluded",
+          "reason": "closed native disclosure content is not painted"
+        },
+        {
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>p:nth-child(2)::text(1)[line=2]",
+          "left": 46.1875,
+          "top": 983.84375,
+          "right": 322.390625,
+          "bottom": 1004.84375,
+          "visible": true,
+          "opacity": 1,
+          "text": "Custom setup is required. Availability depends on your ChatGPT account and workspace.",
+          "kind": "excluded",
+          "reason": "closed native disclosure content is not painted"
+        },
+        {
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>p:nth-child(2)::text(1)[line=3]",
+          "left": 46.1875,
+          "top": 1008.640625,
+          "right": 124.203125,
+          "bottom": 1029.640625,
+          "visible": true,
+          "opacity": 1,
+          "text": "Custom setup is required. Availability depends on your ChatGPT account and workspace.",
+          "kind": "excluded",
+          "reason": "closed native disclosure content is not painted"
+        },
+        {
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(1)>b:nth-child(1)::text(1)[line=1]",
           "left": 58.375,
-          "top": 987.234375,
+          "top": 1061.625,
           "right": 156.9375,
-          "bottom": 1003.234375,
+          "bottom": 1077.625,
           "visible": true,
           "opacity": 1,
           "text": "1. Add server",
@@ -2075,11 +2131,11 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(1)>div:nth-child(2)>span:nth-child(2)::text(1)[line=1]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(1)>div:nth-child(2)>span:nth-child(2)::text(1)[line=1]",
           "left": 83.171875,
-          "top": 1019.5625,
+          "top": 1093.953125,
           "right": 255.03125,
-          "bottom": 1038.5625,
+          "bottom": 1112.953125,
           "visible": true,
           "opacity": 1,
           "text": "+ Add custom MCP server",
@@ -2087,11 +2143,11 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(1)>span:nth-child(3)::text(1)[line=1]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(1)>span:nth-child(3)::text(1)[line=1]",
           "left": 58.375,
-          "top": 1047.796875,
+          "top": 1122.1875,
           "right": 96.25,
-          "bottom": 1066.796875,
+          "bottom": 1141.1875,
           "visible": true,
           "opacity": 1,
           "text": "Open",
@@ -2099,11 +2155,11 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(1)>span:nth-child(3)>a:nth-child(1)::text(1)[line=1]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(1)>span:nth-child(3)>a:nth-child(1)::text(1)[line=1]",
           "left": 96.25,
-          "top": 1047.796875,
+          "top": 1122.1875,
           "right": 224,
-          "bottom": 1066.796875,
+          "bottom": 1141.1875,
           "visible": true,
           "opacity": 1,
           "text": "chatgpt.com/plugins",
@@ -2111,11 +2167,11 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(1)>span:nth-child(3)::text(2)[line=1]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(1)>span:nth-child(3)::text(2)[line=1]",
           "left": 224,
-          "top": 1047.796875,
+          "top": 1122.1875,
           "right": 227.046875,
-          "bottom": 1066.796875,
+          "bottom": 1141.1875,
           "visible": true,
           "opacity": 1,
           "text": ".",
@@ -2123,11 +2179,11 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(2)>b:nth-child(1)::text(1)[line=1]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(2)>b:nth-child(1)::text(1)[line=1]",
           "left": 58.375,
-          "top": 1101.859375,
+          "top": 1176.25,
           "right": 161.359375,
-          "bottom": 1117.859375,
+          "bottom": 1192.25,
           "visible": true,
           "opacity": 1,
           "text": "2. Add details",
@@ -2135,11 +2191,11 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(2)>div:nth-child(2)>span:nth-child(2)::text(1)[line=1]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(2)>div:nth-child(2)>span:nth-child(2)::text(1)[line=1]",
           "left": 83.171875,
-          "top": 1134.1875,
+          "top": 1208.578125,
           "right": 205.640625,
-          "bottom": 1153.1875,
+          "bottom": 1227.578125,
           "visible": true,
           "opacity": 1,
           "text": "Texas ISD Finances",
@@ -2147,11 +2203,11 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(2)>span:nth-child(3)::text(1)[line=1]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(2)>span:nth-child(3)::text(1)[line=1]",
           "left": 65.765625,
-          "top": 1169.21875,
+          "top": 1243.609375,
           "right": 227.421875,
-          "bottom": 1186.21875,
+          "bottom": 1260.609375,
           "visible": true,
           "opacity": 1,
           "text": "https://txisd.dev/mcp",
@@ -2159,11 +2215,11 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(2)>span:nth-child(4)::text(1)[line=1]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(2)>span:nth-child(4)::text(1)[line=1]",
           "left": 58.375,
-          "top": 1198.703125,
+          "top": 1273.09375,
           "right": 169.828125,
-          "bottom": 1217.703125,
+          "bottom": 1292.09375,
           "visible": true,
           "opacity": 1,
           "text": "No authentication",
@@ -2171,11 +2227,11 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(3)>b:nth-child(1)::text(1)[line=1]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(3)>b:nth-child(1)::text(1)[line=1]",
           "left": 58.375,
-          "top": 1252.765625,
+          "top": 1327.15625,
           "right": 128.359375,
-          "bottom": 1268.765625,
+          "bottom": 1343.15625,
           "visible": true,
           "opacity": 1,
           "text": "3. Install",
@@ -2183,11 +2239,11 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(3)>div:nth-child(2)>span:nth-child(2)::text(1)[line=1]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(3)>div:nth-child(2)>span:nth-child(2)::text(1)[line=1]",
           "left": 83.171875,
-          "top": 1285.09375,
+          "top": 1359.484375,
           "right": 200.5625,
-          "bottom": 1304.09375,
+          "bottom": 1378.484375,
           "visible": true,
           "opacity": 1,
           "text": "Create as a plugin",
@@ -2195,11 +2251,11 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(3)>span:nth-child(3)::text(1)[line=1]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(3)>span:nth-child(3)::text(1)[line=1]",
           "left": 58.375,
-          "top": 1313.328125,
+          "top": 1387.71875,
           "right": 311.875,
-          "bottom": 1332.328125,
+          "bottom": 1406.71875,
           "visible": true,
           "opacity": 1,
           "text": "Review warning. Choose Personal, then + install.",
@@ -2207,11 +2263,11 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(3)>span:nth-child(3)::text(1)[line=2]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(3)>span:nth-child(3)::text(1)[line=2]",
           "left": 58.375,
-          "top": 1332.21875,
+          "top": 1406.609375,
           "right": 97.3125,
-          "bottom": 1351.21875,
+          "bottom": 1425.609375,
           "visible": true,
           "opacity": 1,
           "text": "Review warning. Choose Personal, then + install.",
@@ -2219,11 +2275,11 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(4)>b:nth-child(1)::text(1)[line=1]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(4)>b:nth-child(1)::text(1)[line=1]",
           "left": 58.375,
-          "top": 1386.28125,
+          "top": 1460.671875,
           "right": 100.5625,
-          "bottom": 1402.28125,
+          "bottom": 1476.671875,
           "visible": true,
           "opacity": 1,
           "text": "4. Ask",
@@ -2231,11 +2287,11 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(4)>div:nth-child(2)>span:nth-child(2)::text(1)[line=1]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(4)>div:nth-child(2)>span:nth-child(2)::text(1)[line=1]",
           "left": 83.171875,
-          "top": 1418.609375,
+          "top": 1493,
           "right": 166.609375,
-          "bottom": 1437.609375,
+          "bottom": 1512,
           "visible": true,
           "opacity": 1,
           "text": "@ select app",
@@ -2243,11 +2299,11 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(4)>span:nth-child(3)::text(1)[line=1]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(4)>span:nth-child(3)::text(1)[line=1]",
           "left": 58.375,
-          "top": 1446.84375,
+          "top": 1521.234375,
           "right": 293.53125,
-          "bottom": 1465.84375,
+          "bottom": 1540.234375,
           "visible": true,
           "opacity": 1,
           "text": "Start a new chat and choose Texas ISD Finances.",
@@ -2255,11 +2311,11 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(4)>span:nth-child(3)::text(1)[line=2]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(4)>span:nth-child(3)::text(1)[line=2]",
           "left": 58.375,
-          "top": 1465.734375,
+          "top": 1540.125,
           "right": 114.34375,
-          "bottom": 1484.734375,
+          "bottom": 1559.125,
           "visible": true,
           "opacity": 1,
           "text": "Start a new chat and choose Texas ISD Finances.",
@@ -2267,59 +2323,35 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>p:nth-child(3)::text(1)[line=1]",
-          "left": 46.1875,
-          "top": 1514.8125,
-          "right": 293.265625,
-          "bottom": 1535.8125,
-          "visible": true,
-          "opacity": 1,
-          "text": "Concept illustration, not a ChatGPT screenshot. Custom setup is required. Availability depends on your ChatGPT account and workspace.",
-          "kind": "excluded",
-          "reason": "closed native disclosure content is not painted"
-        },
-        {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>p:nth-child(3)::text(1)[line=2]",
-          "left": 46.1875,
-          "top": 1539.609375,
-          "right": 310.5,
-          "bottom": 1560.609375,
-          "visible": true,
-          "opacity": 1,
-          "text": "Concept illustration, not a ChatGPT screenshot. Custom setup is required. Availability depends on your ChatGPT account and workspace.",
-          "kind": "excluded",
-          "reason": "closed native disclosure content is not painted"
-        },
-        {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>p:nth-child(3)::text(1)[line=3]",
-          "left": 46.1875,
-          "top": 1564.40625,
-          "right": 311.453125,
-          "bottom": 1585.40625,
-          "visible": true,
-          "opacity": 1,
-          "text": "Concept illustration, not a ChatGPT screenshot. Custom setup is required. Availability depends on your ChatGPT account and workspace.",
-          "kind": "excluded",
-          "reason": "closed native disclosure content is not painted"
-        },
-        {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>p:nth-child(3)::text(1)[line=4]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>p:nth-child(4)::text(1)[line=1]",
           "left": 46.1875,
           "top": 1589.203125,
-          "right": 215.421875,
+          "right": 293.265625,
           "bottom": 1610.203125,
           "visible": true,
           "opacity": 1,
-          "text": "Concept illustration, not a ChatGPT screenshot. Custom setup is required. Availability depends on your ChatGPT account and workspace.",
+          "text": "Concept illustration, not a ChatGPT screenshot.",
           "kind": "excluded",
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>details:nth-child(4)>summary:nth-child(1)::text(1)[line=1]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>p:nth-child(4)::text(1)[line=2]",
+          "left": 46.1875,
+          "top": 1614,
+          "right": 125.828125,
+          "bottom": 1635,
+          "visible": true,
+          "opacity": 1,
+          "text": "Concept illustration, not a ChatGPT screenshot.",
+          "kind": "excluded",
+          "reason": "closed native disclosure content is not painted"
+        },
+        {
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>details:nth-child(5)>summary:nth-child(1)::text(1)[line=1]",
           "left": 64.578125,
-          "top": 1635.90625,
+          "top": 1660.703125,
           "right": 198.890625,
-          "bottom": 1654.90625,
+          "bottom": 1679.703125,
           "visible": true,
           "opacity": 1,
           "text": "Developer references",
@@ -2327,11 +2359,11 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>details:nth-child(4)>a:nth-child(2)::text(1)[line=1]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>details:nth-child(5)>a:nth-child(2)::text(1)[line=1]",
           "left": 46.1875,
-          "top": 1667.5,
+          "top": 1692.296875,
           "right": 173.453125,
-          "bottom": 1686.5,
+          "bottom": 1711.296875,
           "visible": true,
           "opacity": 1,
           "text": "Custom MCP servers",
@@ -2339,11 +2371,11 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>details:nth-child(4)::text(1)[line=1]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>details:nth-child(5)::text(1)[line=1]",
           "left": 173.453125,
-          "top": 1667.5,
+          "top": 1692.296875,
           "right": 204.421875,
-          "bottom": 1686.5,
+          "bottom": 1711.296875,
           "visible": true,
           "opacity": 1,
           "text": "and",
@@ -2351,11 +2383,11 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>details:nth-child(4)>a:nth-child(3)::text(1)[line=1]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>details:nth-child(5)>a:nth-child(3)::text(1)[line=1]",
           "left": 204.421875,
-          "top": 1667.5,
+          "top": 1692.296875,
           "right": 249.46875,
-          "bottom": 1686.5,
+          "bottom": 1711.296875,
           "visible": true,
           "opacity": 1,
           "text": "plugins",
@@ -2363,11 +2395,11 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>details:nth-child(4)::text(2)[line=1]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>details:nth-child(5)::text(2)[line=1]",
           "left": 249.46875,
-          "top": 1667.5,
+          "top": 1692.296875,
           "right": 252.515625,
-          "bottom": 1686.5,
+          "bottom": 1711.296875,
           "visible": true,
           "opacity": 1,
           "text": ".",
@@ -2585,7 +2617,15 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(1)>b:nth-child(1)::text(1)",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>p:nth-child(2)::text(1)",
+          "node_type": "text",
+          "text": "Custom setup is required. Availability depends on your ChatGPT account and workspace.",
+          "classification": "excluded",
+          "semantic_role": null,
+          "reason": "closed native disclosure content is not painted"
+        },
+        {
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(1)>b:nth-child(1)::text(1)",
           "node_type": "text",
           "text": "1. Add server",
           "classification": "excluded",
@@ -2593,7 +2633,7 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(1)>div:nth-child(2)>span:nth-child(2)::text(1)",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(1)>div:nth-child(2)>span:nth-child(2)::text(1)",
           "node_type": "text",
           "text": "+ Add custom MCP server",
           "classification": "excluded",
@@ -2601,7 +2641,7 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(1)>span:nth-child(3)::text(1)",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(1)>span:nth-child(3)::text(1)",
           "node_type": "text",
           "text": "Open",
           "classification": "excluded",
@@ -2609,7 +2649,7 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(1)>span:nth-child(3)>a:nth-child(1)::text(1)",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(1)>span:nth-child(3)>a:nth-child(1)::text(1)",
           "node_type": "text",
           "text": "chatgpt.com/plugins",
           "classification": "excluded",
@@ -2617,7 +2657,7 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(1)>span:nth-child(3)::text(2)",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(1)>span:nth-child(3)::text(2)",
           "node_type": "text",
           "text": ".",
           "classification": "excluded",
@@ -2625,7 +2665,7 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(2)>b:nth-child(1)::text(1)",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(2)>b:nth-child(1)::text(1)",
           "node_type": "text",
           "text": "2. Add details",
           "classification": "excluded",
@@ -2633,7 +2673,7 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(2)>div:nth-child(2)>span:nth-child(2)::text(1)",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(2)>div:nth-child(2)>span:nth-child(2)::text(1)",
           "node_type": "text",
           "text": "Texas ISD Finances",
           "classification": "excluded",
@@ -2641,7 +2681,7 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(2)>span:nth-child(3)::text(1)",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(2)>span:nth-child(3)::text(1)",
           "node_type": "text",
           "text": "https://txisd.dev/mcp",
           "classification": "excluded",
@@ -2649,7 +2689,7 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(2)>span:nth-child(4)::text(1)",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(2)>span:nth-child(4)::text(1)",
           "node_type": "text",
           "text": "No authentication",
           "classification": "excluded",
@@ -2657,7 +2697,7 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(3)>b:nth-child(1)::text(1)",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(3)>b:nth-child(1)::text(1)",
           "node_type": "text",
           "text": "3. Install",
           "classification": "excluded",
@@ -2665,7 +2705,7 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(3)>div:nth-child(2)>span:nth-child(2)::text(1)",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(3)>div:nth-child(2)>span:nth-child(2)::text(1)",
           "node_type": "text",
           "text": "Create as a plugin",
           "classification": "excluded",
@@ -2673,7 +2713,7 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(3)>span:nth-child(3)::text(1)",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(3)>span:nth-child(3)::text(1)",
           "node_type": "text",
           "text": "Review warning. Choose Personal, then + install.",
           "classification": "excluded",
@@ -2681,7 +2721,7 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(4)>b:nth-child(1)::text(1)",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(4)>b:nth-child(1)::text(1)",
           "node_type": "text",
           "text": "4. Ask",
           "classification": "excluded",
@@ -2689,7 +2729,7 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(4)>div:nth-child(2)>span:nth-child(2)::text(1)",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(4)>div:nth-child(2)>span:nth-child(2)::text(1)",
           "node_type": "text",
           "text": "@ select app",
           "classification": "excluded",
@@ -2697,7 +2737,7 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(4)>span:nth-child(3)::text(1)",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(4)>span:nth-child(3)::text(1)",
           "node_type": "text",
           "text": "Start a new chat and choose Texas ISD Finances.",
           "classification": "excluded",
@@ -2705,15 +2745,15 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>p:nth-child(3)::text(1)",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>p:nth-child(4)::text(1)",
           "node_type": "text",
-          "text": "Concept illustration, not a ChatGPT screenshot. Custom setup is required. Availability depends on your ChatGPT account and workspace.",
+          "text": "Concept illustration, not a ChatGPT screenshot.",
           "classification": "excluded",
           "semantic_role": null,
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>details:nth-child(4)>summary:nth-child(1)::text(1)",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>details:nth-child(5)>summary:nth-child(1)::text(1)",
           "node_type": "text",
           "text": "Developer references",
           "classification": "excluded",
@@ -2721,7 +2761,7 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>details:nth-child(4)>a:nth-child(2)::text(1)",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>details:nth-child(5)>a:nth-child(2)::text(1)",
           "node_type": "text",
           "text": "Custom MCP servers",
           "classification": "excluded",
@@ -2729,7 +2769,7 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>details:nth-child(4)::text(1)",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>details:nth-child(5)::text(1)",
           "node_type": "text",
           "text": "and",
           "classification": "excluded",
@@ -2737,7 +2777,7 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>details:nth-child(4)>a:nth-child(3)::text(1)",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>details:nth-child(5)>a:nth-child(3)::text(1)",
           "node_type": "text",
           "text": "plugins",
           "classification": "excluded",
@@ -2745,7 +2785,7 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>details:nth-child(4)::text(2)",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>details:nth-child(5)::text(2)",
           "node_type": "text",
           "text": ".",
           "classification": "excluded",
@@ -3367,11 +3407,35 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(1)>b:nth-child(1)::text(1)[line=1]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>p:nth-child(2)::text(1)[line=1]",
+          "left": 46.1875,
+          "top": 913.78125,
+          "right": 371.96875,
+          "bottom": 934.78125,
+          "visible": true,
+          "opacity": 1,
+          "text": "Custom setup is required. Availability depends on your ChatGPT account and workspace.",
+          "kind": "excluded",
+          "reason": "closed native disclosure content is not painted"
+        },
+        {
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>p:nth-child(2)::text(1)[line=2]",
+          "left": 46.1875,
+          "top": 938.578125,
+          "right": 339.578125,
+          "bottom": 959.578125,
+          "visible": true,
+          "opacity": 1,
+          "text": "Custom setup is required. Availability depends on your ChatGPT account and workspace.",
+          "kind": "excluded",
+          "reason": "closed native disclosure content is not painted"
+        },
+        {
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(1)>b:nth-child(1)::text(1)[line=1]",
           "left": 58.375,
-          "top": 941.96875,
+          "top": 991.5625,
           "right": 156.9375,
-          "bottom": 957.96875,
+          "bottom": 1007.5625,
           "visible": true,
           "opacity": 1,
           "text": "1. Add server",
@@ -3379,11 +3443,11 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(1)>div:nth-child(2)>span:nth-child(2)::text(1)[line=1]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(1)>div:nth-child(2)>span:nth-child(2)::text(1)[line=1]",
           "left": 78.484375,
-          "top": 972.140625,
+          "top": 1021.734375,
           "right": 171.421875,
-          "bottom": 991.140625,
+          "bottom": 1040.734375,
           "visible": true,
           "opacity": 1,
           "text": "+ Add custom MCP server",
@@ -3391,11 +3455,11 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(1)>div:nth-child(2)>span:nth-child(2)::text(1)[line=2]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(1)>div:nth-child(2)>span:nth-child(2)::text(1)[line=2]",
           "left": 78.484375,
-          "top": 991.03125,
+          "top": 1040.625,
           "right": 153.546875,
-          "bottom": 1010.03125,
+          "bottom": 1059.625,
           "visible": true,
           "opacity": 1,
           "text": "+ Add custom MCP server",
@@ -3403,11 +3467,11 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(1)>span:nth-child(3)::text(1)[line=1]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(1)>span:nth-child(3)::text(1)[line=1]",
           "left": 58.375,
-          "top": 1017.109375,
+          "top": 1066.703125,
           "right": 92.40625,
-          "bottom": 1036.109375,
+          "bottom": 1085.703125,
           "visible": true,
           "opacity": 1,
           "text": "Open",
@@ -3415,11 +3479,11 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(1)>span:nth-child(3)>a:nth-child(1)::text(1)[line=1]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(1)>span:nth-child(3)>a:nth-child(1)::text(1)[line=1]",
           "left": 58.375,
-          "top": 1036,
+          "top": 1085.59375,
           "right": 186.125,
-          "bottom": 1055,
+          "bottom": 1104.59375,
           "visible": true,
           "opacity": 1,
           "text": "chatgpt.com/plugins",
@@ -3427,11 +3491,11 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(1)>span:nth-child(3)::text(2)[line=1]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(1)>span:nth-child(3)::text(2)[line=1]",
           "left": 186.125,
-          "top": 1036,
+          "top": 1085.59375,
           "right": 189.171875,
-          "bottom": 1055,
+          "bottom": 1104.59375,
           "visible": true,
           "opacity": 1,
           "text": ".",
@@ -3439,11 +3503,11 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(2)>b:nth-child(1)::text(1)[line=1]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(2)>b:nth-child(1)::text(1)[line=1]",
           "left": 233.078125,
-          "top": 941.96875,
+          "top": 991.5625,
           "right": 336.0625,
-          "bottom": 957.96875,
+          "bottom": 1007.5625,
           "visible": true,
           "opacity": 1,
           "text": "2. Add details",
@@ -3451,11 +3515,11 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(2)>div:nth-child(2)>span:nth-child(2)::text(1)[line=1]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(2)>div:nth-child(2)>span:nth-child(2)::text(1)[line=1]",
           "left": 257.21875,
-          "top": 972.140625,
+          "top": 1021.734375,
           "right": 319.640625,
-          "bottom": 991.140625,
+          "bottom": 1040.734375,
           "visible": true,
           "opacity": 1,
           "text": "Texas ISD Finances",
@@ -3463,11 +3527,11 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(2)>div:nth-child(2)>span:nth-child(2)::text(1)[line=2]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(2)>div:nth-child(2)>span:nth-child(2)::text(1)[line=2]",
           "left": 257.21875,
-          "top": 991.03125,
+          "top": 1040.625,
           "right": 313.40625,
-          "bottom": 1010.03125,
+          "bottom": 1059.625,
           "visible": true,
           "opacity": 1,
           "text": "Texas ISD Finances",
@@ -3475,11 +3539,11 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(2)>span:nth-child(3)::text(1)[line=1]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(2)>span:nth-child(3)::text(1)[line=1]",
           "left": 240.46875,
-          "top": 1023.90625,
+          "top": 1073.5,
           "right": 363.625,
-          "bottom": 1040.90625,
+          "bottom": 1090.5,
           "visible": true,
           "opacity": 1,
           "text": "https://txisd.dev/mcp",
@@ -3487,11 +3551,11 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(2)>span:nth-child(3)::text(1)[line=2]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(2)>span:nth-child(3)::text(1)[line=2]",
           "left": 240.46875,
-          "top": 1041.40625,
+          "top": 1091,
           "right": 278.96875,
-          "bottom": 1058.40625,
+          "bottom": 1108,
           "visible": true,
           "opacity": 1,
           "text": "https://txisd.dev/mcp",
@@ -3499,11 +3563,11 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(2)>span:nth-child(4)::text(1)[line=1]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(2)>span:nth-child(4)::text(1)[line=1]",
           "left": 233.078125,
-          "top": 1070.890625,
+          "top": 1120.484375,
           "right": 344.53125,
-          "bottom": 1089.890625,
+          "bottom": 1139.484375,
           "visible": true,
           "opacity": 1,
           "text": "No authentication",
@@ -3511,11 +3575,11 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(3)>b:nth-child(1)::text(1)[line=1]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(3)>b:nth-child(1)::text(1)[line=1]",
           "left": 58.375,
-          "top": 1124.953125,
+          "top": 1174.546875,
           "right": 128.359375,
-          "bottom": 1140.953125,
+          "bottom": 1190.546875,
           "visible": true,
           "opacity": 1,
           "text": "3. Install",
@@ -3523,11 +3587,11 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(3)>div:nth-child(2)>span:nth-child(2)::text(1)[line=1]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(3)>div:nth-child(2)>span:nth-child(2)::text(1)[line=1]",
           "left": 83.09375,
-          "top": 1155.125,
+          "top": 1204.71875,
           "right": 154.375,
-          "bottom": 1174.125,
+          "bottom": 1223.71875,
           "visible": true,
           "opacity": 1,
           "text": "Create as a plugin",
@@ -3535,11 +3599,11 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(3)>div:nth-child(2)>span:nth-child(2)::text(1)[line=2]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(3)>div:nth-child(2)>span:nth-child(2)::text(1)[line=2]",
           "left": 83.09375,
-          "top": 1174.015625,
+          "top": 1223.609375,
           "right": 125.34375,
-          "bottom": 1193.015625,
+          "bottom": 1242.609375,
           "visible": true,
           "opacity": 1,
           "text": "Create as a plugin",
@@ -3547,11 +3611,11 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(3)>span:nth-child(3)::text(1)[line=1]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(3)>span:nth-child(3)::text(1)[line=1]",
           "left": 58.375,
-          "top": 1200.09375,
+          "top": 1249.6875,
           "right": 157.65625,
-          "bottom": 1219.09375,
+          "bottom": 1268.6875,
           "visible": true,
           "opacity": 1,
           "text": "Review warning. Choose Personal, then + install.",
@@ -3559,11 +3623,11 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(3)>span:nth-child(3)::text(1)[line=2]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(3)>span:nth-child(3)::text(1)[line=2]",
           "left": 58.375,
-          "top": 1218.984375,
+          "top": 1268.578125,
           "right": 195.34375,
-          "bottom": 1237.984375,
+          "bottom": 1287.578125,
           "visible": true,
           "opacity": 1,
           "text": "Review warning. Choose Personal, then + install.",
@@ -3571,11 +3635,11 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(3)>span:nth-child(3)::text(1)[line=3]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(3)>span:nth-child(3)::text(1)[line=3]",
           "left": 58.375,
-          "top": 1237.875,
+          "top": 1287.46875,
           "right": 110.734375,
-          "bottom": 1256.875,
+          "bottom": 1306.46875,
           "visible": true,
           "opacity": 1,
           "text": "Review warning. Choose Personal, then + install.",
@@ -3583,11 +3647,11 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(4)>b:nth-child(1)::text(1)[line=1]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(4)>b:nth-child(1)::text(1)[line=1]",
           "left": 233.078125,
-          "top": 1124.953125,
+          "top": 1174.546875,
           "right": 275.265625,
-          "bottom": 1140.953125,
+          "bottom": 1190.546875,
           "visible": true,
           "opacity": 1,
           "text": "4. Ask",
@@ -3595,11 +3659,11 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(4)>div:nth-child(2)>span:nth-child(2)::text(1)[line=1]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(4)>div:nth-child(2)>span:nth-child(2)::text(1)[line=1]",
           "left": 257.875,
-          "top": 1157.28125,
+          "top": 1206.875,
           "right": 341.3125,
-          "bottom": 1176.28125,
+          "bottom": 1225.875,
           "visible": true,
           "opacity": 1,
           "text": "@ select app",
@@ -3607,11 +3671,11 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(4)>span:nth-child(3)::text(1)[line=1]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(4)>span:nth-child(3)::text(1)[line=1]",
           "left": 233.078125,
-          "top": 1185.515625,
+          "top": 1235.109375,
           "right": 358.921875,
-          "bottom": 1204.515625,
+          "bottom": 1254.109375,
           "visible": true,
           "opacity": 1,
           "text": "Start a new chat and choose Texas ISD Finances.",
@@ -3619,11 +3683,11 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(4)>span:nth-child(3)::text(1)[line=2]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(4)>span:nth-child(3)::text(1)[line=2]",
           "left": 233.078125,
-          "top": 1204.40625,
+          "top": 1254,
           "right": 338.578125,
-          "bottom": 1223.40625,
+          "bottom": 1273,
           "visible": true,
           "opacity": 1,
           "text": "Start a new chat and choose Texas ISD Finances.",
@@ -3631,11 +3695,11 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(4)>span:nth-child(3)::text(1)[line=3]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(4)>span:nth-child(3)::text(1)[line=3]",
           "left": 233.078125,
-          "top": 1223.296875,
+          "top": 1272.890625,
           "right": 289.046875,
-          "bottom": 1242.296875,
+          "bottom": 1291.890625,
           "visible": true,
           "opacity": 1,
           "text": "Start a new chat and choose Texas ISD Finances.",
@@ -3643,43 +3707,19 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>p:nth-child(3)::text(1)[line=1]",
-          "left": 46.1875,
-          "top": 1286.953125,
-          "right": 377.296875,
-          "bottom": 1307.953125,
-          "visible": true,
-          "opacity": 1,
-          "text": "Concept illustration, not a ChatGPT screenshot. Custom setup is required. Availability depends on your ChatGPT account and workspace.",
-          "kind": "excluded",
-          "reason": "closed native disclosure content is not painted"
-        },
-        {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>p:nth-child(3)::text(1)[line=2]",
-          "left": 46.1875,
-          "top": 1311.75,
-          "right": 371.96875,
-          "bottom": 1332.75,
-          "visible": true,
-          "opacity": 1,
-          "text": "Concept illustration, not a ChatGPT screenshot. Custom setup is required. Availability depends on your ChatGPT account and workspace.",
-          "kind": "excluded",
-          "reason": "closed native disclosure content is not painted"
-        },
-        {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>p:nth-child(3)::text(1)[line=3]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>p:nth-child(4)::text(1)[line=1]",
           "left": 46.1875,
           "top": 1336.546875,
-          "right": 339.578125,
+          "right": 377.296875,
           "bottom": 1357.546875,
           "visible": true,
           "opacity": 1,
-          "text": "Concept illustration, not a ChatGPT screenshot. Custom setup is required. Availability depends on your ChatGPT account and workspace.",
+          "text": "Concept illustration, not a ChatGPT screenshot.",
           "kind": "excluded",
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>details:nth-child(4)>summary:nth-child(1)::text(1)[line=1]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>details:nth-child(5)>summary:nth-child(1)::text(1)[line=1]",
           "left": 64.578125,
           "top": 1383.25,
           "right": 198.890625,
@@ -3691,7 +3731,7 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>details:nth-child(4)>a:nth-child(2)::text(1)[line=1]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>details:nth-child(5)>a:nth-child(2)::text(1)[line=1]",
           "left": 46.1875,
           "top": 1414.84375,
           "right": 173.453125,
@@ -3703,7 +3743,7 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>details:nth-child(4)::text(1)[line=1]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>details:nth-child(5)::text(1)[line=1]",
           "left": 173.453125,
           "top": 1414.84375,
           "right": 204.421875,
@@ -3715,7 +3755,7 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>details:nth-child(4)>a:nth-child(3)::text(1)[line=1]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>details:nth-child(5)>a:nth-child(3)::text(1)[line=1]",
           "left": 204.421875,
           "top": 1414.84375,
           "right": 249.46875,
@@ -3727,7 +3767,7 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>details:nth-child(4)::text(2)[line=1]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>details:nth-child(5)::text(2)[line=1]",
           "left": 249.46875,
           "top": 1414.84375,
           "right": 252.515625,
@@ -3949,7 +3989,15 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(1)>b:nth-child(1)::text(1)",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>p:nth-child(2)::text(1)",
+          "node_type": "text",
+          "text": "Custom setup is required. Availability depends on your ChatGPT account and workspace.",
+          "classification": "excluded",
+          "semantic_role": null,
+          "reason": "closed native disclosure content is not painted"
+        },
+        {
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(1)>b:nth-child(1)::text(1)",
           "node_type": "text",
           "text": "1. Add server",
           "classification": "excluded",
@@ -3957,7 +4005,7 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(1)>div:nth-child(2)>span:nth-child(2)::text(1)",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(1)>div:nth-child(2)>span:nth-child(2)::text(1)",
           "node_type": "text",
           "text": "+ Add custom MCP server",
           "classification": "excluded",
@@ -3965,7 +4013,7 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(1)>span:nth-child(3)::text(1)",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(1)>span:nth-child(3)::text(1)",
           "node_type": "text",
           "text": "Open",
           "classification": "excluded",
@@ -3973,7 +4021,7 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(1)>span:nth-child(3)>a:nth-child(1)::text(1)",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(1)>span:nth-child(3)>a:nth-child(1)::text(1)",
           "node_type": "text",
           "text": "chatgpt.com/plugins",
           "classification": "excluded",
@@ -3981,7 +4029,7 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(1)>span:nth-child(3)::text(2)",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(1)>span:nth-child(3)::text(2)",
           "node_type": "text",
           "text": ".",
           "classification": "excluded",
@@ -3989,7 +4037,7 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(2)>b:nth-child(1)::text(1)",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(2)>b:nth-child(1)::text(1)",
           "node_type": "text",
           "text": "2. Add details",
           "classification": "excluded",
@@ -3997,7 +4045,7 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(2)>div:nth-child(2)>span:nth-child(2)::text(1)",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(2)>div:nth-child(2)>span:nth-child(2)::text(1)",
           "node_type": "text",
           "text": "Texas ISD Finances",
           "classification": "excluded",
@@ -4005,7 +4053,7 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(2)>span:nth-child(3)::text(1)",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(2)>span:nth-child(3)::text(1)",
           "node_type": "text",
           "text": "https://txisd.dev/mcp",
           "classification": "excluded",
@@ -4013,7 +4061,7 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(2)>span:nth-child(4)::text(1)",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(2)>span:nth-child(4)::text(1)",
           "node_type": "text",
           "text": "No authentication",
           "classification": "excluded",
@@ -4021,7 +4069,7 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(3)>b:nth-child(1)::text(1)",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(3)>b:nth-child(1)::text(1)",
           "node_type": "text",
           "text": "3. Install",
           "classification": "excluded",
@@ -4029,7 +4077,7 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(3)>div:nth-child(2)>span:nth-child(2)::text(1)",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(3)>div:nth-child(2)>span:nth-child(2)::text(1)",
           "node_type": "text",
           "text": "Create as a plugin",
           "classification": "excluded",
@@ -4037,7 +4085,7 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(3)>span:nth-child(3)::text(1)",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(3)>span:nth-child(3)::text(1)",
           "node_type": "text",
           "text": "Review warning. Choose Personal, then + install.",
           "classification": "excluded",
@@ -4045,7 +4093,7 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(4)>b:nth-child(1)::text(1)",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(4)>b:nth-child(1)::text(1)",
           "node_type": "text",
           "text": "4. Ask",
           "classification": "excluded",
@@ -4053,7 +4101,7 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(4)>div:nth-child(2)>span:nth-child(2)::text(1)",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(4)>div:nth-child(2)>span:nth-child(2)::text(1)",
           "node_type": "text",
           "text": "@ select app",
           "classification": "excluded",
@@ -4061,7 +4109,7 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(4)>span:nth-child(3)::text(1)",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(4)>span:nth-child(3)::text(1)",
           "node_type": "text",
           "text": "Start a new chat and choose Texas ISD Finances.",
           "classification": "excluded",
@@ -4069,15 +4117,15 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>p:nth-child(3)::text(1)",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>p:nth-child(4)::text(1)",
           "node_type": "text",
-          "text": "Concept illustration, not a ChatGPT screenshot. Custom setup is required. Availability depends on your ChatGPT account and workspace.",
+          "text": "Concept illustration, not a ChatGPT screenshot.",
           "classification": "excluded",
           "semantic_role": null,
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>details:nth-child(4)>summary:nth-child(1)::text(1)",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>details:nth-child(5)>summary:nth-child(1)::text(1)",
           "node_type": "text",
           "text": "Developer references",
           "classification": "excluded",
@@ -4085,7 +4133,7 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>details:nth-child(4)>a:nth-child(2)::text(1)",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>details:nth-child(5)>a:nth-child(2)::text(1)",
           "node_type": "text",
           "text": "Custom MCP servers",
           "classification": "excluded",
@@ -4093,7 +4141,7 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>details:nth-child(4)::text(1)",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>details:nth-child(5)::text(1)",
           "node_type": "text",
           "text": "and",
           "classification": "excluded",
@@ -4101,7 +4149,7 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>details:nth-child(4)>a:nth-child(3)::text(1)",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>details:nth-child(5)>a:nth-child(3)::text(1)",
           "node_type": "text",
           "text": "plugins",
           "classification": "excluded",
@@ -4109,7 +4157,7 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>details:nth-child(4)::text(2)",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>details:nth-child(5)::text(2)",
           "node_type": "text",
           "text": ".",
           "classification": "excluded",
@@ -4719,11 +4767,23 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(1)>b:nth-child(1)::text(1)[line=1]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>p:nth-child(2)::text(1)[line=1]",
+          "left": 146.1875,
+          "top": 863.59375,
+          "right": 769.734375,
+          "bottom": 884.59375,
+          "visible": true,
+          "opacity": 1,
+          "text": "Custom setup is required. Availability depends on your ChatGPT account and workspace.",
+          "kind": "excluded",
+          "reason": "closed native disclosure content is not painted"
+        },
+        {
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(1)>b:nth-child(1)::text(1)[line=1]",
           "left": 158.375,
-          "top": 891.78125,
+          "top": 916.578125,
           "right": 256.9375,
-          "bottom": 907.78125,
+          "bottom": 932.578125,
           "visible": true,
           "opacity": 1,
           "text": "1. Add server",
@@ -4731,11 +4791,11 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(1)>div:nth-child(2)>span:nth-child(2)::text(1)[line=1]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(1)>div:nth-child(2)>span:nth-child(2)::text(1)[line=1]",
           "left": 183.171875,
-          "top": 924.109375,
+          "top": 948.90625,
           "right": 355.03125,
-          "bottom": 943.109375,
+          "bottom": 967.90625,
           "visible": true,
           "opacity": 1,
           "text": "+ Add custom MCP server",
@@ -4743,11 +4803,11 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(1)>span:nth-child(3)::text(1)[line=1]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(1)>span:nth-child(3)::text(1)[line=1]",
           "left": 158.375,
-          "top": 952.34375,
+          "top": 977.140625,
           "right": 196.25,
-          "bottom": 971.34375,
+          "bottom": 996.140625,
           "visible": true,
           "opacity": 1,
           "text": "Open",
@@ -4755,11 +4815,11 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(1)>span:nth-child(3)>a:nth-child(1)::text(1)[line=1]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(1)>span:nth-child(3)>a:nth-child(1)::text(1)[line=1]",
           "left": 196.25,
-          "top": 952.34375,
+          "top": 977.140625,
           "right": 324,
-          "bottom": 971.34375,
+          "bottom": 996.140625,
           "visible": true,
           "opacity": 1,
           "text": "chatgpt.com/plugins",
@@ -4767,11 +4827,11 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(1)>span:nth-child(3)::text(2)[line=1]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(1)>span:nth-child(3)::text(2)[line=1]",
           "left": 324,
-          "top": 952.34375,
+          "top": 977.140625,
           "right": 327.046875,
-          "bottom": 971.34375,
+          "bottom": 996.140625,
           "visible": true,
           "opacity": 1,
           "text": ".",
@@ -4779,11 +4839,11 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(2)>b:nth-child(1)::text(1)[line=1]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(2)>b:nth-child(1)::text(1)[line=1]",
           "left": 448.21875,
-          "top": 891.78125,
+          "top": 916.578125,
           "right": 551.203125,
-          "bottom": 907.78125,
+          "bottom": 932.578125,
           "visible": true,
           "opacity": 1,
           "text": "2. Add details",
@@ -4791,11 +4851,11 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(2)>div:nth-child(2)>span:nth-child(2)::text(1)[line=1]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(2)>div:nth-child(2)>span:nth-child(2)::text(1)[line=1]",
           "left": 473.015625,
-          "top": 924.109375,
+          "top": 948.90625,
           "right": 595.484375,
-          "bottom": 943.109375,
+          "bottom": 967.90625,
           "visible": true,
           "opacity": 1,
           "text": "Texas ISD Finances",
@@ -4803,11 +4863,11 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(2)>span:nth-child(3)::text(1)[line=1]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(2)>span:nth-child(3)::text(1)[line=1]",
           "left": 455.609375,
-          "top": 959.140625,
+          "top": 983.9375,
           "right": 617.265625,
-          "bottom": 976.140625,
+          "bottom": 1000.9375,
           "visible": true,
           "opacity": 1,
           "text": "https://txisd.dev/mcp",
@@ -4815,11 +4875,11 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(2)>span:nth-child(4)::text(1)[line=1]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(2)>span:nth-child(4)::text(1)[line=1]",
           "left": 448.21875,
-          "top": 988.625,
+          "top": 1013.421875,
           "right": 559.671875,
-          "bottom": 1007.625,
+          "bottom": 1032.421875,
           "visible": true,
           "opacity": 1,
           "text": "No authentication",
@@ -4827,11 +4887,11 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(3)>b:nth-child(1)::text(1)[line=1]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(3)>b:nth-child(1)::text(1)[line=1]",
           "left": 738.078125,
-          "top": 891.78125,
+          "top": 916.578125,
           "right": 808.0625,
-          "bottom": 907.78125,
+          "bottom": 932.578125,
           "visible": true,
           "opacity": 1,
           "text": "3. Install",
@@ -4839,11 +4899,11 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(3)>div:nth-child(2)>span:nth-child(2)::text(1)[line=1]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(3)>div:nth-child(2)>span:nth-child(2)::text(1)[line=1]",
           "left": 762.875,
-          "top": 924.109375,
+          "top": 948.90625,
           "right": 880.265625,
-          "bottom": 943.109375,
+          "bottom": 967.90625,
           "visible": true,
           "opacity": 1,
           "text": "Create as a plugin",
@@ -4851,11 +4911,11 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(3)>span:nth-child(3)::text(1)[line=1]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(3)>span:nth-child(3)::text(1)[line=1]",
           "left": 738.078125,
-          "top": 952.34375,
+          "top": 977.140625,
           "right": 991.578125,
-          "bottom": 971.34375,
+          "bottom": 996.140625,
           "visible": true,
           "opacity": 1,
           "text": "Review warning. Choose Personal, then + install.",
@@ -4863,11 +4923,11 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(3)>span:nth-child(3)::text(1)[line=2]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(3)>span:nth-child(3)::text(1)[line=2]",
           "left": 738.078125,
-          "top": 971.234375,
+          "top": 996.03125,
           "right": 777.015625,
-          "bottom": 990.234375,
+          "bottom": 1015.03125,
           "visible": true,
           "opacity": 1,
           "text": "Review warning. Choose Personal, then + install.",
@@ -4875,11 +4935,11 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(4)>b:nth-child(1)::text(1)[line=1]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(4)>b:nth-child(1)::text(1)[line=1]",
           "left": 1027.9375,
-          "top": 891.78125,
+          "top": 916.578125,
           "right": 1070.125,
-          "bottom": 907.78125,
+          "bottom": 932.578125,
           "visible": true,
           "opacity": 1,
           "text": "4. Ask",
@@ -4887,11 +4947,11 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(4)>div:nth-child(2)>span:nth-child(2)::text(1)[line=1]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(4)>div:nth-child(2)>span:nth-child(2)::text(1)[line=1]",
           "left": 1052.734375,
-          "top": 924.109375,
+          "top": 948.90625,
           "right": 1136.171875,
-          "bottom": 943.109375,
+          "bottom": 967.90625,
           "visible": true,
           "opacity": 1,
           "text": "@ select app",
@@ -4899,11 +4959,11 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(4)>span:nth-child(3)::text(1)[line=1]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(4)>span:nth-child(3)::text(1)[line=1]",
           "left": 1027.9375,
-          "top": 952.34375,
+          "top": 977.140625,
           "right": 1263.09375,
-          "bottom": 971.34375,
+          "bottom": 996.140625,
           "visible": true,
           "opacity": 1,
           "text": "Start a new chat and choose Texas ISD Finances.",
@@ -4911,11 +4971,11 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(4)>span:nth-child(3)::text(1)[line=2]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(4)>span:nth-child(3)::text(1)[line=2]",
           "left": 1027.9375,
-          "top": 971.234375,
+          "top": 996.03125,
           "right": 1083.90625,
-          "bottom": 990.234375,
+          "bottom": 1015.03125,
           "visible": true,
           "opacity": 1,
           "text": "Start a new chat and choose Texas ISD Finances.",
@@ -4923,31 +4983,19 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>p:nth-child(3)::text(1)[line=1]",
-          "left": 146.1875,
-          "top": 1037.703125,
-          "right": 991.8125,
-          "bottom": 1058.703125,
-          "visible": true,
-          "opacity": 1,
-          "text": "Concept illustration, not a ChatGPT screenshot. Custom setup is required. Availability depends on your ChatGPT account and workspace.",
-          "kind": "excluded",
-          "reason": "closed native disclosure content is not painted"
-        },
-        {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>p:nth-child(3)::text(1)[line=2]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>p:nth-child(4)::text(1)[line=1]",
           "left": 146.1875,
           "top": 1062.5,
-          "right": 255.203125,
+          "right": 477.296875,
           "bottom": 1083.5,
           "visible": true,
           "opacity": 1,
-          "text": "Concept illustration, not a ChatGPT screenshot. Custom setup is required. Availability depends on your ChatGPT account and workspace.",
+          "text": "Concept illustration, not a ChatGPT screenshot.",
           "kind": "excluded",
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>details:nth-child(4)>summary:nth-child(1)::text(1)[line=1]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>details:nth-child(5)>summary:nth-child(1)::text(1)[line=1]",
           "left": 164.578125,
           "top": 1109.203125,
           "right": 298.890625,
@@ -4959,7 +5007,7 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>details:nth-child(4)>a:nth-child(2)::text(1)[line=1]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>details:nth-child(5)>a:nth-child(2)::text(1)[line=1]",
           "left": 146.1875,
           "top": 1140.796875,
           "right": 273.453125,
@@ -4971,7 +5019,7 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>details:nth-child(4)::text(1)[line=1]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>details:nth-child(5)::text(1)[line=1]",
           "left": 273.453125,
           "top": 1140.796875,
           "right": 304.421875,
@@ -4983,7 +5031,7 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>details:nth-child(4)>a:nth-child(3)::text(1)[line=1]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>details:nth-child(5)>a:nth-child(3)::text(1)[line=1]",
           "left": 304.421875,
           "top": 1140.796875,
           "right": 349.46875,
@@ -4995,7 +5043,7 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>details:nth-child(4)::text(2)[line=1]",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>details:nth-child(5)::text(2)[line=1]",
           "left": 349.46875,
           "top": 1140.796875,
           "right": 352.515625,
@@ -5225,7 +5273,15 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(1)>b:nth-child(1)::text(1)",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>p:nth-child(2)::text(1)",
+          "node_type": "text",
+          "text": "Custom setup is required. Availability depends on your ChatGPT account and workspace.",
+          "classification": "excluded",
+          "semantic_role": null,
+          "reason": "closed native disclosure content is not painted"
+        },
+        {
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(1)>b:nth-child(1)::text(1)",
           "node_type": "text",
           "text": "1. Add server",
           "classification": "excluded",
@@ -5233,7 +5289,7 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(1)>div:nth-child(2)>span:nth-child(2)::text(1)",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(1)>div:nth-child(2)>span:nth-child(2)::text(1)",
           "node_type": "text",
           "text": "+ Add custom MCP server",
           "classification": "excluded",
@@ -5241,7 +5297,7 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(1)>span:nth-child(3)::text(1)",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(1)>span:nth-child(3)::text(1)",
           "node_type": "text",
           "text": "Open",
           "classification": "excluded",
@@ -5249,7 +5305,7 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(1)>span:nth-child(3)>a:nth-child(1)::text(1)",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(1)>span:nth-child(3)>a:nth-child(1)::text(1)",
           "node_type": "text",
           "text": "chatgpt.com/plugins",
           "classification": "excluded",
@@ -5257,7 +5313,7 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(1)>span:nth-child(3)::text(2)",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(1)>span:nth-child(3)::text(2)",
           "node_type": "text",
           "text": ".",
           "classification": "excluded",
@@ -5265,7 +5321,7 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(2)>b:nth-child(1)::text(1)",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(2)>b:nth-child(1)::text(1)",
           "node_type": "text",
           "text": "2. Add details",
           "classification": "excluded",
@@ -5273,7 +5329,7 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(2)>div:nth-child(2)>span:nth-child(2)::text(1)",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(2)>div:nth-child(2)>span:nth-child(2)::text(1)",
           "node_type": "text",
           "text": "Texas ISD Finances",
           "classification": "excluded",
@@ -5281,7 +5337,7 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(2)>span:nth-child(3)::text(1)",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(2)>span:nth-child(3)::text(1)",
           "node_type": "text",
           "text": "https://txisd.dev/mcp",
           "classification": "excluded",
@@ -5289,7 +5345,7 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(2)>span:nth-child(4)::text(1)",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(2)>span:nth-child(4)::text(1)",
           "node_type": "text",
           "text": "No authentication",
           "classification": "excluded",
@@ -5297,7 +5353,7 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(3)>b:nth-child(1)::text(1)",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(3)>b:nth-child(1)::text(1)",
           "node_type": "text",
           "text": "3. Install",
           "classification": "excluded",
@@ -5305,7 +5361,7 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(3)>div:nth-child(2)>span:nth-child(2)::text(1)",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(3)>div:nth-child(2)>span:nth-child(2)::text(1)",
           "node_type": "text",
           "text": "Create as a plugin",
           "classification": "excluded",
@@ -5313,7 +5369,7 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(3)>span:nth-child(3)::text(1)",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(3)>span:nth-child(3)::text(1)",
           "node_type": "text",
           "text": "Review warning. Choose Personal, then + install.",
           "classification": "excluded",
@@ -5321,7 +5377,7 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(4)>b:nth-child(1)::text(1)",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(4)>b:nth-child(1)::text(1)",
           "node_type": "text",
           "text": "4. Ask",
           "classification": "excluded",
@@ -5329,7 +5385,7 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(4)>div:nth-child(2)>span:nth-child(2)::text(1)",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(4)>div:nth-child(2)>span:nth-child(2)::text(1)",
           "node_type": "text",
           "text": "@ select app",
           "classification": "excluded",
@@ -5337,7 +5393,7 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(2)>li:nth-child(4)>span:nth-child(3)::text(1)",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>ol:nth-child(3)>li:nth-child(4)>span:nth-child(3)::text(1)",
           "node_type": "text",
           "text": "Start a new chat and choose Texas ISD Finances.",
           "classification": "excluded",
@@ -5345,15 +5401,15 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>p:nth-child(3)::text(1)",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>p:nth-child(4)::text(1)",
           "node_type": "text",
-          "text": "Concept illustration, not a ChatGPT screenshot. Custom setup is required. Availability depends on your ChatGPT account and workspace.",
+          "text": "Concept illustration, not a ChatGPT screenshot.",
           "classification": "excluded",
           "semantic_role": null,
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>details:nth-child(4)>summary:nth-child(1)::text(1)",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>details:nth-child(5)>summary:nth-child(1)::text(1)",
           "node_type": "text",
           "text": "Developer references",
           "classification": "excluded",
@@ -5361,7 +5417,7 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>details:nth-child(4)>a:nth-child(2)::text(1)",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>details:nth-child(5)>a:nth-child(2)::text(1)",
           "node_type": "text",
           "text": "Custom MCP servers",
           "classification": "excluded",
@@ -5369,7 +5425,7 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>details:nth-child(4)::text(1)",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>details:nth-child(5)::text(1)",
           "node_type": "text",
           "text": "and",
           "classification": "excluded",
@@ -5377,7 +5433,7 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>details:nth-child(4)>a:nth-child(3)::text(1)",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>details:nth-child(5)>a:nth-child(3)::text(1)",
           "node_type": "text",
           "text": "plugins",
           "classification": "excluded",
@@ -5385,7 +5441,7 @@
           "reason": "closed native disclosure content is not painted"
         },
         {
-          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>details:nth-child(4)::text(2)",
+          "selector": "body>div:nth-child(6)>details:nth-child(7)>div:nth-child(2)>details:nth-child(5)::text(2)",
           "node_type": "text",
           "text": ".",
           "classification": "excluded",

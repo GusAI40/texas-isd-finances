@@ -17,6 +17,16 @@ Entry template:
 
 ---
 
+## 2026-10-10 - Setup qualification precedes external ChatGPT access
+
+**What changed.** Moved the existing two-sentence custom-setup/account-workspace notice from below all steps to the top of the opened guide, before step 1 and its external ChatGPT link. The concept-illustration disclaimer remains below the steps. Closed landing composition and backend/chat contracts are unchanged. Added DOM/rendered-order checks in both engines at all four widths, refreshed106browsercases and source/screenshot receipts, and passed138focusedstatic/widgettests.
+
+**Why.** Independent pixel review approved the second revision but asked whether account eligibility was clear before access was implied. The qualification existed below the link, so this small placement change makes it visible before the actionable route.
+
+**Open items.** Draft-only review; independent-account/public ChatGPT availability remains unverified. Prior full Python baseline at9162b07passed1227/60skipped; no Python/runtime changes. Production, billing/security and outreach remain untouched.
+
+---
+
 ## 2026-10-10 - Second landing/chat visual revision ready for review
 
 **What changed.** Revised the isolated PR #83 branch after the first-pass pixels were rejected: one headline and one local classroom question, desktop treemap/mobile bars, full visible source context, exact definitions on demand, one later setup action and no overlapping landing chat bubble. The shared chat now presents one answer sentence and safe USD bars with provenance before optional controls; full supplied tables, prose and metric lineage remain expandable. Preserved request/context/Stop/Retry/focus/stale-response and inline fallback behavior. Final frozen-source checks passed: 106 Chromium/Firefox browser cases and 1,227 Python tests (60 skipped, three warnings), Ruff, 15-page JavaScript parse, Node syntax/unit and uv lock. Refreshed responsive/state screenshots and source receipts.

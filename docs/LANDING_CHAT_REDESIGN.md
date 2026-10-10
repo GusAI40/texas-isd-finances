@@ -49,7 +49,7 @@ warning -> `Create as a plugin` -> `Personal` + install -> new chat, `@` select.
 Exact technical words appear only as required setup UI labels.
 
 The guide says that custom setup is required and availability depends on the
-visitor's account and workspace. It links current official documentation:
+visitor's account and workspace. This short notice appears immediately below the opened guide's title, before step 1 and its outbound ChatGPT link. The closed landing layout is unchanged. It links current official documentation:
 [custom servers](https://developers.openai.com/api/docs/guides/custom-mcp-server)
 and [plugins](https://learn.chatgpt.com/docs/plugins). The illustration is
 schematic, not a captured ChatGPT screen or an installation receipt.
@@ -91,7 +91,7 @@ universal lock are unchanged. The final `uv lock --check` passed with uv 0.12.15
 
 Final checks on the frozen frontend:
 
-- Python: **1,227 passed, 60 skipped, 3 warnings**.
+- Full Python baseline at9162b07: **1,227 passed, 60 skipped, 3 warnings**. The later qualification-only HTML change passed **138 focused static/widget tests**, with one warning.
 - Chromium/Firefox: **106 passed**, including 320/390/430/1440, setup, existing
   reports/maps, mocked chat states, manual retry, cancellation and accessibility.
 - Repository Ruff, JavaScript parsing **15/15 pages**, Node syntax, existing

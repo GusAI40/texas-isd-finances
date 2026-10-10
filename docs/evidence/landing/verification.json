@@ -6,7 +6,7 @@
   "sources": [
     {
       "file": "static/index.html",
-      "sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9"
+      "sha256": "24090a9b2ea7d2e48a3e48c26ba6df36142c26b52719abb6d2c2f77cc92dca19"
     },
     {
       "file": "static/ask.js",
@@ -21,7 +21,8 @@
       "skipped": 60,
       "warnings": 3,
       "evidence": "python-tests.txt",
-      "duration_seconds": 81.54
+      "duration_seconds": 81.54,
+      "source_revision": "9162b07caa123b2e2148c4389ad94daf2f23c7da"
     },
     {
       "command": "playwright test --config tests/browser/playwright.config.js landing-chat.spec.js public-regression.spec.js --workers 2",
@@ -38,7 +39,7 @@
         1440
       ],
       "evidence": "browser-tests.txt",
-      "duration": "3.0m"
+      "duration": "3.6m"
     },
     {
       "command": "ruff check .",
@@ -72,7 +73,15 @@
       "command": "playwright landing/setup/chat capture refresh with full-page clips",
       "result": "PASS",
       "passed": 8,
-      "evidence": "capture-refresh.txt"
+      "evidence": "capture-refresh.txt",
+      "source_revision": "9162b07caa123b2e2148c4389ad94daf2f23c7da"
+    },
+    {
+      "command": "python -m pytest -q tests/test_static_pages.py tests/test_ask_widget.py",
+      "result": "PASS",
+      "passed": 138,
+      "warnings": 1,
+      "evidence": "qualification-checks.txt"
     }
   ],
   "strict_visual_gate": {
@@ -198,310 +207,310 @@
     },
     {
       "file": "chromium-chat-1440.png",
-      "sha256": "8b367464d5ccc03a0fbcd2ec64c65303f80aab4f202c00b319241d35ee782a3a",
+      "sha256": "49daa3e688939eef8842efce1a493c29712b797f371735ddca85d8390b0d4eaa",
       "source_revision": null,
-      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
+      "source_sha256": "24090a9b2ea7d2e48a3e48c26ba6df36142c26b52719abb6d2c2f77cc92dca19",
       "chat_script_sha256": "e203635d3a40ebda26778aeb695c489953ec8c65a199ffe1570d34c613d854e7"
     },
     {
       "file": "chromium-chat-320.png",
       "sha256": "d28b62707ffab87106bbcf2cb289a8c0260606cc000f7cec7e39d4e9fed3ab39",
       "source_revision": null,
-      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
+      "source_sha256": "24090a9b2ea7d2e48a3e48c26ba6df36142c26b52719abb6d2c2f77cc92dca19",
       "chat_script_sha256": "e203635d3a40ebda26778aeb695c489953ec8c65a199ffe1570d34c613d854e7"
     },
     {
       "file": "chromium-chat-390.png",
       "sha256": "22c20e7a252b4008f5ea1e3fadfffd8392602e1680fb659f962e6a85d87744d1",
       "source_revision": null,
-      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
+      "source_sha256": "24090a9b2ea7d2e48a3e48c26ba6df36142c26b52719abb6d2c2f77cc92dca19",
       "chat_script_sha256": "e203635d3a40ebda26778aeb695c489953ec8c65a199ffe1570d34c613d854e7"
     },
     {
       "file": "chromium-chat-430.png",
       "sha256": "2b381066c1b7d471b24677d0d7e7173f8448401e449c152fe87f801698ed08aa",
       "source_revision": null,
-      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
+      "source_sha256": "24090a9b2ea7d2e48a3e48c26ba6df36142c26b52719abb6d2c2f77cc92dca19",
       "chat_script_sha256": "e203635d3a40ebda26778aeb695c489953ec8c65a199ffe1570d34c613d854e7"
     },
     {
       "file": "chromium-chat-dark-390.png",
       "sha256": "7242d59817df679965d58224b5f7f13bb4b8a1c8fce405787c313570e223ae22",
       "source_revision": null,
-      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
+      "source_sha256": "24090a9b2ea7d2e48a3e48c26ba6df36142c26b52719abb6d2c2f77cc92dca19",
       "chat_script_sha256": "e203635d3a40ebda26778aeb695c489953ec8c65a199ffe1570d34c613d854e7"
     },
     {
       "file": "chromium-chat-empty-390.png",
       "sha256": "b35c02612a79d7a2c71cb4826a467a05fa0e12b20c88d8f7857670b8216c2709",
       "source_revision": null,
-      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
+      "source_sha256": "24090a9b2ea7d2e48a3e48c26ba6df36142c26b52719abb6d2c2f77cc92dca19",
       "chat_script_sha256": "e203635d3a40ebda26778aeb695c489953ec8c65a199ffe1570d34c613d854e7"
     },
     {
       "file": "chromium-chat-error-390.png",
       "sha256": "a3d1a8f689fa02f5c3f42e34b00a86056a1aa5a6a2a07ca20a3946efe06fe037",
       "source_revision": null,
-      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
+      "source_sha256": "24090a9b2ea7d2e48a3e48c26ba6df36142c26b52719abb6d2c2f77cc92dca19",
       "chat_script_sha256": "e203635d3a40ebda26778aeb695c489953ec8c65a199ffe1570d34c613d854e7"
     },
     {
       "file": "chromium-chat-loading-390.png",
       "sha256": "e1e975c512c821bc25690b99d6416cf6002afc096bc617bffbe286dd1e315b34",
       "source_revision": null,
-      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
+      "source_sha256": "24090a9b2ea7d2e48a3e48c26ba6df36142c26b52719abb6d2c2f77cc92dca19",
       "chat_script_sha256": "e203635d3a40ebda26778aeb695c489953ec8c65a199ffe1570d34c613d854e7"
     },
     {
       "file": "chromium-chat-stopped-390.png",
       "sha256": "22f63af2ed63f87e02510bb4f91fdc852ba6c6a479219324f1c5c9e261ab252f",
       "source_revision": null,
-      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
+      "source_sha256": "24090a9b2ea7d2e48a3e48c26ba6df36142c26b52719abb6d2c2f77cc92dca19",
       "chat_script_sha256": "e203635d3a40ebda26778aeb695c489953ec8c65a199ffe1570d34c613d854e7"
     },
     {
       "file": "chromium-landing-1440.png",
       "sha256": "de33b1ca2af683ae624b251f7ff7b2d0302dbf5be4381affd6595bc02968a0f4",
       "source_revision": null,
-      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
+      "source_sha256": "24090a9b2ea7d2e48a3e48c26ba6df36142c26b52719abb6d2c2f77cc92dca19",
       "chat_script_sha256": null
     },
     {
       "file": "chromium-landing-320.png",
       "sha256": "5606cfab49f6b9d389cc370e1a128d359ecb4adc38364e28f17263269bbc262a",
       "source_revision": null,
-      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
+      "source_sha256": "24090a9b2ea7d2e48a3e48c26ba6df36142c26b52719abb6d2c2f77cc92dca19",
       "chat_script_sha256": null
     },
     {
       "file": "chromium-landing-390.png",
       "sha256": "2d330faa7d9eafe04feca0bd211e07f64897f21ad77671fd817c7cabbf31628f",
       "source_revision": null,
-      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
+      "source_sha256": "24090a9b2ea7d2e48a3e48c26ba6df36142c26b52719abb6d2c2f77cc92dca19",
       "chat_script_sha256": null
     },
     {
       "file": "chromium-landing-430.png",
       "sha256": "caf79def5cf91ba8abc206e0217f50dbb2d4ce3c1d385e2dd4462db1e11f1721",
       "source_revision": null,
-      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
+      "source_sha256": "24090a9b2ea7d2e48a3e48c26ba6df36142c26b52719abb6d2c2f77cc92dca19",
       "chat_script_sha256": null
     },
     {
       "file": "chromium-landing-dark-390.png",
       "sha256": "b6bb8e20e2f981140bcccb29d32949e455c2f6e4b6de76c6a312c9a056d2a486",
       "source_revision": null,
-      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
+      "source_sha256": "24090a9b2ea7d2e48a3e48c26ba6df36142c26b52719abb6d2c2f77cc92dca19",
       "chat_script_sha256": null
     },
     {
       "file": "chromium-landing-full-1440.png",
       "sha256": "69ad0655d418edfe78351971e26e97f8ff93bb2686194daa10fa3538238ecfe6",
       "source_revision": null,
-      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
+      "source_sha256": "24090a9b2ea7d2e48a3e48c26ba6df36142c26b52719abb6d2c2f77cc92dca19",
       "chat_script_sha256": null
     },
     {
       "file": "chromium-landing-full-320.png",
       "sha256": "ca8928587dd770c073f3ff8513188553937b08692290e3cbda76ca593c4cefb5",
       "source_revision": null,
-      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
+      "source_sha256": "24090a9b2ea7d2e48a3e48c26ba6df36142c26b52719abb6d2c2f77cc92dca19",
       "chat_script_sha256": null
     },
     {
       "file": "chromium-landing-full-390.png",
       "sha256": "f53d5df3827d6c3ac2027c676293fd94c4a324fdbb1da0d2667ff554c607b7e1",
       "source_revision": null,
-      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
+      "source_sha256": "24090a9b2ea7d2e48a3e48c26ba6df36142c26b52719abb6d2c2f77cc92dca19",
       "chat_script_sha256": null
     },
     {
       "file": "chromium-landing-full-430.png",
       "sha256": "5580fa67f9c8073b2095509fd935c0dc4d2f3ccac0dd3506f617cf80849533cc",
       "source_revision": null,
-      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
+      "source_sha256": "24090a9b2ea7d2e48a3e48c26ba6df36142c26b52719abb6d2c2f77cc92dca19",
       "chat_script_sha256": null
     },
     {
       "file": "chromium-setup-1440.png",
-      "sha256": "2fcf330fab9e7e4676b25af6d19905965c9d5b6c70c12d37630926aa75802f53",
+      "sha256": "7da44823b58bafa497d90aa72f4c6dea8decaa83d4c36a0ba7e574d86cb8e5bc",
       "source_revision": null,
-      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
+      "source_sha256": "24090a9b2ea7d2e48a3e48c26ba6df36142c26b52719abb6d2c2f77cc92dca19",
       "chat_script_sha256": null
     },
     {
       "file": "chromium-setup-320.png",
-      "sha256": "f989567c2b681521670f08018f8ffcc3714d571c2310102bacc9715a8e6ea9e5",
+      "sha256": "756e50fcfe930be000adb7b82fa1a75db988fe316e85ff641c1c23b273e559ad",
       "source_revision": null,
-      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
+      "source_sha256": "24090a9b2ea7d2e48a3e48c26ba6df36142c26b52719abb6d2c2f77cc92dca19",
       "chat_script_sha256": null
     },
     {
       "file": "chromium-setup-390.png",
-      "sha256": "49c715ee966a3fa7a89f8e7bcc1d04c862a1ec0813c5b368efd15640bdbafccc",
+      "sha256": "c369ba074f0cb863027307bb509d88f609030c9687ad5b527059d4d48dd1b867",
       "source_revision": null,
-      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
+      "source_sha256": "24090a9b2ea7d2e48a3e48c26ba6df36142c26b52719abb6d2c2f77cc92dca19",
       "chat_script_sha256": null
     },
     {
       "file": "chromium-setup-430.png",
-      "sha256": "e82a6119a0ea7402d45ff3720202dc97d194af388de9c7f9bde9a74a6db237e0",
+      "sha256": "bfbe868b4661a615a3f56d75470acffef5ff00bbae28dab7e604684854f093be",
       "source_revision": null,
-      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
+      "source_sha256": "24090a9b2ea7d2e48a3e48c26ba6df36142c26b52719abb6d2c2f77cc92dca19",
       "chat_script_sha256": null
     },
     {
       "file": "firefox-chat-1440.png",
-      "sha256": "809b9bfb593b3b89b9bfe82d19b23828e1fb18da385e4fe49f9f81faf6eb0581",
+      "sha256": "9de82316258b8b10da4618e33de2c8231389ea1b9216f218050b442977637a59",
       "source_revision": null,
-      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
+      "source_sha256": "24090a9b2ea7d2e48a3e48c26ba6df36142c26b52719abb6d2c2f77cc92dca19",
       "chat_script_sha256": "e203635d3a40ebda26778aeb695c489953ec8c65a199ffe1570d34c613d854e7"
     },
     {
       "file": "firefox-chat-320.png",
-      "sha256": "983eee64c4193e17eaa1dd8b5597630eedf22c2dfa137f91f808179e079a45fb",
+      "sha256": "6ee384e04fe253aaa33b70aea65b9992eedef6acc8d24d87f817a82643f1b2de",
       "source_revision": null,
-      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
+      "source_sha256": "24090a9b2ea7d2e48a3e48c26ba6df36142c26b52719abb6d2c2f77cc92dca19",
       "chat_script_sha256": "e203635d3a40ebda26778aeb695c489953ec8c65a199ffe1570d34c613d854e7"
     },
     {
       "file": "firefox-chat-390.png",
-      "sha256": "1a56a9d0251337df24410d6750387f20a94b1321ab24572b90046babbb2cb908",
+      "sha256": "0d2c14784f9c3ab9eff490d5a86d9beb0ee63ce804b897fa7dc5212f3ed8be83",
       "source_revision": null,
-      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
+      "source_sha256": "24090a9b2ea7d2e48a3e48c26ba6df36142c26b52719abb6d2c2f77cc92dca19",
       "chat_script_sha256": "e203635d3a40ebda26778aeb695c489953ec8c65a199ffe1570d34c613d854e7"
     },
     {
       "file": "firefox-chat-430.png",
       "sha256": "569c37917cd92711253553d7e4ee8872b7f7c4c7052c4928051f80de5b3f45ac",
       "source_revision": null,
-      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
+      "source_sha256": "24090a9b2ea7d2e48a3e48c26ba6df36142c26b52719abb6d2c2f77cc92dca19",
       "chat_script_sha256": "e203635d3a40ebda26778aeb695c489953ec8c65a199ffe1570d34c613d854e7"
     },
     {
       "file": "firefox-chat-dark-390.png",
       "sha256": "2b1e7c8ceac289334d68a7396fb115f3a1bfb5df877f1a70e0c892591e9bd50f",
       "source_revision": null,
-      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
+      "source_sha256": "24090a9b2ea7d2e48a3e48c26ba6df36142c26b52719abb6d2c2f77cc92dca19",
       "chat_script_sha256": "e203635d3a40ebda26778aeb695c489953ec8c65a199ffe1570d34c613d854e7"
     },
     {
       "file": "firefox-chat-empty-390.png",
       "sha256": "b3a10800887516640c53ad41218398c95e25cb099b9155fdc5f7539b603e4a1c",
       "source_revision": null,
-      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
+      "source_sha256": "24090a9b2ea7d2e48a3e48c26ba6df36142c26b52719abb6d2c2f77cc92dca19",
       "chat_script_sha256": "e203635d3a40ebda26778aeb695c489953ec8c65a199ffe1570d34c613d854e7"
     },
     {
       "file": "firefox-chat-error-390.png",
       "sha256": "be19af93319f6c2772a8cc8239d360fdbecac61ab2c6a31c5f3825227dc7d023",
       "source_revision": null,
-      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
+      "source_sha256": "24090a9b2ea7d2e48a3e48c26ba6df36142c26b52719abb6d2c2f77cc92dca19",
       "chat_script_sha256": "e203635d3a40ebda26778aeb695c489953ec8c65a199ffe1570d34c613d854e7"
     },
     {
       "file": "firefox-chat-loading-390.png",
       "sha256": "595c66e6bdec48607e3d41c252a9ec7869f388e0a7d92efa586881e120f6cf16",
       "source_revision": null,
-      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
+      "source_sha256": "24090a9b2ea7d2e48a3e48c26ba6df36142c26b52719abb6d2c2f77cc92dca19",
       "chat_script_sha256": "e203635d3a40ebda26778aeb695c489953ec8c65a199ffe1570d34c613d854e7"
     },
     {
       "file": "firefox-chat-stopped-390.png",
       "sha256": "9da9840ac7b96f75ff2f86eea3db015c6fe788229f93aae3c739b8e2c39dfb67",
       "source_revision": null,
-      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
+      "source_sha256": "24090a9b2ea7d2e48a3e48c26ba6df36142c26b52719abb6d2c2f77cc92dca19",
       "chat_script_sha256": "e203635d3a40ebda26778aeb695c489953ec8c65a199ffe1570d34c613d854e7"
     },
     {
       "file": "firefox-landing-1440.png",
       "sha256": "0ef15beb9676946befc76a537a15e3da08d18a3395a34a99da3d6cf5deb25864",
       "source_revision": null,
-      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
+      "source_sha256": "24090a9b2ea7d2e48a3e48c26ba6df36142c26b52719abb6d2c2f77cc92dca19",
       "chat_script_sha256": null
     },
     {
       "file": "firefox-landing-320.png",
       "sha256": "d2e70274b4e8d8aaa221c713a6b18ccdb08edd894bb3af4ad5da6082f7d46546",
       "source_revision": null,
-      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
+      "source_sha256": "24090a9b2ea7d2e48a3e48c26ba6df36142c26b52719abb6d2c2f77cc92dca19",
       "chat_script_sha256": null
     },
     {
       "file": "firefox-landing-390.png",
       "sha256": "bc0b32b875268ef0af5313ba1a62804f94eb1dc094f1182aa8e727c1a574faa3",
       "source_revision": null,
-      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
+      "source_sha256": "24090a9b2ea7d2e48a3e48c26ba6df36142c26b52719abb6d2c2f77cc92dca19",
       "chat_script_sha256": null
     },
     {
       "file": "firefox-landing-430.png",
       "sha256": "5ecc464e47d7ca448387168b989ce4915df2bdf5d093f98aef090322d8fe0905",
       "source_revision": null,
-      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
+      "source_sha256": "24090a9b2ea7d2e48a3e48c26ba6df36142c26b52719abb6d2c2f77cc92dca19",
       "chat_script_sha256": null
     },
     {
       "file": "firefox-landing-dark-390.png",
       "sha256": "c3397e8d17ab98036016286b0cdd13ce073cc6a831f8cee6a530476179ad63ea",
       "source_revision": null,
-      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
+      "source_sha256": "24090a9b2ea7d2e48a3e48c26ba6df36142c26b52719abb6d2c2f77cc92dca19",
       "chat_script_sha256": null
     },
     {
       "file": "firefox-landing-full-1440.png",
       "sha256": "9ad71c731c5f2e1287e8b8f632faa9f9a53860d6915d59773f164faed9c1d344",
       "source_revision": null,
-      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
+      "source_sha256": "24090a9b2ea7d2e48a3e48c26ba6df36142c26b52719abb6d2c2f77cc92dca19",
       "chat_script_sha256": null
     },
     {
       "file": "firefox-landing-full-320.png",
       "sha256": "28f9fdc54e5d4eaa6c9937d55ece0715b15750f2e3631a562a7034cf32509dee",
       "source_revision": null,
-      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
+      "source_sha256": "24090a9b2ea7d2e48a3e48c26ba6df36142c26b52719abb6d2c2f77cc92dca19",
       "chat_script_sha256": null
     },
     {
       "file": "firefox-landing-full-390.png",
       "sha256": "efc074f5ed39c6f5a13042c8cda1329394cfb3ec0d88a14c4de627614e43116b",
       "source_revision": null,
-      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
+      "source_sha256": "24090a9b2ea7d2e48a3e48c26ba6df36142c26b52719abb6d2c2f77cc92dca19",
       "chat_script_sha256": null
     },
     {
       "file": "firefox-landing-full-430.png",
       "sha256": "433fc1586db39b993ed8fc7f38e551f56e487ebd8a64b7fec949448e9c3762a0",
       "source_revision": null,
-      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
+      "source_sha256": "24090a9b2ea7d2e48a3e48c26ba6df36142c26b52719abb6d2c2f77cc92dca19",
       "chat_script_sha256": null
     },
     {
       "file": "firefox-setup-1440.png",
-      "sha256": "541b9541ad8be7b825fd486a260c42a89096bb4b14f7f7c2e018f411cbd12bc7",
+      "sha256": "1bac4467e2fc643e4ae775ddcb1259478292bbbc43917d791fae2b18da866d4c",
       "source_revision": null,
-      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
+      "source_sha256": "24090a9b2ea7d2e48a3e48c26ba6df36142c26b52719abb6d2c2f77cc92dca19",
       "chat_script_sha256": null
     },
     {
       "file": "firefox-setup-320.png",
-      "sha256": "421dd9b0983e5a1306e9071a069431f88a38048d1e5463f7c31b594a4a4397af",
+      "sha256": "cd7b1202c8be79063e01b37c425e0e3a56420c51d6f65cbcbf4e5b92acfda9ec",
       "source_revision": null,
-      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
+      "source_sha256": "24090a9b2ea7d2e48a3e48c26ba6df36142c26b52719abb6d2c2f77cc92dca19",
       "chat_script_sha256": null
     },
     {
       "file": "firefox-setup-390.png",
-      "sha256": "b1a261171e89d199a6e966f5645a0228bd90f4fc2ae5ba3f1ef4e40f93a72ef2",
+      "sha256": "341e35bbd4841637e2cf9125a67a20093103a9865bcc218d2ee57e7e5d88e738",
       "source_revision": null,
-      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
+      "source_sha256": "24090a9b2ea7d2e48a3e48c26ba6df36142c26b52719abb6d2c2f77cc92dca19",
       "chat_script_sha256": null
     },
     {
       "file": "firefox-setup-430.png",
-      "sha256": "3d6434550282e3aebd0ed0f08262f36db52b6133f1cdd66dc7495423317847a7",
+      "sha256": "bcb5c101695ea8b25d287ec7e899f6735248671f996b5c1f100915000f13a4d9",
       "source_revision": null,
-      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
+      "source_sha256": "24090a9b2ea7d2e48a3e48c26ba6df36142c26b52719abb6d2c2f77cc92dca19",
       "chat_script_sha256": null
     }
   ],
@@ -512,5 +521,11 @@
     "Automated accessibility and keyboard checks do not constitute human screen-reader or participant testing.",
     "No merge, production deployment, credential/security/billing/contact/outreach/backend changes."
   ],
-  "review_revision": "second visual revision after 0831ffcddcfc0794d1d63f763ea289ed59df8b86"
+  "review_revision": "Second visual revision with setup qualification preceding external access",
+  "setup_qualification": {
+    "copy": "Custom setup is required. Availability depends on your ChatGPT account and workspace.",
+    "location": "First paragraph of the opened #chatgpt-setup .setup-body, below the title and before step 1/external chatgpt.com/plugins link",
+    "test": "DOM and rendered order checked at320/390/430/1440 inChromium andFirefox",
+    "screenshot": "chromium-setup-390.png"
+  }
 }

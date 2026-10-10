@@ -147,6 +147,14 @@ for (const width of [320, 390, 430, 1440]) {
     for (const label of ['Add custom MCP server', 'Texas ISD Finances', 'https://txisd.dev/mcp',
       'No authentication', 'Create as a plugin', 'Personal']) await expect(guide).toContainText(label);
     await expect(guide).toContainText(/account and workspace/);
+    const qualification = guide.locator('.setup-qualification');
+    await expect(qualification).toBeVisible();
+    expect(await guide.evaluate(node => {
+      const notice=node.querySelector('.setup-qualification');
+      const link=node.querySelector('a[href="https://chatgpt.com/plugins"]');
+      return !!(notice.compareDocumentPosition(link)&Node.DOCUMENT_POSITION_FOLLOWING) &&
+        notice.getBoundingClientRect().bottom<link.getBoundingClientRect().top;
+    })).toBe(true);
     await guide.screenshot({ path: path.join(evidence, `${info.project.name}-setup-${width}.png`) });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     const chat = await ask(page);
