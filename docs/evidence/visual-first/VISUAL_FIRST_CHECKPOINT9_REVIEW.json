@@ -1,12 +1,15 @@
 {
   "schemaVersion": "checkpoint9-independent-final-visual-review-1",
-  "capturedAt": "2026-10-10T20:38:41.9689260Z",
+  "capturedAt": "2026-10-10T20:45:13.8091891Z",
   "reviewer": "fresh-independent-visual-data-review",
   "designPass": true,
-  "preReleasePass": false,
-  "postReleasePass": false,
+  "functionalPass": true,
+  "preReleasePass": true,
+  "postReleasePass": true,
+  "productionPass": true,
   "numeric95Claim": false,
   "source": {
+    "reviewedSourceSha": "fced6f93e6e5385cd01c41113ddaefc197e7ba67",
     "runtimeSourceJson": "visual95-evidence/round3-checkpoint9-runtime/source.json",
     "static/index.html": "fa0ed1c69985cc0cc63d3f354b0f4f25c999e5c950e9a18e7aa127488ad9f396",
     "static/ask.js": "29087384c5b897439dded64453362628a074781771cfc252f94fe23c61ada7c4",
@@ -14,7 +17,23 @@
     "liveServedProof": ["static/index.html", "static/ask.js"],
     "forensicsLiveServedProof": false,
     "sourceStable": true,
-    "gitIdentity": "PENDING parent final reviewed commit attestation"
+    "gitIdentity": "fced6f93e6e5385cd01c41113ddaefc197e7ba67",
+    "remoteIdentity": "fced6f93e6e5385cd01c41113ddaefc197e7ba67",
+    "trackedWorktreeClean": true
+  },
+  "deployment": {
+    "id": "dpl_DfFKptVkRd4aPMxY4hHYJH48WZMA",
+    "target": "production",
+    "readyState": "READY",
+    "domain": "txisd.dev",
+    "sourceSha": "fced6f93e6e5385cd01c41113ddaefc197e7ba67",
+    "revision": "fced6f93e6e5385cd01c41113ddaefc197e7ba67",
+    "assetsMatchReviewedSource": true,
+    "health": "healthy",
+    "database": "connected",
+    "trackingSchema": "ready",
+    "publicReadOnlyChecks": "40/40 state ok, 0 skips/drift/not-deployed/unreachable",
+    "publicBrowser": "16 native GET views across 320/390/430/1440 light/dark landing and Dallas; 0 errors/bad GET/overflow; POSTs blocked locally"
   },
   "criteria": {
     "VF01": "PASS",
@@ -23,8 +42,8 @@
     "VF04": "PASS_VISUAL_DESIGN; native matrix/accessibility receipts parent-owned",
     "VF05": "PASS",
     "VF06": "PASS_BY_PARENT_FUNCTIONAL_RECEIPTS_AND_EXPORT_INSPECTION",
-    "VF07_pre_release": "PENDING_GIT_IDENTITY_AND_RELEASE_ATTESTATION",
-    "VF07_post_release": "PENDING_DEPLOYMENT_HEALTH_AND_PUBLIC_ROUTE_CHECKS"
+    "VF07_pre_release": "PASS",
+    "VF07_post_release": "PASS"
   },
   "interactionChecks": {
     "lookup": "recognizable labeled search and Show me action; Dallas result is identifiable by name and ID",

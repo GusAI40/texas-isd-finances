@@ -1,0 +1,25 @@
+{
+  "checkedAt": "2026-10-10T20:44:05.739Z",
+  "id": "dpl_DfFKptVkRd4aPMxY4hHYJH48WZMA",
+  "name": "texas-isd-finances",
+  "readyState": "READY",
+  "target": "production",
+  "url": "texas-isd-finances-865irrxqm-tag-ai-projects.vercel.app",
+  "sourceSha": "fced6f93e6e5385cd01c41113ddaefc197e7ba67",
+  "branch": "feat/txisd-visual95-20261010",
+  "project": {
+    "id": "prj_Q86h3ZufDMLk7bsyYOj7FP3S9Wqg",
+    "name": "texas-isd-finances",
+    "framework": "fastapi"
+  },
+  "aliases": [
+    "txisd.dev",
+    "texas-isd-finances.vercel.app",
+    "texas-isd-finances-tag-ai-projects.vercel.app",
+    "texas-isd-finances-git-feat-txisd-visual-47f585-tag-ai-projects.vercel.app"
+  ],
+  "buildingAt": 1791664984505,
+  "ready": 1791665013073,
+  "teamId": "team_hLW8yrUTYNGt9CiRY4IMMSet",
+  "domain": "txisd.dev"
+}

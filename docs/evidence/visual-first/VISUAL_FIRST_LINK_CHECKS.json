@@ -1,0 +1,52 @@
+{
+  "checked_at": "2026-10-10T20:34:31.374192+00:00",
+  "results": [
+    {
+      "url": "https://txisd.dev/sources",
+      "status": 200,
+      "final_url": "https://txisd.dev/sources"
+    },
+    {
+      "url": "https://txisd.dev/provenance",
+      "status": 200,
+      "final_url": "https://txisd.dev/provenance"
+    },
+    {
+      "url": "https://txisd.dev/transparency",
+      "status": 200,
+      "final_url": "https://txisd.dev/transparency"
+    },
+    {
+      "url": "https://txisd.dev/district/057905/dollar",
+      "status": 200,
+      "final_url": "https://txisd.dev/district/057905/dollar"
+    },
+    {
+      "url": "https://chatgpt.com/plugins",
+      "status": 403,
+      "final_url": "https://chatgpt.com/plugins"
+    },
+    {
+      "url": "https://developers.openai.com/api/docs/guides/custom-mcp-server",
+      "status": 200,
+      "final_url": "https://developers.openai.com/api/docs/guides/custom-mcp-server"
+    },
+    {
+      "url": "https://learn.chatgpt.com/docs/plugins",
+      "status": 200,
+      "final_url": "https://learn.chatgpt.com/docs/plugins"
+    },
+    {
+      "url": "https://ubntag.com",
+      "status": 200,
+      "final_url": "https://ubntag.com"
+    }
+  ],
+  "telephone": {
+    "href": "tel:+19092686875",
+    "display": "909-268-6875",
+    "syntacticMatch": true
+  },
+  "installation_boundary": "Owner route verified separately. Unauthenticated HTTP status proves neither independent-account/workspace eligibility nor a public listing.",
+  "mutationBoundary": "Read-only GETs only; no query, telemetry, outreach or installation mutation."
+}

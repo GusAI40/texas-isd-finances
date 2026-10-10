@@ -1,6 +1,6 @@
 # Texas ISD visual-first redesign
 
-**Candidate:** the independent visual/data review and available technical checks pass. Exact committed-source attestation and final pre-release review remain pending. Publication is authorized only after those gates, followed by production build and public source/health verification.
+**Live:** https://txisd.dev. Production deployment `dpl_DfFKptVkRd4aPMxY4hHYJH48WZMA`, source `fced6f93e6e5385cd01c41113ddaefc197e7ba67`.
 
 Gus approved the revised design standard at 20:09:06 UTC on 2026-10-10: charts carry the main story, detailed explanations are available on demand, and necessary labels/disclosures remain readable. This explicitly replaces the literal 95 pixel-ratio gate. No literal 95 achievement is claimed; historical measured failures and invalid-harness corrections remain preserved.
 
@@ -19,7 +19,7 @@ Gus also requested action-first controls, recognizable icons, minimal reading an
 - 16 HTML, 24 PNG and 2 PDF export checks pass, including source/contact links and print-state restoration.
 - Ruff, inline JavaScript and ask.js parsing, offline locked dependencies and whitespace checks pass. No TypeScript/typecheck command or standalone frontend build exists; the Vercel FastAPI build is verified separately.
 
-Independent VF01-VF06 design verdict: PASS on the immutable source below. VF07-pre-release remains PENDING until the exact committed-source identity and final reviewer attestation. VF07-post-release remains PENDING until actual public deployment/source/health verification.
+Independent VF01–VF06 and VF07-pre-release verdict: PASS on the immutable source below. VF07-post-release requires the accompanying public deployment/source/health receipts, all recorded as passed.
 
 |Runtime file|LF SHA256|
 |---|---|
