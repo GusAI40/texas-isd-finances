@@ -200,6 +200,18 @@
     '.ta-tb tr:last-child td { border-bottom:none; }',
     '.ta-tb tr.me td { font-weight:600; background:var(--wash, #f4f5f4); }',
     '.ta-basis { margin:.35rem 0 0; font-size:.78rem; line-height:1.5; color:var(--faint, #8b95a1); }',
+    '.ta-chart { margin:.8rem 0 0; padding:.75rem; border:1px solid var(--rule, #e3e6e8); border-radius:10px; background:var(--surface, #f6f7f6); }',
+    '.ta-chart-title { margin:0 0 .55rem; font-size:.875rem; font-weight:700; color:var(--ink-2, #3d454d); }',
+    '.ta-chart-row { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:.28rem .7rem; align-items:center; margin:.46rem 0; }',
+    '.ta-chart-row strong { font-size:.9rem; line-height:1.25; color:var(--ink,#14171a); }',
+    '.ta-chart-row span { font-size:.88rem; font-variant-numeric:tabular-nums; color:var(--ink,#14171a); }',
+    '.ta-chart-track { grid-column:1 / -1; height:.48rem; overflow:hidden; border-radius:999px; background:var(--rule,#e3e6e8); }',
+    '.ta-chart-bar { display:block; height:100%; min-width:2px; border-radius:inherit; background:var(--accent,#1a56a8); }',
+    '.ta-evidence, .ta-support { margin:.8rem 0 0; font-size:.9rem; color:var(--ink-2,#3d454d); }',
+    '.ta-evidence summary, .ta-support summary { cursor:pointer; color:var(--accent,#1a56a8); font-weight:600; }',
+    '.ta-support p { margin:.55rem 0 0; }',
+    '.ta-context, .ta-answer-source, .ta-limit { margin:.55rem 0 0; font-size:.875rem; line-height:1.45; color:var(--ink-2,#3d454d); }',
+    '.ta-answer-source a { color:var(--accent,#1a56a8); }',
     '.ta-next { display:flex; flex-wrap:wrap; gap:.45rem; margin:.9rem 0 0;',
     '  padding-top:.8rem; border-top:1px solid var(--rule, #e3e6e8); }',
     '.ta-next button { font:inherit; font-size:.9rem; min-height:40px; padding:.4rem .85rem;',
@@ -535,10 +547,75 @@
       });
   }
 
+  function moneySeries(head, rows) {
+    if (!Array.isArray(head) || head.length !== 2 || !Array.isArray(rows) || rows.length < 2) return null;
+    var labelHead = String(head[0] || '').trim().toLowerCase();
+    var moneyHead = String(head[1] || '').trim().toLowerCase();
+    if (!/^(spending\s+)?(category|item|function|type|program)$/.test(labelHead)
+        || !/^(dollars?|usd|amount(?:\s*\(\s*usd\s*\))?)$/.test(moneyHead)) return null;
+    var values = [];
+    for (var i = 0; i < rows.length; i++) {
+      var row = rows[i];
+      if (!Array.isArray(row) || row.length !== 2) return null;
+      var label = String(row[0] == null ? '' : row[0]).trim();
+      var text = String(row[1] == null ? '' : row[1]).trim();
+      if (/^(total|total spending|grand total)$/i.test(label)) continue;
+      if (!label || !/^\$(?:\d{1,3}(?:,\d{3})*|\d+)(?:\.\d{2})?$/.test(text)) return null;
+      var value = Number(text.replace(/[$,]/g, ''));
+      if (!isFinite(value) || value <= 0) return null;
+      values.push({ label: label, shown: text, value: value });
+    }
+    return values.length > 1 ? values : null;
+  }
+
+  function chartOf(head, rows, s) {
+    if (!s || !s.figures || !s.figures.name || !s.figures.year || !s.figures.note
+        || !s.sources || !s.sources.length) return null;
+    var values = moneySeries(head, rows);
+    if (!values) return null;
+    var max = Math.max.apply(null, values.map(function (v) { return v.value; }));
+    var chart = el('section', 'ta-chart');
+    chart.setAttribute('aria-label', 'Reported dollar comparison; bars are scaled to the largest displayed amount.');
+    chart.appendChild(el('p', 'ta-chart-title', 'Reported dollars'));
+    values.forEach(function (v) {
+      var row = el('div', 'ta-chart-row');
+      row.appendChild(el('strong', null, v.label));
+      row.appendChild(el('span', null, v.shown));
+      var track = el('div', 'ta-chart-track');
+      var bar = el('i', 'ta-chart-bar');
+      bar.setAttribute('data-value', String(v.value));
+      bar.style.width = (v.value / max * 100) + '%';
+      track.appendChild(bar); row.appendChild(track); chart.appendChild(row);
+    });
+    return chart;
+  }
+
   /* Everything below the lead: figures we computed, then the model's blocks,
      then the comparison we computed, then sources and the next questions. */
-  function bodyOf(s) {
+  function bodyOf(s, fullLead) {
     var frag = document.createDocumentFragment();
+    var support = el('details', 'ta-support');
+    support.appendChild(el('summary', null, 'Sources, context, and full answer'));
+    if (fullLead) support.appendChild(el('p', null, fullLead));
+    if (s.sources && s.sources.length) {
+      var earlySource = el('p', 'ta-answer-source');
+      earlySource.appendChild(document.createTextNode('Source: '));
+      s.sources.forEach(function (src, i) {
+        if (i) earlySource.appendChild(document.createTextNode(' · '));
+        var earlyLink = el('a', null, src.name);
+        earlyLink.href = src.url;
+        if (/^https?:/.test(src.url)) { earlyLink.target = '_blank'; earlyLink.rel = 'noopener'; }
+        earlySource.appendChild(earlyLink);
+      });
+      frag.appendChild(earlySource);
+    }
+    (s.limitations || []).forEach(function (t) {
+      frag.appendChild(el('p', 'ta-limit', t));
+    });
+    if (s.figures && s.figures.name && s.figures.year && s.figures.note) {
+      frag.appendChild(el('p', 'ta-context', s.figures.name + ' · Fiscal '
+        + s.figures.year + ' · ' + s.figures.note));
+    }
 
     if (s.figures && s.figures.cards && s.figures.cards.length) {
       var grid = el('div', 'ta-cards');
@@ -558,25 +635,31 @@
         box.appendChild(el('span', null, c.label));
         grid.appendChild(box);
       });
-      frag.appendChild(grid);
-      frag.appendChild(el('p', 'ta-cap',
-        (s.figures.name ? s.figures.name + ', ' : '') + 'fiscal '
-        + s.figures.year + ' · ' + s.figures.note));
+      support.appendChild(grid);
     }
 
     (s.blocks || []).forEach(function (b) {
       if (!b) return;
-      if (b.type === 'heading') frag.appendChild(el('h3', 'ta-h', b.text || ''));
+      if (b.type === 'heading') support.appendChild(el('h3', 'ta-h', b.text || ''));
       else if (b.type === 'list') {
         var ul = el('ul', 'ta-ul');
         (b.items || []).forEach(function (item) {
           ul.appendChild(runsInto(el('li'), item));
         });
-        frag.appendChild(ul);
+        support.appendChild(ul);
       } else if (b.type === 'table') {
-        frag.appendChild(tableOf(b.head, b.rows, null));
+        var chart = chartOf(b.head, b.rows, s);
+        if (chart) {
+          frag.appendChild(chart);
+          var evidence = el('details', 'ta-evidence');
+          evidence.appendChild(el('summary', null, 'View full table - ' + b.rows.length + ' rows'));
+          evidence.appendChild(tableOf(b.head, b.rows, null));
+          frag.appendChild(evidence);
+        } else {
+          frag.appendChild(tableOf(b.head, b.rows, null));
+        }
       } else if (b.type === 'paragraph') {
-        frag.appendChild(runsInto(el('p', 'ta-p'), b.runs));
+        support.appendChild(runsInto(el('p', 'ta-p'), b.runs));
       }
     });
 
@@ -609,7 +692,7 @@
     }
 
     (s.limitations || []).forEach(function (t) {
-      frag.appendChild(el('p', 'ta-foot', t));
+      support.appendChild(el('p', 'ta-foot', t));
     });
     if (s.sources && s.sources.length) {
       var p = el('p', 'ta-foot');
@@ -621,8 +704,9 @@
         if (/^https?:/.test(src.url)) { a.target = '_blank'; a.rel = 'noopener'; }
         p.appendChild(a);
       });
-      frag.appendChild(p);
+      support.appendChild(p);
     }
+    frag.appendChild(support);
     return frag;
   }
 
@@ -841,7 +925,7 @@
     target.textContent = '';
     var rest = function () {
       if (!alive()) return;
-      target.appendChild(bodyOf(s));
+      target.appendChild(bodyOf(s, s.lead || ''));
       if (done) done();
     };
     /* No lead means the model opened with a table or a heading rather than a
@@ -849,17 +933,19 @@
        of such an answer is how `| District | Per student |` ended up as the
        headline. Draw the body and let the answer start where it starts. */
     if (!s.lead_runs || !s.lead_runs.length) { rest(); return; }
-    var leadEl = el('p', 'ta-lead' + (s.lead.length > 200 ? ' long' : ''));
+    var concise = String(s.lead || '').match(/^.*?[.!?](?:\s|$)/);
+    concise = concise ? concise[0].trim() : String(s.lead || '');
+    var leadEl = el('p', 'ta-lead');
     target.appendChild(leadEl);
     /* The reveal writes plain words; the bold arrives with the last one. The
        text is identical either way, so nothing moves when it lands. */
     var done2 = function () {
       leadEl.textContent = '';
-      runsInto(leadEl, s.lead_runs);
+      leadEl.textContent = concise;
       rest();
     };
     if (reduce) { done2(); return; }
-    writeWords(leadEl, s.lead, alive, done2);
+    writeWords(leadEl, concise, alive, done2);
   }
 
   function render(bub, s, mine) {

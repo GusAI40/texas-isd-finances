@@ -17,6 +17,18 @@ Entry template:
 
 ---
 
+## 2026-10-10 - Second landing/chat visual revision ready for review
+
+**What changed.** Revised the isolated PR #83 branch after the first-pass pixels were rejected: one headline and one local classroom question, desktop treemap/mobile bars, full visible source context, exact definitions on demand, one later setup action and no overlapping landing chat bubble. The shared chat now presents one answer sentence and safe USD bars with provenance before optional controls; full supplied tables, prose and metric lineage remain expandable. Preserved request/context/Stop/Retry/focus/stale-response and inline fallback behavior. Final frozen-source checks passed: 106 Chromium/Firefox browser cases and 1,227 Python tests (60 skipped, three warnings), Ruff, 15-page JavaScript parse, Node syntax/unit and uv lock. Refreshed responsive/state screenshots and source receipts.
+
+**Why.** Parent requested current state -> highlighted answer with visual storytelling, fewer competing actions and less repeated finance prose. Fresh independent review checked final source, geometry and screenshots.
+
+**Gotchas.** Mobile labels must live outside genuine amount-scaled fills. Currency charts require strict metadata and units; all original rows survive. Repeated provenance fixes hid/repeated context, so a scoped Sol cleanup removed stale CSS and duplicate hidden context before final testing. Page screenshot clips require fullPage to preserve the later setup summary. Current painted-area shares are 1.85/2.39/2.70/54.34%; scope now includes product explanation and mobile actual fills only, so first-pass percentages are not comparable. Parent explicitly says this observation is not a technical blocker; do not claim 95% success.
+
+**Open items.** Final design/release approval, independent-account/public ChatGPT availability, disabled Linux CI and human accessibility/participant testing remain separate. Production remains 73df1896ed0818020ec1c15c06f5ee823db7ec0f. No production merge/deploy, paid query, district email, credentials/security/billing changes or backend/data/runtime changes. Review docs/LANDING_CHAT_REDESIGN.md and evidence for exact source hashes and final captures.
+
+---
+
 ## 2026-10-10 - Landing and website chat isolated for review; no release
 
 **What changed.** Located the actual BeastMode checkout and TAG-ai Vercel mapping for `txisd.dev`. Created branch `feat/txisd-visual-landing-chat-20261010` in an isolated worktree from `da1721a5ea40b60b76e9e3f9efe69fe67305daee`, preserving the source checkout's unrelated untracked work. Reworked `static/index.html` around a real Dallas FY2025 all-funds spending treemap, plain-language question, free/Gus/TAG/ChatGPT purpose and on-demand custom setup. Polished `static/ask.js` with Stop/Retry, timeout, cancellation, stale-response protection, readable source text, focus handling and inline fallback. Added mocked browser/data/accessibility evidence and review documentation. No backend, runtime dependency, generated data, security or deployment configuration changed.

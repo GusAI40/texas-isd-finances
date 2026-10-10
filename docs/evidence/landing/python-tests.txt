@@ -31,4 +31,4 @@ tests/test_lineage.py::TestLineageEndpoint::test_a_real_figure_comes_back_verifi
     fixturefunc = resolve_fixture_function(fixturedef, request)
 
 -- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
-1227 passed, 60 skipped, 3 warnings in 125.04s (0:02:05)
+1227 passed, 60 skipped, 3 warnings in 81.54s (0:01:21)

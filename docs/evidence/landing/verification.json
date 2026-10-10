@@ -6,11 +6,11 @@
   "sources": [
     {
       "file": "static/index.html",
-      "sha256": "c2580d8393bd6aae4434dadd7d6c14cbfd5bd9553d696785d622f5e2742cf4ae"
+      "sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9"
     },
     {
       "file": "static/ask.js",
-      "sha256": "cddcfdb945c0de66890535ec630bcfce97c2e5d10c4567bba4907e3de450fb3e"
+      "sha256": "e203635d3a40ebda26778aeb695c489953ec8c65a199ffe1570d34c613d854e7"
     }
   ],
   "checks": [
@@ -20,12 +20,13 @@
       "passed": 1227,
       "skipped": 60,
       "warnings": 3,
-      "evidence": "python-tests.txt"
+      "evidence": "python-tests.txt",
+      "duration_seconds": 81.54
     },
     {
       "command": "playwright test --config tests/browser/playwright.config.js landing-chat.spec.js public-regression.spec.js --workers 2",
       "result": "PASS",
-      "passed": 78,
+      "passed": 106,
       "engines": [
         "chromium",
         "firefox"
@@ -36,7 +37,8 @@
         430,
         1440
       ],
-      "evidence": "browser-tests.txt"
+      "evidence": "browser-tests.txt",
+      "duration": "3.0m"
     },
     {
       "command": "ruff check .",
@@ -65,6 +67,12 @@
       "version": "0.12.15",
       "result": "PASS",
       "resolved_packages": 91
+    },
+    {
+      "command": "playwright landing/setup/chat capture refresh with full-page clips",
+      "result": "PASS",
+      "passed": 8,
+      "evidence": "capture-refresh.txt"
     }
   ],
   "strict_visual_gate": {
@@ -73,26 +81,112 @@
     "cases": [
       {
         "width": 320,
-        "initial_visual_share": 0.29486209142854736,
-        "full_visual_share": 0.3162071094130916
+        "initial_visual_share": 0.031039400543458065,
+        "full_visual_share": 0.018524296406616084,
+        "geometry": {
+          "chart": {
+            "top": 335,
+            "bottom": 619.390625,
+            "width": 232.8125,
+            "height": 284.390625
+          },
+          "source": {
+            "top": 627.390625,
+            "bottom": 667.984375,
+            "width": 232.8125,
+            "height": 40.59375
+          },
+          "primary": {
+            "top": 254.265625,
+            "bottom": 318.015625,
+            "width": 252.40625,
+            "height": 63.75
+          },
+          "floating_control_visible": false
+        }
       },
       {
         "width": 390,
-        "initial_visual_share": 0.44723623871053514,
-        "full_visual_share": 0.3974778071632547
+        "initial_visual_share": 0.024739443966927264,
+        "full_visual_share": 0.023931005524793898,
+        "geometry": {
+          "chart": {
+            "top": 315,
+            "bottom": 599.390625,
+            "width": 302.8125,
+            "height": 284.390625
+          },
+          "source": {
+            "top": 607.390625,
+            "bottom": 647.984375,
+            "width": 302.8125,
+            "height": 40.59375
+          },
+          "primary": {
+            "top": 254.265625,
+            "bottom": 298.015625,
+            "width": 322.40625,
+            "height": 43.75
+          },
+          "floating_control_visible": false
+        }
       },
       {
         "width": 430,
-        "initial_visual_share": 0.5141612292116381,
-        "full_visual_share": 0.4600253023233198
+        "initial_visual_share": 0.02697361912574469,
+        "full_visual_share": 0.02697361912574469,
+        "geometry": {
+          "chart": {
+            "top": 288.125,
+            "bottom": 572.515625,
+            "width": 342.8125,
+            "height": 284.390625
+          },
+          "source": {
+            "top": 580.515625,
+            "bottom": 621.109375,
+            "width": 342.8125,
+            "height": 40.59375
+          },
+          "primary": {
+            "top": 227.390625,
+            "bottom": 271.140625,
+            "width": 362.40625,
+            "height": 43.75
+          },
+          "floating_control_visible": false
+        }
       },
       {
         "width": 1440,
-        "initial_visual_share": 0.5178103039776532,
-        "full_visual_share": 0.5178103039776532
+        "initial_visual_share": 0.5433629418483595,
+        "full_visual_share": 0.5433629418483595,
+        "geometry": {
+          "chart": {
+            "top": 182.640625,
+            "bottom": 502.640625,
+            "width": 392.25,
+            "height": 320
+          },
+          "source": {
+            "top": 518.640625,
+            "bottom": 538.9375,
+            "width": 392.25,
+            "height": 20.296875
+          },
+          "primary": {
+            "top": 252.8125,
+            "bottom": 296.5625,
+            "width": 263.15625,
+            "height": 43.75
+          },
+          "floating_control_visible": false
+        }
       }
     ],
-    "evidence": "painted-data-observation.json"
+    "evidence": "painted-data-observation.json",
+    "release_blocker": false,
+    "interpretation": "Painted-data observation remains below 95%; actual responsive composition is separately reviewed. The parent requested that this metric not block technical delivery. No 95% design success is claimed."
   },
   "images": [
     {
@@ -104,310 +198,310 @@
     },
     {
       "file": "chromium-chat-1440.png",
-      "sha256": "43640a43b306e35501e88ee37808b69d2f0729a31c39bcdbe819801d00f2ef82",
+      "sha256": "8b367464d5ccc03a0fbcd2ec64c65303f80aab4f202c00b319241d35ee782a3a",
       "source_revision": null,
-      "source_sha256": "c2580d8393bd6aae4434dadd7d6c14cbfd5bd9553d696785d622f5e2742cf4ae",
-      "chat_script_sha256": "cddcfdb945c0de66890535ec630bcfce97c2e5d10c4567bba4907e3de450fb3e"
+      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
+      "chat_script_sha256": "e203635d3a40ebda26778aeb695c489953ec8c65a199ffe1570d34c613d854e7"
     },
     {
       "file": "chromium-chat-320.png",
-      "sha256": "4793ed2f516667250f0b30e09e1676bbf13dd3edf5df76dd453672a14f55cc06",
+      "sha256": "d28b62707ffab87106bbcf2cb289a8c0260606cc000f7cec7e39d4e9fed3ab39",
       "source_revision": null,
-      "source_sha256": "c2580d8393bd6aae4434dadd7d6c14cbfd5bd9553d696785d622f5e2742cf4ae",
-      "chat_script_sha256": "cddcfdb945c0de66890535ec630bcfce97c2e5d10c4567bba4907e3de450fb3e"
+      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
+      "chat_script_sha256": "e203635d3a40ebda26778aeb695c489953ec8c65a199ffe1570d34c613d854e7"
     },
     {
       "file": "chromium-chat-390.png",
-      "sha256": "88a17410eeb0dead4da9293911cfda7b95de3d346e5a1d5b0bc7472199315a96",
+      "sha256": "22c20e7a252b4008f5ea1e3fadfffd8392602e1680fb659f962e6a85d87744d1",
       "source_revision": null,
-      "source_sha256": "c2580d8393bd6aae4434dadd7d6c14cbfd5bd9553d696785d622f5e2742cf4ae",
-      "chat_script_sha256": "cddcfdb945c0de66890535ec630bcfce97c2e5d10c4567bba4907e3de450fb3e"
+      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
+      "chat_script_sha256": "e203635d3a40ebda26778aeb695c489953ec8c65a199ffe1570d34c613d854e7"
     },
     {
       "file": "chromium-chat-430.png",
-      "sha256": "b6f3425b1fdb7ef67b4013e0483b6623e9f20622cd3c84cd749253c7ea2b434b",
+      "sha256": "2b381066c1b7d471b24677d0d7e7173f8448401e449c152fe87f801698ed08aa",
       "source_revision": null,
-      "source_sha256": "c2580d8393bd6aae4434dadd7d6c14cbfd5bd9553d696785d622f5e2742cf4ae",
-      "chat_script_sha256": "cddcfdb945c0de66890535ec630bcfce97c2e5d10c4567bba4907e3de450fb3e"
+      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
+      "chat_script_sha256": "e203635d3a40ebda26778aeb695c489953ec8c65a199ffe1570d34c613d854e7"
     },
     {
       "file": "chromium-chat-dark-390.png",
-      "sha256": "7f9c8aa7c66f9006ca5286c29971c86792a05902456ead6613b09c2075391c8b",
+      "sha256": "7242d59817df679965d58224b5f7f13bb4b8a1c8fce405787c313570e223ae22",
       "source_revision": null,
-      "source_sha256": "c2580d8393bd6aae4434dadd7d6c14cbfd5bd9553d696785d622f5e2742cf4ae",
-      "chat_script_sha256": "cddcfdb945c0de66890535ec630bcfce97c2e5d10c4567bba4907e3de450fb3e"
+      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
+      "chat_script_sha256": "e203635d3a40ebda26778aeb695c489953ec8c65a199ffe1570d34c613d854e7"
     },
     {
       "file": "chromium-chat-empty-390.png",
-      "sha256": "d773491fa6d071bee6600fa3a3f01a42cf627f4a97444de4d7e6ea39d387c647",
+      "sha256": "b35c02612a79d7a2c71cb4826a467a05fa0e12b20c88d8f7857670b8216c2709",
       "source_revision": null,
-      "source_sha256": "c2580d8393bd6aae4434dadd7d6c14cbfd5bd9553d696785d622f5e2742cf4ae",
-      "chat_script_sha256": "cddcfdb945c0de66890535ec630bcfce97c2e5d10c4567bba4907e3de450fb3e"
+      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
+      "chat_script_sha256": "e203635d3a40ebda26778aeb695c489953ec8c65a199ffe1570d34c613d854e7"
     },
     {
       "file": "chromium-chat-error-390.png",
-      "sha256": "5093f62322518ca91aae06af3281e9e32bc00b927e9f2ce3997a8bf08dba00dc",
+      "sha256": "a3d1a8f689fa02f5c3f42e34b00a86056a1aa5a6a2a07ca20a3946efe06fe037",
       "source_revision": null,
-      "source_sha256": "c2580d8393bd6aae4434dadd7d6c14cbfd5bd9553d696785d622f5e2742cf4ae",
-      "chat_script_sha256": "cddcfdb945c0de66890535ec630bcfce97c2e5d10c4567bba4907e3de450fb3e"
+      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
+      "chat_script_sha256": "e203635d3a40ebda26778aeb695c489953ec8c65a199ffe1570d34c613d854e7"
     },
     {
       "file": "chromium-chat-loading-390.png",
-      "sha256": "ceeaa3621c9f040dca8f68b0de8aa3c532316cfd3d573fa60c41a70418cc1890",
+      "sha256": "e1e975c512c821bc25690b99d6416cf6002afc096bc617bffbe286dd1e315b34",
       "source_revision": null,
-      "source_sha256": "c2580d8393bd6aae4434dadd7d6c14cbfd5bd9553d696785d622f5e2742cf4ae",
-      "chat_script_sha256": "cddcfdb945c0de66890535ec630bcfce97c2e5d10c4567bba4907e3de450fb3e"
+      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
+      "chat_script_sha256": "e203635d3a40ebda26778aeb695c489953ec8c65a199ffe1570d34c613d854e7"
     },
     {
       "file": "chromium-chat-stopped-390.png",
-      "sha256": "b282ae9c51f28df09c5e6675efb1ecab334bc87b903f214ef63a2123a76622c3",
+      "sha256": "22f63af2ed63f87e02510bb4f91fdc852ba6c6a479219324f1c5c9e261ab252f",
       "source_revision": null,
-      "source_sha256": "c2580d8393bd6aae4434dadd7d6c14cbfd5bd9553d696785d622f5e2742cf4ae",
-      "chat_script_sha256": "cddcfdb945c0de66890535ec630bcfce97c2e5d10c4567bba4907e3de450fb3e"
+      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
+      "chat_script_sha256": "e203635d3a40ebda26778aeb695c489953ec8c65a199ffe1570d34c613d854e7"
     },
     {
       "file": "chromium-landing-1440.png",
-      "sha256": "5db40a1d194a946796738c820031ddad495e0e6cb4121421f9dd5ce17ebc1664",
+      "sha256": "de33b1ca2af683ae624b251f7ff7b2d0302dbf5be4381affd6595bc02968a0f4",
       "source_revision": null,
-      "source_sha256": "c2580d8393bd6aae4434dadd7d6c14cbfd5bd9553d696785d622f5e2742cf4ae",
+      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
       "chat_script_sha256": null
     },
     {
       "file": "chromium-landing-320.png",
-      "sha256": "24b67e13ec611decac1c12e8818815ec1ebb7f9bb5919c9481d8edff2e82a283",
+      "sha256": "5606cfab49f6b9d389cc370e1a128d359ecb4adc38364e28f17263269bbc262a",
       "source_revision": null,
-      "source_sha256": "c2580d8393bd6aae4434dadd7d6c14cbfd5bd9553d696785d622f5e2742cf4ae",
+      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
       "chat_script_sha256": null
     },
     {
       "file": "chromium-landing-390.png",
-      "sha256": "d56fbd16c05278ed147dacdf75896f2c3b63d58b163603c72200f023117fb007",
+      "sha256": "2d330faa7d9eafe04feca0bd211e07f64897f21ad77671fd817c7cabbf31628f",
       "source_revision": null,
-      "source_sha256": "c2580d8393bd6aae4434dadd7d6c14cbfd5bd9553d696785d622f5e2742cf4ae",
+      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
       "chat_script_sha256": null
     },
     {
       "file": "chromium-landing-430.png",
-      "sha256": "883831a3da42fdf2b52e08a8faafc05cdc33be98b4d9f90b1c7fd629b87ca199",
+      "sha256": "caf79def5cf91ba8abc206e0217f50dbb2d4ce3c1d385e2dd4462db1e11f1721",
       "source_revision": null,
-      "source_sha256": "c2580d8393bd6aae4434dadd7d6c14cbfd5bd9553d696785d622f5e2742cf4ae",
+      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
       "chat_script_sha256": null
     },
     {
       "file": "chromium-landing-dark-390.png",
-      "sha256": "b56713776781c75b5add302563ed470cb323560c53c0411d06b285fe8e031700",
+      "sha256": "b6bb8e20e2f981140bcccb29d32949e455c2f6e4b6de76c6a312c9a056d2a486",
       "source_revision": null,
-      "source_sha256": "c2580d8393bd6aae4434dadd7d6c14cbfd5bd9553d696785d622f5e2742cf4ae",
+      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
       "chat_script_sha256": null
     },
     {
       "file": "chromium-landing-full-1440.png",
-      "sha256": "8e067722a6abda25b2bf337e5290a7ba696d28e405a76d21fe9d95bf31df9cfa",
+      "sha256": "69ad0655d418edfe78351971e26e97f8ff93bb2686194daa10fa3538238ecfe6",
       "source_revision": null,
-      "source_sha256": "c2580d8393bd6aae4434dadd7d6c14cbfd5bd9553d696785d622f5e2742cf4ae",
+      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
       "chat_script_sha256": null
     },
     {
       "file": "chromium-landing-full-320.png",
-      "sha256": "9068a54e141d2fbf4c124d6ce4f39cd4f34cb700d5aa01606028dbeb06020b52",
+      "sha256": "ca8928587dd770c073f3ff8513188553937b08692290e3cbda76ca593c4cefb5",
       "source_revision": null,
-      "source_sha256": "c2580d8393bd6aae4434dadd7d6c14cbfd5bd9553d696785d622f5e2742cf4ae",
+      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
       "chat_script_sha256": null
     },
     {
       "file": "chromium-landing-full-390.png",
-      "sha256": "99b4f35c2bd5369bc7abfbeb6ff35d02de10c82de61978970c641a5fe0d82a9b",
+      "sha256": "f53d5df3827d6c3ac2027c676293fd94c4a324fdbb1da0d2667ff554c607b7e1",
       "source_revision": null,
-      "source_sha256": "c2580d8393bd6aae4434dadd7d6c14cbfd5bd9553d696785d622f5e2742cf4ae",
+      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
       "chat_script_sha256": null
     },
     {
       "file": "chromium-landing-full-430.png",
-      "sha256": "259827b02cc574630a33e878458a7b4c08cb93199f7544e67b5c5aff65b28132",
+      "sha256": "5580fa67f9c8073b2095509fd935c0dc4d2f3ccac0dd3506f617cf80849533cc",
       "source_revision": null,
-      "source_sha256": "c2580d8393bd6aae4434dadd7d6c14cbfd5bd9553d696785d622f5e2742cf4ae",
+      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
       "chat_script_sha256": null
     },
     {
       "file": "chromium-setup-1440.png",
-      "sha256": "626d079218ec8f89519ff0fe102d2b420e51abf19a76314ac1fdefa381b05c31",
+      "sha256": "2fcf330fab9e7e4676b25af6d19905965c9d5b6c70c12d37630926aa75802f53",
       "source_revision": null,
-      "source_sha256": "c2580d8393bd6aae4434dadd7d6c14cbfd5bd9553d696785d622f5e2742cf4ae",
+      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
       "chat_script_sha256": null
     },
     {
       "file": "chromium-setup-320.png",
-      "sha256": "dc2c8bac9ed2511c40fdcfc6a059552828ba3a1cb0c8f48d59d630c62f694de1",
+      "sha256": "f989567c2b681521670f08018f8ffcc3714d571c2310102bacc9715a8e6ea9e5",
       "source_revision": null,
-      "source_sha256": "c2580d8393bd6aae4434dadd7d6c14cbfd5bd9553d696785d622f5e2742cf4ae",
+      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
       "chat_script_sha256": null
     },
     {
       "file": "chromium-setup-390.png",
-      "sha256": "bbf9814a95a6ee40ebf7218ac83676436c6b4c1765ef0c63336a857781da95fa",
+      "sha256": "49c715ee966a3fa7a89f8e7bcc1d04c862a1ec0813c5b368efd15640bdbafccc",
       "source_revision": null,
-      "source_sha256": "c2580d8393bd6aae4434dadd7d6c14cbfd5bd9553d696785d622f5e2742cf4ae",
+      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
       "chat_script_sha256": null
     },
     {
       "file": "chromium-setup-430.png",
-      "sha256": "6e73379a55f592b2d79587bd73af5bb9fb35ea30a372ac6139ded7e7bae1baa1",
+      "sha256": "e82a6119a0ea7402d45ff3720202dc97d194af388de9c7f9bde9a74a6db237e0",
       "source_revision": null,
-      "source_sha256": "c2580d8393bd6aae4434dadd7d6c14cbfd5bd9553d696785d622f5e2742cf4ae",
+      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
       "chat_script_sha256": null
     },
     {
       "file": "firefox-chat-1440.png",
-      "sha256": "67f6c4d9230b952147bc8fd911c5450cde8f72c977f9d3f137ca25067e148381",
+      "sha256": "809b9bfb593b3b89b9bfe82d19b23828e1fb18da385e4fe49f9f81faf6eb0581",
       "source_revision": null,
-      "source_sha256": "c2580d8393bd6aae4434dadd7d6c14cbfd5bd9553d696785d622f5e2742cf4ae",
-      "chat_script_sha256": "cddcfdb945c0de66890535ec630bcfce97c2e5d10c4567bba4907e3de450fb3e"
+      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
+      "chat_script_sha256": "e203635d3a40ebda26778aeb695c489953ec8c65a199ffe1570d34c613d854e7"
     },
     {
       "file": "firefox-chat-320.png",
-      "sha256": "e7385740a48e24ed40a44c287a9323982820c9446f13b4bca37a1cd3b676b0cf",
+      "sha256": "983eee64c4193e17eaa1dd8b5597630eedf22c2dfa137f91f808179e079a45fb",
       "source_revision": null,
-      "source_sha256": "c2580d8393bd6aae4434dadd7d6c14cbfd5bd9553d696785d622f5e2742cf4ae",
-      "chat_script_sha256": "cddcfdb945c0de66890535ec630bcfce97c2e5d10c4567bba4907e3de450fb3e"
+      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
+      "chat_script_sha256": "e203635d3a40ebda26778aeb695c489953ec8c65a199ffe1570d34c613d854e7"
     },
     {
       "file": "firefox-chat-390.png",
-      "sha256": "71eb49b0bb77dcf1625b27eafa5a087bc62a49536147bbd916fc9394d77cca1e",
+      "sha256": "1a56a9d0251337df24410d6750387f20a94b1321ab24572b90046babbb2cb908",
       "source_revision": null,
-      "source_sha256": "c2580d8393bd6aae4434dadd7d6c14cbfd5bd9553d696785d622f5e2742cf4ae",
-      "chat_script_sha256": "cddcfdb945c0de66890535ec630bcfce97c2e5d10c4567bba4907e3de450fb3e"
+      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
+      "chat_script_sha256": "e203635d3a40ebda26778aeb695c489953ec8c65a199ffe1570d34c613d854e7"
     },
     {
       "file": "firefox-chat-430.png",
-      "sha256": "39cbb3b4f3810da16130700e8f2d90a70b45a78260e3c5a444fdcee560556bed",
+      "sha256": "569c37917cd92711253553d7e4ee8872b7f7c4c7052c4928051f80de5b3f45ac",
       "source_revision": null,
-      "source_sha256": "c2580d8393bd6aae4434dadd7d6c14cbfd5bd9553d696785d622f5e2742cf4ae",
-      "chat_script_sha256": "cddcfdb945c0de66890535ec630bcfce97c2e5d10c4567bba4907e3de450fb3e"
+      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
+      "chat_script_sha256": "e203635d3a40ebda26778aeb695c489953ec8c65a199ffe1570d34c613d854e7"
     },
     {
       "file": "firefox-chat-dark-390.png",
-      "sha256": "60f3f653abb70938a26a5f8a7b9e3b3ccbc36197ca073e7ac4bf07148b85f313",
+      "sha256": "2b1e7c8ceac289334d68a7396fb115f3a1bfb5df877f1a70e0c892591e9bd50f",
       "source_revision": null,
-      "source_sha256": "c2580d8393bd6aae4434dadd7d6c14cbfd5bd9553d696785d622f5e2742cf4ae",
-      "chat_script_sha256": "cddcfdb945c0de66890535ec630bcfce97c2e5d10c4567bba4907e3de450fb3e"
+      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
+      "chat_script_sha256": "e203635d3a40ebda26778aeb695c489953ec8c65a199ffe1570d34c613d854e7"
     },
     {
       "file": "firefox-chat-empty-390.png",
-      "sha256": "49538e9448d619e380431ab946c482e113cf9e23d58b4cf90c3270f608a62572",
+      "sha256": "b3a10800887516640c53ad41218398c95e25cb099b9155fdc5f7539b603e4a1c",
       "source_revision": null,
-      "source_sha256": "c2580d8393bd6aae4434dadd7d6c14cbfd5bd9553d696785d622f5e2742cf4ae",
-      "chat_script_sha256": "cddcfdb945c0de66890535ec630bcfce97c2e5d10c4567bba4907e3de450fb3e"
+      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
+      "chat_script_sha256": "e203635d3a40ebda26778aeb695c489953ec8c65a199ffe1570d34c613d854e7"
     },
     {
       "file": "firefox-chat-error-390.png",
-      "sha256": "f9db87f044c68f16842a863543b7ddeebf144356c9cc288d7fa45392abaef73d",
+      "sha256": "be19af93319f6c2772a8cc8239d360fdbecac61ab2c6a31c5f3825227dc7d023",
       "source_revision": null,
-      "source_sha256": "c2580d8393bd6aae4434dadd7d6c14cbfd5bd9553d696785d622f5e2742cf4ae",
-      "chat_script_sha256": "cddcfdb945c0de66890535ec630bcfce97c2e5d10c4567bba4907e3de450fb3e"
+      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
+      "chat_script_sha256": "e203635d3a40ebda26778aeb695c489953ec8c65a199ffe1570d34c613d854e7"
     },
     {
       "file": "firefox-chat-loading-390.png",
-      "sha256": "f3e306f59b585e1b71baa3a4f4aee05f48f1397fff6cb63b1ec6cc7afb8b63e3",
+      "sha256": "595c66e6bdec48607e3d41c252a9ec7869f388e0a7d92efa586881e120f6cf16",
       "source_revision": null,
-      "source_sha256": "c2580d8393bd6aae4434dadd7d6c14cbfd5bd9553d696785d622f5e2742cf4ae",
-      "chat_script_sha256": "cddcfdb945c0de66890535ec630bcfce97c2e5d10c4567bba4907e3de450fb3e"
+      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
+      "chat_script_sha256": "e203635d3a40ebda26778aeb695c489953ec8c65a199ffe1570d34c613d854e7"
     },
     {
       "file": "firefox-chat-stopped-390.png",
-      "sha256": "280ce172ee171973a1f5c9492285ed783acaa1ba6e2f5985ae22d9b81fb7a75b",
+      "sha256": "9da9840ac7b96f75ff2f86eea3db015c6fe788229f93aae3c739b8e2c39dfb67",
       "source_revision": null,
-      "source_sha256": "c2580d8393bd6aae4434dadd7d6c14cbfd5bd9553d696785d622f5e2742cf4ae",
-      "chat_script_sha256": "cddcfdb945c0de66890535ec630bcfce97c2e5d10c4567bba4907e3de450fb3e"
+      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
+      "chat_script_sha256": "e203635d3a40ebda26778aeb695c489953ec8c65a199ffe1570d34c613d854e7"
     },
     {
       "file": "firefox-landing-1440.png",
-      "sha256": "327e61f06d013108aa259425a11064deb41ce2714e136f8d0295613a193ce9cb",
+      "sha256": "0ef15beb9676946befc76a537a15e3da08d18a3395a34a99da3d6cf5deb25864",
       "source_revision": null,
-      "source_sha256": "c2580d8393bd6aae4434dadd7d6c14cbfd5bd9553d696785d622f5e2742cf4ae",
+      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
       "chat_script_sha256": null
     },
     {
       "file": "firefox-landing-320.png",
-      "sha256": "f2c71ca109d0f1169c3f7ccddab767bb5789a6aafddb920befa1fdc0f0be8ab0",
+      "sha256": "d2e70274b4e8d8aaa221c713a6b18ccdb08edd894bb3af4ad5da6082f7d46546",
       "source_revision": null,
-      "source_sha256": "c2580d8393bd6aae4434dadd7d6c14cbfd5bd9553d696785d622f5e2742cf4ae",
+      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
       "chat_script_sha256": null
     },
     {
       "file": "firefox-landing-390.png",
-      "sha256": "251e36c8d0656002207d4538d340a1000aa00fa6f1a1eb45c891145642891132",
+      "sha256": "bc0b32b875268ef0af5313ba1a62804f94eb1dc094f1182aa8e727c1a574faa3",
       "source_revision": null,
-      "source_sha256": "c2580d8393bd6aae4434dadd7d6c14cbfd5bd9553d696785d622f5e2742cf4ae",
+      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
       "chat_script_sha256": null
     },
     {
       "file": "firefox-landing-430.png",
-      "sha256": "cca1df57d3fc6a8816b83d4ba3165f96927602575e312dc449e878693f68f4e2",
+      "sha256": "5ecc464e47d7ca448387168b989ce4915df2bdf5d093f98aef090322d8fe0905",
       "source_revision": null,
-      "source_sha256": "c2580d8393bd6aae4434dadd7d6c14cbfd5bd9553d696785d622f5e2742cf4ae",
+      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
       "chat_script_sha256": null
     },
     {
       "file": "firefox-landing-dark-390.png",
-      "sha256": "359c29d35b7bf70c0dfad0ff5d5dfe17a9da67b08194694ff27507b2493d57c7",
+      "sha256": "c3397e8d17ab98036016286b0cdd13ce073cc6a831f8cee6a530476179ad63ea",
       "source_revision": null,
-      "source_sha256": "c2580d8393bd6aae4434dadd7d6c14cbfd5bd9553d696785d622f5e2742cf4ae",
+      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
       "chat_script_sha256": null
     },
     {
       "file": "firefox-landing-full-1440.png",
-      "sha256": "d9543a73762bc493a64c88feaae1c41e1622efecdce1e4082259a0c0d3c5570b",
+      "sha256": "9ad71c731c5f2e1287e8b8f632faa9f9a53860d6915d59773f164faed9c1d344",
       "source_revision": null,
-      "source_sha256": "c2580d8393bd6aae4434dadd7d6c14cbfd5bd9553d696785d622f5e2742cf4ae",
+      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
       "chat_script_sha256": null
     },
     {
       "file": "firefox-landing-full-320.png",
-      "sha256": "f7886545f5f7163e3fa9099f14c831b621659b4c347363473dc4ff0017ec812a",
+      "sha256": "28f9fdc54e5d4eaa6c9937d55ece0715b15750f2e3631a562a7034cf32509dee",
       "source_revision": null,
-      "source_sha256": "c2580d8393bd6aae4434dadd7d6c14cbfd5bd9553d696785d622f5e2742cf4ae",
+      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
       "chat_script_sha256": null
     },
     {
       "file": "firefox-landing-full-390.png",
-      "sha256": "2d98e28b09fb8eb261a1059c41ec4aa4051a13c98457cc9db1d433f10215134a",
+      "sha256": "efc074f5ed39c6f5a13042c8cda1329394cfb3ec0d88a14c4de627614e43116b",
       "source_revision": null,
-      "source_sha256": "c2580d8393bd6aae4434dadd7d6c14cbfd5bd9553d696785d622f5e2742cf4ae",
+      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
       "chat_script_sha256": null
     },
     {
       "file": "firefox-landing-full-430.png",
-      "sha256": "58f2ab14478e253e654e28d46416fe4d998623923b0a9f6ab2559a3a569c75e8",
+      "sha256": "433fc1586db39b993ed8fc7f38e551f56e487ebd8a64b7fec949448e9c3762a0",
       "source_revision": null,
-      "source_sha256": "c2580d8393bd6aae4434dadd7d6c14cbfd5bd9553d696785d622f5e2742cf4ae",
+      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
       "chat_script_sha256": null
     },
     {
       "file": "firefox-setup-1440.png",
-      "sha256": "5e937d04b8e428d86b1200a288181fd5ddf8fb6c4eb1bdd8e8e39f69fe630082",
+      "sha256": "541b9541ad8be7b825fd486a260c42a89096bb4b14f7f7c2e018f411cbd12bc7",
       "source_revision": null,
-      "source_sha256": "c2580d8393bd6aae4434dadd7d6c14cbfd5bd9553d696785d622f5e2742cf4ae",
+      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
       "chat_script_sha256": null
     },
     {
       "file": "firefox-setup-320.png",
-      "sha256": "a72feeb68b48fbd48d13a8318f455ebdf9d5eb68be550f05bf0f6a8e9d2cfd5a",
+      "sha256": "421dd9b0983e5a1306e9071a069431f88a38048d1e5463f7c31b594a4a4397af",
       "source_revision": null,
-      "source_sha256": "c2580d8393bd6aae4434dadd7d6c14cbfd5bd9553d696785d622f5e2742cf4ae",
+      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
       "chat_script_sha256": null
     },
     {
       "file": "firefox-setup-390.png",
-      "sha256": "63cfbcb05514bd2e1cf8cd52d1029643b3eb3e25acf49a721fbae45910096a5c",
+      "sha256": "b1a261171e89d199a6e966f5645a0228bd90f4fc2ae5ba3f1ef4e40f93a72ef2",
       "source_revision": null,
-      "source_sha256": "c2580d8393bd6aae4434dadd7d6c14cbfd5bd9553d696785d622f5e2742cf4ae",
+      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
       "chat_script_sha256": null
     },
     {
       "file": "firefox-setup-430.png",
-      "sha256": "3d37d330f00d37e4826b0ff2f72e040fccafabbb883a12f9f37791746015f63f",
+      "sha256": "3d6434550282e3aebd0ed0f08262f36db52b6133f1cdd66dc7495423317847a7",
       "source_revision": null,
-      "source_sha256": "c2580d8393bd6aae4434dadd7d6c14cbfd5bd9553d696785d622f5e2742cf4ae",
+      "source_sha256": "74947a48dd640de477d12568bed7ddd08d6535f5e67d50a1b496517451900bf9",
       "chat_script_sha256": null
     }
   ],
@@ -417,5 +511,6 @@
     "Independent-account ChatGPT installation and public availability are unverified.",
     "Automated accessibility and keyboard checks do not constitute human screen-reader or participant testing.",
     "No merge, production deployment, credential/security/billing/contact/outreach/backend changes."
-  ]
+  ],
+  "review_revision": "second visual revision after 0831ffcddcfc0794d1d63f763ea289ed59df8b86"
 }

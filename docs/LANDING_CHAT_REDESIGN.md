@@ -3,7 +3,7 @@
 This is an isolated, unpublished review of the Texas ISD Finances landing and
 existing website question tool. TAG remains the creator. No production merge
 or deployment is authorized by this review. The strict 95/5 visual target
-remains unmet; this draft is available for design review, not release approval.
+remains unmet under painted-area scoring; the revised composition is available for final design review. This observation does not block technical delivery, per the parent's instruction.
 
 ## Repository and release mapping
 
@@ -23,8 +23,12 @@ that source checkout, not a claimed new capture of production.
 
 ## Design and data
 
-The landing uses a real Dallas ISD spending example to show the useful answer
-to a plain-language question. Its period is **FY2025** and its scope is
+The landing opens with one headline, one question and a real Dallas spending
+example. The question highlights classroom spending locally without a provider
+request. The desktop treemap becomes four proportionate bars on phones.
+Source/year/scope stay visible; exact figures and definitions are available on
+demand. Product explanation and the single ChatGPT setup action follow the
+example. Its period is **FY2025** and its scope is
 **recorded all-funds spending**, including construction and debt payments.
 The recorded source snapshot is **August 12, 2026**; this is not a statement
 that a current budget is live or that the data was reverified on that date.
@@ -39,9 +43,9 @@ See [the data receipt](evidence/landing/dallas-example.json).
 ## ChatGPT setup boundary
 
 The access action opens this site's setup guide. The verified route is
-`https://chatgpt.com/plugins` → `+ Add custom MCP server` → name `Texas ISD
-Finances`, server URL `https://txisd.dev/mcp`, `No authentication` → review
-warning → `Create as a plugin` → `Personal` + install → new chat, `@` select.
+`https://chatgpt.com/plugins` -> `+ Add custom MCP server` -> name `Texas ISD
+Finances`, server URL `https://txisd.dev/mcp`, `No authentication` -> review
+warning -> `Create as a plugin` -> `Personal` + install -> new chat, `@` select.
 Exact technical words appear only as required setup UI labels.
 
 The guide says that custom setup is required and availability depends on the
@@ -65,6 +69,8 @@ is unavailable. Responses preserve the existing structured renderer, source
 links, figure lineage, conversation and turn fields, six-digit district
 context, follow-up attribution, and literal safe text rendering.
 
+Answers lead with one sentence and, for strictly eligible positive USD tables, max-scaled spending bars. Answer-level district/year/scope, source and historical limitations stay visible. Full supplied prose, metric cards, lineage and the exact original table remain in disclosures. Mixed currencies, missing/negative/malformed values or ambiguous units retain a readable table instead.
+
 Stop aborts a pending browser request; Retry is manual and retains the original
 question/context. A 45-second timeout exposes Retry. Request tokens suppress
 stale responses. Closing cancels pending work and restores focus; reopening
@@ -86,7 +92,7 @@ universal lock are unchanged. The final `uv lock --check` passed with uv 0.12.15
 Final checks on the frozen frontend:
 
 - Python: **1,227 passed, 60 skipped, 3 warnings**.
-- Chromium/Firefox: **78 passed**, including 320/390/430/1440, setup, existing
+- Chromium/Firefox: **106 passed**, including 320/390/430/1440, setup, existing
   reports/maps, mocked chat states, manual retry, cancellation and accessibility.
 - Repository Ruff, JavaScript parsing **15/15 pages**, Node syntax, existing
   visual-component unit test and `git diff --check`: **passed**.
@@ -108,31 +114,19 @@ without specifying UTF-8. Git's CRLF checkout also changed byte-sensitive
 plugin schema/skill files; they were restored locally to the same committed LF
 contents without altering their Git blobs or package behavior.
 
-## Approval and remaining gates
+## Review and remaining boundaries
 
-The strict 95% visual / 5% text criterion **fails** in the fresh landing
-observation. Earlier report measurements do not certify this page.
+The strict 95% visual / 5% text observation remains below target. It is reported honestly and is not a technical delivery blocker; the parent directed review of the actual composition rather than treating painted-area scoring as a release gate. No 95% success is claimed.
 
 | Width | First viewport visual share | Full closed landing visual share |
 | --- | ---: | ---: |
-| 320px | 29.49% | 31.62% |
-| 390px | 44.72% | 39.75% |
-| 430px | 51.42% | 46.00% |
-| 1440px | 51.78% | 51.78% |
+| 320px | 3.10% | 1.85% |
+| 390px | 2.47% | 2.39% |
+| 430px | 2.70% | 2.70% |
+| 1440px | 54.34% | 54.34% |
 
-[The reproducible observation](evidence/landing/painted-data-observation.json)
-counts actual data-encoded treemap fills, subtracts overlapping labels, and
-counts every visible heading, label, button and instruction as text. It
-excludes whitespace, card backgrounds, decorative outlines and closed setup
-content. The measured region is welcome plus the closed setup summary; the
-global masthead and following finder/reports are outside this observation.
-Run `node tests/browser/capture-landing.cjs` against the local preview to repeat
-it with the recorded public fixtures. This is a conservative observation,
-not a whole-page 95/5 certificate. Required readable context and natural page
-dimensions were preserved rather than shrinking labels or enlarging graphics
-to change the score. Passing functional tests do not satisfy this design gate.
+[The reproducible observation](evidence/landing/painted-data-observation.json) counts actual desktop treemap fills or mobile bar fills and subtracts overlapping labels. All visible headings, labels, buttons and instructions count as text. Transparent tracks, card backgrounds, whitespace, decorative outlines and unopened disclosure contents do not count. Scope is welcome, product explanation and closed setup summary; global navigation and following finder/reports are outside it. The narrower bar marks and broader scope make the second-revision numbers incomparable with the earlier receipt. Run `node tests/browser/capture-landing.cjs` against the local preview with recorded fixtures to repeat it.
 
-Production publication, the independent-account ChatGPT access test, and the
-human accessibility review remain separate gates. No credentials, security
-settings, subscriptions, billing, contacts, outreach automation, or backend
-contracts changed. No paid query or district email was sent.
+At 320/390/430/1440, the chart begins at 335/315/288/183px and its source ends within the initial viewport. Construction stays on one line, labels remain readable, and the landing floating chat control is suppressed where inline chat access already exists. Returning district readers retain the existing floating access path.
+
+Production publication still awaits final approval. Independent-account ChatGPT installation/public availability and human accessibility testing remain unverified. No credentials, security settings, subscriptions, billing, contacts, outreach automation, backend/data contracts or runtime dependencies changed. No paid query or district email was sent.

@@ -1,0 +1,21 @@
+
+Running 8 tests using 2 workers
+
+(node:53036) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:51188) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:53036) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:51188) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 1 [chromium] ΓÇ║ tests\browser\landing-chat.spec.js:75:3 ΓÇ║ landing, setup, and sourced chat at 320px (2.9s)
+  ok 2 [firefox] ΓÇ║ tests\browser\landing-chat.spec.js:75:3 ΓÇ║ landing, setup, and sourced chat at 320px (2.5s)
+  ok 3 [chromium] ΓÇ║ tests\browser\landing-chat.spec.js:75:3 ΓÇ║ landing, setup, and sourced chat at 390px (1.1s)
+  ok 4 [firefox] ΓÇ║ tests\browser\landing-chat.spec.js:75:3 ΓÇ║ landing, setup, and sourced chat at 390px (1.4s)
+  ok 5 [chromium] ΓÇ║ tests\browser\landing-chat.spec.js:75:3 ΓÇ║ landing, setup, and sourced chat at 430px (1.1s)
+  ok 6 [firefox] ΓÇ║ tests\browser\landing-chat.spec.js:75:3 ΓÇ║ landing, setup, and sourced chat at 430px (1.2s)
+  ok 7 [chromium] ΓÇ║ tests\browser\landing-chat.spec.js:75:3 ΓÇ║ landing, setup, and sourced chat at 1440px (1.5s)
+  ok 8 [firefox] ΓÇ║ tests\browser\landing-chat.spec.js:75:3 ΓÇ║ landing, setup, and sourced chat at 1440px (1.4s)
+
+  8 passed (8.5s)

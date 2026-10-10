@@ -198,12 +198,13 @@ def test_a_long_table_scrolls_instead_of_burying_everything_under_it():
     assert ".ta-tw.tall .ta-tb th { position:sticky" in JS   # headers stay put
 
 
-def test_a_long_lead_steps_down_instead_of_becoming_a_wall():
-    """The lead is the model's WHOLE opening paragraph — promoting only part of
-    it silently deleted the rest — so a four-sentence paragraph at heading
-    weight is a real shape. It is sized to what it is; nothing is split."""
-    assert "s.lead.length > 200 ? ' long' : ''" in JS
-    assert ".ta-lead.long { font-size:1.02rem; font-weight:500;" in JS
+def test_a_concise_lead_preserves_the_complete_supplied_answer():
+    """The opening conclusion can be concise, but progressive disclosure must
+    retain the complete supplied lead. Browser checks verify the first sentence
+    and full original paragraph independently."""
+    assert "bodyOf(s, s.lead || '')" in JS
+    assert "el('details', 'ta-support')" in JS
+    assert "if (fullLead) support.appendChild" in JS
 
 
 def test_the_screen_reader_hears_the_figures_and_the_ranking_too():
