@@ -79,6 +79,7 @@
     /* header */
     '.ta-head { display:flex; align-items:flex-start; gap:.7rem; padding:1.1rem 1.25rem .4rem; }',
     '.ta-head h2 { margin:0; font-size:1.2rem; line-height:1.3; letter-spacing:-.01em; }',
+    '.ta-head .ta-scope { display:inline-flex; margin-top:.35rem; padding:.16rem .45rem; border-radius:999px; background:var(--wash,#f4f5f4); color:var(--ink-2,#3d454d); font-size:.875rem; font-weight:700; }',
     '.ta-head p { margin:.15rem 0 0; color:var(--muted, #5a6572); font-size:.92rem; }',
     '.ta-x { margin-left:auto; flex:none; width:44px; height:44px; border-radius:10px;',
     '  border:1px solid var(--rule, #e3e6e8); background:none; color:var(--muted, #5a6572);',
@@ -88,6 +89,7 @@
     /* thread */
     '.ta-thread { flex:1; overflow-y:auto; padding:.6rem 1.25rem; min-height:4rem;',
     '  overscroll-behavior:contain; scroll-behavior:smooth; }',
+    '.ta-thread:empty { flex:0; min-height:0; padding-top:0; padding-bottom:0; }',
     '@media (prefers-reduced-motion: reduce) { .ta-thread { scroll-behavior:auto; } }',
     '.ta-msg { display:flex; gap:.6rem; margin:.65rem 0; }',
     '.ta-msg.me { justify-content:flex-end; }',
@@ -111,7 +113,7 @@
     '.ta-skel i:nth-child(3) { width:60%; }',
     '@keyframes ta-shim { to { background-position:-200% 0; } }',
     '@media (prefers-reduced-motion: reduce) { .ta-skel i { animation:none; } }',
-    '.ta-think { color:var(--muted, #5a6572); font-size:.85rem; }',
+    '.ta-think { color:var(--muted, #5a6572); font-size:.875rem; }',
     /* the words, arriving */
     '.ta-bub .w { opacity:0; filter:blur(5px); display:inline-block;',
     '  animation:ta-word .34s cubic-bezier(.2,.7,.3,1) forwards; }',
@@ -127,6 +129,8 @@
     '  border-radius:999px; border:1px solid var(--rule, #e3e6e8);',
     '  background:var(--bg, #fff); color:var(--ink-2, #3d454d); cursor:pointer; text-align:left; }',
     '.ta-chips button:hover { border-color:var(--accent, #1a56a8); color:var(--accent, #1a56a8); }',
+    '@media (max-width:430px) { .ta-chips { flex-wrap:nowrap; overflow-x:auto; overscroll-behavior-x:contain; }.ta-chips button { flex:0 0 auto; max-width:15rem; } }',
+    '@media (max-width:240px) { .ta-example-flow { grid-template-columns:1fr; } .ta-example-stage { min-width:0; overflow-wrap:anywhere; } .ta-row { flex-direction:column; } .ta-row input,.ta-row button { width:100%; min-width:0; box-sizing:border-box; } }',
     /* composer */
     '.ta-row { display:flex; gap:.6rem; padding:.5rem 1.25rem .35rem; }',
     '.ta-row input { flex:1; min-height:52px; padding:.7rem 1rem; font:inherit; font-size:1.05rem;',
@@ -141,14 +145,31 @@
     '.ta-row button:focus-visible { outline:3px solid var(--ink, #14171a); outline-offset:2px; }',
     '.ta-row button[disabled] { opacity:.55; cursor:default; }',
     '.ta-actions { display:flex; gap:.5rem; padding:0 1.25rem .4rem; }',
-    '.ta-actions button { min-height:38px; padding:.4rem .75rem; border-radius:9px; font:600 .9rem/1 system-ui,sans-serif; cursor:pointer; border:1px solid var(--rule,#cfd4d8); background:var(--bg,#fff); color:var(--ink,#14171a); }',
+    '.ta-actions[hidden] { display:none; }',
+    '.ta-actions button { min-height:44px; padding:.4rem .75rem; border-radius:9px; font:600 .9rem/1 system-ui,sans-serif; cursor:pointer; border:1px solid var(--rule,#cfd4d8); background:var(--bg,#fff); color:var(--ink,#14171a); }',
     '.ta-actions .ta-stop { color:var(--accent,#1a56a8); border-color:var(--accent,#1a56a8); }',
-    '.ta-empty { margin:.2rem 1.25rem .55rem; padding:.65rem .75rem; border-left:2px solid var(--accent,#1a56a8); color:var(--muted,#5a6572); font-size:.88rem; line-height:1.45; }',
+    '.ta-empty { margin:.15rem 1.25rem .5rem; padding:.65rem; border:1px solid var(--rule,#e3e6e8); border-radius:12px; background:var(--surface,#f6f7f6); color:var(--ink-2,#3d454d); font-size:.875rem; line-height:1.35; }',
+    '.ta-example-head { display:flex; justify-content:space-between; gap:.6rem; align-items:baseline; margin-bottom:.5rem; }',
+    '.ta-example-head b { color:var(--ink,#14171a); font-size:.9rem; }',
+    '.ta-example-head span { font-size:.875rem; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:var(--accent,#1a56a8); }',
+    '.ta-example-q { margin:0 0 .55rem; padding:.38rem .5rem; border-left:3px solid var(--accent,#1a56a8); background:var(--bg,#fff); color:var(--ink,#14171a); font-weight:700; }',
+    '.ta-example-flow { display:grid; grid-template-columns:minmax(0,1.1fr) minmax(4.8rem,.52fr) minmax(0,1.1fr); gap:.7rem; align-items:stretch; }',
+    '.ta-example-stage { position:relative; min-width:0; padding:.45rem; border:1px solid var(--rule,#e3e6e8); border-radius:8px; background:var(--bg,#fff); }',
+    '.ta-example-stage:not(:last-child)::after { content:""; position:absolute; left:100%; top:50%; width:.75rem; border-top:2px solid var(--accent,#1a56a8); }',
+    '.ta-example-stage > b { display:block; margin-bottom:.3rem; font-size:.875rem; color:var(--ink,#14171a); }',
+    '.ta-example-records { display:grid; gap:3px; } .ta-example-records i { display:block; height:.42rem; width:var(--w); border-radius:2px; background:var(--accent,#1a56a8); opacity:var(--o); }',
+    '.ta-example-codes { display:flex; justify-content:space-between; gap:.2rem; margin-top:.25rem; font-size:.875rem; font-variant-numeric:tabular-nums; }',
+    '.ta-example-match { display:grid; place-items:center; text-align:center; } .ta-example-match strong { padding:.28rem; border:2px solid var(--accent,#1a56a8); border-radius:6px; color:var(--accent,#1a56a8); font-size:.9rem; letter-spacing:.05em; }',
+    '.ta-example-match small { font-size:.875rem; }',
+    '.ta-example-stack { display:flex; height:2.15rem; overflow:hidden; border-radius:5px; } .ta-example-stack i { display:block; min-width:2px; }',
+    '.ta-example-stack .c { width:32.9177%; background:#174f9b; }.ta-example-stack .b { width:23.0873%; background:#4c73a4; }.ta-example-stack .d { width:15.0691%; background:#334e68; }.ta-example-stack .o { width:28.9259%; background:#376fba; }',
+    '.ta-example-answer strong { display:block; margin-top:.28rem; color:var(--ink,#14171a); font-size:.875rem; font-variant-numeric:tabular-nums; }',
+    '@media (max-width:430px) { .ta-example-flow { grid-template-columns:minmax(0,1.05fr) minmax(4.25rem,.58fr) minmax(0,1.08fr); gap:.5rem; }.ta-example-stage { padding:.35rem; }.ta-example-stage:not(:last-child)::after { width:.55rem; }.ta-example-codes span:not(:first-child) { display:none; } }',
     '.ta-fine { margin:0; padding:.15rem 1.25rem calc(1rem + env(safe-area-inset-bottom, 0px));',
-    '  color:var(--ink-2, #52606d); font-size:.78rem; line-height:1.5; }',
+    '  color:var(--ink-2, #52606d); font-size:.875rem; line-height:1.5; }',
     '.ta-fine a { color:var(--accent, #1a56a8); }',
     /* ---- the structured answer, drawn as components ---- */
-    '.ta-msg.ai.rich .ta-bub { max-width:100%; background:var(--bg, #fff);',
+    '.ta-msg.ai.rich .ta-bub { max-width:100%; display:flex; flex-direction:column; background:var(--bg, #fff);',
     '  border-radius:4px 14px 14px 14px; padding:.85rem 1rem 1rem; }',
     '.ta-lead { margin:0; font-size:1.12rem; line-height:1.45; font-weight:600;',
     '  letter-spacing:-.011em; color:var(--ink, #14171a); }',
@@ -167,13 +188,13 @@
     'button.ta-card:focus-visible { outline:3px solid var(--accent, #1a56a8); outline-offset:2px; }',
     '.ta-card b { display:block; font-size:1.22rem; line-height:1.15;',
     '  letter-spacing:-.02em; font-variant-numeric:tabular-nums; }',
-    '.ta-card span { display:block; margin-top:.2rem; font-size:.76rem;',
+    '.ta-card span { display:block; margin-top:.2rem; font-size:.875rem;',
     '  text-transform:uppercase; letter-spacing:.05em; color:var(--muted, #5a6572); }',
-    '.ta-cap { margin:.4rem 0 0; font-size:.78rem; color:var(--ink-2, #52606d); }',
+    '.ta-cap { margin:.4rem 0 0; font-size:.875rem; color:var(--ink-2, #52606d); }',
     '.ta-lin { margin:.55rem 0 0; padding:.7rem .8rem; border-radius:10px;',
     '  border:1px solid var(--rule, #e3e6e8); background:var(--wash, #f4f5f4); }',
     '.ta-linhead { display:flex; align-items:center; gap:.5rem; flex-wrap:wrap; }',
-    '.ta-badge { font-size:.68rem; font-weight:700; letter-spacing:.08em;',
+    '.ta-badge { font-size:.875rem; font-weight:700; letter-spacing:.08em;',
     '  padding:.2rem .45rem; border-radius:5px; background:var(--ink, #14171a);',
     '  color:var(--bg, #fff); }',
     '.ta-badge.v-verified { background:#1d6f42; color:#fff; }',
@@ -181,7 +202,7 @@
     '.ta-badge.v-refused, .ta-badge.v-failed { background:#8a2a1e; color:#fff; }',
     '.ta-sum { margin:.4rem 0 0; font-size:1rem; font-variant-numeric:tabular-nums;',
     '  color:var(--ink, #14171a); }',
-    '.ta-h { margin:.95rem 0 .2rem; font-size:.8rem; font-weight:700;',
+    '.ta-h { margin:.95rem 0 .2rem; font-size:.875rem; font-weight:700;',
     '  text-transform:uppercase; letter-spacing:.07em; color:var(--muted, #5a6572); }',
     '.ta-p { margin:.5rem 0 0; font-size:.98rem; line-height:1.6; color:var(--ink-2, #3d454d); }',
     '.ta-ul { margin:.5rem 0 0; padding-left:1.1rem; }',
@@ -194,33 +215,42 @@
     '.ta-tb { border-collapse:collapse; width:100%; font-size:.92rem; }',
     '.ta-tb th, .ta-tb td { padding:.5rem .7rem; text-align:left; white-space:nowrap;',
     '  border-bottom:1px solid var(--rule, #e3e6e8); }',
-    '.ta-tb th { font-size:.74rem; text-transform:uppercase; letter-spacing:.05em;',
+    '.ta-tb th { font-size:.875rem; text-transform:uppercase; letter-spacing:.05em;',
     '  color:var(--muted, #5a6572); background:var(--surface, #f6f7f6); }',
     '.ta-tb td:not(:first-child) { font-variant-numeric:tabular-nums; }',
     '.ta-tb tr:last-child td { border-bottom:none; }',
     '.ta-tb tr.me td { font-weight:600; background:var(--wash, #f4f5f4); }',
-    '.ta-basis { margin:.35rem 0 0; font-size:.78rem; line-height:1.5; color:var(--faint, #8b95a1); }',
-    '.ta-chart { margin:.8rem 0 0; padding:.75rem; border:1px solid var(--rule, #e3e6e8); border-radius:10px; background:var(--surface, #f6f7f6); }',
-    '.ta-chart-title { margin:0 0 .55rem; font-size:.875rem; font-weight:700; color:var(--ink-2, #3d454d); }',
-    '.ta-chart-row { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:.28rem .7rem; align-items:center; margin:.46rem 0; }',
+    '.ta-basis { margin:.35rem 0 0; font-size:.875rem; line-height:1.5; color:var(--faint, #8b95a1); }',
+    '.ta-chart { margin:.8rem 0 0; padding:1rem; border:1px solid var(--accent,#1a56a8); border-radius:12px; background:var(--surface, #f6f7f6); }',
+    '.ta-bub .ta-chart { order:-4; } .ta-bub .ta-lead { order:-3; } .ta-bub .ta-context { order:-2; } .ta-bub .ta-answer-source { order:-1; }',
+    '.ta-chart-title { display:flex; justify-content:space-between; gap:.7rem; margin:0 0 .7rem; font-size:.95rem; font-weight:700; color:var(--ink-2, #3d454d); }',
+    '.ta-chart-title span { font-size:.875rem; font-weight:600; color:var(--muted,#5a6572); }',
+    '.ta-chart-row { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:.3rem .7rem; align-items:center; margin:.62rem 0; }',
     '.ta-chart-row strong { font-size:.9rem; line-height:1.25; color:var(--ink,#14171a); }',
     '.ta-chart-row span { font-size:.88rem; font-variant-numeric:tabular-nums; color:var(--ink,#14171a); }',
-    '.ta-chart-track { grid-column:1 / -1; height:.48rem; overflow:hidden; border-radius:999px; background:var(--rule,#e3e6e8); }',
+    '.ta-chart-track { grid-column:1 / -1; height:1.55rem; overflow:hidden; border-radius:5px; background:var(--rule,#e3e6e8); }',
     '.ta-chart-bar { display:block; height:100%; min-width:2px; border-radius:inherit; background:var(--accent,#1a56a8); }',
+    '.ta-chart-row:nth-of-type(3n+2) .ta-chart-bar { opacity:.82; }.ta-chart-row:nth-of-type(3n+3) .ta-chart-bar { opacity:.66; }',
+    '.ta-chart-record { display:grid; grid-template-columns:auto minmax(0,1fr); gap:.15rem .55rem; margin:.8rem 0 0; padding:.55rem .65rem; border-top:2px solid var(--accent,#1a56a8); background:var(--bg,#fff); font-size:.875rem; line-height:1.35; }',
+    '.ta-chart-record span { color:var(--muted,#5a6572); font-weight:700; text-transform:uppercase; letter-spacing:.05em; }.ta-chart-record strong { color:var(--ink,#14171a); overflow-wrap:anywhere; }.ta-chart-record small { grid-column:2; color:var(--ink-2,#3d454d); font-size:.875rem; }',
+    '@media (max-width:360px) { .ta-chart-title { display:block; }.ta-chart-title span { display:block; margin-top:.2rem; }.ta-chart-row { grid-template-columns:1fr; }.ta-chart-row span,.ta-chart-track { grid-column:1; }.ta-chart-record { grid-template-columns:1fr; }.ta-chart-record small { grid-column:1; } }',
     '.ta-evidence, .ta-support { margin:.8rem 0 0; font-size:.9rem; color:var(--ink-2,#3d454d); }',
-    '.ta-evidence summary, .ta-support summary { cursor:pointer; color:var(--accent,#1a56a8); font-weight:600; }',
+    '.ta-evidence summary, .ta-support summary { display:flex; align-items:center; min-height:44px; cursor:pointer; color:var(--accent,#1a56a8); font-weight:600; }',
     '.ta-support p { margin:.55rem 0 0; }',
     '.ta-context, .ta-answer-source, .ta-limit { margin:.55rem 0 0; font-size:.875rem; line-height:1.45; color:var(--ink-2,#3d454d); }',
     '.ta-answer-source a { color:var(--accent,#1a56a8); }',
     '.ta-next { display:flex; flex-wrap:wrap; gap:.45rem; margin:.9rem 0 0;',
     '  padding-top:.8rem; border-top:1px solid var(--rule, #e3e6e8); }',
-    '.ta-next button { font:inherit; font-size:.9rem; min-height:40px; padding:.4rem .85rem;',
+    '.ta-next button { font:inherit; font-size:.9rem; min-height:44px; padding:.4rem .85rem;',
     '  border-radius:999px; border:1px solid var(--rule, #e3e6e8); cursor:pointer;',
     '  background:var(--bg, #fff); color:var(--accent, #1a56a8); text-align:left; }',
     '.ta-next button:hover { background:var(--accent, #1a56a8); color:var(--accent-ink, #fff);',
     '  border-color:var(--accent, #1a56a8); }',
     '.ta-next button:focus-visible { outline:3px solid var(--ink, #14171a); outline-offset:2px; }',
-    '.ta-foot { margin:.75rem 0 0; font-size:.78rem; line-height:1.55; color:var(--ink-2, #52606d); }',
+    /* Keep this after the 430px example layout so the 200% reflow viewport
+       really becomes one column instead of restoring the three-stage grid. */
+    '@media (max-width:240px) { .ta-empty .ta-example-flow { grid-template-columns:minmax(0,1fr); } .ta-empty .ta-example-stage { min-width:0; overflow-wrap:anywhere; } .ta-empty .ta-example-stage:not(:last-child)::after { left:50%; top:100%; width:0; height:.7rem; border-top:0; border-left:2px solid var(--accent,#1a56a8); } }',
+    '.ta-foot { margin:.75rem 0 0; font-size:.875rem; line-height:1.55; color:var(--ink-2, #52606d); }',
     '.ta-foot a { color:var(--accent, #1a56a8); }',
     '.ta-foot + .ta-foot { margin-top:.3rem; }',
     /* ---- beta chip + feedback ---- */
@@ -261,7 +291,7 @@
     '.tf-row button.ghost { background:none; color:var(--muted, #5a6572);',
     '  border:1px solid var(--rule, #e3e6e8); }',
     '.tf-row button[disabled] { opacity:.55; cursor:default; }',
-    '.tf-fine { margin-top:.85rem; font-size:.78rem; line-height:1.5;',
+    '.tf-fine { margin-top:.85rem; font-size:.875rem; line-height:1.5;',
     '  color:var(--faint, #8b95a1); }',
     '.ta-sr { position:absolute; width:1px; height:1px; overflow:hidden;',
     '  clip:rect(0 0 0 0); clip-path:inset(50%); white-space:nowrap; }',
@@ -297,12 +327,20 @@
       + '<div class="ta-back"></div>'
       + '<div class="ta-sheet">'
       + '  <div class="ta-head">'
-      + '    <div><h2 id="ta-title">Ask about any Texas school district</h2>'
-      + '    <p>Plain English. Answered from the state&rsquo;s own numbers.</p></div>'
+      + '    <div><h2 id="ta-title">Texas school-finance workspace</h2>'
+      + '    <p>Plain English answers from official records.</p><span class="ta-scope">Texas public records</span></div>'
       + '    <button class="ta-x" type="button" aria-label="Close">&times;</button>'
       + '  </div>'
       + '  <div class="ta-thread"></div>'
-      + '  <div class="ta-empty">Ask about a district&rsquo;s spending, debt, students, or a change over time.</div>'
+      + '  <div class="ta-empty">'
+      + '    <div class="ta-example-head"><b>Question to source to answer</b><span>Recorded example</span></div>'
+      + '    <p class="ta-example-q">How much went to Dallas classrooms?</p>'
+      + '    <div class="ta-example-flow" aria-label="Example workflow from Dallas question through TEA records to a sourced quantitative answer.">'
+      + '      <div class="ta-example-stage"><b>TEA PEIMS &middot; FY 2025 all funds</b><div class="ta-example-records" role="img" aria-label="Separate record groups: classroom 32.9 percent, construction 23.1 percent, debt 15.1 percent, other combined 28.9 percent."><i style="--w:100%;--o:1"></i><i style="--w:70.1%;--o:.82"></i><i style="--w:45.8%;--o:.66"></i><i style="--w:87.9%;--o:.74"></i></div><div class="ta-example-codes"><span>11+12+13</span><span>6600</span><span>6500</span></div></div>'
+      + '      <div class="ta-example-stage ta-example-match"><b>District match</b><strong>057905</strong><small>Dallas ISD</small></div>'
+      + '      <div class="ta-example-stage ta-example-answer"><b>Sourced answer</b><div class="ta-example-stack" role="img" aria-label="Dallas spending shares: classroom 32.9 percent, construction 23.1 percent, debt 15.1 percent, other combined 28.9 percent."><i class="c"></i><i class="b"></i><i class="d"></i><i class="o"></i></div><strong>Classroom: $1.093B &middot; 32.9%</strong></div>'
+      + '    </div>'
+      + '  </div>'
       + '  <div class="ta-sr" aria-live="polite"></div>'
       + '  <div class="ta-chips" aria-label="Example questions"></div>'
       + '  <div class="ta-row">'
@@ -449,6 +487,12 @@
 
   function tableOf(head, rows, selfRow) {
     var wrapEl = el('div', 'ta-tw');
+    /* Tables can be wider than the phone-sized answer sheet. The wrapper is a
+       named keyboard region so arrow-key users can reach the same columns as
+       touch and pointer users without changing or hiding any values. */
+    wrapEl.tabIndex = 0;
+    wrapEl.setAttribute('role', 'region');
+    wrapEl.setAttribute('aria-label', 'Scrollable answer table');
     var t = el('table', 'ta-tb');
     if (head && head.length) {
       var thead = document.createElement('thead');
@@ -576,7 +620,10 @@
     var max = Math.max.apply(null, values.map(function (v) { return v.value; }));
     var chart = el('section', 'ta-chart');
     chart.setAttribute('aria-label', 'Reported dollar comparison; bars are scaled to the largest displayed amount.');
-    chart.appendChild(el('p', 'ta-chart-title', 'Reported dollars'));
+    var title = el('p', 'ta-chart-title');
+    title.appendChild(el('strong', null, 'Reported dollar comparison'));
+    title.appendChild(el('span', null, 'Each bar uses the largest value as 100%'));
+    chart.appendChild(title);
     values.forEach(function (v) {
       var row = el('div', 'ta-chart-row');
       row.appendChild(el('strong', null, v.label));
@@ -587,6 +634,12 @@
       bar.style.width = (v.value / max * 100) + '%';
       track.appendChild(bar); row.appendChild(track); chart.appendChild(row);
     });
+    var record = el('div', 'ta-chart-record');
+    record.appendChild(el('span', null, 'Official record'));
+    record.appendChild(el('strong', null, String(s.sources[0].name || 'Linked source')));
+    record.appendChild(el('small', null, s.figures.name + ' / Fiscal ' + s.figures.year
+      + ' / ' + s.figures.note));
+    chart.appendChild(record);
     return chart;
   }
 

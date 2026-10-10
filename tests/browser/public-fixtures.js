@@ -4,6 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const fixture = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures', 'public-endpoints.json'), 'utf8'));
+const currentHealth = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures', 'current-public-health.json'), 'utf8').replace(/^\uFEFF/, ''));
 const districtGeo = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', 'static', 'district_geo.json'), 'utf8'));
 const argyleEvidence = JSON.parse(fs.readFileSync(
   path.join(__dirname, '..', '..', 'docs', 'evidence', 'mcp', 'framing-argyle-public.json'), 'utf8'));
@@ -80,6 +81,11 @@ async function installPublicFixtures(page, options = {}) {
     if (MUTATING_PATHS.has(url.pathname) || request.method() !== 'GET') {
       blocked.push(`${request.method()} ${routePath}`);
       return route.fulfill({ status: 503, contentType: 'application/json', body: '{"detail":"blocked by browser fixture"}' });
+    }
+    if (url.pathname === '/health') {
+      return route.fulfill({ contentType: 'application/json',
+        headers: { 'x-txisd-fixture-origin': currentHealth.origin },
+        body: JSON.stringify(currentHealth.payload) });
     }
     if (url.pathname === '/districts' && url.searchParams.has('search')) {
       const needle = (url.searchParams.get('search') || '').toLowerCase();

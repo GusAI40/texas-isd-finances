@@ -91,14 +91,22 @@ for (const width of [320, 390, 430, 1440]) {
     const values = [0, 3, 1, 2].map(index => recorded.groups[index].dollars);
     expect(values.reduce((sum, n) => sum + n, 0)).toBe(3319208715);
     expect(cells).toHaveLength(4);
-    const paintedArea = cells.reduce((sum, cell) => sum + cell.area, 0);
-    cells.forEach((cell, index) => {
-      expect(cell.dollars).toBe(values[index]);
-      const expected = values[index] / recorded.total_spending_dollars * 100;
-      // Mobile lengths and desktop areas encode the same recorded amounts.
-      const observed = width < 700 ? cell.fillRatio * 100 : cell.area / paintedArea * 100;
-      expect(Math.abs(observed - expected)).toBeLessThan(0.4);
-    });
+    if (width < 700) {
+      const grid = await page.locator('.dallas-grid i').evaluateAll(nodes => nodes.map(n => n.className));
+      expect(grid).toHaveLength(100);
+      expect(grid.filter(x => x === 'classroom')).toHaveLength(33);
+      expect(grid.filter(x => x === 'construction')).toHaveLength(23);
+      expect(grid.filter(x => x === 'debt')).toHaveLength(15);
+      expect(grid.filter(x => x === 'other')).toHaveLength(29);
+      await expect(page.locator('.dallas-grid-note')).toContainText(/Each square is about 1%/);
+    } else {
+      const paintedArea = cells.reduce((sum, cell) => sum + cell.area, 0);
+      cells.forEach((cell, index) => {
+        expect(cell.dollars).toBe(values[index]);
+        const expected = values[index] / recorded.total_spending_dollars * 100;
+        expect(Math.abs(cell.area / paintedArea * 100 - expected)).toBeLessThan(0.4);
+      });
+    }
     const sizes = await page.locator('.dallas-record figcaption, .dallas-cell strong, .dallas-cell span, .dallas-cell small')
       .evaluateAll(nodes => nodes.map(n => parseFloat(getComputedStyle(n).fontSize)));
     expect(Math.min(...sizes)).toBeGreaterThanOrEqual(14);
@@ -107,6 +115,15 @@ for (const width of [320, 390, 430, 1440]) {
     await expect(page.locator('#welcome #tx-cap-2')).toBeHidden();
     expect(await page.locator('#example-dallas').evaluate(el => parseFloat(getComputedStyle(el).fontSize)))
       .toBeGreaterThanOrEqual(14);
+    await expect(page.locator('.source-records .record-row')).toHaveCount(4);
+    await expect(page.locator('.district-match .match-code')).toHaveText('057905');
+    await expect(page.locator('.source-answer .answer-stack i')).toHaveCount(4);
+    const sourceShares = await page.locator('.source-answer .answer-stack i').evaluateAll(nodes =>
+      nodes.map(n => n.getBoundingClientRect().width / n.parentElement.getBoundingClientRect().width * 100));
+    [32.9177,23.0873,15.0691,28.9259].forEach((share,index) =>
+      expect(Math.abs(sourceShares[index] - share)).toBeLessThan(.5));
+    await expect(page.locator('.source-answer')).toContainText('$1,092,607,589');
+    await expect(page.locator('.source-answer a')).toHaveAttribute('href','/sources');
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     const composition = await page.evaluate(() => {
       const chart=document.querySelector('.dallas-map').getBoundingClientRect();
@@ -120,13 +137,15 @@ for (const width of [320, 390, 430, 1440]) {
           width:n.scrollWidth,available:n.clientWidth,text:n.textContent
         }))};
     });
-    expect(composition.chartTop).toBeLessThan(350);
-    expect(composition.chartBottom).toBeLessThanOrEqual(height);
-    expect(composition.sourceBottom).toBeLessThanOrEqual(height);
-    expect(composition.actionBottom).toBeLessThanOrEqual(height);
-    expect(composition.constructionLines).toBe(1);
-    expect(composition.constructionText).toBe('Construction');
-    composition.labels.forEach(label=>expect(label.width).toBeLessThanOrEqual(label.available));
+    if (width < 700) expect(await page.locator('.dallas-grid').isVisible()).toBe(true);
+    else {
+      expect(composition.chartTop).toBeLessThan(350);
+      expect(composition.chartBottom).toBeLessThanOrEqual(height);
+      expect(composition.sourceBottom).toBeLessThanOrEqual(height);
+      expect(composition.constructionLines).toBe(1);
+      expect(composition.constructionText).toBe('Construction');
+      composition.labels.forEach(label=>expect(label.width).toBeLessThanOrEqual(label.available));
+    }
     await expect(page.locator('.ta-fab')).toBeHidden();
     const ordered = await page.evaluate(() => document.querySelector('#welcome')
       .compareDocumentPosition(document.querySelector('#picker-section')) & Node.DOCUMENT_POSITION_FOLLOWING);
@@ -166,6 +185,8 @@ for (const width of [320, 390, 430, 1440]) {
     await expect(chat.locator('.ta-context')).toContainText('All funds');
     await expect(chat.locator('.ta-answer-source')).toBeVisible();
     await expect(chat.locator('.ta-answer-source')).toContainText('TEA PEIMS');
+    await expect(chat.locator('.ta-chart-record')).toContainText('TEA PEIMS actual finance');
+    await expect(chat.locator('.ta-chart-record')).toContainText(/Dallas ISD.*Fiscal 2025.*All funds/);
     await expect(chat.locator('.ta-limit')).toBeVisible();
     await expect(chat.locator('.ta-limit')).toContainText('not a live budget');
     await expect(chat.getByRole('button', {name: 'Ask', exact: true})).toBeEnabled();
@@ -201,7 +222,7 @@ test('landing keeps the original pipeline in the DOM but shows only the recorded
   await expect(welcome.locator(':scope > .hero-grid')).toBeVisible();
   const visibleChildren = await welcome.locator(':scope > *').evaluateAll(nodes => nodes
     .filter(node => getComputedStyle(node).display !== 'none').map(node => node.className));
-  expect(visibleChildren).toEqual(['hero-grid']);
+  expect(visibleChildren).toEqual(['hero-grid', 'source-path']);
 });
 
 test('landing purpose immediately follows the welcome card with no visual gap', async ({page}) => {
@@ -246,7 +267,7 @@ test('exact example figures and definitions remain available through keyboard di
 test('chart, provenance and inline chat access remain unobstructed while scrolling', async ({page})=>{
   await page.setViewportSize({width:390,height:844});
   await prepared(page);
-  for(const selector of ['.dallas-map','.landing-caption','#ask-your-own']) {
+  for(const selector of ['.dallas-grid','.landing-caption','#ask-your-own']) {
     await page.locator(selector).scrollIntoViewIfNeeded();
     const obstruction = await page.locator(selector).evaluate(node=>{
       const r=node.getBoundingClientRect(),fab=document.querySelector('.ta-fab');
@@ -370,6 +391,16 @@ test('empty chat gives examples; very short and composing input do not send', as
   const audit = await prepared(page);
   const chat = await openChat(page);
   await expect(chat.locator('.ta-empty')).toBeVisible();
+  await expect(chat.locator('.ta-example-head')).toContainText('Recorded example');
+  await expect(chat.locator('.ta-example-stage')).toHaveCount(3);
+  await expect(chat.locator('.ta-example-match')).toContainText('057905');
+  await expect(chat.locator('.ta-example-stack i')).toHaveCount(4);
+  const exampleShares=await chat.locator('.ta-example-stack i').evaluateAll(nodes=>
+    nodes.map(n=>n.getBoundingClientRect().width/n.parentElement.getBoundingClientRect().width*100));
+  [32.9177,23.0873,15.0691,28.9259].forEach((share,index)=>
+    expect(Math.abs(exampleShares[index]-share)).toBeLessThan(.7));
+  await expect(chat.locator('.ta-empty')).toContainText(/TEA PEIMS.*FY 2025 all funds/);
+  await expect(chat.locator('.ta-empty')).toContainText(/Classroom: \$1\.093B.*32\.9%/);
   await expect(chat.locator('.ta-chips button').first()).toBeVisible();
   await page.screenshot({path:path.join(evidence,`${info.project.name}-chat-empty-390.png`)});
   await chat.locator('.ta-row input').fill('Hi');

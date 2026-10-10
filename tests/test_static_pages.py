@@ -320,9 +320,13 @@ def test_type_scale_is_bounded():
     import re
     literals = set()
     for page in PAGES:
-        for value in re.findall(r"font-size:\s*([^;}\n]+)", page.read_text(encoding="utf-8")):
-            v = value.strip()
-            if v.startswith("var(") or v.startswith("clamp(") or v.startswith("inherit"):
+        for value in re.findall(r'font-size:\s*([^;}"\n]+)', page.read_text(encoding="utf-8")):
+            # An inline attribute ends at the quote; !important changes
+            # precedence, not the size. An accessible floor around a scale
+            # token still uses that scale rather than adding another size.
+            v = re.sub(r"\s*!important\s*$", "", value).strip()
+            if (v.startswith("var(") or v.startswith("clamp(") or v.startswith("inherit")
+                    or re.fullmatch(r"max\(14px,\s*var\(--fs-[a-z]+\)\)", v)):
                 continue
             literals.add(v)
     assert len(literals) <= 6, (

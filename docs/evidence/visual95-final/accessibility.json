@@ -1,0 +1,1478 @@
+{
+  "capturedAt": "2026-10-10T14:39:23.715Z",
+  "queryBoundary": "All query responses mocked, mutation telemetry blocked, no provider calls.",
+  "results": [
+    {
+      "width": 320,
+      "height": 740,
+      "theme": "light",
+      "state": "landing",
+      "violations": [],
+      "geometry": {
+        "overflow": false,
+        "smallControls": [],
+        "svgLabels": [],
+        "smallInfoText": []
+      },
+      "reflow": [
+        {
+          "mode": "200% equivalent CSS viewport",
+          "width": 160,
+          "overflow": false,
+          "composerFits": null
+        }
+      ],
+      "pageErrors": [],
+      "blockedRequests": []
+    },
+    {
+      "width": 320,
+      "height": 740,
+      "theme": "light",
+      "state": "selected",
+      "violations": [],
+      "geometry": {
+        "overflow": false,
+        "smallControls": [],
+        "svgLabels": [],
+        "smallInfoText": []
+      },
+      "reflow": [
+        {
+          "mode": "200% equivalent CSS viewport",
+          "width": 160,
+          "overflow": false,
+          "composerFits": null
+        }
+      ],
+      "pageErrors": [],
+      "blockedRequests": []
+    },
+    {
+      "width": 320,
+      "height": 740,
+      "theme": "light",
+      "state": "methods",
+      "violations": [],
+      "geometry": {
+        "overflow": false,
+        "smallControls": [],
+        "svgLabels": [],
+        "smallInfoText": []
+      },
+      "reflow": [
+        {
+          "mode": "200% equivalent CSS viewport",
+          "width": 160,
+          "overflow": false,
+          "composerFits": null
+        }
+      ],
+      "pageErrors": [],
+      "blockedRequests": []
+    },
+    {
+      "width": 320,
+      "height": 740,
+      "theme": "light",
+      "state": "setup",
+      "violations": [],
+      "geometry": {
+        "overflow": false,
+        "smallControls": [],
+        "svgLabels": [],
+        "smallInfoText": []
+      },
+      "reflow": [
+        {
+          "mode": "200% equivalent CSS viewport",
+          "width": 160,
+          "overflow": false,
+          "composerFits": null
+        }
+      ],
+      "pageErrors": [],
+      "blockedRequests": []
+    },
+    {
+      "width": 320,
+      "height": 740,
+      "theme": "light",
+      "state": "empty",
+      "violations": [],
+      "geometry": {
+        "overflow": false,
+        "smallControls": [],
+        "svgLabels": [],
+        "smallInfoText": []
+      },
+      "reflow": [
+        {
+          "mode": "200% equivalent CSS viewport",
+          "width": 160,
+          "overflow": false,
+          "composerFits": true
+        }
+      ],
+      "pageErrors": [],
+      "blockedRequests": []
+    },
+    {
+      "width": 320,
+      "height": 740,
+      "theme": "light",
+      "state": "answer",
+      "violations": [],
+      "geometry": {
+        "overflow": false,
+        "smallControls": [],
+        "svgLabels": [],
+        "smallInfoText": []
+      },
+      "reflow": [
+        {
+          "mode": "200% equivalent CSS viewport",
+          "width": 160,
+          "overflow": false,
+          "composerFits": true
+        }
+      ],
+      "pageErrors": [],
+      "blockedRequests": []
+    },
+    {
+      "width": 320,
+      "height": 740,
+      "theme": "light",
+      "state": "expanded",
+      "violations": [],
+      "geometry": {
+        "overflow": false,
+        "smallControls": [],
+        "svgLabels": [],
+        "smallInfoText": []
+      },
+      "reflow": [
+        {
+          "mode": "200% equivalent CSS viewport",
+          "width": 160,
+          "overflow": false,
+          "composerFits": true
+        }
+      ],
+      "pageErrors": [],
+      "blockedRequests": []
+    },
+    {
+      "width": 320,
+      "height": 740,
+      "theme": "light",
+      "state": "error",
+      "violations": [],
+      "geometry": {
+        "overflow": false,
+        "smallControls": [],
+        "svgLabels": [],
+        "smallInfoText": []
+      },
+      "reflow": [
+        {
+          "mode": "200% equivalent CSS viewport",
+          "width": 160,
+          "overflow": false,
+          "composerFits": true
+        }
+      ],
+      "pageErrors": [],
+      "blockedRequests": []
+    },
+    {
+      "width": 320,
+      "height": 740,
+      "theme": "dark",
+      "state": "landing",
+      "violations": [],
+      "geometry": {
+        "overflow": false,
+        "smallControls": [],
+        "svgLabels": [],
+        "smallInfoText": []
+      },
+      "reflow": [
+        {
+          "mode": "200% equivalent CSS viewport",
+          "width": 160,
+          "overflow": false,
+          "composerFits": null
+        }
+      ],
+      "pageErrors": [],
+      "blockedRequests": []
+    },
+    {
+      "width": 320,
+      "height": 740,
+      "theme": "dark",
+      "state": "selected",
+      "violations": [],
+      "geometry": {
+        "overflow": false,
+        "smallControls": [],
+        "svgLabels": [],
+        "smallInfoText": []
+      },
+      "reflow": [
+        {
+          "mode": "200% equivalent CSS viewport",
+          "width": 160,
+          "overflow": false,
+          "composerFits": null
+        }
+      ],
+      "pageErrors": [],
+      "blockedRequests": []
+    },
+    {
+      "width": 320,
+      "height": 740,
+      "theme": "dark",
+      "state": "methods",
+      "violations": [],
+      "geometry": {
+        "overflow": false,
+        "smallControls": [],
+        "svgLabels": [],
+        "smallInfoText": []
+      },
+      "reflow": [
+        {
+          "mode": "200% equivalent CSS viewport",
+          "width": 160,
+          "overflow": false,
+          "composerFits": null
+        }
+      ],
+      "pageErrors": [],
+      "blockedRequests": []
+    },
+    {
+      "width": 320,
+      "height": 740,
+      "theme": "dark",
+      "state": "setup",
+      "violations": [],
+      "geometry": {
+        "overflow": false,
+        "smallControls": [],
+        "svgLabels": [],
+        "smallInfoText": []
+      },
+      "reflow": [
+        {
+          "mode": "200% equivalent CSS viewport",
+          "width": 160,
+          "overflow": false,
+          "composerFits": null
+        }
+      ],
+      "pageErrors": [],
+      "blockedRequests": []
+    },
+    {
+      "width": 320,
+      "height": 740,
+      "theme": "dark",
+      "state": "empty",
+      "violations": [],
+      "geometry": {
+        "overflow": false,
+        "smallControls": [],
+        "svgLabels": [],
+        "smallInfoText": []
+      },
+      "reflow": [
+        {
+          "mode": "200% equivalent CSS viewport",
+          "width": 160,
+          "overflow": false,
+          "composerFits": true
+        }
+      ],
+      "pageErrors": [],
+      "blockedRequests": []
+    },
+    {
+      "width": 320,
+      "height": 740,
+      "theme": "dark",
+      "state": "answer",
+      "violations": [],
+      "geometry": {
+        "overflow": false,
+        "smallControls": [],
+        "svgLabels": [],
+        "smallInfoText": []
+      },
+      "reflow": [
+        {
+          "mode": "200% equivalent CSS viewport",
+          "width": 160,
+          "overflow": false,
+          "composerFits": true
+        }
+      ],
+      "pageErrors": [],
+      "blockedRequests": []
+    },
+    {
+      "width": 320,
+      "height": 740,
+      "theme": "dark",
+      "state": "expanded",
+      "violations": [],
+      "geometry": {
+        "overflow": false,
+        "smallControls": [],
+        "svgLabels": [],
+        "smallInfoText": []
+      },
+      "reflow": [
+        {
+          "mode": "200% equivalent CSS viewport",
+          "width": 160,
+          "overflow": false,
+          "composerFits": true
+        }
+      ],
+      "pageErrors": [],
+      "blockedRequests": []
+    },
+    {
+      "width": 320,
+      "height": 740,
+      "theme": "dark",
+      "state": "error",
+      "violations": [],
+      "geometry": {
+        "overflow": false,
+        "smallControls": [],
+        "svgLabels": [],
+        "smallInfoText": []
+      },
+      "reflow": [
+        {
+          "mode": "200% equivalent CSS viewport",
+          "width": 160,
+          "overflow": false,
+          "composerFits": true
+        }
+      ],
+      "pageErrors": [],
+      "blockedRequests": []
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "state": "landing",
+      "violations": [],
+      "geometry": {
+        "overflow": false,
+        "smallControls": [],
+        "svgLabels": [],
+        "smallInfoText": []
+      },
+      "reflow": [
+        {
+          "mode": "200% equivalent CSS viewport",
+          "width": 195,
+          "overflow": false,
+          "composerFits": null
+        }
+      ],
+      "pageErrors": [],
+      "blockedRequests": []
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "state": "selected",
+      "violations": [],
+      "geometry": {
+        "overflow": false,
+        "smallControls": [],
+        "svgLabels": [],
+        "smallInfoText": []
+      },
+      "reflow": [
+        {
+          "mode": "200% equivalent CSS viewport",
+          "width": 195,
+          "overflow": false,
+          "composerFits": null
+        }
+      ],
+      "pageErrors": [],
+      "blockedRequests": []
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "state": "methods",
+      "violations": [],
+      "geometry": {
+        "overflow": false,
+        "smallControls": [],
+        "svgLabels": [],
+        "smallInfoText": []
+      },
+      "reflow": [
+        {
+          "mode": "200% equivalent CSS viewport",
+          "width": 195,
+          "overflow": false,
+          "composerFits": null
+        }
+      ],
+      "pageErrors": [],
+      "blockedRequests": []
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "state": "setup",
+      "violations": [],
+      "geometry": {
+        "overflow": false,
+        "smallControls": [],
+        "svgLabels": [],
+        "smallInfoText": []
+      },
+      "reflow": [
+        {
+          "mode": "200% equivalent CSS viewport",
+          "width": 195,
+          "overflow": false,
+          "composerFits": null
+        }
+      ],
+      "pageErrors": [],
+      "blockedRequests": []
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "state": "empty",
+      "violations": [],
+      "geometry": {
+        "overflow": false,
+        "smallControls": [],
+        "svgLabels": [],
+        "smallInfoText": []
+      },
+      "reflow": [
+        {
+          "mode": "200% equivalent CSS viewport",
+          "width": 195,
+          "overflow": false,
+          "composerFits": true
+        }
+      ],
+      "pageErrors": [],
+      "blockedRequests": []
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "state": "answer",
+      "violations": [],
+      "geometry": {
+        "overflow": false,
+        "smallControls": [],
+        "svgLabels": [],
+        "smallInfoText": []
+      },
+      "reflow": [
+        {
+          "mode": "200% equivalent CSS viewport",
+          "width": 195,
+          "overflow": false,
+          "composerFits": true
+        }
+      ],
+      "pageErrors": [],
+      "blockedRequests": []
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "state": "expanded",
+      "violations": [],
+      "geometry": {
+        "overflow": false,
+        "smallControls": [],
+        "svgLabels": [],
+        "smallInfoText": []
+      },
+      "reflow": [
+        {
+          "mode": "200% equivalent CSS viewport",
+          "width": 195,
+          "overflow": false,
+          "composerFits": true
+        }
+      ],
+      "pageErrors": [],
+      "blockedRequests": []
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "state": "error",
+      "violations": [],
+      "geometry": {
+        "overflow": false,
+        "smallControls": [],
+        "svgLabels": [],
+        "smallInfoText": []
+      },
+      "reflow": [
+        {
+          "mode": "200% equivalent CSS viewport",
+          "width": 195,
+          "overflow": false,
+          "composerFits": true
+        }
+      ],
+      "pageErrors": [],
+      "blockedRequests": []
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "state": "landing",
+      "violations": [],
+      "geometry": {
+        "overflow": false,
+        "smallControls": [],
+        "svgLabels": [],
+        "smallInfoText": []
+      },
+      "reflow": [
+        {
+          "mode": "200% equivalent CSS viewport",
+          "width": 195,
+          "overflow": false,
+          "composerFits": null
+        }
+      ],
+      "pageErrors": [],
+      "blockedRequests": []
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "state": "selected",
+      "violations": [],
+      "geometry": {
+        "overflow": false,
+        "smallControls": [],
+        "svgLabels": [],
+        "smallInfoText": []
+      },
+      "reflow": [
+        {
+          "mode": "200% equivalent CSS viewport",
+          "width": 195,
+          "overflow": false,
+          "composerFits": null
+        }
+      ],
+      "pageErrors": [],
+      "blockedRequests": []
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "state": "methods",
+      "violations": [],
+      "geometry": {
+        "overflow": false,
+        "smallControls": [],
+        "svgLabels": [],
+        "smallInfoText": []
+      },
+      "reflow": [
+        {
+          "mode": "200% equivalent CSS viewport",
+          "width": 195,
+          "overflow": false,
+          "composerFits": null
+        }
+      ],
+      "pageErrors": [],
+      "blockedRequests": []
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "state": "setup",
+      "violations": [],
+      "geometry": {
+        "overflow": false,
+        "smallControls": [],
+        "svgLabels": [],
+        "smallInfoText": []
+      },
+      "reflow": [
+        {
+          "mode": "200% equivalent CSS viewport",
+          "width": 195,
+          "overflow": false,
+          "composerFits": null
+        }
+      ],
+      "pageErrors": [],
+      "blockedRequests": []
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "state": "empty",
+      "violations": [],
+      "geometry": {
+        "overflow": false,
+        "smallControls": [],
+        "svgLabels": [],
+        "smallInfoText": []
+      },
+      "reflow": [
+        {
+          "mode": "200% equivalent CSS viewport",
+          "width": 195,
+          "overflow": false,
+          "composerFits": true
+        }
+      ],
+      "pageErrors": [],
+      "blockedRequests": []
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "state": "answer",
+      "violations": [],
+      "geometry": {
+        "overflow": false,
+        "smallControls": [],
+        "svgLabels": [],
+        "smallInfoText": []
+      },
+      "reflow": [
+        {
+          "mode": "200% equivalent CSS viewport",
+          "width": 195,
+          "overflow": false,
+          "composerFits": true
+        }
+      ],
+      "pageErrors": [],
+      "blockedRequests": []
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "state": "expanded",
+      "violations": [],
+      "geometry": {
+        "overflow": false,
+        "smallControls": [],
+        "svgLabels": [],
+        "smallInfoText": []
+      },
+      "reflow": [
+        {
+          "mode": "200% equivalent CSS viewport",
+          "width": 195,
+          "overflow": false,
+          "composerFits": true
+        }
+      ],
+      "pageErrors": [],
+      "blockedRequests": []
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "state": "error",
+      "violations": [],
+      "geometry": {
+        "overflow": false,
+        "smallControls": [],
+        "svgLabels": [],
+        "smallInfoText": []
+      },
+      "reflow": [
+        {
+          "mode": "200% equivalent CSS viewport",
+          "width": 195,
+          "overflow": false,
+          "composerFits": true
+        }
+      ],
+      "pageErrors": [],
+      "blockedRequests": []
+    },
+    {
+      "width": 430,
+      "height": 932,
+      "theme": "light",
+      "state": "landing",
+      "violations": [],
+      "geometry": {
+        "overflow": false,
+        "smallControls": [],
+        "svgLabels": [],
+        "smallInfoText": []
+      },
+      "reflow": [
+        {
+          "mode": "200% equivalent CSS viewport",
+          "width": 215,
+          "overflow": false,
+          "composerFits": null
+        }
+      ],
+      "pageErrors": [],
+      "blockedRequests": []
+    },
+    {
+      "width": 430,
+      "height": 932,
+      "theme": "light",
+      "state": "selected",
+      "violations": [],
+      "geometry": {
+        "overflow": false,
+        "smallControls": [],
+        "svgLabels": [],
+        "smallInfoText": []
+      },
+      "reflow": [
+        {
+          "mode": "200% equivalent CSS viewport",
+          "width": 215,
+          "overflow": false,
+          "composerFits": null
+        }
+      ],
+      "pageErrors": [],
+      "blockedRequests": []
+    },
+    {
+      "width": 430,
+      "height": 932,
+      "theme": "light",
+      "state": "methods",
+      "violations": [],
+      "geometry": {
+        "overflow": false,
+        "smallControls": [],
+        "svgLabels": [],
+        "smallInfoText": []
+      },
+      "reflow": [
+        {
+          "mode": "200% equivalent CSS viewport",
+          "width": 215,
+          "overflow": false,
+          "composerFits": null
+        }
+      ],
+      "pageErrors": [],
+      "blockedRequests": []
+    },
+    {
+      "width": 430,
+      "height": 932,
+      "theme": "light",
+      "state": "setup",
+      "violations": [],
+      "geometry": {
+        "overflow": false,
+        "smallControls": [],
+        "svgLabels": [],
+        "smallInfoText": []
+      },
+      "reflow": [
+        {
+          "mode": "200% equivalent CSS viewport",
+          "width": 215,
+          "overflow": false,
+          "composerFits": null
+        }
+      ],
+      "pageErrors": [],
+      "blockedRequests": []
+    },
+    {
+      "width": 430,
+      "height": 932,
+      "theme": "light",
+      "state": "empty",
+      "violations": [],
+      "geometry": {
+        "overflow": false,
+        "smallControls": [],
+        "svgLabels": [],
+        "smallInfoText": []
+      },
+      "reflow": [
+        {
+          "mode": "200% equivalent CSS viewport",
+          "width": 215,
+          "overflow": false,
+          "composerFits": true
+        }
+      ],
+      "pageErrors": [],
+      "blockedRequests": []
+    },
+    {
+      "width": 430,
+      "height": 932,
+      "theme": "light",
+      "state": "answer",
+      "violations": [],
+      "geometry": {
+        "overflow": false,
+        "smallControls": [],
+        "svgLabels": [],
+        "smallInfoText": []
+      },
+      "reflow": [
+        {
+          "mode": "200% equivalent CSS viewport",
+          "width": 215,
+          "overflow": false,
+          "composerFits": true
+        }
+      ],
+      "pageErrors": [],
+      "blockedRequests": []
+    },
+    {
+      "width": 430,
+      "height": 932,
+      "theme": "light",
+      "state": "expanded",
+      "violations": [],
+      "geometry": {
+        "overflow": false,
+        "smallControls": [],
+        "svgLabels": [],
+        "smallInfoText": []
+      },
+      "reflow": [
+        {
+          "mode": "200% equivalent CSS viewport",
+          "width": 215,
+          "overflow": false,
+          "composerFits": true
+        }
+      ],
+      "pageErrors": [],
+      "blockedRequests": []
+    },
+    {
+      "width": 430,
+      "height": 932,
+      "theme": "light",
+      "state": "error",
+      "violations": [],
+      "geometry": {
+        "overflow": false,
+        "smallControls": [],
+        "svgLabels": [],
+        "smallInfoText": []
+      },
+      "reflow": [
+        {
+          "mode": "200% equivalent CSS viewport",
+          "width": 215,
+          "overflow": false,
+          "composerFits": true
+        }
+      ],
+      "pageErrors": [],
+      "blockedRequests": []
+    },
+    {
+      "width": 430,
+      "height": 932,
+      "theme": "dark",
+      "state": "landing",
+      "violations": [],
+      "geometry": {
+        "overflow": false,
+        "smallControls": [],
+        "svgLabels": [],
+        "smallInfoText": []
+      },
+      "reflow": [
+        {
+          "mode": "200% equivalent CSS viewport",
+          "width": 215,
+          "overflow": false,
+          "composerFits": null
+        }
+      ],
+      "pageErrors": [],
+      "blockedRequests": []
+    },
+    {
+      "width": 430,
+      "height": 932,
+      "theme": "dark",
+      "state": "selected",
+      "violations": [],
+      "geometry": {
+        "overflow": false,
+        "smallControls": [],
+        "svgLabels": [],
+        "smallInfoText": []
+      },
+      "reflow": [
+        {
+          "mode": "200% equivalent CSS viewport",
+          "width": 215,
+          "overflow": false,
+          "composerFits": null
+        }
+      ],
+      "pageErrors": [],
+      "blockedRequests": []
+    },
+    {
+      "width": 430,
+      "height": 932,
+      "theme": "dark",
+      "state": "methods",
+      "violations": [],
+      "geometry": {
+        "overflow": false,
+        "smallControls": [],
+        "svgLabels": [],
+        "smallInfoText": []
+      },
+      "reflow": [
+        {
+          "mode": "200% equivalent CSS viewport",
+          "width": 215,
+          "overflow": false,
+          "composerFits": null
+        }
+      ],
+      "pageErrors": [],
+      "blockedRequests": []
+    },
+    {
+      "width": 430,
+      "height": 932,
+      "theme": "dark",
+      "state": "setup",
+      "violations": [],
+      "geometry": {
+        "overflow": false,
+        "smallControls": [],
+        "svgLabels": [],
+        "smallInfoText": []
+      },
+      "reflow": [
+        {
+          "mode": "200% equivalent CSS viewport",
+          "width": 215,
+          "overflow": false,
+          "composerFits": null
+        }
+      ],
+      "pageErrors": [],
+      "blockedRequests": []
+    },
+    {
+      "width": 430,
+      "height": 932,
+      "theme": "dark",
+      "state": "empty",
+      "violations": [],
+      "geometry": {
+        "overflow": false,
+        "smallControls": [],
+        "svgLabels": [],
+        "smallInfoText": []
+      },
+      "reflow": [
+        {
+          "mode": "200% equivalent CSS viewport",
+          "width": 215,
+          "overflow": false,
+          "composerFits": true
+        }
+      ],
+      "pageErrors": [],
+      "blockedRequests": []
+    },
+    {
+      "width": 430,
+      "height": 932,
+      "theme": "dark",
+      "state": "answer",
+      "violations": [],
+      "geometry": {
+        "overflow": false,
+        "smallControls": [],
+        "svgLabels": [],
+        "smallInfoText": []
+      },
+      "reflow": [
+        {
+          "mode": "200% equivalent CSS viewport",
+          "width": 215,
+          "overflow": false,
+          "composerFits": true
+        }
+      ],
+      "pageErrors": [],
+      "blockedRequests": []
+    },
+    {
+      "width": 430,
+      "height": 932,
+      "theme": "dark",
+      "state": "expanded",
+      "violations": [],
+      "geometry": {
+        "overflow": false,
+        "smallControls": [],
+        "svgLabels": [],
+        "smallInfoText": []
+      },
+      "reflow": [
+        {
+          "mode": "200% equivalent CSS viewport",
+          "width": 215,
+          "overflow": false,
+          "composerFits": true
+        }
+      ],
+      "pageErrors": [],
+      "blockedRequests": []
+    },
+    {
+      "width": 430,
+      "height": 932,
+      "theme": "dark",
+      "state": "error",
+      "violations": [],
+      "geometry": {
+        "overflow": false,
+        "smallControls": [],
+        "svgLabels": [],
+        "smallInfoText": []
+      },
+      "reflow": [
+        {
+          "mode": "200% equivalent CSS viewport",
+          "width": 215,
+          "overflow": false,
+          "composerFits": true
+        }
+      ],
+      "pageErrors": [],
+      "blockedRequests": []
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "theme": "light",
+      "state": "landing",
+      "violations": [],
+      "geometry": {
+        "overflow": false,
+        "smallControls": [],
+        "svgLabels": [],
+        "smallInfoText": []
+      },
+      "reflow": [
+        {
+          "mode": "200% equivalent CSS viewport",
+          "width": 720,
+          "overflow": false,
+          "composerFits": null
+        }
+      ],
+      "pageErrors": [],
+      "blockedRequests": []
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "theme": "light",
+      "state": "selected",
+      "violations": [],
+      "geometry": {
+        "overflow": false,
+        "smallControls": [],
+        "svgLabels": [],
+        "smallInfoText": []
+      },
+      "reflow": [
+        {
+          "mode": "200% equivalent CSS viewport",
+          "width": 720,
+          "overflow": false,
+          "composerFits": null
+        }
+      ],
+      "pageErrors": [],
+      "blockedRequests": []
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "theme": "light",
+      "state": "methods",
+      "violations": [],
+      "geometry": {
+        "overflow": false,
+        "smallControls": [],
+        "svgLabels": [],
+        "smallInfoText": []
+      },
+      "reflow": [
+        {
+          "mode": "200% equivalent CSS viewport",
+          "width": 720,
+          "overflow": false,
+          "composerFits": null
+        }
+      ],
+      "pageErrors": [],
+      "blockedRequests": []
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "theme": "light",
+      "state": "setup",
+      "violations": [],
+      "geometry": {
+        "overflow": false,
+        "smallControls": [],
+        "svgLabels": [],
+        "smallInfoText": []
+      },
+      "reflow": [
+        {
+          "mode": "200% equivalent CSS viewport",
+          "width": 720,
+          "overflow": false,
+          "composerFits": null
+        }
+      ],
+      "pageErrors": [],
+      "blockedRequests": []
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "theme": "light",
+      "state": "empty",
+      "violations": [],
+      "geometry": {
+        "overflow": false,
+        "smallControls": [],
+        "svgLabels": [],
+        "smallInfoText": []
+      },
+      "reflow": [
+        {
+          "mode": "200% equivalent CSS viewport",
+          "width": 720,
+          "overflow": false,
+          "composerFits": true
+        }
+      ],
+      "pageErrors": [],
+      "blockedRequests": []
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "theme": "light",
+      "state": "answer",
+      "violations": [],
+      "geometry": {
+        "overflow": false,
+        "smallControls": [],
+        "svgLabels": [],
+        "smallInfoText": []
+      },
+      "reflow": [
+        {
+          "mode": "200% equivalent CSS viewport",
+          "width": 720,
+          "overflow": false,
+          "composerFits": true
+        }
+      ],
+      "pageErrors": [],
+      "blockedRequests": []
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "theme": "light",
+      "state": "expanded",
+      "violations": [],
+      "geometry": {
+        "overflow": false,
+        "smallControls": [],
+        "svgLabels": [],
+        "smallInfoText": []
+      },
+      "reflow": [
+        {
+          "mode": "200% equivalent CSS viewport",
+          "width": 720,
+          "overflow": false,
+          "composerFits": true
+        }
+      ],
+      "pageErrors": [],
+      "blockedRequests": []
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "theme": "light",
+      "state": "error",
+      "violations": [],
+      "geometry": {
+        "overflow": false,
+        "smallControls": [],
+        "svgLabels": [],
+        "smallInfoText": []
+      },
+      "reflow": [
+        {
+          "mode": "200% equivalent CSS viewport",
+          "width": 720,
+          "overflow": false,
+          "composerFits": true
+        }
+      ],
+      "pageErrors": [],
+      "blockedRequests": []
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "theme": "dark",
+      "state": "landing",
+      "violations": [],
+      "geometry": {
+        "overflow": false,
+        "smallControls": [],
+        "svgLabels": [],
+        "smallInfoText": []
+      },
+      "reflow": [
+        {
+          "mode": "200% equivalent CSS viewport",
+          "width": 720,
+          "overflow": false,
+          "composerFits": null
+        }
+      ],
+      "pageErrors": [],
+      "blockedRequests": []
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "theme": "dark",
+      "state": "selected",
+      "violations": [],
+      "geometry": {
+        "overflow": false,
+        "smallControls": [],
+        "svgLabels": [],
+        "smallInfoText": []
+      },
+      "reflow": [
+        {
+          "mode": "200% equivalent CSS viewport",
+          "width": 720,
+          "overflow": false,
+          "composerFits": null
+        }
+      ],
+      "pageErrors": [],
+      "blockedRequests": []
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "theme": "dark",
+      "state": "methods",
+      "violations": [],
+      "geometry": {
+        "overflow": false,
+        "smallControls": [],
+        "svgLabels": [],
+        "smallInfoText": []
+      },
+      "reflow": [
+        {
+          "mode": "200% equivalent CSS viewport",
+          "width": 720,
+          "overflow": false,
+          "composerFits": null
+        }
+      ],
+      "pageErrors": [],
+      "blockedRequests": []
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "theme": "dark",
+      "state": "setup",
+      "violations": [],
+      "geometry": {
+        "overflow": false,
+        "smallControls": [],
+        "svgLabels": [],
+        "smallInfoText": []
+      },
+      "reflow": [
+        {
+          "mode": "200% equivalent CSS viewport",
+          "width": 720,
+          "overflow": false,
+          "composerFits": null
+        }
+      ],
+      "pageErrors": [],
+      "blockedRequests": []
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "theme": "dark",
+      "state": "empty",
+      "violations": [],
+      "geometry": {
+        "overflow": false,
+        "smallControls": [],
+        "svgLabels": [],
+        "smallInfoText": []
+      },
+      "reflow": [
+        {
+          "mode": "200% equivalent CSS viewport",
+          "width": 720,
+          "overflow": false,
+          "composerFits": true
+        }
+      ],
+      "pageErrors": [],
+      "blockedRequests": []
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "theme": "dark",
+      "state": "answer",
+      "violations": [],
+      "geometry": {
+        "overflow": false,
+        "smallControls": [],
+        "svgLabels": [],
+        "smallInfoText": []
+      },
+      "reflow": [
+        {
+          "mode": "200% equivalent CSS viewport",
+          "width": 720,
+          "overflow": false,
+          "composerFits": true
+        }
+      ],
+      "pageErrors": [],
+      "blockedRequests": []
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "theme": "dark",
+      "state": "expanded",
+      "violations": [],
+      "geometry": {
+        "overflow": false,
+        "smallControls": [],
+        "svgLabels": [],
+        "smallInfoText": []
+      },
+      "reflow": [
+        {
+          "mode": "200% equivalent CSS viewport",
+          "width": 720,
+          "overflow": false,
+          "composerFits": true
+        }
+      ],
+      "pageErrors": [],
+      "blockedRequests": []
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "theme": "dark",
+      "state": "error",
+      "violations": [],
+      "geometry": {
+        "overflow": false,
+        "smallControls": [],
+        "svgLabels": [],
+        "smallInfoText": []
+      },
+      "reflow": [
+        {
+          "mode": "200% equivalent CSS viewport",
+          "width": 720,
+          "overflow": false,
+          "composerFits": true
+        }
+      ],
+      "pageErrors": [],
+      "blockedRequests": []
+    }
+  ]
+}

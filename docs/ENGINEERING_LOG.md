@@ -17,6 +17,48 @@ Entry template:
 
 ---
 
+## 2026-10-10 - Visual redesign prepared for review; strict visual gate unresolved
+
+**What changed:** A new isolated branch `feat/txisd-visual95-20261010` starts
+from actual published `14326baf497f782db702f12427d6432af1df46be`. Runtime
+scope is still only index.html and ask.js. The landing now leads with the
+recorded Dallas composition, separate source groups -> district match ->
+sourced answer, statewide grid/finder and actual historical trend. Shared
+website chat uses chart-first qualified dollar comparisons with readable
+source/date context, accessible disclosures and recovery states. Tests,
+recorded health, screenshots and independent review accompany the change.
+Both locked Python matrices pass 1,169/31 skipped, browser cases 106/106,
+accessibility surfaces 64/64. Capture ledger has 444 baseline/437 candidate
+images plus disclosure/cover-words evidence. Repository lint/syntax/lock and
+whitespace checks pass. See `docs/TXISD_VISUAL95_REDESIGN.md`.
+
+**Why:** The earlier hero-led revision retained a long textual journey. This
+candidate makes source-to-answer and real data more visible while preserving
+backend contracts, independent website chat, notices and honest fallbacks.
+Global LATL workflow used Luna audit, Astra plan, Terra implementation,
+targeted Sol escalations and fresh Luna verification. A01-A11 now pass;
+the strict area gate A12 does not: every measured surface is below 95%.
+N20/20 is a separate semantic check and never establishes an area pass.
+
+**Gotchas:** Current public health proves production source 14326, not master
+73df, correcting the older entry's live-source implication. Earlier approved
+PR #84 was promoted but remains draft/open; master has not moved. Preserve
+PR #82/#83 and unrelated original-checkout files. A static typography test
+mistook `!important` and inline markup for sizes; parsing now distinguishes
+them while retaining its six-size bound. Transient motion affected a broad
+axe run; reproducible reduced-motion audits and both browsers pass. C is
+semantic frame/text geometry, not painted area; P excludes SVG paint and
+generated CSS prose is omitted, preventing a certified 95% claim.
+
+**Open items:** This task authorizes draft PR/preview only. Obtain explicit
+design direction on the failed 95% gate and Gus's approval before any
+production-target build, merge, domain assignment or promotion. Independent
+ChatGPT account/public distribution is unverified; the owner route is
+qualified visibly. Python 3.11/Linux CI unavailable; Actions disabled. All
+chat checks are mocked, no paid quality test. No credentials/security/config
+changes, no outreach/contact mutation, no district emails. Production remains
+healthy at its prior approved revision.
+
 ## 2026-10-10 - Isolated visual landing and sourced website chat candidate
 
 **What changed:** A clean branch based on verified production/master
