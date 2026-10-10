@@ -1,0 +1,19 @@
+{
+  "checked_date": "2026-10-10",
+  "checks": [
+    {"url": "https://developers.openai.com/api/docs/guides/custom-mcp-server", "method": "HEAD", "status": 200},
+    {"url": "https://learn.chatgpt.com/docs/plugins", "method": "HEAD", "status": 200},
+    {"url": "https://txisd.dev/sources", "method": "GET", "status": 200},
+    {"url": "https://txisd.dev/about#privacy", "method": "GET", "status": 200},
+    {"url": "https://chatgpt.com/plugins", "method": "HEAD", "status": 403, "meaning": "Automated request blocked; setup destination independently researched from current official documentation. No independent-account install verified."},
+    {"url": "https://txisd.dev/mcp", "method": "GET", "status": 405, "meaning": "Protocol endpoint uses POST; this is not a website page or install destination."}
+  ],
+  "production_health": {
+    "url": "https://txisd.dev/health",
+    "status": "healthy",
+    "database": "connected",
+    "tracking_schema": "ready",
+    "revision": "73df1896ed0818020ec1c15c06f5ee823db7ec0f"
+  },
+  "boundary": "Read-only link and health checks. No account setup, paid queries, schema changes, merge, deploy, outreach or credential changes."
+}

@@ -1,0 +1,106 @@
+
+Running 78 tests using 2 workers
+
+
+
+(node:44240) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+(node:51032) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+(node:44240) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+
+(node:51032) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[1/78] [chromium] ΓÇ║ tests\browser\landing-chat.spec.js:61:3 ΓÇ║ landing, setup, and sourced chat at 320px
+[2/78] [chromium] ΓÇ║ tests\browser\public-regression.spec.js:308:3 ΓÇ║ C-FLOW-01 complete public workflow desktop 1440x900 light
+[3/78] [chromium] ΓÇ║ tests\browser\landing-chat.spec.js:61:3 ΓÇ║ landing, setup, and sourced chat at 390px
+[4/78] [chromium] ΓÇ║ tests\browser\landing-chat.spec.js:61:3 ΓÇ║ landing, setup, and sourced chat at 430px
+[5/78] [chromium] ΓÇ║ tests\browser\landing-chat.spec.js:61:3 ΓÇ║ landing, setup, and sourced chat at 1440px
+[6/78] [chromium] ΓÇ║ tests\browser\landing-chat.spec.js:126:1 ΓÇ║ visible Dallas example asks once with district context and returns focus
+[7/78] [chromium] ΓÇ║ tests\browser\landing-chat.spec.js:140:1 ΓÇ║ keyboard dismissal, focus trap, and reopening preserve the conversation
+[8/78] [chromium] ΓÇ║ tests\browser\landing-chat.spec.js:158:1 ΓÇ║ follow-up submission keeps original focus return and full question attribution
+[9/78] [chromium] ΓÇ║ tests\browser\landing-chat.spec.js:171:1 ΓÇ║ setup anchor remains usable for a returning district reader
+[10/78] [chromium] ΓÇ║ tests\browser\public-regression.spec.js:308:3 ΓÇ║ C-FLOW-01 complete public workflow desktop 1440x900 dark
+[11/78] [chromium] ΓÇ║ tests\browser\landing-chat.spec.js:179:1 ΓÇ║ setup disclosure toggles with keyboard and repeated setup links reopen it
+[12/78] [chromium] ΓÇ║ tests\browser\landing-chat.spec.js:199:3 ΓÇ║ rate limited has a manual retry that retains the question
+[13/78] [chromium] ΓÇ║ tests\browser\landing-chat.spec.js:199:3 ΓÇ║ service error has a manual retry that retains the question
+[14/78] [chromium] ΓÇ║ tests\browser\landing-chat.spec.js:199:3 ΓÇ║ network failure has a manual retry that retains the question
+[15/78] [chromium] ΓÇ║ tests\browser\landing-chat.spec.js:199:3 ΓÇ║ empty answer has a manual retry that retains the question
+[16/78] [chromium] ΓÇ║ tests\browser\landing-chat.spec.js:217:1 ΓÇ║ Stop cancels a pending question and Retry ignores its late response
+[17/78] [chromium] ΓÇ║ tests\browser\landing-chat.spec.js:241:1 ΓÇ║ empty chat gives examples; very short and composing input do not send
+[18/78] [chromium] ΓÇ║ tests\browser\landing-chat.spec.js:257:1 ΓÇ║ inline question uses shared chat once; missing widget leaves the fallback usable
+[19/78] [chromium] ΓÇ║ tests\browser\landing-chat.spec.js:274:1 ΓÇ║ dark theme preserves readable landing and chat at phone width
+[20/78] [chromium] ΓÇ║ tests\browser\landing-chat.spec.js:286:1 ΓÇ║ closing a loading chat cancels it and never moves focus into hidden controls
+[21/78] [chromium] ΓÇ║ tests\browser\public-regression.spec.js:308:3 ΓÇ║ C-FLOW-01 complete public workflow tablet 768x1024 light
+[22/78] [chromium] ΓÇ║ tests\browser\landing-chat.spec.js:300:1 ΓÇ║ bounded timeout has retry and no auto-resubmission
+[23/78] [chromium] ΓÇ║ tests\browser\landing-chat.spec.js:312:1 ΓÇ║ linked district context survives website-chat submission
+[24/78] [chromium] ΓÇ║ tests\browser\landing-chat.spec.js:321:1 ΓÇ║ structured hostile text is presented as text, never executed markup
+[25/78] [chromium] ΓÇ║ tests\browser\landing-chat.spec.js:330:1 ΓÇ║ new landing, setup and chat controls meet automated WCAG AA checks
+
+
+(node:46828) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+(node:46828) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[26/78] [firefox] ΓÇ║ tests\browser\landing-chat.spec.js:61:3 ΓÇ║ landing, setup, and sourced chat at 320px
+[27/78] [chromium] ΓÇ║ tests\browser\public-regression.spec.js:308:3 ΓÇ║ C-FLOW-01 complete public workflow tablet 768x1024 dark
+[28/78] [firefox] ΓÇ║ tests\browser\landing-chat.spec.js:61:3 ΓÇ║ landing, setup, and sourced chat at 390px
+[29/78] [firefox] ΓÇ║ tests\browser\landing-chat.spec.js:61:3 ΓÇ║ landing, setup, and sourced chat at 430px
+[30/78] [firefox] ΓÇ║ tests\browser\landing-chat.spec.js:61:3 ΓÇ║ landing, setup, and sourced chat at 1440px
+[31/78] [chromium] ΓÇ║ tests\browser\public-regression.spec.js:308:3 ΓÇ║ C-FLOW-01 complete public workflow mobile 390x844 light
+[32/78] [firefox] ΓÇ║ tests\browser\landing-chat.spec.js:126:1 ΓÇ║ visible Dallas example asks once with district context and returns focus
+[33/78] [firefox] ΓÇ║ tests\browser\landing-chat.spec.js:140:1 ΓÇ║ keyboard dismissal, focus trap, and reopening preserve the conversation
+[34/78] [firefox] ΓÇ║ tests\browser\landing-chat.spec.js:158:1 ΓÇ║ follow-up submission keeps original focus return and full question attribution
+[35/78] [firefox] ΓÇ║ tests\browser\landing-chat.spec.js:171:1 ΓÇ║ setup anchor remains usable for a returning district reader
+[36/78] [firefox] ΓÇ║ tests\browser\landing-chat.spec.js:179:1 ΓÇ║ setup disclosure toggles with keyboard and repeated setup links reopen it
+[37/78] [firefox] ΓÇ║ tests\browser\landing-chat.spec.js:199:3 ΓÇ║ rate limited has a manual retry that retains the question
+[38/78] [chromium] ΓÇ║ tests\browser\public-regression.spec.js:308:3 ΓÇ║ C-FLOW-01 complete public workflow mobile 390x844 dark
+[39/78] [firefox] ΓÇ║ tests\browser\landing-chat.spec.js:199:3 ΓÇ║ service error has a manual retry that retains the question
+[40/78] [firefox] ΓÇ║ tests\browser\landing-chat.spec.js:199:3 ΓÇ║ network failure has a manual retry that retains the question
+[41/78] [firefox] ΓÇ║ tests\browser\landing-chat.spec.js:199:3 ΓÇ║ empty answer has a manual retry that retains the question
+[42/78] [firefox] ΓÇ║ tests\browser\landing-chat.spec.js:217:1 ΓÇ║ Stop cancels a pending question and Retry ignores its late response
+[43/78] [firefox] ΓÇ║ tests\browser\landing-chat.spec.js:241:1 ΓÇ║ empty chat gives examples; very short and composing input do not send
+[44/78] [chromium] ΓÇ║ tests\browser\public-regression.spec.js:352:3 ΓÇ║ MAP-C4-01/02/03 active map/table parity desktop
+[45/78] [firefox] ΓÇ║ tests\browser\landing-chat.spec.js:257:1 ΓÇ║ inline question uses shared chat once; missing widget leaves the fallback usable
+[46/78] [firefox] ΓÇ║ tests\browser\landing-chat.spec.js:274:1 ΓÇ║ dark theme preserves readable landing and chat at phone width
+[47/78] [firefox] ΓÇ║ tests\browser\landing-chat.spec.js:286:1 ΓÇ║ closing a loading chat cancels it and never moves focus into hidden controls
+[48/78] [firefox] ΓÇ║ tests\browser\landing-chat.spec.js:300:1 ΓÇ║ bounded timeout has retry and no auto-resubmission
+[49/78] [firefox] ΓÇ║ tests\browser\landing-chat.spec.js:312:1 ΓÇ║ linked district context survives website-chat submission
+[50/78] [firefox] ΓÇ║ tests\browser\landing-chat.spec.js:321:1 ΓÇ║ structured hostile text is presented as text, never executed markup
+[51/78] [firefox] ΓÇ║ tests\browser\landing-chat.spec.js:330:1 ΓÇ║ new landing, setup and chat controls meet automated WCAG AA checks
+[52/78] [firefox] ΓÇ║ tests\browser\public-regression.spec.js:308:3 ΓÇ║ C-FLOW-01 complete public workflow desktop 1440x900 light
+[53/78] [firefox] ΓÇ║ tests\browser\public-regression.spec.js:308:3 ΓÇ║ C-FLOW-01 complete public workflow desktop 1440x900 dark
+[54/78] [chromium] ΓÇ║ tests\browser\public-regression.spec.js:352:3 ΓÇ║ MAP-C4-01/02/03 active map/table parity mobile
+[55/78] [firefox] ΓÇ║ tests\browser\public-regression.spec.js:308:3 ΓÇ║ C-FLOW-01 complete public workflow tablet 768x1024 light
+[56/78] [firefox] ΓÇ║ tests\browser\public-regression.spec.js:308:3 ΓÇ║ C-FLOW-01 complete public workflow tablet 768x1024 dark
+[57/78] [firefox] ΓÇ║ tests\browser\public-regression.spec.js:308:3 ΓÇ║ C-FLOW-01 complete public workflow mobile 390x844 light
+[58/78] [chromium] ΓÇ║ tests\browser\public-regression.spec.js:442:3 ΓÇ║ DIALOG-C4-01/02/03/04 keyboard modal lifecycle desktop
+[59/78] [chromium] ΓÇ║ tests\browser\public-regression.spec.js:442:3 ΓÇ║ DIALOG-C4-01/02/03/04 keyboard modal lifecycle mobile
+[60/78] [chromium] ΓÇ║ tests\browser\public-regression.spec.js:566:3 ΓÇ║ FRAME-03/05 Dallas and Argyle default finance frames desktop
+[61/78] [firefox] ΓÇ║ tests\browser\public-regression.spec.js:308:3 ΓÇ║ C-FLOW-01 complete public workflow mobile 390x844 dark
+[62/78] [chromium] ΓÇ║ tests\browser\public-regression.spec.js:566:3 ΓÇ║ FRAME-03/05 Dallas and Argyle default finance frames mobile
+[63/78] [chromium] ΓÇ║ tests\browser\public-regression.spec.js:612:1 ΓÇ║ C-OFFLINE-01 recorded normal districts never show the degraded banner
+[64/78] [chromium] ΓÇ║ tests\browser\public-regression.spec.js:631:1 ΓÇ║ C-OFFLINE-01 503 DB routes preserve artifacts and vendor-free maps
+[65/78] [chromium] ΓÇ║ tests\browser\public-regression.spec.js:666:1 ΓÇ║ C-A11Y-01 keyboard tasks, dialog return focus, 320px and 200% reflow
+[66/78] [chromium] ΓÇ║ tests\browser\public-regression.spec.js:741:1 ΓÇ║ C-FLOW-01 public route render inventory stays available
+[67/78] [firefox] ΓÇ║ tests\browser\public-regression.spec.js:352:3 ΓÇ║ MAP-C4-01/02/03 active map/table parity desktop
+[68/78] [chromium] ΓÇ║ tests\browser\public-regression.spec.js:754:1 ΓÇ║ POP-COMP-01 populated report cards retain numeric evidence and accessible detail
+[69/78] [firefox] ΓÇ║ tests\browser\public-regression.spec.js:352:3 ΓÇ║ MAP-C4-01/02/03 active map/table parity mobile
+[70/78] [firefox] ΓÇ║ tests\browser\public-regression.spec.js:442:3 ΓÇ║ DIALOG-C4-01/02/03/04 keyboard modal lifecycle desktop
+[71/78] [firefox] ΓÇ║ tests\browser\public-regression.spec.js:442:3 ΓÇ║ DIALOG-C4-01/02/03/04 keyboard modal lifecycle mobile
+[72/78] [firefox] ΓÇ║ tests\browser\public-regression.spec.js:566:3 ΓÇ║ FRAME-03/05 Dallas and Argyle default finance frames desktop
+[73/78] [firefox] ΓÇ║ tests\browser\public-regression.spec.js:566:3 ΓÇ║ FRAME-03/05 Dallas and Argyle default finance frames mobile
+[74/78] [firefox] ΓÇ║ tests\browser\public-regression.spec.js:612:1 ΓÇ║ C-OFFLINE-01 recorded normal districts never show the degraded banner
+[75/78] [firefox] ΓÇ║ tests\browser\public-regression.spec.js:631:1 ΓÇ║ C-OFFLINE-01 503 DB routes preserve artifacts and vendor-free maps
+[76/78] [firefox] ΓÇ║ tests\browser\public-regression.spec.js:666:1 ΓÇ║ C-A11Y-01 keyboard tasks, dialog return focus, 320px and 200% reflow
+[77/78] [firefox] ΓÇ║ tests\browser\public-regression.spec.js:741:1 ΓÇ║ C-FLOW-01 public route render inventory stays available
+[78/78] [firefox] ΓÇ║ tests\browser\public-regression.spec.js:754:1 ΓÇ║ POP-COMP-01 populated report cards retain numeric evidence and accessible detail
+  78 passed (3.4m)

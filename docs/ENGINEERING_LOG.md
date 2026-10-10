@@ -17,6 +17,18 @@ Entry template:
 
 ---
 
+## 2026-10-10 - Landing and website chat isolated for review; no release
+
+**What changed.** Located the actual BeastMode checkout and TAG-ai Vercel mapping for `txisd.dev`. Created branch `feat/txisd-visual-landing-chat-20261010` in an isolated worktree from `da1721a5ea40b60b76e9e3f9efe69fe67305daee`, preserving the source checkout's unrelated untracked work. Reworked `static/index.html` around a real Dallas FY2025 all-funds spending treemap, plain-language question, free/Gus/TAG/ChatGPT purpose and on-demand custom setup. Polished `static/ask.js` with Stop/Retry, timeout, cancellation, stale-response protection, readable source text, focus handling and inline fallback. Added mocked browser/data/accessibility evidence and review documentation. No backend, runtime dependency, generated data, security or deployment configuration changed.
+
+**Why.** The previous welcome and always-expanded guide still carried too much text. Fresh independent review rejected a 95/5 claim. A focused Astra revision removed duplicate charts/decorative flows and introduced one exact-area treemap with readable context. This is a concrete review draft, not a certified visual-ratio success or production release.
+
+**Gotchas.** Use the existing Python 3.12 virtual environment; default Python lacks project dependencies. Windows sandbox subprocess/temp errors required controlled test execution with a workspace basetemp. CRLF checkout altered byte-sensitive plugin schema and skill files; restoring their committed LF bytes fixed package checks without changing Git content. CSSOM rounds percentages to six significant digits, so rendered geometry is tested against recorded amounts with divider tolerance. Stop must replace the active loading bubble, not merely abort a request and leave its skeleton visible. The fixed source snapshot date is August 12, 2026, not a live-budget or verification date.
+
+**Open items.** Review `docs/LANDING_CHAT_REDESIGN.md`, fresh screenshots and final test receipt. The strict 95% visual / 5% text target remains a measured shortfall under painted-area scoring; do not reuse PR #82 report evidence for this landing. The ChatGPT custom setup route is documented, but independent-account installation, public directory approval and full native report/package installation remain unverified. Production publication, disabled Linux CI and human accessibility/participant evidence remain separate gates. Production is still `73df1896ed0818020ec1c15c06f5ee823db7ec0f`. No paid answer call, production SQL, district email, credential/account change, merge or release occurred.
+
+---
+
 ## 2026-10-07 — Public reports satisfy independently measured 95/5; package ready
 
 **What changed.** Completed the public report composition, financial scope/period labels, maps, focus/dialog handling, honest exports/print/offline behavior, public MCP resource, schema/metadata checks and portable plugin archive. All 72 final report cells pass initial/full 95/5 with independent agent inspection: 95.83% minimum full-report visual share; 98.29% minimum initial visual share. The 36 widget cells and 56 bridge checks pass. All 37 public recorded GETs and populated insights/turnarounds are retained; source hashes and compressed evidence identify the captured implementation. Root documentation inventories, dictionary and index are complete. Full Windows suite passed 1,227/60 skipped in each encoding mode; isolated finance verification passed 29 integration plus four runner checks. Actual preview tools/resources and source/health/figure checks passed at their recorded revision.

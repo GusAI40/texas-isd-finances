@@ -140,9 +140,13 @@
     '  background:var(--accent, #1a56a8); color:var(--accent-ink, #fff); }',
     '.ta-row button:focus-visible { outline:3px solid var(--ink, #14171a); outline-offset:2px; }',
     '.ta-row button[disabled] { opacity:.55; cursor:default; }',
+    '.ta-actions { display:flex; gap:.5rem; padding:0 1.25rem .4rem; }',
+    '.ta-actions button { min-height:38px; padding:.4rem .75rem; border-radius:9px; font:600 .9rem/1 system-ui,sans-serif; cursor:pointer; border:1px solid var(--rule,#cfd4d8); background:var(--bg,#fff); color:var(--ink,#14171a); }',
+    '.ta-actions .ta-stop { color:var(--accent,#1a56a8); border-color:var(--accent,#1a56a8); }',
+    '.ta-empty { margin:.2rem 1.25rem .55rem; padding:.65rem .75rem; border-left:2px solid var(--accent,#1a56a8); color:var(--muted,#5a6572); font-size:.88rem; line-height:1.45; }',
     '.ta-fine { margin:0; padding:.15rem 1.25rem calc(1rem + env(safe-area-inset-bottom, 0px));',
-    '  color:var(--faint, #8b95a1); font-size:.78rem; line-height:1.5; }',
-    '.ta-fine a { color:inherit; }',
+    '  color:var(--ink-2, #52606d); font-size:.78rem; line-height:1.5; }',
+    '.ta-fine a { color:var(--accent, #1a56a8); }',
     /* ---- the structured answer, drawn as components ---- */
     '.ta-msg.ai.rich .ta-bub { max-width:100%; background:var(--bg, #fff);',
     '  border-radius:4px 14px 14px 14px; padding:.85rem 1rem 1rem; }',
@@ -165,7 +169,7 @@
     '  letter-spacing:-.02em; font-variant-numeric:tabular-nums; }',
     '.ta-card span { display:block; margin-top:.2rem; font-size:.76rem;',
     '  text-transform:uppercase; letter-spacing:.05em; color:var(--muted, #5a6572); }',
-    '.ta-cap { margin:.4rem 0 0; font-size:.78rem; color:var(--faint, #8b95a1); }',
+    '.ta-cap { margin:.4rem 0 0; font-size:.78rem; color:var(--ink-2, #52606d); }',
     '.ta-lin { margin:.55rem 0 0; padding:.7rem .8rem; border-radius:10px;',
     '  border:1px solid var(--rule, #e3e6e8); background:var(--wash, #f4f5f4); }',
     '.ta-linhead { display:flex; align-items:center; gap:.5rem; flex-wrap:wrap; }',
@@ -204,8 +208,8 @@
     '.ta-next button:hover { background:var(--accent, #1a56a8); color:var(--accent-ink, #fff);',
     '  border-color:var(--accent, #1a56a8); }',
     '.ta-next button:focus-visible { outline:3px solid var(--ink, #14171a); outline-offset:2px; }',
-    '.ta-foot { margin:.75rem 0 0; font-size:.78rem; line-height:1.55; color:var(--faint, #8b95a1); }',
-    '.ta-foot a { color:inherit; }',
+    '.ta-foot { margin:.75rem 0 0; font-size:.78rem; line-height:1.55; color:var(--ink-2, #52606d); }',
+    '.ta-foot a { color:var(--accent, #1a56a8); }',
     '.ta-foot + .ta-foot { margin-top:.3rem; }',
     /* ---- beta chip + feedback ---- */
     '.m-beta { display:inline-block; margin-left:.45rem; padding:.1rem .4rem;',
@@ -261,6 +265,8 @@
   }
 
   var wrap, thread, input, sendBtn, chips, fab, sr, lastFocus, busy = false;
+  var controller = null, requestTimer = null, focusTimer = null, retryState = null, activeRequest = null, activeBubble = null;
+  var previousOverflow = '', focusSerial = 0;
 
   function build() {
     if (document.getElementById(STYLE_ID)) return;
@@ -284,6 +290,7 @@
       + '    <button class="ta-x" type="button" aria-label="Close">&times;</button>'
       + '  </div>'
       + '  <div class="ta-thread"></div>'
+      + '  <div class="ta-empty">Ask about a district&rsquo;s spending, debt, students, or a change over time.</div>'
       + '  <div class="ta-sr" aria-live="polite"></div>'
       + '  <div class="ta-chips" aria-label="Example questions"></div>'
       + '  <div class="ta-row">'
@@ -291,6 +298,7 @@
       + '           aria-label="Ask a question about any Texas district">'
       + '    <button type="button">Ask</button>'
       + '  </div>'
+      + '  <div class="ta-actions" hidden><button class="ta-stop" type="button">Stop</button><button class="ta-retry" type="button" hidden>Try again</button></div>'
       + '  <p class="ta-fine">AI answers from official TEA data and can make mistakes '
       + '&mdash; double-check important figures. Questions are kept on their own, with '
       + 'nothing that identifies you (<a href="/about#privacy">what we collect</a>).</p>'
@@ -302,6 +310,11 @@
     sendBtn = wrap.querySelector('.ta-row button');
     chips = wrap.querySelector('.ta-chips');
     sr = wrap.querySelector('.ta-sr');
+
+    wrap.querySelector('.ta-stop').addEventListener('click', stopRequest);
+    wrap.querySelector('.ta-retry').addEventListener('click', function () {
+      if (retryState) submit(retryState.question, retryState.districtNumber);
+    });
 
     STARTERS.forEach(function (q) {
       var b = h('<button type="button"></button>');
@@ -321,7 +334,10 @@
       /* a soft focus loop: Tab from the last control returns to the first,
          so keyboard readers cannot fall out of the dialog into the page */
       if (e.key === 'Tab' && wrap.classList.contains('open')) {
-        var focusables = wrap.querySelectorAll('button, input, a[href]');
+        var focusables = Array.prototype.filter.call(wrap.querySelectorAll('button, input, a[href]'), function (node) {
+          return !node.disabled && !node.hidden && node.offsetParent !== null;
+        });
+        if (!focusables.length) return;
         var first = focusables[0], last = focusables[focusables.length - 1];
         if (e.shiftKey && document.activeElement === first) {
           e.preventDefault(); last.focus();
@@ -334,19 +350,28 @@
 
   function open() {
     build();
+    if (wrap.classList.contains('open') && !wrap.hidden) return;
     lastFocus = document.activeElement;
     wrap.hidden = false;
     /* two frames so the animation class change actually transitions */
     requestAnimationFrame(function () { wrap.classList.add('open'); });
+    previousOverflow = document.documentElement.style.overflow;
     document.documentElement.style.overflow = 'hidden';
-    setTimeout(function () { input.focus(); }, reduce ? 0 : 220);
+    var serial = ++focusSerial;
+    clearTimeout(focusTimer);
+    focusTimer = setTimeout(function () {
+      if (serial === focusSerial && !wrap.hidden && document.activeElement === lastFocus) input.focus();
+    }, reduce ? 0 : 220);
   }
 
   function close() {
     if (!wrap) return;
+    stopRequest(true);
+    ++focusSerial;
+    clearTimeout(focusTimer);
     wrap.classList.remove('open');
     wrap.hidden = true;
-    document.documentElement.style.overflow = '';
+    document.documentElement.style.overflow = previousOverflow;
     if (lastFocus && lastFocus.focus) lastFocus.focus();
   }
 
@@ -637,39 +662,80 @@
     return parts.join(' ').replace(/\s+/g, ' ').trim();
   }
 
-  function submit() {
-    var q = (input.value || '').trim();
+  function setRequestControls(active) {
+    var actions = wrap && wrap.querySelector('.ta-actions');
+    var stop = wrap && wrap.querySelector('.ta-stop');
+    var retry = wrap && wrap.querySelector('.ta-retry');
+    if (actions) actions.hidden = !active && !retryState;
+    if (stop) stop.hidden = !active;
+    if (retry) retry.hidden = active || !retryState;
+  }
+
+  function endRequest() {
+    clearTimeout(requestTimer); requestTimer = null; controller = null;
+    activeRequest = null; activeBubble = null;
+    busy = false;
+    if (sendBtn) sendBtn.disabled = false;
+    setRequestControls(false);
+  }
+
+  function stopRequest(closing) {
+    if (!busy) return;
+    ++token;
+    if (controller) controller.abort();
+    retryState = activeRequest;
+    if (activeBubble) activeBubble.textContent = closing
+      ? 'Request canceled.' : 'Stopped. You can try that question again.';
+    endRequest();
+  }
+
+  function submit(question, requestedDistrict) {
+    if (question && typeof question !== 'string') question = null;
+    var q = String(question == null ? input.value : question).trim();
     if (q.length < 3 || busy) return;
     var mine = ++token;
     busy = true;
     sendBtn.disabled = true;
     input.value = '';
     chips.style.display = 'none';
+    wrap.querySelector('.ta-empty').hidden = true;
+    retryState = null;
+    setRequestControls(true);
 
     bubble('me').textContent = q;
     var bub = bubble('ai');
+    activeBubble = bub;
     bub.innerHTML = '<span class="ta-think">Reading the official data&hellip;</span>'
       + '<span class="ta-skel" aria-hidden="true"><i></i><i></i><i></i></span>';
 
+    var followup = pendingFollowup;
+    pendingFollowup = null; // consume at request start, including aborted requests
+    var district = requestedDistrict || districtNumber();
+    activeRequest = { question: q, districtNumber: district };
+    controller = new AbortController();
+    requestTimer = setTimeout(function () {
+      if (mine === token && controller) controller.abort();
+    }, 45000);
     fetch('/query', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      signal: controller.signal,
       body: JSON.stringify({
         question: q,
-        district_number: districtNumber(),
+        district_number: district,
         conversation_id: conversationId(),
         turn: ++turnNo,
         /* which chip produced this question, if any — the only way to find
            out whether the suggestions help or merely decorate */
-        followup_label: pendingFollowup,
+        followup_label: followup,
       }),
     }).then(function (r) {
-      pendingFollowup = null;      // credited once, to the question it produced
       return r.json().catch(function () { return {}; }).then(function (body) {
         return { status: r.status, body: body };
       });
     }).then(function (res) {
       if (mine !== token) return;
+      endRequest();
       var text;
       if (res.status === 429) {
         text = 'A lot of people are asking right now — please wait a minute '
@@ -686,13 +752,25 @@
         render(bub, res.body.structured, mine);
         return;
       } else {
-        text = res.body.answer || 'No answer came back. Please try rephrasing.';
+        text = res.body.answer || 'No answer came back. Please try again.';
+        if (!res.body.answer) {
+          retryState = { question: q, districtNumber: district };
+          setRequestControls(false);
+        }
+      }
+      if (res.status >= 400 || !res.body || res.body.success === false) {
+        retryState = { question: q, districtNumber: district };
+        setRequestControls(false);
       }
       reveal(bub, text, mine);
-    }).catch(function () {
+    }).catch(function (err) {
       if (mine !== token) return;
-      finish(bub, 'The question service could not be reached. Please check '
-        + 'your connection and try again.');
+      endRequest();
+      retryState = { question: q, districtNumber: district };
+      setRequestControls(false);
+      finish(bub, err && err.name === 'AbortError'
+        ? 'The request timed out. Try again when you are ready.'
+        : 'The question service could not be reached. Please check your connection and try again.');
     });
   }
 
@@ -703,7 +781,7 @@
     if (sr) sr.textContent = text;
     busy = false;
     sendBtn.disabled = false;
-    input.focus();
+    if (wrap && !wrap.hidden) input.focus();
     thread.scrollTop = thread.scrollHeight;
   }
 
@@ -741,7 +819,7 @@
     if (sr) sr.textContent = text;
     busy = false;
     sendBtn.disabled = false;
-    input.focus();
+    if (wrap && !wrap.hidden) input.focus();
     thread.scrollTop = thread.scrollHeight;
   }
 
@@ -959,6 +1037,10 @@
   window.TISDAsk = {
     open: open,
     close: close,
+    ask: function (question, districtNumber) {
+      open();
+      submit(question, districtNumber || null);
+    },
     render: function (target, structured, alive) {
       build();
       renderInto(target, structured, alive, null);

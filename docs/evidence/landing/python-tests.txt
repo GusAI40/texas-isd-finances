@@ -1,0 +1,34 @@
+.............s.......................................................... [  5%]
+........................................................................ [ 11%]
+........................................................................ [ 16%]
+...........................................s............................ [ 22%]
+...........................................s..ss....ssssssssssssssssssss [ 27%]
+sssssssss............................................................... [ 33%]
+........................................................................ [ 39%]
+........................................................................ [ 44%]
+........................................ss.............................. [ 50%]
+........................................................................ [ 55%]
+.......................ss............................................... [ 61%]
+........................................................................ [ 67%]
+.................................................s..................ssss [ 72%]
+ssssssssssss..s.ss.s.................................................... [ 78%]
+........................................................................ [ 83%]
+........................................................................ [ 89%]
+........................................................................ [ 95%]
+..............................................................           [100%]
+============================== warnings summary ===============================
+..\..\..\..\..\.codex\.chatgpt-projects\g-p-6aa23b54aca481919d6bea38fe3e3128\texas-isd-finances\.venv\Lib\site-packages\fastapi\testclient.py:1
+  C:\Users\gsanc\.codex\.chatgpt-projects\g-p-6aa23b54aca481919d6bea38fe3e3128\texas-isd-finances\.venv\Lib\site-packages\fastapi\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+tests/test_lineage.py::TestPublishedArtifact::test_the_recomputation_record_proves_the_check_ran
+tests/test_lineage.py::TestLineageEndpoint::test_a_real_figure_comes_back_verified_with_its_working
+  C:\Users\gsanc\.codex\.chatgpt-projects\g-p-6aa23b54aca481919d6bea38fe3e3128\texas-isd-finances\.venv\Lib\site-packages\_pytest\fixtures.py:1313: PytestRemovedIn10Warning: Class-scoped fixture defined as instance method is deprecated.
+  Instance attributes set in this fixture will NOT be visible to test methods,
+  as each test gets a new instance while the fixture runs only once per class.
+  Use @classmethod decorator and set attributes on cls instead.
+  See https://docs.pytest.org/en/stable/deprecations.html#class-scoped-fixture-as-instance-method
+    fixturefunc = resolve_fixture_function(fixturedef, request)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+1227 passed, 60 skipped, 3 warnings in 125.04s (0:02:05)

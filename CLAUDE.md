@@ -136,11 +136,13 @@ To render *production* in a browser (Chromium can't TLS through the agent
 proxy), run `scratchpad/liveproxy.py` and point Playwright at
 `127.0.0.1:8799`.
 
-## Current Status (updated 2026-10-07 — keep this a snapshot, history goes in the log)
+## Current Status (updated 2026-10-10 - keep this a snapshot, history goes in the log)
 
 The newest bullets control. Dated bullets below retain useful engineering
 history and may contain superseded counts; never let them override the current
 outreach item or `data/outreach_watermark.json`.
+
+- **Landing/chat redesign is a review draft (2026-10-10)** - isolated branch `feat/txisd-visual-landing-chat-20261010`, based on `da1721a5ea40b60b76e9e3f9efe69fe67305daee` and stacked on PR #82. The landing shows a source-labeled Dallas FY2025 all-funds treemap, a plain-language question, TAG/Gus authorship and on-demand custom ChatGPT setup. The existing website chat has manual Stop/Retry, bounded timeout, stale-response suppression, focus repair and preserved inline fallback. Backend/data/security/production dependencies are unchanged. Recorded checks and screenshots are in [the review](docs/LANDING_CHAT_REDESIGN.md) and `docs/evidence/landing/`. Strict landing 95/5 remains a measured shortfall, not a certified success; earlier report measurements do not cover this new landing. Independent-account ChatGPT installation/public approval remain unverified. Production remains `73df1896ed0818020ec1c15c06f5ee823db7ec0f`; no merge, production deployment, paid query or outreach occurred.
 
 - ✅ **Public visual UI and portable plugin implemented (2026-10-07)** — PR #82, branch `feat/visual-public-portal-plugin-20261007`. All 72 final report cells pass unchanged initial/full 95/5 with independent agent semantic review (95.83% minimum full-report visual share; 98.29% minimum initial visual share); all populated records and mandatory qualifications remain. Public browser workflows and focused populated behavior pass; all 36 widget cells and 56 bridge tests pass. Full Windows checks: 1,227 passed / 60 explicitly skipped in each encoding mode; independent PostgreSQL 17.11: 29 integration + four runner PASS. Eleven actual preview outputs and public resource validate at the recorded preview revision. Root INDEX/THIRD_PARTY_SERVICES/DICTIONARY and validated eight-entry plugin ZIP are saved. Production remains `73df1896ed0818020ec1c15c06f5ee823db7ec0f`; finance SQL is unapplied. Explicit release authority, disabled Linux CI, unavailable raw rebuilds, real host/install/public review, screen-reader/native zoom/participant evidence remain external gates. Chrome local-file permission is pending; no complete upload is claimed. See [release evidence](docs/RELEASE_EVIDENCE.md).
 
