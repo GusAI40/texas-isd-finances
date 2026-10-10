@@ -1,0 +1,1698 @@
+{
+  "schema_version": 1,
+  "recorded_at_utc": "2026-10-10T03:49:23.353962+00:00",
+  "candidate_branch": "feat/txisd-isolated-landing-chat-20261010",
+  "base_revision": "73df1896ed0818020ec1c15c06f5ee823db7ec0f",
+  "reviewed_stacked_source_revision": "96cf3122d44046eeb59c2771fbea34be09f4c02e",
+  "runtime_files": {
+    "static/index.html": {
+      "git_blob_sha1": "efc2adeaa9aa283606da72f4eac837e86aed3b57",
+      "lf_sha256": "b4e4b5e59a0ef170b46614df02b21aad77c9cb0dfe83326f9f758ce10fe32636",
+      "lf_bytes": 342652
+    },
+    "static/ask.js": {
+      "git_blob_sha1": "a267582c51e73e51fef4b9a49b5d71e13ce650eb",
+      "lf_sha256": "c884583514709fe0e0c42e9648d3c5c4aca3c2b94a6cc12bb4347862d81676df",
+      "lf_bytes": 55510
+    }
+  },
+  "runtime_only_projection_tree_sha1": "54e64fe4570adcf45565b0d21428d88806853a8c",
+  "scope": {
+    "modified_runtime_allowlist": [
+      "static/index.html",
+      "static/ask.js"
+    ],
+    "modified_python_test_allowlist": [
+      "tests/test_ask_widget.py",
+      "tests/test_static_pages.py"
+    ],
+    "added_support_allowlist": [
+      "tests/browser/*",
+      "docs/TXISD_ISOLATED_REDESIGN.md",
+      "docs/evidence/landing/*",
+      "docs/evidence/mcp/framing-argyle-public.json"
+    ],
+    "session_memory_allowlist": [
+      "CLAUDE.md",
+      "docs/ENGINEERING_LOG.md"
+    ],
+    "unchanged": [
+      "src/**",
+      "api/**",
+      "sql/**",
+      "pyproject.toml",
+      "uv.lock",
+      "vercel.json",
+      ".github/workflows/**",
+      "all other production static files and committed data"
+    ],
+    "excluded_pr82_hunks": [
+      "finder reordering",
+      "both applyVisualLedger changes"
+    ],
+    "production_context_adaptations": [
+      "Hide only #welcome > .pipeline; preserve its markup",
+      "Fill only #welcome .example-question width at <=600px"
+    ]
+  },
+  "checks": {
+    "uv": {
+      "version": "0.11.33",
+      "lock_check": "passed",
+      "sync": "--locked --all-extras --group dev; fresh environments"
+    },
+    "python": [
+      {
+        "version": "3.10.11",
+        "passed": 1169,
+        "skipped": 31,
+        "warnings": 3,
+        "duration_s": 17.22
+      },
+      {
+        "version": "3.12.14",
+        "passed": 1169,
+        "skipped": 31,
+        "warnings": 3,
+        "duration_s": 19.07
+      }
+    ],
+    "python_command": "PYTHONUTF8=1 python -m pytest -q -p no:cacheprovider --basetemp <isolated Temp directory>",
+    "ruff": "ruff check .: passed",
+    "static_javascript": "python scripts/check_static_js.py: 14/14 passed",
+    "ask_javascript": "node --check static/ask.js: passed",
+    "node": "24.20.0",
+    "npm": "npm ci --ignore-scripts: passed in a disposable Temp copy",
+    "playwright": {
+      "version": "1.56.1",
+      "axe_core": "4.10.3",
+      "base_url": "http://127.0.0.1:8787",
+      "stats": {
+        "startTime": "2026-10-10T03:43:52.944Z",
+        "duration": 92096.476,
+        "expected": 86,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "command": "playwright test landing-chat.spec.js shared-chat.spec.js --workers=1 --reporter=line,json",
+      "cases": [
+        {
+          "file": "landing-chat.spec.js",
+          "line": 75,
+          "title": "landing, setup, and sourced chat at 320px",
+          "browser": "chromium",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 2889
+            }
+          ]
+        },
+        {
+          "file": "landing-chat.spec.js",
+          "line": 75,
+          "title": "landing, setup, and sourced chat at 320px",
+          "browser": "firefox",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 2329
+            }
+          ]
+        },
+        {
+          "file": "landing-chat.spec.js",
+          "line": 75,
+          "title": "landing, setup, and sourced chat at 390px",
+          "browser": "chromium",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 1873
+            }
+          ]
+        },
+        {
+          "file": "landing-chat.spec.js",
+          "line": 75,
+          "title": "landing, setup, and sourced chat at 390px",
+          "browser": "firefox",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 1048
+            }
+          ]
+        },
+        {
+          "file": "landing-chat.spec.js",
+          "line": 75,
+          "title": "landing, setup, and sourced chat at 430px",
+          "browser": "chromium",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 3081
+            }
+          ]
+        },
+        {
+          "file": "landing-chat.spec.js",
+          "line": 75,
+          "title": "landing, setup, and sourced chat at 430px",
+          "browser": "firefox",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 977
+            }
+          ]
+        },
+        {
+          "file": "landing-chat.spec.js",
+          "line": 75,
+          "title": "landing, setup, and sourced chat at 1440px",
+          "browser": "chromium",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 7096
+            }
+          ]
+        },
+        {
+          "file": "landing-chat.spec.js",
+          "line": 75,
+          "title": "landing, setup, and sourced chat at 1440px",
+          "browser": "firefox",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 1157
+            }
+          ]
+        },
+        {
+          "file": "landing-chat.spec.js",
+          "line": 183,
+          "title": "recorded Dallas example highlights evidence without a paid query",
+          "browser": "chromium",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 1478
+            }
+          ]
+        },
+        {
+          "file": "landing-chat.spec.js",
+          "line": 183,
+          "title": "recorded Dallas example highlights evidence without a paid query",
+          "browser": "firefox",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 554
+            }
+          ]
+        },
+        {
+          "file": "landing-chat.spec.js",
+          "line": 196,
+          "title": "landing keeps the original pipeline in the DOM but shows only the recorded hero",
+          "browser": "chromium",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 719
+            }
+          ]
+        },
+        {
+          "file": "landing-chat.spec.js",
+          "line": 196,
+          "title": "landing keeps the original pipeline in the DOM but shows only the recorded hero",
+          "browser": "firefox",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 665
+            }
+          ]
+        },
+        {
+          "file": "landing-chat.spec.js",
+          "line": 207,
+          "title": "landing purpose immediately follows the welcome card with no visual gap",
+          "browser": "chromium",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 602
+            }
+          ]
+        },
+        {
+          "file": "landing-chat.spec.js",
+          "line": 207,
+          "title": "landing purpose immediately follows the welcome card with no visual gap",
+          "browser": "firefox",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 539
+            }
+          ]
+        },
+        {
+          "file": "landing-chat.spec.js",
+          "line": 220,
+          "title": "mobile example action matches the landing content width",
+          "browser": "chromium",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 345
+            }
+          ]
+        },
+        {
+          "file": "landing-chat.spec.js",
+          "line": 220,
+          "title": "mobile example action matches the landing content width",
+          "browser": "firefox",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 562
+            }
+          ]
+        },
+        {
+          "file": "landing-chat.spec.js",
+          "line": 231,
+          "title": "exact example figures and definitions remain available through keyboard disclosure",
+          "browser": "chromium",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 414
+            }
+          ]
+        },
+        {
+          "file": "landing-chat.spec.js",
+          "line": 231,
+          "title": "exact example figures and definitions remain available through keyboard disclosure",
+          "browser": "firefox",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 629
+            }
+          ]
+        },
+        {
+          "file": "landing-chat.spec.js",
+          "line": 246,
+          "title": "chart, provenance and inline chat access remain unobstructed while scrolling",
+          "browser": "chromium",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 632
+            }
+          ]
+        },
+        {
+          "file": "landing-chat.spec.js",
+          "line": 246,
+          "title": "chart, provenance and inline chat access remain unobstructed while scrolling",
+          "browser": "firefox",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 613
+            }
+          ]
+        },
+        {
+          "file": "landing-chat.spec.js",
+          "line": 265,
+          "title": "keyboard dismissal, focus trap, and reopening preserve the conversation",
+          "browser": "chromium",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 724
+            }
+          ]
+        },
+        {
+          "file": "landing-chat.spec.js",
+          "line": 265,
+          "title": "keyboard dismissal, focus trap, and reopening preserve the conversation",
+          "browser": "firefox",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 763
+            }
+          ]
+        },
+        {
+          "file": "landing-chat.spec.js",
+          "line": 283,
+          "title": "follow-up submission keeps original focus return and full question attribution",
+          "browser": "chromium",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 725
+            }
+          ]
+        },
+        {
+          "file": "landing-chat.spec.js",
+          "line": 283,
+          "title": "follow-up submission keeps original focus return and full question attribution",
+          "browser": "firefox",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 816
+            }
+          ]
+        },
+        {
+          "file": "landing-chat.spec.js",
+          "line": 296,
+          "title": "setup anchor remains usable for a returning district reader",
+          "browser": "chromium",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 488
+            }
+          ]
+        },
+        {
+          "file": "landing-chat.spec.js",
+          "line": 296,
+          "title": "setup anchor remains usable for a returning district reader",
+          "browser": "firefox",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 610
+            }
+          ]
+        },
+        {
+          "file": "landing-chat.spec.js",
+          "line": 304,
+          "title": "single setup disclosure toggles with keyboard and hash navigation opens it",
+          "browser": "chromium",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 365
+            }
+          ]
+        },
+        {
+          "file": "landing-chat.spec.js",
+          "line": 304,
+          "title": "single setup disclosure toggles with keyboard and hash navigation opens it",
+          "browser": "firefox",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 614
+            }
+          ]
+        },
+        {
+          "file": "landing-chat.spec.js",
+          "line": 325,
+          "title": "rate limited has a manual retry that retains the question",
+          "browser": "chromium",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 645
+            }
+          ]
+        },
+        {
+          "file": "landing-chat.spec.js",
+          "line": 325,
+          "title": "rate limited has a manual retry that retains the question",
+          "browser": "firefox",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 931
+            }
+          ]
+        },
+        {
+          "file": "landing-chat.spec.js",
+          "line": 325,
+          "title": "service error has a manual retry that retains the question",
+          "browser": "chromium",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 744
+            }
+          ]
+        },
+        {
+          "file": "landing-chat.spec.js",
+          "line": 325,
+          "title": "service error has a manual retry that retains the question",
+          "browser": "firefox",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 771
+            }
+          ]
+        },
+        {
+          "file": "landing-chat.spec.js",
+          "line": 325,
+          "title": "network failure has a manual retry that retains the question",
+          "browser": "chromium",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 616
+            }
+          ]
+        },
+        {
+          "file": "landing-chat.spec.js",
+          "line": 325,
+          "title": "network failure has a manual retry that retains the question",
+          "browser": "firefox",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 714
+            }
+          ]
+        },
+        {
+          "file": "landing-chat.spec.js",
+          "line": 325,
+          "title": "empty answer has a manual retry that retains the question",
+          "browser": "chromium",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 598
+            }
+          ]
+        },
+        {
+          "file": "landing-chat.spec.js",
+          "line": 325,
+          "title": "empty answer has a manual retry that retains the question",
+          "browser": "firefox",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 675
+            }
+          ]
+        },
+        {
+          "file": "landing-chat.spec.js",
+          "line": 343,
+          "title": "Stop cancels a pending question and Retry ignores its late response",
+          "browser": "chromium",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 871
+            }
+          ]
+        },
+        {
+          "file": "landing-chat.spec.js",
+          "line": 343,
+          "title": "Stop cancels a pending question and Retry ignores its late response",
+          "browser": "firefox",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 880
+            }
+          ]
+        },
+        {
+          "file": "landing-chat.spec.js",
+          "line": 367,
+          "title": "empty chat gives examples; very short and composing input do not send",
+          "browser": "chromium",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 519
+            }
+          ]
+        },
+        {
+          "file": "landing-chat.spec.js",
+          "line": 367,
+          "title": "empty chat gives examples; very short and composing input do not send",
+          "browser": "firefox",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 675
+            }
+          ]
+        },
+        {
+          "file": "landing-chat.spec.js",
+          "line": 383,
+          "title": "inline question uses shared chat once; missing widget leaves the fallback usable",
+          "browser": "chromium",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 793
+            }
+          ]
+        },
+        {
+          "file": "landing-chat.spec.js",
+          "line": 383,
+          "title": "inline question uses shared chat once; missing widget leaves the fallback usable",
+          "browser": "firefox",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 1262
+            }
+          ]
+        },
+        {
+          "file": "landing-chat.spec.js",
+          "line": 400,
+          "title": "dark theme preserves readable landing and chat at every target width",
+          "browser": "chromium",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 3696
+            }
+          ]
+        },
+        {
+          "file": "landing-chat.spec.js",
+          "line": 400,
+          "title": "dark theme preserves readable landing and chat at every target width",
+          "browser": "firefox",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 4453
+            }
+          ]
+        },
+        {
+          "file": "landing-chat.spec.js",
+          "line": 416,
+          "title": "closing a loading chat cancels it and never moves focus into hidden controls",
+          "browser": "chromium",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 1603
+            }
+          ]
+        },
+        {
+          "file": "landing-chat.spec.js",
+          "line": 416,
+          "title": "closing a loading chat cancels it and never moves focus into hidden controls",
+          "browser": "firefox",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 1801
+            }
+          ]
+        },
+        {
+          "file": "landing-chat.spec.js",
+          "line": 430,
+          "title": "bounded timeout has retry and no auto-resubmission",
+          "browser": "chromium",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 575
+            }
+          ]
+        },
+        {
+          "file": "landing-chat.spec.js",
+          "line": 430,
+          "title": "bounded timeout has retry and no auto-resubmission",
+          "browser": "firefox",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 746
+            }
+          ]
+        },
+        {
+          "file": "landing-chat.spec.js",
+          "line": 442,
+          "title": "linked district context survives website-chat submission",
+          "browser": "chromium",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 803
+            }
+          ]
+        },
+        {
+          "file": "landing-chat.spec.js",
+          "line": 442,
+          "title": "linked district context survives website-chat submission",
+          "browser": "firefox",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 925
+            }
+          ]
+        },
+        {
+          "file": "landing-chat.spec.js",
+          "line": 451,
+          "title": "structured hostile text is presented as text, never executed markup",
+          "browser": "chromium",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 670
+            }
+          ]
+        },
+        {
+          "file": "landing-chat.spec.js",
+          "line": 451,
+          "title": "structured hostile text is presented as text, never executed markup",
+          "browser": "firefox",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 807
+            }
+          ]
+        },
+        {
+          "file": "landing-chat.spec.js",
+          "line": 460,
+          "title": "currency answer puts an exact visual before optional complete evidence",
+          "browser": "chromium",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 719
+            }
+          ]
+        },
+        {
+          "file": "landing-chat.spec.js",
+          "line": 460,
+          "title": "currency answer puts an exact visual before optional complete evidence",
+          "browser": "firefox",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 980
+            }
+          ]
+        },
+        {
+          "file": "landing-chat.spec.js",
+          "line": 504,
+          "title": "ambiguous unit retains the table without an invented financial visual",
+          "browser": "chromium",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 701
+            }
+          ]
+        },
+        {
+          "file": "landing-chat.spec.js",
+          "line": 504,
+          "title": "ambiguous unit retains the table without an invented financial visual",
+          "browser": "firefox",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 1216
+            }
+          ]
+        },
+        {
+          "file": "landing-chat.spec.js",
+          "line": 504,
+          "title": "mixed currencies retains the table without an invented financial visual",
+          "browser": "chromium",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 648
+            }
+          ]
+        },
+        {
+          "file": "landing-chat.spec.js",
+          "line": 504,
+          "title": "mixed currencies retains the table without an invented financial visual",
+          "browser": "firefox",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 1036
+            }
+          ]
+        },
+        {
+          "file": "landing-chat.spec.js",
+          "line": 504,
+          "title": "malformed number retains the table without an invented financial visual",
+          "browser": "chromium",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 634
+            }
+          ]
+        },
+        {
+          "file": "landing-chat.spec.js",
+          "line": 504,
+          "title": "malformed number retains the table without an invented financial visual",
+          "browser": "firefox",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 744
+            }
+          ]
+        },
+        {
+          "file": "landing-chat.spec.js",
+          "line": 504,
+          "title": "missing value retains the table without an invented financial visual",
+          "browser": "chromium",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 589
+            }
+          ]
+        },
+        {
+          "file": "landing-chat.spec.js",
+          "line": 504,
+          "title": "missing value retains the table without an invented financial visual",
+          "browser": "firefox",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 684
+            }
+          ]
+        },
+        {
+          "file": "landing-chat.spec.js",
+          "line": 504,
+          "title": "negative value retains the table without an invented financial visual",
+          "browser": "chromium",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 618
+            }
+          ]
+        },
+        {
+          "file": "landing-chat.spec.js",
+          "line": 504,
+          "title": "negative value retains the table without an invented financial visual",
+          "browser": "firefox",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 740
+            }
+          ]
+        },
+        {
+          "file": "landing-chat.spec.js",
+          "line": 504,
+          "title": "mixed unit text retains the table without an invented financial visual",
+          "browser": "chromium",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 636
+            }
+          ]
+        },
+        {
+          "file": "landing-chat.spec.js",
+          "line": 504,
+          "title": "mixed unit text retains the table without an invented financial visual",
+          "browser": "firefox",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 734
+            }
+          ]
+        },
+        {
+          "file": "landing-chat.spec.js",
+          "line": 504,
+          "title": "contradictory header unit retains the table without an invented financial visual",
+          "browser": "chromium",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 617
+            }
+          ]
+        },
+        {
+          "file": "landing-chat.spec.js",
+          "line": 504,
+          "title": "contradictory header unit retains the table without an invented financial visual",
+          "browser": "firefox",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 781
+            }
+          ]
+        },
+        {
+          "file": "landing-chat.spec.js",
+          "line": 504,
+          "title": "unsupported scale retains the table without an invented financial visual",
+          "browser": "chromium",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 602
+            }
+          ]
+        },
+        {
+          "file": "landing-chat.spec.js",
+          "line": 504,
+          "title": "unsupported scale retains the table without an invented financial visual",
+          "browser": "firefox",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 769
+            }
+          ]
+        },
+        {
+          "file": "landing-chat.spec.js",
+          "line": 504,
+          "title": "unsupported third column retains the table without an invented financial visual",
+          "browser": "chromium",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 605
+            }
+          ]
+        },
+        {
+          "file": "landing-chat.spec.js",
+          "line": 504,
+          "title": "unsupported third column retains the table without an invented financial visual",
+          "browser": "firefox",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 758
+            }
+          ]
+        },
+        {
+          "file": "landing-chat.spec.js",
+          "line": 519,
+          "title": "a currency table without district, year, scope or source context stays a table",
+          "browser": "chromium",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 629
+            }
+          ]
+        },
+        {
+          "file": "landing-chat.spec.js",
+          "line": 519,
+          "title": "a currency table without district, year, scope or source context stays a table",
+          "browser": "firefox",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 531
+            }
+          ]
+        },
+        {
+          "file": "landing-chat.spec.js",
+          "line": 532,
+          "title": "eligible visual keeps district, year and scope visible even without figure cards",
+          "browser": "chromium",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 611
+            }
+          ]
+        },
+        {
+          "file": "landing-chat.spec.js",
+          "line": 532,
+          "title": "eligible visual keeps district, year and scope visible even without figure cards",
+          "browser": "firefox",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 586
+            }
+          ]
+        },
+        {
+          "file": "landing-chat.spec.js",
+          "line": 545,
+          "title": "new landing, setup and chat controls meet automated WCAG AA checks",
+          "browser": "chromium",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 1133
+            }
+          ]
+        },
+        {
+          "file": "landing-chat.spec.js",
+          "line": 545,
+          "title": "new landing, setup and chat controls meet automated WCAG AA checks",
+          "browser": "firefox",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 999
+            }
+          ]
+        },
+        {
+          "file": "shared-chat.spec.js",
+          "line": 36,
+          "title": "report shared chat is sourced and cancelable at 390px",
+          "browser": "chromium",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 674
+            }
+          ]
+        },
+        {
+          "file": "shared-chat.spec.js",
+          "line": 36,
+          "title": "report shared chat is sourced and cancelable at 390px",
+          "browser": "firefox",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 705
+            }
+          ]
+        },
+        {
+          "file": "shared-chat.spec.js",
+          "line": 36,
+          "title": "report shared chat is sourced and cancelable at 1440px",
+          "browser": "chromium",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 712
+            }
+          ]
+        },
+        {
+          "file": "shared-chat.spec.js",
+          "line": 36,
+          "title": "report shared chat is sourced and cancelable at 1440px",
+          "browser": "firefox",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 1186
+            }
+          ]
+        },
+        {
+          "file": "shared-chat.spec.js",
+          "line": 36,
+          "title": "map shared chat is sourced and cancelable at 390px",
+          "browser": "chromium",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 665
+            }
+          ]
+        },
+        {
+          "file": "shared-chat.spec.js",
+          "line": 36,
+          "title": "map shared chat is sourced and cancelable at 390px",
+          "browser": "firefox",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 989
+            }
+          ]
+        },
+        {
+          "file": "shared-chat.spec.js",
+          "line": 36,
+          "title": "map shared chat is sourced and cancelable at 1440px",
+          "browser": "chromium",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 699
+            }
+          ]
+        },
+        {
+          "file": "shared-chat.spec.js",
+          "line": 36,
+          "title": "map shared chat is sourced and cancelable at 1440px",
+          "browser": "firefox",
+          "status": "expected",
+          "attempts": [
+            {
+              "status": "passed",
+              "duration_ms": 1165
+            }
+          ]
+        }
+      ]
+    },
+    "responsive_widths_px": [
+      320,
+      390,
+      430,
+      1440
+    ],
+    "automated_accessibility": "axe WCAG AA checks passed for landing/setup/chat; light and dark at all four widths",
+    "unavailable": [
+      "Python 3.11",
+      "Ubuntu CI execution; GitHub Actions observed disabled and unchanged"
+    ],
+    "build_boundary": "No separate TypeScript/frontend build. Exact-SHA Vercel build and preview verification recorded separately after commit."
+  },
+  "data": {
+    "district": "Dallas ISD",
+    "district_number": "057905",
+    "fiscal_year": 2025,
+    "source": "TEA PEIMS Summarized Actual Financial Data",
+    "source_snapshot_date": "2026-08-12",
+    "fresh_read_at_utc": "2026-10-10T03:36:04.4517450Z",
+    "fresh_read_url": "https://txisd.dev/district/057905/dollar",
+    "fresh_read_matches": {
+      "total_spending_dollars": 3319208715,
+      "classroom_dollars": 1092607589,
+      "construction_dollars": 766316261,
+      "debt_dollars": 500174938,
+      "other_combined_dollars": 960109927,
+      "students": 139776
+    },
+    "historical_only": true,
+    "receipt": "dallas-example.json"
+  },
+  "links": [
+    {
+      "url": "https://developers.openai.com/api/docs/guides/custom-mcp-server",
+      "method": "HEAD",
+      "http_status": 200
+    },
+    {
+      "url": "https://learn.chatgpt.com/docs/plugins",
+      "method": "HEAD",
+      "http_status": 200
+    },
+    {
+      "url": "https://chatgpt.com/plugins",
+      "method": "HEAD unauthenticated",
+      "http_status": 403,
+      "boundary": "Owner-account route verified by parent; independent-account eligibility and public listing unverified"
+    },
+    {
+      "url": "https://txisd.dev/sources",
+      "method": "GET",
+      "http_status": 200,
+      "note": "HEAD is unsupported and returns 405"
+    }
+  ],
+  "chatgpt_distribution": {
+    "notice": "Custom setup is required. Availability depends on your ChatGPT account and workspace.",
+    "owner_account_route_verified_by_parent": true,
+    "independent_account_installation_verified": false,
+    "public_directory_listing_verified": false,
+    "one_click_or_universal_plan_claim": false
+  },
+  "screenshots": [
+    {
+      "file": "chromium-chat-1440.png",
+      "sha256": "cb927d22d5b76e1ee0978ed93c2a3a00d3add8c4d6730b50c5847007b8f0683b",
+      "bytes": 146503,
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "file": "chromium-chat-320.png",
+      "sha256": "263ba91eebe258477f81d70a1bbba5cb8daa553dc5b366b6610736360d83f3d3",
+      "bytes": 46318,
+      "width": 320,
+      "height": 740
+    },
+    {
+      "file": "chromium-chat-390.png",
+      "sha256": "0abe39de5dbc2f20ba449b79dad7e44e696989b7a054581f9d51f0aff1854a4c",
+      "bytes": 54647,
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": "chromium-chat-430.png",
+      "sha256": "29c5e6a5636231c1987bb1f4a1512f8d8e9df048d6918a774f8654832d536311",
+      "bytes": 63401,
+      "width": 430,
+      "height": 932
+    },
+    {
+      "file": "chromium-chat-dark-1440.png",
+      "sha256": "9c2a612cb09d1dd31dec4d353c47e206cd72ee0e2979bd07b0cd39c35724da93",
+      "bytes": 156649,
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "file": "chromium-chat-dark-320.png",
+      "sha256": "e253fbb8434d6c2a13b172e03d8235bed6eea15b14cf557a2f60096c7c9f4d8c",
+      "bytes": 54641,
+      "width": 320,
+      "height": 844
+    },
+    {
+      "file": "chromium-chat-dark-390.png",
+      "sha256": "7242d59817df679965d58224b5f7f13bb4b8a1c8fce405787c313570e223ae22",
+      "bytes": 60278,
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": "chromium-chat-dark-430.png",
+      "sha256": "5fa519cba3a3b4e7737d8982780037b7d1cb252488800ecfbc1fba2484efd7d3",
+      "bytes": 61448,
+      "width": 430,
+      "height": 844
+    },
+    {
+      "file": "chromium-chat-empty-390.png",
+      "sha256": "b35c02612a79d7a2c71cb4826a467a05fa0e12b20c88d8f7857670b8216c2709",
+      "bytes": 65997,
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": "chromium-chat-error-390.png",
+      "sha256": "a3d1a8f689fa02f5c3f42e34b00a86056a1aa5a6a2a07ca20a3946efe06fe037",
+      "bytes": 69845,
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": "chromium-chat-loading-390.png",
+      "sha256": "e1e975c512c821bc25690b99d6416cf6002afc096bc617bffbe286dd1e315b34",
+      "bytes": 67650,
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": "chromium-chat-stopped-390.png",
+      "sha256": "22f63af2ed63f87e02510bb4f91fdc852ba6c6a479219324f1c5c9e261ab252f",
+      "bytes": 69956,
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": "chromium-landing-1440.png",
+      "sha256": "99ac4ebf55069f4a0fe3e3a7c8c1cbd5f53af4fe152860737986f37002fbd276",
+      "bytes": 112954,
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "file": "chromium-landing-320.png",
+      "sha256": "5606cfab49f6b9d389cc370e1a128d359ecb4adc38364e28f17263269bbc262a",
+      "bytes": 45120,
+      "width": 320,
+      "height": 740
+    },
+    {
+      "file": "chromium-landing-390.png",
+      "sha256": "2d330faa7d9eafe04feca0bd211e07f64897f21ad77671fd817c7cabbf31628f",
+      "bytes": 57653,
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": "chromium-landing-430.png",
+      "sha256": "caf79def5cf91ba8abc206e0217f50dbb2d4ce3c1d385e2dd4462db1e11f1721",
+      "bytes": 62809,
+      "width": 430,
+      "height": 932
+    },
+    {
+      "file": "chromium-landing-dark-1440.png",
+      "sha256": "fc531e889838f56a61183c654a7e0fbdfa44f33367fa797d5677f87fc717b48f",
+      "bytes": 186549,
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "file": "chromium-landing-dark-320.png",
+      "sha256": "b1585d68b03e339e08d83fb4205339ca56de64b8913b361f0afbabadbffae3ea",
+      "bytes": 61032,
+      "width": 320,
+      "height": 844
+    },
+    {
+      "file": "chromium-landing-dark-390.png",
+      "sha256": "b6bb8e20e2f981140bcccb29d32949e455c2f6e4b6de76c6a312c9a056d2a486",
+      "bytes": 68214,
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": "chromium-landing-dark-430.png",
+      "sha256": "476faf31e24fda58facd601641a8706c79281cf157ab4a8e5444f5942c8e75f3",
+      "bytes": 67672,
+      "width": 430,
+      "height": 844
+    },
+    {
+      "file": "chromium-landing-full-1440.png",
+      "sha256": "69ad0655d418edfe78351971e26e97f8ff93bb2686194daa10fa3538238ecfe6",
+      "bytes": 95605,
+      "width": 1192,
+      "height": 728
+    },
+    {
+      "file": "chromium-landing-full-320.png",
+      "sha256": "ca8928587dd770c073f3ff8513188553937b08692290e3cbda76ca593c4cefb5",
+      "bytes": 51332,
+      "width": 272,
+      "height": 836
+    },
+    {
+      "file": "chromium-landing-full-390.png",
+      "sha256": "f53d5df3827d6c3ac2027c676293fd94c4a324fdbb1da0d2667ff554c607b7e1",
+      "bytes": 52754,
+      "width": 342,
+      "height": 768
+    },
+    {
+      "file": "chromium-landing-full-430.png",
+      "sha256": "5580fa67f9c8073b2095509fd935c0dc4d2f3ccac0dd3506f617cf80849533cc",
+      "bytes": 52121,
+      "width": 382,
+      "height": 742
+    },
+    {
+      "file": "chromium-setup-1440.png",
+      "sha256": "7da44823b58bafa497d90aa72f4c6dea8decaa83d4c36a0ba7e574d86cb8e5bc",
+      "bytes": 30479,
+      "width": 1192,
+      "height": 401
+    },
+    {
+      "file": "chromium-setup-320.png",
+      "sha256": "756e50fcfe930be000adb7b82fa1a75db988fe316e85ff641c1c23b273e559ad",
+      "bytes": 33551,
+      "width": 272,
+      "height": 901
+    },
+    {
+      "file": "chromium-setup-390.png",
+      "sha256": "c369ba074f0cb863027307bb509d88f609030c9687ad5b527059d4d48dd1b867",
+      "bytes": 33937,
+      "width": 342,
+      "height": 876
+    },
+    {
+      "file": "chromium-setup-430.png",
+      "sha256": "bfbe868b4661a615a3f56d75470acffef5ff00bbae28dab7e604684854f093be",
+      "bytes": 31569,
+      "width": 382,
+      "height": 626
+    },
+    {
+      "file": "firefox-chat-1440.png",
+      "sha256": "74eb3a74da1a461d7fea5414e67dc482112c4d0b4478c439bc92b8654aebc81e",
+      "bytes": 146977,
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "file": "firefox-chat-320.png",
+      "sha256": "e9cd4760753053ddab58ed5a54ff449ca3f159a7a926867bd640261320a1d64b",
+      "bytes": 44307,
+      "width": 320,
+      "height": 740
+    },
+    {
+      "file": "firefox-chat-390.png",
+      "sha256": "edf28f6480cc576c9677403fa581db2b8c1a7e82f01d41785d5b1fa6991980ea",
+      "bytes": 55976,
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": "firefox-chat-430.png",
+      "sha256": "73a0f3f964eff7db8c379fe5969688cbac22c615141d4fd13175db0728851fe9",
+      "bytes": 66088,
+      "width": 430,
+      "height": 932
+    },
+    {
+      "file": "firefox-chat-dark-1440.png",
+      "sha256": "9a7a3d87e39ef11114c66d50801cc9432dd084522115ff0e89544b4459702162",
+      "bytes": 136609,
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "file": "firefox-chat-dark-320.png",
+      "sha256": "f5720978b32c708864d4e404773e8dfdab8430f5d203746d323cca44e9daf9dd",
+      "bytes": 48326,
+      "width": 320,
+      "height": 844
+    },
+    {
+      "file": "firefox-chat-dark-390.png",
+      "sha256": "2b1e7c8ceac289334d68a7396fb115f3a1bfb5df877f1a70e0c892591e9bd50f",
+      "bytes": 54694,
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": "firefox-chat-dark-430.png",
+      "sha256": "29ccb1ba3a4ad05b17a6628e515590adf68d05c2925558ebb14b25bd15ab196b",
+      "bytes": 55463,
+      "width": 430,
+      "height": 844
+    },
+    {
+      "file": "firefox-chat-empty-390.png",
+      "sha256": "b3a10800887516640c53ad41218398c95e25cb099b9155fdc5f7539b603e4a1c",
+      "bytes": 53183,
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": "firefox-chat-error-390.png",
+      "sha256": "be19af93319f6c2772a8cc8239d360fdbecac61ab2c6a31c5f3825227dc7d023",
+      "bytes": 52050,
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": "firefox-chat-loading-390.png",
+      "sha256": "595c66e6bdec48607e3d41c252a9ec7869f388e0a7d92efa586881e120f6cf16",
+      "bytes": 49603,
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": "firefox-chat-stopped-390.png",
+      "sha256": "9da9840ac7b96f75ff2f86eea3db015c6fe788229f93aae3c739b8e2c39dfb67",
+      "bytes": 52356,
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": "firefox-landing-1440.png",
+      "sha256": "cff58d92317624579afcb85a720001edea8ed13b41b5acccdaefb66f3bb402cc",
+      "bytes": 91563,
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "file": "firefox-landing-320.png",
+      "sha256": "d2e70274b4e8d8aaa221c713a6b18ccdb08edd894bb3af4ad5da6082f7d46546",
+      "bytes": 37946,
+      "width": 320,
+      "height": 740
+    },
+    {
+      "file": "firefox-landing-390.png",
+      "sha256": "bc0b32b875268ef0af5313ba1a62804f94eb1dc094f1182aa8e727c1a574faa3",
+      "bytes": 50179,
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": "firefox-landing-430.png",
+      "sha256": "5ecc464e47d7ca448387168b989ce4915df2bdf5d093f98aef090322d8fe0905",
+      "bytes": 56121,
+      "width": 430,
+      "height": 932
+    },
+    {
+      "file": "firefox-landing-dark-1440.png",
+      "sha256": "8950ebf2f4c868150b92c69e8f55b6fd14a2f9504256319d16a2f860001116a5",
+      "bytes": 111893,
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "file": "firefox-landing-dark-320.png",
+      "sha256": "3e68169eab3af65f58c98ad0a28707c482d353b1b965b69f43cdab0b34ef8f63",
+      "bytes": 49760,
+      "width": 320,
+      "height": 844
+    },
+    {
+      "file": "firefox-landing-dark-390.png",
+      "sha256": "c3397e8d17ab98036016286b0cdd13ce073cc6a831f8cee6a530476179ad63ea",
+      "bytes": 56371,
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": "firefox-landing-dark-430.png",
+      "sha256": "6d944964c7982bb30258816bee954d42109be43b08b2b25f482a22b3f2100bf8",
+      "bytes": 57155,
+      "width": 430,
+      "height": 844
+    },
+    {
+      "file": "firefox-landing-full-1440.png",
+      "sha256": "9ad71c731c5f2e1287e8b8f632faa9f9a53860d6915d59773f164faed9c1d344",
+      "bytes": 68361,
+      "width": 1192,
+      "height": 728
+    },
+    {
+      "file": "firefox-landing-full-320.png",
+      "sha256": "28f9fdc54e5d4eaa6c9937d55ece0715b15750f2e3631a562a7034cf32509dee",
+      "bytes": 41906,
+      "width": 272,
+      "height": 837
+    },
+    {
+      "file": "firefox-landing-full-390.png",
+      "sha256": "efc074f5ed39c6f5a13042c8cda1329394cfb3ec0d88a14c4de627614e43116b",
+      "bytes": 43136,
+      "width": 342,
+      "height": 769
+    },
+    {
+      "file": "firefox-landing-full-430.png",
+      "sha256": "433fc1586db39b993ed8fc7f38e551f56e487ebd8a64b7fec949448e9c3762a0",
+      "bytes": 43587,
+      "width": 382,
+      "height": 742
+    },
+    {
+      "file": "firefox-setup-1440.png",
+      "sha256": "1bac4467e2fc643e4ae775ddcb1259478292bbbc43917d791fae2b18da866d4c",
+      "bytes": 38715,
+      "width": 1192,
+      "height": 402
+    },
+    {
+      "file": "firefox-setup-320.png",
+      "sha256": "f07c93895a4a7c24eacf0de70630f9125b5bd817c9fb6c2ab72018197fb364e5",
+      "bytes": 35320,
+      "width": 272,
+      "height": 902
+    },
+    {
+      "file": "firefox-setup-390.png",
+      "sha256": "341e35bbd4841637e2cf9125a67a20093103a9865bcc218d2ee57e7e5d88e738",
+      "bytes": 36604,
+      "width": 342,
+      "height": 877
+    },
+    {
+      "file": "firefox-setup-430.png",
+      "sha256": "bcb5c101695ea8b25d287ec7e899f6735248671f996b5c1f100915000f13a4d9",
+      "bytes": 35195,
+      "width": 382,
+      "height": 627
+    }
+  ],
+  "boundaries": {
+    "query_responses": "Mocked; no paid question calls or claim of real ChatGPT/model answer quality",
+    "browser_network": "Recorded public GET fixtures; blocked foreign, telemetry and mutating requests except mocked /query",
+    "local_server": "Database/model/send credentials cleared; no database required",
+    "visual_95_percent_target": "Not met by the conservative painted-area measurement; no 95% success claimed.",
+    "production": "No merge, promotion, alias/domain/configuration/security/credential/outreach mutation"
+  },
+  "independent_review": "independent-review.md",
+  "painted_visual_observation": {
+    "file": "painted-data-observation.json",
+    "sha256": "a5e841b59904d2919c10f0bcafb64134afa21124d9047a9fd6ac6169b06149a5",
+    "source_lf_sha256": "b4e4b5e59a0ef170b46614df02b21aad77c9cb0dfe83326f9f758ce10fe32636",
+    "initial_visual_share_by_width": {
+      "320": 0.031039400543458065,
+      "390": 0.024739443966927264,
+      "430": 0.02697361912574469,
+      "1440": 0.5433629418483595
+    },
+    "strict_95_percent_target_met": false,
+    "boundary": "Conservative actual data fills against all painted text; not a perceptual design score. Parent accepted composition review without this as a technical delivery blocker."
+  }
+}

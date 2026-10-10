@@ -428,10 +428,12 @@ def test_hero_credentials_match_the_data(client):
     only of the bond elections while every other dataset spans 17 years."""
     from pathlib import Path
 
-    page = Path("static/index.html").read_text()
-    assert ">17</b><i>years of budgets" in page, \
-        "the years figure must describe the finance data, not the deepest source"
-    assert "years of records" not in page, "that phrasing overstated every source but one"
+    page = Path("static/index.html").read_text(encoding="utf-8")
+    assert ">17</b><i>years of finance records" in page, \
+        "the years figure must explicitly describe historical finance records"
+    assert "years of budgets" not in page, "PEIMS actuals are recorded spending, not live budgets"
+    assert ">17</b><i>years of records" not in page, \
+        "the finance span must not imply every source has the same coverage"
 
     stats = client.get("/stats").json() if client.get("/stats").status_code == 200 else None
     if stats:

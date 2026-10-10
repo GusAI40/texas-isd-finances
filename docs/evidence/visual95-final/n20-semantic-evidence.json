@@ -1,0 +1,203 @@
+{
+  "capturedAt": "2026-10-10T14:40:44.243Z",
+  "boundary": "Recorded public GET fixtures including recorded /health; mocked /query; no provider call.",
+  "sourceSha256": {
+    "index": "5a2829d9d18c1a7bc9920427d948d26fe1a65c5962d2576875775743c2715a47",
+    "ask": "1780ba72a832a885e9e3fe39084667afcdc5527957560d04fc5b6baeca1bd84f"
+  },
+  "landing": [
+    {
+      "width": 390,
+      "screenshot": "cover-words-landing-390.png",
+      "screenshotSha256": "084ec697fae5b18136e399f06864fe7cf444032d39ad2acfe92ae55e39cd175b",
+      "audit": {
+        "blocked": [],
+        "requests": [
+          "GET /",
+          "GET /static/design.css?v=6",
+          "GET /static/track.js",
+          "GET /static/ask.js",
+          "GET /stats",
+          "GET /benchmarks",
+          "GET /health",
+          "GET /dollar/texas",
+          "GET /economics/texas",
+          "GET /briefing"
+        ],
+        "queryBodies": [],
+        "pageErrors": []
+      },
+      "semantic": {
+        "document": {
+          "width": 390,
+          "height": 6090,
+          "viewportWidth": 390,
+          "overflow": false
+        },
+        "visibleQuestion": "Question: How much of Dallas ISD’s recorded spending went to classrooms?",
+        "recordGroup": "Separate TEA PEIMS record groups 11 + 12 + 13Classroom$1.093B 6600Construction$766.3M 6500Debt$500.2M remainderOther combined$960.1M",
+        "districtMatch": "Match the district057905Dallas ISDsame ID on every row",
+        "quantitativeAnswer": "Sourced quantitative answer 32.9%23.1%15.1%28.9% $1,092,607,589classroom recordCheck the source",
+        "answerShares": [
+          {
+            "label": null,
+            "share": 32.917647058823526
+          },
+          {
+            "label": null,
+            "share": 23.08235294117647
+          },
+          {
+            "label": null,
+            "share": 15.064705882352941
+          },
+          {
+            "label": null,
+            "share": 28.923529411764704
+          }
+        ],
+        "sourceHref": "/sources",
+        "sourceWorkflowBounds": {
+          "x": 37,
+          "y": 1412.828125,
+          "width": 316,
+          "height": 751.609375
+        }
+      }
+    },
+    {
+      "width": 1440,
+      "screenshot": "cover-words-landing-1440.png",
+      "screenshotSha256": "34e948c47f941f72e44525408e74bb3c744cc0044eae0ebb5412d64768fa43f4",
+      "audit": {
+        "blocked": [],
+        "requests": [
+          "GET /",
+          "GET /static/design.css?v=6",
+          "GET /static/track.js",
+          "GET /static/ask.js",
+          "GET /stats",
+          "GET /benchmarks",
+          "GET /health",
+          "GET /dollar/texas",
+          "GET /economics/texas",
+          "GET /briefing"
+        ],
+        "queryBodies": [],
+        "pageErrors": []
+      },
+      "semantic": {
+        "document": {
+          "width": 1440,
+          "height": 3842,
+          "viewportWidth": 1440,
+          "overflow": false
+        },
+        "visibleQuestion": "Question: How much of Dallas ISD’s recorded spending went to classrooms?",
+        "recordGroup": "Separate TEA PEIMS record groups 11 + 12 + 13Classroom$1.093B 6600Construction$766.3M 6500Debt$500.2M remainderOther combined$960.1M",
+        "districtMatch": "Match the district057905Dallas ISDsame ID on every row",
+        "quantitativeAnswer": "Sourced quantitative answer 32.9%23.1%15.1%28.9% $1,092,607,589classroom recordCheck the source",
+        "answerShares": [
+          {
+            "label": null,
+            "share": 32.91446793971375
+          },
+          {
+            "label": null,
+            "share": 23.085683914809614
+          },
+          {
+            "label": null,
+            "share": 15.06776508105235
+          },
+          {
+            "label": null,
+            "share": 28.92449033825595
+          }
+        ],
+        "sourceHref": "/sources",
+        "sourceWorkflowBounds": {
+          "x": 157,
+          "y": 764.25,
+          "width": 1126,
+          "height": 319.296875
+        }
+      }
+    }
+  ],
+  "supportedChat": {
+    "width": 390,
+    "screenshot": "cover-words-supported-chat-390.png",
+    "screenshotSha256": "8dfd4fb3738a6b1c838ad274a4e22e3de3b80995331214dc317634e253b94e27",
+    "audit": {
+      "blocked": [],
+      "requests": [
+        "GET /",
+        "GET /static/design.css?v=6",
+        "GET /static/track.js",
+        "GET /static/ask.js",
+        "GET /stats",
+        "GET /benchmarks",
+        "GET /health",
+        "GET /dollar/texas",
+        "GET /economics/texas",
+        "GET /briefing"
+      ],
+      "queryBodies": [
+        {
+          "question": "Where does Dallas ISD school money go?",
+          "district_number": null,
+          "conversation_id": "cmv2i4p88irtbe",
+          "turn": 1,
+          "followup_label": null
+        }
+      ],
+      "pageErrors": []
+    },
+    "semantic": {
+      "document": {
+        "width": 390,
+        "height": 6090,
+        "viewportWidth": 390,
+        "overflow": false
+      },
+      "sheet": {
+        "width": 390,
+        "height": 1400
+      },
+      "askedQuestion": "Where does Dallas ISD school money go?",
+      "lead": "Dallas ISD spent $3.32 billion across all funds in fiscal 2025.",
+      "context": "Dallas ISD · Fiscal 2025 · All funds, including construction and debt payments.",
+      "answerSource": "Source: TEA PEIMS actual finance",
+      "record": "Official recordTEA PEIMS actual financeDallas ISD / Fiscal 2025 / All funds, including construction and debt payments.",
+      "limitation": "Historical records, not a live budget.",
+      "rows": [
+        {
+          "label": "Classroom teaching",
+          "value": "$1,092,607,589",
+          "encodedDollars": 1092607589,
+          "renderedWidth": 246.40625
+        },
+        {
+          "label": "Construction",
+          "value": "$766,316,261",
+          "encodedDollars": 766316261,
+          "renderedWidth": 172.8125
+        },
+        {
+          "label": "Debt payments",
+          "value": "$500,174,938",
+          "encodedDollars": 500174938,
+          "renderedWidth": 112.796875
+        },
+        {
+          "label": "Other spending, combined",
+          "value": "$960,109,927",
+          "encodedDollars": 960109927,
+          "renderedWidth": 216.515625
+        }
+      ],
+      "sourceHref": "/sources"
+    }
+  }
+}

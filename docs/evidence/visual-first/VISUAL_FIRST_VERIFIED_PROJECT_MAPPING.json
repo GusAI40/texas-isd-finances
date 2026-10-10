@@ -1,0 +1,35 @@
+{
+  "checkedAt": "2026-10-10T20:39:25.853Z",
+  "project": {
+    "id": "prj_Q86h3ZufDMLk7bsyYOj7FP3S9Wqg",
+    "name": "texas-isd-finances",
+    "accountId": "team_hLW8yrUTYNGt9CiRY4IMMSet",
+    "framework": "fastapi",
+    "ssoProtection": {
+      "enabled": true,
+      "deploymentType": "all_except_custom_domains"
+    },
+    "passwordProtection": {
+      "enabled": false,
+      "deploymentType": null
+    },
+    "trustedIps": {
+      "enabled": false,
+      "deploymentType": null,
+      "addresses": [],
+      "protectionMode": null
+    }
+  },
+  "domain": {
+    "name": "txisd.dev",
+    "projectId": "prj_Q86h3ZufDMLk7bsyYOj7FP3S9Wqg",
+    "verified": true,
+    "redirect": null,
+    "gitBranch": null
+  },
+  "priorProduction": {
+    "id": "dpl_9REP3jKBiDs4nkLyUPvNPkDaV1Dg",
+    "sourceSha": "14326baf497f782db702f12427d6432af1df46be"
+  },
+  "boundary": "Read-only mapping. No settings, protection or credentials changed."
+}

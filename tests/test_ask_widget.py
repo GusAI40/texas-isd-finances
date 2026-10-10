@@ -7,6 +7,7 @@ does not double-handle the click, textContent-only answer rendering so a
 model's output cannot inject markup, reduced-motion fallbacks so the reveal
 never becomes a barrier, and the dialog semantics a screen reader needs.
 """
+import re
 import shutil
 import subprocess
 from pathlib import Path
@@ -198,12 +199,19 @@ def test_a_long_table_scrolls_instead_of_burying_everything_under_it():
     assert ".ta-tw.tall .ta-tb th { position:sticky" in JS   # headers stay put
 
 
-def test_a_long_lead_steps_down_instead_of_becoming_a_wall():
-    """The lead is the model's WHOLE opening paragraph — promoting only part of
-    it silently deleted the rest — so a four-sentence paragraph at heading
-    weight is a real shape. It is sized to what it is; nothing is split."""
-    assert "s.lead.length > 200 ? ' long' : ''" in JS
-    assert ".ta-lead.long { font-size:1.02rem; font-weight:500;" in JS
+def test_the_chat_lead_is_concise_with_visible_unclassified_qualifications():
+    """Only known duplicate/calculation material may be deferred; model prose has no safe optionality field."""
+    assert "String(s.lead || '').match(/^.*?[.!?](?:\\s|$)/)" in JS
+    assert "var support = el('details', 'ta-support')" in JS
+    assert "frag.appendChild(el('p', 'ta-qualification', supportingLead))" in JS
+    assert "frag.appendChild(el('p', 'ta-limit', t))" in JS
+    assert "if (b.type === 'heading') frag.appendChild" in JS
+    assert "frag.appendChild(ul);" in JS
+    assert "frag.appendChild(runsInto(el('p', 'ta-p'), b.runs));" in JS
+    disclosure = re.search(r"support\.appendChild\(el\('summary', null, '([^']+)'\)\)", JS)
+    assert disclosure, "the recorded-figures disclosure has no accessible summary"
+    assert disclosure.group(1) == "Recorded figures and calculations"
+    assert "support.open = true" not in JS
 
 
 def test_the_screen_reader_hears_the_figures_and_the_ranking_too():

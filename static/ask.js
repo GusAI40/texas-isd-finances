@@ -43,7 +43,7 @@
 
   var css = [
     '.ta-fab { position:fixed; right:16px; bottom:16px; z-index:190;',
-    '  display:flex; align-items:center; gap:.55rem; min-height:52px;',
+    '  display:flex; align-items:center; min-height:52px;',
     '  padding:.75rem 1.25rem; border-radius:999px; cursor:pointer;',
     '  border:1px solid var(--rule, #e3e6e8);',
     '  background:var(--ink, #14171a); color:var(--bg, #fff);',
@@ -51,9 +51,6 @@
     '  box-shadow:0 6px 24px rgba(0,0,0,.18); }',
     '.ta-fab:hover { transform:translateY(-1px); }',
     '.ta-fab:focus-visible { outline:3px solid var(--accent, #1a56a8); outline-offset:2px; }',
-    '.ta-fab .ta-mk { display:grid; grid-template-columns:1fr 1fr; gap:2px; width:16px; height:16px; }',
-    '.ta-fab .ta-mk i { background:var(--accent, #6ea8ee); border-radius:2px; }',
-    '.ta-fab .ta-mk i:last-child { background:var(--bg, #fff); opacity:.65; }',
     '@media (max-width: 480px) { .ta-fab .ta-long { display:none; } }',
     /* overlay + sheet */
     '.ta-wrap { position:fixed; inset:0; z-index:200; display:none; }',
@@ -61,7 +58,7 @@
     '.ta-back { position:absolute; inset:0; background:rgba(10,12,14,.42);',
     '  backdrop-filter:blur(3px); -webkit-backdrop-filter:blur(3px); }',
     '.ta-sheet { position:absolute; left:50%; transform:translateX(-50%);',
-    '  bottom:0; width:min(680px, 100%); max-height:88vh;',
+    '  bottom:0; width:min(760px, 100%); max-height:100vh; max-height:100dvh;',
     '  display:flex; flex-direction:column;',
     '  background:var(--bg, #fff); color:var(--ink, #14171a);',
     '  border:1px solid var(--rule, #e3e6e8); border-bottom:none;',
@@ -69,7 +66,7 @@
     '  font:16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }',
     '@media (min-width: 720px) { .ta-sheet { bottom:auto; top:50%;',
     '  transform:translate(-50%,-50%); border-radius:16px; border-bottom:1px solid var(--rule,#e3e6e8);',
-    '  max-height:min(84vh, 720px); } }',
+    '  max-height:min(90vh, 820px); } }',
     '.ta-wrap.open .ta-sheet { animation:ta-up .32s cubic-bezier(.2,.8,.25,1); }',
     '@keyframes ta-up { from { opacity:0; transform:translate(-50%, 24px); } }',
     '@media (min-width: 720px) { .ta-wrap.open .ta-sheet {',
@@ -77,30 +74,27 @@
     '@keyframes ta-in { from { opacity:0; transform:translate(-50%, calc(-50% + 14px)); } }',
     '@media (prefers-reduced-motion: reduce) { .ta-wrap.open .ta-sheet { animation:none; } }',
     /* header */
-    '.ta-head { display:flex; align-items:flex-start; gap:.7rem; padding:1.1rem 1.25rem .4rem; }',
-    '.ta-head h2 { margin:0; font-size:1.2rem; line-height:1.3; letter-spacing:-.01em; }',
-    '.ta-head p { margin:.15rem 0 0; color:var(--muted, #5a6572); font-size:.92rem; }',
+    '.ta-head { display:flex; align-items:center; gap:.65rem; padding:.55rem 1rem .35rem; border-bottom:1px solid var(--rule,#e3e6e8); }',
+    '.ta-head h2 { margin:0; font-size:1rem; line-height:1.25; letter-spacing:-.01em; }',
+    '.ta-head .ta-scope { display:block; margin-top:.08rem; color:var(--muted,#5a6572); font-size:.875rem; font-weight:600; }',
+    '.ta-head p { display:none; }',
     '.ta-x { margin-left:auto; flex:none; width:44px; height:44px; border-radius:10px;',
     '  border:1px solid var(--rule, #e3e6e8); background:none; color:var(--muted, #5a6572);',
     '  font-size:1.35rem; line-height:1; cursor:pointer; }',
     '.ta-x:hover { color:var(--ink, #14171a); background:var(--wash, #f4f5f4); }',
     '.ta-x:focus-visible { outline:3px solid var(--accent, #1a56a8); outline-offset:2px; }',
     /* thread */
-    '.ta-thread { flex:1; overflow-y:auto; padding:.6rem 1.25rem; min-height:4rem;',
+    '.ta-thread { flex:1 1 auto; overflow-y:auto; padding:.35rem 1rem; min-height:0;',
     '  overscroll-behavior:contain; scroll-behavior:smooth; }',
+    '.ta-thread:empty { flex:0; min-height:0; padding-top:0; padding-bottom:0; }',
     '@media (prefers-reduced-motion: reduce) { .ta-thread { scroll-behavior:auto; } }',
-    '.ta-msg { display:flex; gap:.6rem; margin:.65rem 0; }',
+    '.ta-msg { display:flex; margin:.4rem 0; }',
     '.ta-msg.me { justify-content:flex-end; }',
     '.ta-msg.me .ta-bub { background:var(--accent, #1a56a8); color:var(--accent-ink, #fff);',
     '  border-radius:16px 16px 4px 16px; max-width:85%; }',
     '.ta-msg.ai .ta-bub { background:var(--surface, #f6f7f6);',
-    '  border:1px solid var(--rule, #e3e6e8); border-radius:4px 16px 16px 16px; max-width:92%; }',
-    '.ta-bub { padding:.65rem .9rem; font-size:1rem; overflow-wrap:anywhere; }',
-    '.ta-av { flex:none; width:24px; height:24px; margin-top:2px; display:grid;',
-    '  grid-template-columns:1fr 1fr; gap:2px; align-content:center; padding:4px;',
-    '  background:var(--ink, #14171a); border-radius:7px; }',
-    '.ta-av i { background:var(--accent, #6ea8ee); border-radius:1.5px; min-height:6px; }',
-    '.ta-av i:last-child { background:#fff; opacity:.6; }',
+    '  border:1px solid var(--rule, #e3e6e8); border-radius:4px 16px 16px 16px; max-width:100%; }',
+    '.ta-bub { padding:.5rem .75rem; font-size:1rem; overflow-wrap:anywhere; }',
     /* the skeleton: shimmering lines while the model reads the data */
     '.ta-skel { display:block; }',
     '.ta-skel i { display:block; height:.72em; margin:.45em 0; border-radius:4px;',
@@ -111,7 +105,7 @@
     '.ta-skel i:nth-child(3) { width:60%; }',
     '@keyframes ta-shim { to { background-position:-200% 0; } }',
     '@media (prefers-reduced-motion: reduce) { .ta-skel i { animation:none; } }',
-    '.ta-think { color:var(--muted, #5a6572); font-size:.85rem; }',
+    '.ta-think { color:var(--muted, #5a6572); font-size:.875rem; }',
     /* the words, arriving */
     '.ta-bub .w { opacity:0; filter:blur(5px); display:inline-block;',
     '  animation:ta-word .34s cubic-bezier(.2,.7,.3,1) forwards; }',
@@ -127,8 +121,10 @@
     '  border-radius:999px; border:1px solid var(--rule, #e3e6e8);',
     '  background:var(--bg, #fff); color:var(--ink-2, #3d454d); cursor:pointer; text-align:left; }',
     '.ta-chips button:hover { border-color:var(--accent, #1a56a8); color:var(--accent, #1a56a8); }',
+    '@media (max-width:430px) { .ta-chips { flex-wrap:nowrap; overflow-x:auto; overscroll-behavior-x:contain; }.ta-chips button { flex:0 0 auto; max-width:15rem; } }',
+    '@media (max-width:240px) { .ta-example-flow { grid-template-columns:1fr; } .ta-example-stage { min-width:0; overflow-wrap:anywhere; } .ta-row { flex-direction:column; } .ta-row input,.ta-row button { width:100%; min-width:0; box-sizing:border-box; } }',
     /* composer */
-    '.ta-row { display:flex; gap:.6rem; padding:.5rem 1.25rem .35rem; }',
+    '.ta-row { display:flex; gap:.5rem; padding:.35rem 1rem .25rem; }',
     '.ta-row input { flex:1; min-height:52px; padding:.7rem 1rem; font:inherit; font-size:1.05rem;',
     '  border:1.5px solid var(--rule, #cfd4d8); border-radius:12px;',
     '  background:var(--bg, #fff); color:var(--ink, #14171a); }',
@@ -140,12 +136,33 @@
     '  background:var(--accent, #1a56a8); color:var(--accent-ink, #fff); }',
     '.ta-row button:focus-visible { outline:3px solid var(--ink, #14171a); outline-offset:2px; }',
     '.ta-row button[disabled] { opacity:.55; cursor:default; }',
-    '.ta-fine { margin:0; padding:.15rem 1.25rem calc(1rem + env(safe-area-inset-bottom, 0px));',
-    '  color:var(--faint, #8b95a1); font-size:.78rem; line-height:1.5; }',
-    '.ta-fine a { color:inherit; }',
+    '.ta-actions { display:flex; gap:.5rem; padding:0 1rem .3rem; }',
+    '.ta-actions[hidden] { display:none; }',
+    '.ta-actions button { min-height:44px; padding:.4rem .75rem; border-radius:9px; font:600 .9rem/1 system-ui,sans-serif; cursor:pointer; border:1px solid var(--rule,#cfd4d8); background:var(--bg,#fff); color:var(--ink,#14171a); }',
+    '.ta-actions .ta-stop { color:var(--accent,#1a56a8); border-color:var(--accent,#1a56a8); }',
+    '.ta-empty { margin:.1rem 1rem .35rem; padding:.6rem 0; border-block:1px solid var(--rule,#e3e6e8); color:var(--ink-2,#3d454d); font-size:.875rem; line-height:1.35; }',
+    '.ta-example-head { display:flex; justify-content:space-between; gap:.6rem; align-items:baseline; margin-bottom:.5rem; }',
+    '.ta-example-head b { color:var(--ink,#14171a); font-size:.9rem; }',
+    '.ta-example-head span { font-size:.875rem; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:var(--accent,#1a56a8); }',
+    '.ta-example-q { margin:0 0 .55rem; padding:.38rem .5rem; border-left:3px solid var(--accent,#1a56a8); background:var(--bg,#fff); color:var(--ink,#14171a); font-weight:700; }',
+    '.ta-example-flow { display:grid; grid-template-columns:minmax(0,1.1fr) minmax(4.8rem,.52fr) minmax(0,1.1fr); gap:.7rem; align-items:stretch; }',
+    '.ta-example-stage { position:relative; min-width:0; padding:.45rem 0; border-block:2px solid var(--accent,#1a56a8); }',
+    '.ta-example-stage:not(:last-child)::after { content:""; position:absolute; left:100%; top:50%; width:.75rem; border-top:2px solid var(--accent,#1a56a8); }',
+    '.ta-example-stage > b { display:block; margin-bottom:.3rem; font-size:.875rem; color:var(--ink,#14171a); }',
+    '.ta-example-records { display:grid; gap:3px; } .ta-example-records i { display:block; height:.42rem; width:var(--w); border-radius:2px; background:var(--accent,#1a56a8); opacity:var(--o); }',
+    '.ta-example-codes { display:flex; justify-content:space-between; gap:.2rem; margin-top:.25rem; font-size:.875rem; font-variant-numeric:tabular-nums; }',
+    '.ta-example-match { display:grid; place-items:center; text-align:center; } .ta-example-match strong { padding:.28rem; border:2px solid var(--accent,#1a56a8); border-radius:6px; color:var(--accent,#1a56a8); font-size:.9rem; letter-spacing:.05em; }',
+    '.ta-example-match small { font-size:.875rem; }',
+    '.ta-example-stack { display:flex; height:2.15rem; overflow:hidden; border-radius:5px; } .ta-example-stack i { display:block; min-width:2px; }',
+    '.ta-example-stack .c { width:32.9177%; background:#174f9b; }.ta-example-stack .b { width:23.0873%; background:#4c73a4; }.ta-example-stack .d { width:15.0691%; background:#334e68; }.ta-example-stack .o { width:28.9259%; background:#376fba; }',
+    '.ta-example-answer strong { display:block; margin-top:.28rem; color:var(--ink,#14171a); font-size:.875rem; font-variant-numeric:tabular-nums; }',
+    '@media (max-width:430px) { .ta-example-flow { grid-template-columns:minmax(0,1.05fr) minmax(4.25rem,.58fr) minmax(0,1.08fr); gap:.5rem; }.ta-example-stage { padding:.35rem; }.ta-example-stage:not(:last-child)::after { width:.55rem; }.ta-example-codes span:not(:first-child) { display:none; } }',
+    '.ta-fine { margin:0; padding:.1rem 1rem calc(.55rem + env(safe-area-inset-bottom, 0px));',
+    '  color:var(--ink-2, #52606d); font-size:.875rem; line-height:1.5; }',
+    '.ta-fine a { color:var(--accent, #1a56a8); }',
     /* ---- the structured answer, drawn as components ---- */
-    '.ta-msg.ai.rich .ta-bub { max-width:100%; background:var(--bg, #fff);',
-    '  border-radius:4px 14px 14px 14px; padding:.85rem 1rem 1rem; }',
+    '.ta-msg.ai.rich .ta-bub { max-width:100%; display:flex; flex-direction:column; background:var(--bg, #fff);',
+    '  border:0; border-radius:0; padding:.25rem 0 .6rem; }',
     '.ta-lead { margin:0; font-size:1.12rem; line-height:1.45; font-weight:600;',
     '  letter-spacing:-.011em; color:var(--ink, #14171a); }',
     /* The lead is the model's whole opening paragraph, and a four-sentence
@@ -163,13 +180,13 @@
     'button.ta-card:focus-visible { outline:3px solid var(--accent, #1a56a8); outline-offset:2px; }',
     '.ta-card b { display:block; font-size:1.22rem; line-height:1.15;',
     '  letter-spacing:-.02em; font-variant-numeric:tabular-nums; }',
-    '.ta-card span { display:block; margin-top:.2rem; font-size:.76rem;',
+    '.ta-card span { display:block; margin-top:.2rem; font-size:.875rem;',
     '  text-transform:uppercase; letter-spacing:.05em; color:var(--muted, #5a6572); }',
-    '.ta-cap { margin:.4rem 0 0; font-size:.78rem; color:var(--faint, #8b95a1); }',
+    '.ta-cap { margin:.4rem 0 0; font-size:.875rem; color:var(--ink-2, #52606d); }',
     '.ta-lin { margin:.55rem 0 0; padding:.7rem .8rem; border-radius:10px;',
     '  border:1px solid var(--rule, #e3e6e8); background:var(--wash, #f4f5f4); }',
     '.ta-linhead { display:flex; align-items:center; gap:.5rem; flex-wrap:wrap; }',
-    '.ta-badge { font-size:.68rem; font-weight:700; letter-spacing:.08em;',
+    '.ta-badge { font-size:.875rem; font-weight:700; letter-spacing:.08em;',
     '  padding:.2rem .45rem; border-radius:5px; background:var(--ink, #14171a);',
     '  color:var(--bg, #fff); }',
     '.ta-badge.v-verified { background:#1d6f42; color:#fff; }',
@@ -177,7 +194,7 @@
     '.ta-badge.v-refused, .ta-badge.v-failed { background:#8a2a1e; color:#fff; }',
     '.ta-sum { margin:.4rem 0 0; font-size:1rem; font-variant-numeric:tabular-nums;',
     '  color:var(--ink, #14171a); }',
-    '.ta-h { margin:.95rem 0 .2rem; font-size:.8rem; font-weight:700;',
+    '.ta-h { margin:.95rem 0 .2rem; font-size:.875rem; font-weight:700;',
     '  text-transform:uppercase; letter-spacing:.07em; color:var(--muted, #5a6572); }',
     '.ta-p { margin:.5rem 0 0; font-size:.98rem; line-height:1.6; color:var(--ink-2, #3d454d); }',
     '.ta-ul { margin:.5rem 0 0; padding-left:1.1rem; }',
@@ -190,22 +207,48 @@
     '.ta-tb { border-collapse:collapse; width:100%; font-size:.92rem; }',
     '.ta-tb th, .ta-tb td { padding:.5rem .7rem; text-align:left; white-space:nowrap;',
     '  border-bottom:1px solid var(--rule, #e3e6e8); }',
-    '.ta-tb th { font-size:.74rem; text-transform:uppercase; letter-spacing:.05em;',
+    '.ta-tb th { font-size:.875rem; text-transform:uppercase; letter-spacing:.05em;',
     '  color:var(--muted, #5a6572); background:var(--surface, #f6f7f6); }',
     '.ta-tb td:not(:first-child) { font-variant-numeric:tabular-nums; }',
     '.ta-tb tr:last-child td { border-bottom:none; }',
     '.ta-tb tr.me td { font-weight:600; background:var(--wash, #f4f5f4); }',
-    '.ta-basis { margin:.35rem 0 0; font-size:.78rem; line-height:1.5; color:var(--faint, #8b95a1); }',
+    '.ta-basis { margin:.35rem 0 0; font-size:.875rem; line-height:1.5; color:var(--faint, #8b95a1); }',
+    '.ta-chart { margin:.55rem 0 0; padding:.15rem 0 .5rem; background:var(--bg,#fff); }',
+    '.ta-bub .ta-chart { order:-4; } .ta-bub .ta-lead { order:-3; } .ta-bub .ta-context { order:-2; } .ta-bub .ta-answer-source { order:-1; }',
+    '.ta-chart-title { display:flex; justify-content:space-between; gap:.7rem; margin:0 0 .25rem; font-size:.95rem; font-weight:700; color:var(--ink-2, #3d454d); }',
+    '.ta-chart-title span { font-size:.875rem; font-weight:600; color:var(--muted,#5a6572); }',
+    '.ta-chart-axis { display:grid; grid-template-columns:8rem minmax(0,1fr) var(--ta-chart-value-width,8rem); gap:.35rem .65rem; margin:0 0 .15rem; color:var(--muted,#5a6572); font-size:.875rem; font-variant-numeric:tabular-nums; }',
+    '.ta-chart-axis span:first-child { grid-column:2; grid-row:1; justify-self:start; }.ta-chart-axis span:last-child { grid-column:2; grid-row:1; justify-self:end; }',
+    '.ta-chart-row { display:grid; grid-template-columns:8rem minmax(0,1fr) var(--ta-chart-value-width,8rem); gap:.35rem .65rem; align-items:center; margin:.42rem 0; }',
+    '.ta-chart-row strong { font-size:.9rem; line-height:1.25; color:var(--ink,#14171a); }',
+    '.ta-chart-track { position:relative; height:2.25rem; overflow:visible; border-inline-start:2px solid var(--ink,#14171a); border-block-end:1px solid var(--rule,#e3e6e8); background:linear-gradient(to right, var(--rule,#e3e6e8) 0 1px, transparent 1px 25%, var(--rule,#e3e6e8) 25% calc(25% + 1px), transparent calc(25% + 1px) 50%, var(--rule,#e3e6e8) 50% calc(50% + 1px), transparent calc(50% + 1px) 75%, var(--rule,#e3e6e8) 75% calc(75% + 1px), transparent calc(75% + 1px)); }',
+    '.ta-chart-bar { position:absolute; inset:.45rem auto 0 0; display:block; min-width:2px; border-radius:0 3px 0 0; background:var(--accent,#1a56a8); }',
+    '.ta-chart-value { display:block; min-width:0; font-size:.9rem; line-height:1.15; font-variant-numeric:tabular-nums; color:var(--ink,#14171a); }',
+    '.ta-chart-row:nth-of-type(3n+2) .ta-chart-bar { opacity:.82; }.ta-chart-row:nth-of-type(3n+3) .ta-chart-bar { opacity:.66; }',
+    '.ta-chart-record { display:flex; flex-wrap:wrap; align-items:baseline; gap:.15rem .45rem; margin:.5rem 0 0; padding:.42rem 0 0; border-top:1px solid var(--rule,#e3e6e8); font-size:.875rem; line-height:1.35; }',
+    '.ta-chart-record .ta-answer-source { color:var(--accent,#1a56a8); font-weight:700; }.ta-chart-record .ta-context { display:block; margin:.12rem 0 0; color:var(--ink-2,#3d454d); font-size:.875rem; }',
+    '@media (max-width:700px) { .ta-chart-row { grid-template-columns:minmax(0,1fr) auto; gap:.15rem .45rem; }.ta-chart-row .ta-chart-track { grid-column:1 / -1; }.ta-chart-axis { grid-template-columns:minmax(0,1fr) auto; gap:.15rem .45rem; }.ta-chart-axis span:first-child { grid-column:1; justify-self:start; }.ta-chart-axis span:last-child { grid-column:2; justify-self:end; } }',
+    '@media (max-width:360px) { .ta-chart-title { display:block; }.ta-chart-title span { display:block; margin-top:.2rem; }.ta-chart-record { grid-template-columns:1fr; }.ta-chart-record small { grid-column:1; } }',
+    '.ta-evidence, .ta-support { margin:.8rem 0 0; font-size:.9rem; color:var(--ink-2,#3d454d); }',
+    '.ta-evidence summary, .ta-support summary { display:flex; align-items:center; min-height:44px; cursor:pointer; color:var(--accent,#1a56a8); font-weight:600; }',
+    '.ta-support p { margin:.55rem 0 0; }',
+    '.ta-context, .ta-answer-source, .ta-limit { margin:.55rem 0 0; font-size:.875rem; line-height:1.45; color:var(--ink-2,#3d454d); }',
+    '.ta-answer-source a { color:var(--accent,#1a56a8); }',
+    '.ta-answer-meta { margin:.4rem 0 0; padding:.45rem .55rem; border-left:3px solid var(--accent,#1a56a8); background:var(--wash,#f4f5f4); font-size:.875rem; line-height:1.4; }',
+    '.ta-answer-meta .ta-context, .ta-answer-meta .ta-answer-source { margin:.08rem 0 0; font-size:inherit; }.ta-answer-meta .ta-context { color:var(--ink-2,#3d454d); }.ta-answer-meta .ta-answer-source { color:var(--ink,#14171a); font-weight:600; }',
     '.ta-next { display:flex; flex-wrap:wrap; gap:.45rem; margin:.9rem 0 0;',
     '  padding-top:.8rem; border-top:1px solid var(--rule, #e3e6e8); }',
-    '.ta-next button { font:inherit; font-size:.9rem; min-height:40px; padding:.4rem .85rem;',
+    '.ta-next button { font:inherit; font-size:.9rem; min-height:44px; padding:.4rem .85rem;',
     '  border-radius:999px; border:1px solid var(--rule, #e3e6e8); cursor:pointer;',
     '  background:var(--bg, #fff); color:var(--accent, #1a56a8); text-align:left; }',
     '.ta-next button:hover { background:var(--accent, #1a56a8); color:var(--accent-ink, #fff);',
     '  border-color:var(--accent, #1a56a8); }',
     '.ta-next button:focus-visible { outline:3px solid var(--ink, #14171a); outline-offset:2px; }',
-    '.ta-foot { margin:.75rem 0 0; font-size:.78rem; line-height:1.55; color:var(--faint, #8b95a1); }',
-    '.ta-foot a { color:inherit; }',
+    /* Keep this after the 430px example layout so the 200% reflow viewport
+       really becomes one column instead of restoring the three-stage grid. */
+    '@media (max-width:240px) { .ta-empty .ta-example-flow { grid-template-columns:minmax(0,1fr); } .ta-empty .ta-example-stage { min-width:0; overflow-wrap:anywhere; } .ta-empty .ta-example-stage:not(:last-child)::after { left:50%; top:100%; width:0; height:.7rem; border-top:0; border-left:2px solid var(--accent,#1a56a8); } }',
+    '.ta-foot { margin:.75rem 0 0; font-size:.875rem; line-height:1.55; color:var(--ink-2, #52606d); }',
+    '.ta-foot a { color:var(--accent, #1a56a8); }',
     '.ta-foot + .ta-foot { margin-top:.3rem; }',
     /* ---- beta chip + feedback ---- */
     '.m-beta { display:inline-block; margin-left:.45rem; padding:.1rem .4rem;',
@@ -245,7 +288,7 @@
     '.tf-row button.ghost { background:none; color:var(--muted, #5a6572);',
     '  border:1px solid var(--rule, #e3e6e8); }',
     '.tf-row button[disabled] { opacity:.55; cursor:default; }',
-    '.tf-fine { margin-top:.85rem; font-size:.78rem; line-height:1.5;',
+    '.tf-fine { margin-top:.85rem; font-size:.875rem; line-height:1.5;',
     '  color:var(--faint, #8b95a1); }',
     '.ta-sr { position:absolute; width:1px; height:1px; overflow:hidden;',
     '  clip:rect(0 0 0 0); clip-path:inset(50%); white-space:nowrap; }',
@@ -261,6 +304,8 @@
   }
 
   var wrap, thread, input, sendBtn, chips, fab, sr, lastFocus, busy = false;
+  var controller = null, requestTimer = null, focusTimer = null, retryState = null, activeRequest = null, activeBubble = null;
+  var previousOverflow = '', focusSerial = 0;
 
   function build() {
     if (document.getElementById(STYLE_ID)) return;
@@ -270,7 +315,6 @@
     document.head.appendChild(style);
 
     fab = h('<button class="ta-fab" type="button" aria-haspopup="dialog">'
-      + '<span class="ta-mk" aria-hidden="true"><i></i><i></i><i></i><i></i></span>'
       + 'Ask<span class="ta-long">&nbsp;a question</span></button>');
     fab.addEventListener('click', function () { open(); });
     document.body.appendChild(fab);
@@ -279,11 +323,20 @@
       + '<div class="ta-back"></div>'
       + '<div class="ta-sheet">'
       + '  <div class="ta-head">'
-      + '    <div><h2 id="ta-title">Ask about any Texas school district</h2>'
-      + '    <p>Plain English. Answered from the state&rsquo;s own numbers.</p></div>'
+      + '    <div><h2 id="ta-title">Ask Texas school finance</h2>'
+      + '    <p>Plain English answers from official records.</p><span class="ta-scope">Official Texas public records</span></div>'
       + '    <button class="ta-x" type="button" aria-label="Close">&times;</button>'
       + '  </div>'
       + '  <div class="ta-thread"></div>'
+      + '  <div class="ta-empty">'
+      + '    <div class="ta-example-head"><b>Question to source to answer</b><span>Recorded example</span></div>'
+      + '    <p class="ta-example-q">How much went to Dallas classrooms?</p>'
+      + '    <div class="ta-example-flow" aria-label="Example workflow from Dallas question through TEA records to a sourced quantitative answer.">'
+      + '      <div class="ta-example-stage"><b>TEA PEIMS &middot; FY 2025 all funds</b><div class="ta-example-records" role="img" aria-label="Separate record groups: classroom 32.9 percent, construction 23.1 percent, debt 15.1 percent, other combined 28.9 percent."><i style="--w:100%;--o:1"></i><i style="--w:70.1%;--o:.82"></i><i style="--w:45.8%;--o:.66"></i><i style="--w:87.9%;--o:.74"></i></div><div class="ta-example-codes"><span>11+12+13</span><span>6600</span><span>6500</span></div></div>'
+      + '      <div class="ta-example-stage ta-example-match"><b>District match</b><strong>057905</strong><small>Dallas ISD</small></div>'
+      + '      <div class="ta-example-stage ta-example-answer"><b>Sourced answer</b><div class="ta-example-stack" role="img" aria-label="Dallas spending shares: classroom 32.9 percent, construction 23.1 percent, debt 15.1 percent, other combined 28.9 percent."><i class="c"></i><i class="b"></i><i class="d"></i><i class="o"></i></div><strong>Classroom: $1.093B &middot; 32.9%</strong></div>'
+      + '    </div>'
+      + '  </div>'
       + '  <div class="ta-sr" aria-live="polite"></div>'
       + '  <div class="ta-chips" aria-label="Example questions"></div>'
       + '  <div class="ta-row">'
@@ -291,9 +344,11 @@
       + '           aria-label="Ask a question about any Texas district">'
       + '    <button type="button">Ask</button>'
       + '  </div>'
+      + '  <div class="ta-actions" hidden><button class="ta-stop" type="button">Stop</button><button class="ta-retry" type="button" hidden>Try again</button></div>'
       + '  <p class="ta-fine">AI answers from official TEA data and can make mistakes '
-      + '&mdash; double-check important figures. Questions are kept on their own, with '
-      + 'nothing that identifies you (<a href="/about#privacy">what we collect</a>).</p>'
+      + '&mdash; double-check important figures. Questions are saved together under a '
+      + 'random conversation code. Please leave out personal details '
+      + '(<a href="/about#privacy">what we collect</a>).</p>'
       + '</div></div>');
     document.body.appendChild(wrap);
 
@@ -302,6 +357,11 @@
     sendBtn = wrap.querySelector('.ta-row button');
     chips = wrap.querySelector('.ta-chips');
     sr = wrap.querySelector('.ta-sr');
+
+    wrap.querySelector('.ta-stop').addEventListener('click', stopRequest);
+    wrap.querySelector('.ta-retry').addEventListener('click', function () {
+      if (retryState) submit(retryState.question, retryState.districtNumber);
+    });
 
     STARTERS.forEach(function (q) {
       var b = h('<button type="button"></button>');
@@ -321,7 +381,10 @@
       /* a soft focus loop: Tab from the last control returns to the first,
          so keyboard readers cannot fall out of the dialog into the page */
       if (e.key === 'Tab' && wrap.classList.contains('open')) {
-        var focusables = wrap.querySelectorAll('button, input, a[href]');
+        var focusables = Array.prototype.filter.call(wrap.querySelectorAll('button, input, a[href]'), function (node) {
+          return !node.disabled && !node.hidden && node.offsetParent !== null;
+        });
+        if (!focusables.length) return;
         var first = focusables[0], last = focusables[focusables.length - 1];
         if (e.shiftKey && document.activeElement === first) {
           e.preventDefault(); last.focus();
@@ -334,27 +397,35 @@
 
   function open() {
     build();
+    if (wrap.classList.contains('open') && !wrap.hidden) return;
     lastFocus = document.activeElement;
     wrap.hidden = false;
     /* two frames so the animation class change actually transitions */
     requestAnimationFrame(function () { wrap.classList.add('open'); });
+    previousOverflow = document.documentElement.style.overflow;
     document.documentElement.style.overflow = 'hidden';
-    setTimeout(function () { input.focus(); }, reduce ? 0 : 220);
+    var serial = ++focusSerial;
+    clearTimeout(focusTimer);
+    focusTimer = setTimeout(function () {
+      if (serial === focusSerial && !wrap.hidden && document.activeElement === lastFocus) input.focus();
+    }, reduce ? 0 : 220);
   }
 
   function close() {
     if (!wrap) return;
+    stopRequest(true);
+    ++focusSerial;
+    clearTimeout(focusTimer);
     wrap.classList.remove('open');
     wrap.hidden = true;
-    document.documentElement.style.overflow = '';
+    document.documentElement.style.overflow = previousOverflow;
     if (lastFocus && lastFocus.focus) lastFocus.focus();
   }
 
   function bubble(kind) {
     var m = kind === 'me'
       ? h('<div class="ta-msg me"><div class="ta-bub"></div></div>')
-      : h('<div class="ta-msg ai"><span class="ta-av" aria-hidden="true">'
-          + '<i></i><i></i><i></i><i></i></span><div class="ta-bub"></div></div>');
+      : h('<div class="ta-msg ai"><div class="ta-bub"></div></div>');
     thread.appendChild(m);
     thread.scrollTop = thread.scrollHeight;
     return m.querySelector('.ta-bub');
@@ -412,6 +483,12 @@
 
   function tableOf(head, rows, selfRow) {
     var wrapEl = el('div', 'ta-tw');
+    /* Tables can be wider than the phone-sized answer sheet. The wrapper is a
+       named keyboard region so arrow-key users can reach the same columns as
+       touch and pointer users without changing or hiding any values. */
+    wrapEl.tabIndex = 0;
+    wrapEl.setAttribute('role', 'region');
+    wrapEl.setAttribute('aria-label', 'Scrollable answer table');
     var t = el('table', 'ta-tb');
     if (head && head.length) {
       var thead = document.createElement('thead');
@@ -510,10 +587,120 @@
       });
   }
 
+  function moneySeries(head, rows) {
+    if (!Array.isArray(head) || head.length !== 2 || !Array.isArray(rows) || rows.length < 2) return null;
+    var labelHead = String(head[0] || '').trim().toLowerCase();
+    var moneyHead = String(head[1] || '').trim().toLowerCase();
+    if (!/^(spending\s+)?(category|item|function|type|program)$/.test(labelHead)
+        || !/^(dollars?|usd|amount(?:\s*\(\s*usd\s*\))?)$/.test(moneyHead)) return null;
+    var values = [];
+    for (var i = 0; i < rows.length; i++) {
+      var row = rows[i];
+      if (!Array.isArray(row) || row.length !== 2) return null;
+      var label = String(row[0] == null ? '' : row[0]).trim();
+      var text = String(row[1] == null ? '' : row[1]).trim();
+      if (/^(total|total spending|grand total)$/i.test(label)) continue;
+      if (!label || !/^\$(?:\d{1,3}(?:,\d{3})*|\d+)(?:\.\d{2})?$/.test(text)) return null;
+      var value = Number(text.replace(/[$,]/g, ''));
+      if (!isFinite(value) || value <= 0) return null;
+      values.push({ label: label, shown: text, value: value });
+    }
+    return values.length > 1 ? values : null;
+  }
+
+  function chartOf(head, rows, s) {
+    if (!s || !s.figures || !s.figures.name || !s.figures.year || !s.figures.note
+        || !s.sources || !s.sources.length) return null;
+    var values = moneySeries(head, rows);
+    if (!values) return null;
+    var max = Math.max.apply(null, values.map(function (v) { return v.value; }));
+    var chart = el('section', 'ta-chart');
+    var valueWidth = Math.max.apply(null, values.map(function (v) { return v.shown.length; }));
+    chart.style.setProperty('--ta-chart-value-width', Math.max(8, valueWidth * .55) + 'rem');
+    chart.setAttribute('aria-label', 'Reported dollar comparison; bars are scaled to the largest displayed amount.');
+    var title = el('p', 'ta-chart-title');
+    title.appendChild(el('strong', null, 'Reported dollar comparison'));
+    title.appendChild(el('span', null, 'Common zero baseline; largest shown value fills the scale'));
+    chart.appendChild(title);
+    var axis = el('div', 'ta-chart-axis');
+    axis.setAttribute('aria-hidden', 'true');
+    axis.appendChild(el('span', null, '$0'));
+    axis.appendChild(el('span', null, values.filter(function (v) { return v.value === max; })[0].shown));
+    chart.appendChild(axis);
+    values.forEach(function (v) {
+      var row = el('div', 'ta-chart-row');
+      row.appendChild(el('strong', null, v.label));
+      var track = el('div', 'ta-chart-track');
+      var bar = el('i', 'ta-chart-bar');
+      bar.setAttribute('data-value', String(v.value));
+      bar.style.width = (v.value / max * 100) + '%';
+      track.appendChild(bar);
+      row.appendChild(track);
+      row.appendChild(el('b', 'ta-chart-value', v.shown));
+      chart.appendChild(row);
+    });
+    var record = el('div', 'ta-chart-record');
+    var source = el('a', 'ta-answer-source', String(s.sources[0].name || 'Linked source'));
+    source.href = s.sources[0].url;
+    if (/^https?:/.test(s.sources[0].url)) { source.target = '_blank'; source.rel = 'noopener'; }
+    record.appendChild(source);
+    record.appendChild(el('small', 'ta-context', s.figures.name + ' · Fiscal '
+      + s.figures.year + ' · ' + s.figures.note));
+    chart.appendChild(record);
+    return chart;
+  }
+
+  function hasQualifiedChart(s) {
+    return (s.blocks || []).some(function (b) {
+      return b && b.type === 'table' && !!chartOf(b.head, b.rows, s);
+    });
+  }
+
+  /* A non-qualifying table must not borrow a chart's record band. It still
+     needs the same checkable district, fiscal-year, scope, and source context
+     when the structured answer supplies them. */
+  function metadataOf(s) {
+    var meta = el('section', 'ta-answer-meta');
+    var added = false;
+    if (s.figures && s.figures.name && s.figures.year && s.figures.note) {
+      meta.appendChild(el('p', 'ta-context', s.figures.name + ' · Fiscal '
+        + s.figures.year + ' · ' + s.figures.note));
+      added = true;
+    }
+    if (s.sources && s.sources.length) {
+      var source = el('p', 'ta-answer-source');
+      source.appendChild(document.createTextNode('Source: '));
+      s.sources.forEach(function (src, i) {
+        if (i) source.appendChild(document.createTextNode(' · '));
+        var link = el('a', null, src.name || 'Linked source');
+        link.href = src.url;
+        if (/^https?:/.test(src.url)) { link.target = '_blank'; link.rel = 'noopener'; }
+        source.appendChild(link);
+      });
+      meta.appendChild(source);
+      added = true;
+    }
+    return added ? meta : null;
+  }
+
   /* Everything below the lead: figures we computed, then the model's blocks,
      then the comparison we computed, then sources and the next questions. */
-  function bodyOf(s) {
+  function bodyOf(s, supportingLead) {
     var frag = document.createDocumentFragment();
+    var support = el('details', 'ta-support');
+    support.appendChild(el('summary', null, 'Recorded figures and calculations'));
+    /* The renderer cannot safely classify a later lead sentence as optional
+       explanation. Keep it adjacent to the conclusion as visible context;
+       paragraphs stay visible; cards and duplicate records remain in the named disclosure. */
+    if (supportingLead) frag.appendChild(el('p', 'ta-qualification', supportingLead));
+    var qualified = hasQualifiedChart(s);
+    if (!qualified) {
+      var metadata = metadataOf(s);
+      if (metadata) frag.appendChild(metadata);
+    }
+    (s.limitations || []).forEach(function (t) {
+      frag.appendChild(el('p', 'ta-limit', t));
+    });
 
     if (s.figures && s.figures.cards && s.figures.cards.length) {
       var grid = el('div', 'ta-cards');
@@ -533,14 +720,15 @@
         box.appendChild(el('span', null, c.label));
         grid.appendChild(box);
       });
-      frag.appendChild(grid);
-      frag.appendChild(el('p', 'ta-cap',
-        (s.figures.name ? s.figures.name + ', ' : '') + 'fiscal '
-        + s.figures.year + ' · ' + s.figures.note));
+      support.appendChild(grid);
     }
 
     (s.blocks || []).forEach(function (b) {
       if (!b) return;
+      /* Generic blocks carry no field that proves they are merely supporting
+         detail. Keep their supplied conclusion and qualifiers visible rather
+         than guessing from wording or length. Exact tabular rows still have
+         their own named disclosure after a qualified chart. */
       if (b.type === 'heading') frag.appendChild(el('h3', 'ta-h', b.text || ''));
       else if (b.type === 'list') {
         var ul = el('ul', 'ta-ul');
@@ -549,7 +737,16 @@
         });
         frag.appendChild(ul);
       } else if (b.type === 'table') {
-        frag.appendChild(tableOf(b.head, b.rows, null));
+        var chart = chartOf(b.head, b.rows, s);
+        if (chart) {
+          frag.appendChild(chart);
+          var evidence = el('details', 'ta-evidence');
+          evidence.appendChild(el('summary', null, 'View full table - ' + b.rows.length + ' rows'));
+          evidence.appendChild(tableOf(b.head, b.rows, null));
+          frag.appendChild(evidence);
+        } else {
+          frag.appendChild(tableOf(b.head, b.rows, null));
+        }
       } else if (b.type === 'paragraph') {
         frag.appendChild(runsInto(el('p', 'ta-p'), b.runs));
       }
@@ -583,10 +780,10 @@
       frag.appendChild(next);
     }
 
-    (s.limitations || []).forEach(function (t) {
-      frag.appendChild(el('p', 'ta-foot', t));
+    if (!qualified) (s.limitations || []).forEach(function (t) {
+      support.appendChild(el('p', 'ta-foot', t));
     });
-    if (s.sources && s.sources.length) {
+    if (!qualified && s.sources && s.sources.length) {
       var p = el('p', 'ta-foot');
       p.appendChild(document.createTextNode('Source: '));
       s.sources.forEach(function (src, i) {
@@ -596,8 +793,9 @@
         if (/^https?:/.test(src.url)) { a.target = '_blank'; a.rel = 'noopener'; }
         p.appendChild(a);
       });
-      frag.appendChild(p);
+      support.appendChild(p);
     }
+    if (support.childElementCount > 1) frag.appendChild(support);
     return frag;
   }
 
@@ -637,39 +835,80 @@
     return parts.join(' ').replace(/\s+/g, ' ').trim();
   }
 
-  function submit() {
-    var q = (input.value || '').trim();
+  function setRequestControls(active) {
+    var actions = wrap && wrap.querySelector('.ta-actions');
+    var stop = wrap && wrap.querySelector('.ta-stop');
+    var retry = wrap && wrap.querySelector('.ta-retry');
+    if (actions) actions.hidden = !active && !retryState;
+    if (stop) stop.hidden = !active;
+    if (retry) retry.hidden = active || !retryState;
+  }
+
+  function endRequest() {
+    clearTimeout(requestTimer); requestTimer = null; controller = null;
+    activeRequest = null; activeBubble = null;
+    busy = false;
+    if (sendBtn) sendBtn.disabled = false;
+    setRequestControls(false);
+  }
+
+  function stopRequest(closing) {
+    if (!busy) return;
+    ++token;
+    if (controller) controller.abort();
+    retryState = activeRequest;
+    if (activeBubble) activeBubble.textContent = closing
+      ? 'Request canceled.' : 'Stopped. You can try that question again.';
+    endRequest();
+  }
+
+  function submit(question, requestedDistrict) {
+    if (question && typeof question !== 'string') question = null;
+    var q = String(question == null ? input.value : question).trim();
     if (q.length < 3 || busy) return;
     var mine = ++token;
     busy = true;
     sendBtn.disabled = true;
     input.value = '';
     chips.style.display = 'none';
+    wrap.querySelector('.ta-empty').hidden = true;
+    retryState = null;
+    setRequestControls(true);
 
     bubble('me').textContent = q;
     var bub = bubble('ai');
+    activeBubble = bub;
     bub.innerHTML = '<span class="ta-think">Reading the official data&hellip;</span>'
       + '<span class="ta-skel" aria-hidden="true"><i></i><i></i><i></i></span>';
 
+    var followup = pendingFollowup;
+    pendingFollowup = null; // consume at request start, including aborted requests
+    var district = requestedDistrict || districtNumber();
+    activeRequest = { question: q, districtNumber: district };
+    controller = new AbortController();
+    requestTimer = setTimeout(function () {
+      if (mine === token && controller) controller.abort();
+    }, 45000);
     fetch('/query', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      signal: controller.signal,
       body: JSON.stringify({
         question: q,
-        district_number: districtNumber(),
+        district_number: district,
         conversation_id: conversationId(),
         turn: ++turnNo,
         /* which chip produced this question, if any — the only way to find
            out whether the suggestions help or merely decorate */
-        followup_label: pendingFollowup,
+        followup_label: followup,
       }),
     }).then(function (r) {
-      pendingFollowup = null;      // credited once, to the question it produced
       return r.json().catch(function () { return {}; }).then(function (body) {
         return { status: r.status, body: body };
       });
     }).then(function (res) {
       if (mine !== token) return;
+      endRequest();
       var text;
       if (res.status === 429) {
         text = 'A lot of people are asking right now — please wait a minute '
@@ -686,13 +925,25 @@
         render(bub, res.body.structured, mine);
         return;
       } else {
-        text = res.body.answer || 'No answer came back. Please try rephrasing.';
+        text = res.body.answer || 'No answer came back. Please try again.';
+        if (!res.body.answer) {
+          retryState = { question: q, districtNumber: district };
+          setRequestControls(false);
+        }
+      }
+      if (res.status >= 400 || !res.body || res.body.success === false) {
+        retryState = { question: q, districtNumber: district };
+        setRequestControls(false);
       }
       reveal(bub, text, mine);
-    }).catch(function () {
+    }).catch(function (err) {
       if (mine !== token) return;
-      finish(bub, 'The question service could not be reached. Please check '
-        + 'your connection and try again.');
+      endRequest();
+      retryState = { question: q, districtNumber: district };
+      setRequestControls(false);
+      finish(bub, err && err.name === 'AbortError'
+        ? 'The request timed out. Try again when you are ready.'
+        : 'The question service could not be reached. Please check your connection and try again.');
     });
   }
 
@@ -703,7 +954,7 @@
     if (sr) sr.textContent = text;
     busy = false;
     sendBtn.disabled = false;
-    input.focus();
+    if (wrap && !wrap.hidden) input.focus();
     thread.scrollTop = thread.scrollHeight;
   }
 
@@ -741,7 +992,7 @@
     if (sr) sr.textContent = text;
     busy = false;
     sendBtn.disabled = false;
-    input.focus();
+    if (wrap && !wrap.hidden) input.focus();
     thread.scrollTop = thread.scrollHeight;
   }
 
@@ -761,9 +1012,9 @@
   function renderInto(target, s, alive, done) {
     alive = alive || function () { return true; };
     target.textContent = '';
-    var rest = function () {
+    var rest = function (supportingLead) {
       if (!alive()) return;
-      target.appendChild(bodyOf(s));
+      target.appendChild(bodyOf(s, supportingLead || ''));
       if (done) done();
     };
     /* No lead means the model opened with a table or a heading rather than a
@@ -771,17 +1022,22 @@
        of such an answer is how `| District | Per student |` ended up as the
        headline. Draw the body and let the answer start where it starts. */
     if (!s.lead_runs || !s.lead_runs.length) { rest(); return; }
-    var leadEl = el('p', 'ta-lead' + (s.lead.length > 200 ? ' long' : ''));
+    var concise = String(s.lead || '').match(/^.*?[.!?](?:\s|$)/);
+    concise = concise ? concise[0].trim() : String(s.lead || '');
+    var leadEl = el('p', 'ta-lead');
     target.appendChild(leadEl);
     /* The reveal writes plain words; the bold arrives with the last one. The
        text is identical either way, so nothing moves when it lands. */
     var done2 = function () {
       leadEl.textContent = '';
-      runsInto(leadEl, s.lead_runs);
-      rest();
+      leadEl.textContent = concise;
+      /* The disclosure retains the complete supplied lead. The compact first
+         sentence is the initial conclusion; the full prose remains available
+         as the answer record, rather than being discarded or reconstructed. */
+      rest(String(s.lead || '').slice(concise.length).trim());
     };
     if (reduce) { done2(); return; }
-    writeWords(leadEl, s.lead, alive, done2);
+    writeWords(leadEl, concise, alive, done2);
   }
 
   function render(bub, s, mine) {
@@ -805,7 +1061,7 @@
   document.addEventListener('click', function (e) {
     if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
     var a = e.target.closest && e.target.closest(
-      'a[href="/#ask-section"], .finder-ask a[href="#ask-section"]');
+      'a[href="/#ask-section"], .finder-ask a[href="#ask-section"], a#ask-your-own[href="#ask-section"]');
     if (!a) return;
     e.preventDefault();
     e.stopPropagation();
@@ -959,6 +1215,10 @@
   window.TISDAsk = {
     open: open,
     close: close,
+    ask: function (question, districtNumber) {
+      open();
+      submit(question, districtNumber || null);
+    },
     render: function (target, structured, alive) {
       build();
       renderInto(target, structured, alive, null);

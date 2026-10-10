@@ -1,0 +1,71 @@
+{
+  "schemaVersion": "checkpoint9-independent-final-visual-review-1",
+  "capturedAt": "2026-10-10T20:45:13.8091891Z",
+  "reviewer": "fresh-independent-visual-data-review",
+  "designPass": true,
+  "functionalPass": true,
+  "preReleasePass": true,
+  "postReleasePass": true,
+  "productionPass": true,
+  "numeric95Claim": false,
+  "source": {
+    "reviewedSourceSha": "fced6f93e6e5385cd01c41113ddaefc197e7ba67",
+    "runtimeSourceJson": "visual95-evidence/round3-checkpoint9-runtime/source.json",
+    "static/index.html": "fa0ed1c69985cc0cc63d3f354b0f4f25c999e5c950e9a18e7aa127488ad9f396",
+    "static/ask.js": "29087384c5b897439dded64453362628a074781771cfc252f94fe23c61ada7c4",
+    "static/forensics.html": "270dfe1731bbc50ad95848625c05582ec43ddcc82c6756a36d6215a19552f939",
+    "liveServedProof": ["static/index.html", "static/ask.js"],
+    "forensicsLiveServedProof": false,
+    "sourceStable": true,
+    "gitIdentity": "fced6f93e6e5385cd01c41113ddaefc197e7ba67",
+    "remoteIdentity": "fced6f93e6e5385cd01c41113ddaefc197e7ba67",
+    "trackedWorktreeClean": true
+  },
+  "deployment": {
+    "id": "dpl_DfFKptVkRd4aPMxY4hHYJH48WZMA",
+    "target": "production",
+    "readyState": "READY",
+    "domain": "txisd.dev",
+    "sourceSha": "fced6f93e6e5385cd01c41113ddaefc197e7ba67",
+    "revision": "fced6f93e6e5385cd01c41113ddaefc197e7ba67",
+    "assetsMatchReviewedSource": true,
+    "health": "healthy",
+    "database": "connected",
+    "trackingSchema": "ready",
+    "publicReadOnlyChecks": "40/40 state ok, 0 skips/drift/not-deployed/unreachable",
+    "publicBrowser": "16 native GET views across 320/390/430/1440 light/dark landing and Dallas; 0 errors/bad GET/overflow; POSTs blocked locally"
+  },
+  "criteria": {
+    "VF01": "PASS",
+    "VF02": "PASS_VISUAL_MAPPING_AND_NAMED_DISCLOSURES",
+    "VF03": "PASS: selected FY2025 PEIMS operating spending $14,210/student remains separate from Snapshot available-record peer averages 2022-2024 $13,732/student; no mixed-basis rank/gap; signed multi-year means are observational, not causal or consecutive",
+    "VF04": "PASS_VISUAL_DESIGN; native matrix/accessibility receipts parent-owned",
+    "VF05": "PASS",
+    "VF06": "PASS_BY_PARENT_FUNCTIONAL_RECEIPTS_AND_EXPORT_INSPECTION",
+    "VF07_pre_release": "PASS",
+    "VF07_post_release": "PASS"
+  },
+  "interactionChecks": {
+    "lookup": "recognizable labeled search and Show me action; Dallas result is identifiable by name and ID",
+    "reportNavigation": "subject-labeled navigation and chapter headings are scannable",
+    "explanations": "named disclosures expose derivation and evidence without burying chart conclusions",
+    "exports": "charts and PDF views retain source period, basis, and contact identity in parent receipts",
+    "contact": "Gus Sanchez, Founder, TAG AI Solutions, 909-268-6875, and ubntag.com remain visible",
+    "chatNumeric": "qualified graphic precedes exact table and includes district, FY, all-funds scope, and TEA source",
+    "chatTextFallback": "unqualified sourced text/table remains available without invented graphic",
+    "chatError": "retry action is explicit and privacy/AI-error language remains adjacent",
+    "themesAndWidths": "fresh visual evidence covers light/dark and 320/390/430/1440; parent native matrix covers remaining operation checks"
+  },
+  "evidence": {
+    "visualDirectory": "visual95-evidence/round3-checkpoint9-complete",
+    "contactDirectory": "visual95-evidence/round3-checkpoint9-contact",
+    "statementLedgers": ["visual95-worker-stages/landing-round4/statement-ledger.json", "visual95-worker-stages/report-visual-first/STATEMENT_LEDGER.json", "VISUAL95_ROUND4_CHAT_STATEMENT_ROLE_LEDGER.json"],
+    "parentReceipts": "canonical AA80/native browser/Python/export receipts supplied by root"
+  },
+  "risks": [
+    "Pre-release remains blocked until final reviewed Git commit/source identity is recorded.",
+    "Post-release remains pending until deployed artifact identity and public health/routes are verified.",
+    "This review makes no claim that literal numerical 95 was achieved."
+  ],
+  "scope": "independent visual/design verdict; no source or runtime edits"
+}

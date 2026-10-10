@@ -1,0 +1,32 @@
+{
+  "checkedAt": "2026-10-10T20:44:18.569168+00:00",
+  "sourceSha": "fced6f93e6e5385cd01c41113ddaefc197e7ba67",
+  "origin": "https://txisd.dev",
+  "deploymentId": "dpl_DfFKptVkRd4aPMxY4hHYJH48WZMA",
+  "assets": [
+    {
+      "route": "/",
+      "expected_rendered_lf_sha256": "792e88c257bd1acc5fc4c03af50928cc3b12a4f57e0ad3a071fb78cfe60c7a4d",
+      "raw_served_lf_sha256": "792e88c257bd1acc5fc4c03af50928cc3b12a4f57e0ad3a071fb78cfe60c7a4d",
+      "normalized_served_lf_sha256": "792e88c257bd1acc5fc4c03af50928cc3b12a4f57e0ad3a071fb78cfe60c7a4d",
+      "vercel_preview_toolbar_removed": false,
+      "matches": true
+    },
+    {
+      "route": "/static/ask.js",
+      "expected_rendered_lf_sha256": "29087384c5b897439dded64453362628a074781771cfc252f94fe23c61ada7c4",
+      "raw_served_lf_sha256": "29087384c5b897439dded64453362628a074781771cfc252f94fe23c61ada7c4",
+      "normalized_served_lf_sha256": "29087384c5b897439dded64453362628a074781771cfc252f94fe23c61ada7c4",
+      "vercel_preview_toolbar_removed": false,
+      "matches": true
+    }
+  ],
+  "health": {
+    "status": "healthy",
+    "database": "connected",
+    "llm": "deepseek:deepseek-v4-flash via api.deepseek.com (configured)",
+    "tracking_schema": "ready",
+    "revision": "fced6f93e6e5385cd01c41113ddaefc197e7ba67"
+  },
+  "boundary": "GET only. Existing private Vercel authentication for preview; no bypass URL, listener, credentials, protection changes or model query."
+}

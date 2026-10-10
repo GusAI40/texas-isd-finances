@@ -1,0 +1,87 @@
+{
+  "capturedAt": "2026-10-10T20:28:19.363Z",
+  "mode": "applied",
+  "results": [
+    {
+      "target": "static/index.html",
+      "patch": "visual95-worker-stages/landing-round4/edits.json",
+      "base": "e307cc0e27a049740dbc5c745af2cf45b38fc1952a3883b78a7e3c5b6484cd8c",
+      "stage": "c8558fb7a6522c8a273476190358661639a168877f7f19af718c3fa19346f7bc",
+      "edits": [
+        "landing-coverage-context-opening",
+        "landing-coverage-context-closing",
+        "chatgpt-route-caveat",
+        "methods-disclosure-names",
+        "methods-limits-disclosure-name",
+        "landing-round4-scoped-styles"
+      ]
+    },
+    {
+      "target": "static/index.html",
+      "patch": "visual95-worker-stages/report-visual-first/replacements.json",
+      "base": "e307cc0e27a049740dbc5c745af2cf45b38fc1952a3883b78a7e3c5b6484cd8c",
+      "stage": "fad830a8974142124a829ca02f41f7a5738f0d7b48c8c4bf9b9496a24429155d",
+      "edits": [
+        "report-progressive-styles",
+        "report-dollar-visible-basis",
+        "report-economics-heading-uncertainty",
+        "report-trend-disclosure",
+        "report-peer-disclosure",
+        "report-print-detail-state",
+        "report-dollar-renderer"
+      ]
+    },
+    {
+      "target": "static/ask.js",
+      "patch": "visual95-worker-stages/chat-visual-first/ask.replacements.json",
+      "base": "227a9cf9f85ce6578339b14cc446f7554f7c6dd1fdb4b635eca7672598f13b13",
+      "stage": "29087384c5b897439dded64453362628a074781771cfc252f94fe23c61ada7c4",
+      "edits": [
+        "chat-visible-qualification-and-closed-support",
+        "chat-unclassified-blocks-visible",
+        "chat-unclassified-paragraphs-visible",
+        "chat-support-on-demand-by-default",
+        "chat-privacy-corrects-anonymous-implication"
+      ]
+    },
+    {
+      "target": "tests/browser/landing-chat.spec.js",
+      "patch": "visual95-worker-stages/chat-visual-first/landing-chat.replacements.json",
+      "base": "7dab33b1734de4b64f1d424ce4b3b0efdb94bec99a2a611730e53e35a1303e6a",
+      "stage": "c0cec771a45e1b4ceb2433dedd7ac2feaf82da0251fee5eb53738c2332ca76eb",
+      "edits": [
+        "chat-qualification-visible-support-keyboard-accessible",
+        "chat-privacy-disclosure-visible"
+      ]
+    },
+    {
+      "target": "tests/browser/round2-report-access.spec.js",
+      "patch": "visual95-worker-stages/report-visual-first/test-replacements.json",
+      "base": "42463896fef8ea202bee70baad2fd602386b47405eb044f05915204eb7bd6874",
+      "stage": "42d24fdd60deae6033855b37ded8bcea7a40c8e123c637092a2f2ecf3ec54a4d",
+      "edits": [
+        "report-progressive-default-and-keyboard",
+        "report-progressive-print"
+      ]
+    }
+  ],
+  "targets": {
+    "static/index.html": {
+      "before": "e307cc0e27a049740dbc5c745af2cf45b38fc1952a3883b78a7e3c5b6484cd8c",
+      "after": "fa0ed1c69985cc0cc63d3f354b0f4f25c999e5c950e9a18e7aa127488ad9f396"
+    },
+    "static/ask.js": {
+      "before": "227a9cf9f85ce6578339b14cc446f7554f7c6dd1fdb4b635eca7672598f13b13",
+      "after": "29087384c5b897439dded64453362628a074781771cfc252f94fe23c61ada7c4"
+    },
+    "tests/browser/landing-chat.spec.js": {
+      "before": "7dab33b1734de4b64f1d424ce4b3b0efdb94bec99a2a611730e53e35a1303e6a",
+      "after": "c0cec771a45e1b4ceb2433dedd7ac2feaf82da0251fee5eb53738c2332ca76eb"
+    },
+    "tests/browser/round2-report-access.spec.js": {
+      "before": "42463896fef8ea202bee70baad2fd602386b47405eb044f05915204eb7bd6874",
+      "after": "42d24fdd60deae6033855b37ded8bcea7a40c8e123c637092a2f2ecf3ec54a4d"
+    }
+  },
+  "boundary": "Exact immutable source hashes, staged reconstruction, unique anchors, conflict checks, root sole integration. No data/backend/config changes."
+}

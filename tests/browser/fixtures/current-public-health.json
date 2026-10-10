@@ -1,0 +1,12 @@
+{
+  "origin": "https://txisd.dev/health",
+  "captured_at": "2026-10-10T13:40:42.7843481Z",
+  "semantics": "Parsed response from a read-only public GET. Production identity and provider are observations; no query/provider call.",
+  "payload": {
+    "status": "healthy",
+    "database": "connected",
+    "llm": "deepseek:deepseek-v4-flash via api.deepseek.com (configured)",
+    "tracking_schema": "ready",
+    "revision": "14326baf497f782db702f12427d6432af1df46be"
+  }
+}

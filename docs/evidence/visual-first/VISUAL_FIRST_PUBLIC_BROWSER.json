@@ -1,0 +1,330 @@
+{
+  "checkedAt": "2026-10-10T20:44:46.218Z",
+  "base": "https://txisd.dev",
+  "sourceSha": "fced6f93e6e5385cd01c41113ddaefc197e7ba67",
+  "screens": [
+    {
+      "file": "landing-light-320.png",
+      "route": "/",
+      "width": 320,
+      "height": 740,
+      "theme": "light",
+      "status": 200,
+      "geometry": {
+        "width": 320,
+        "scrollWidth": 320,
+        "overflow": false,
+        "lookup": false,
+        "title": "Texas ISD Finances — District Dashboard",
+        "body": "Skip to the data\nTexas ISD\nBETA\nThe Report\nThe Feed\nForensic File\nMap\nHeatmap\nAbout\nSources\nMore\nTheme\n\nFREE TEXAS SCHOOL-MONEY TOOL BY GUS SANCHEZ AND TAG AI SOLUTIONS\n\nWhere did Dallas ISD’s school money go?\nAsk website records\nSet up in ChatGPT\nDallas ISD recorded spending\n\nFY 2025 · all funds · $3,319,208,715\n\nTrace classroom dollars\n\n100-square view · Each square is about 1%.\n\nClassroom · 33%\n$1,092,607,589\nTEA 11 + 12 + 13\nConstruction · 23%\n$766,316,261\nTEA 6600\nDebt · 15%\n$500,174,938\nTEA 6500\nOther combined · 29%\n$960,109,927\nAll-funds remainder\nTEA PEIMS · FY 2025 all funds · snapshot Aug. 12, 2026\nOpen source record\nExact figures and definitions\nState records become one answer you can check\nrecord flow, not amount\nTEA FY 2025 function records\n11\nInstruction\n12\nLibraries\n13\nStaff"
+      },
+      "pageErrors": [],
+      "failedGets": [],
+      "blockedMutations": [],
+      "sha256": "86cebbc703a7fda66f99b6caa8f54423a306c01cacaad596a9125edd90fdfa0b"
+    },
+    {
+      "file": "dallas-light-320.png",
+      "route": "/?d=057905",
+      "width": 320,
+      "height": 740,
+      "theme": "light",
+      "status": 200,
+      "geometry": {
+        "width": 320,
+        "scrollWidth": 320,
+        "overflow": false,
+        "lookup": false,
+        "title": "Dallas ISD — every number Texas publishes, in one place",
+        "body": "Skip to the data\nTexas ISD\nBETA\nThe Report\nThe Feed\nForensic File\nMap\nHeatmap\nAbout\nSources\nMore\nTheme\nOverview\nYour dollar\nWho it works for\nWhat it buys\nWhat you pay\nBonds you voted on\nWhat to do\nTrends\nPeers\nWhere it goes\nPayroll vs contracts\nWho it serves\nAnomalies\nAsk a question\nStatewide\nMethods\n\nChatGPT access: this route is verified for the owner only. Public listing and availability for other accounts or workspaces are unverified; no OpenAI endorsement is claimed.\n\nSet up in ChatGPT using the owner-tested route\nData-coverage counts and record types\nChecks, correction history, and why this matters\nLOOK UP A DIFFERENT DISTRICT\nShow me\nDallas ISD’s dollar, fiscal 2025. Every square is one penny of everything spent — $23,746 per student, of which $14,210 runs schools and the rest build"
+      },
+      "pageErrors": [],
+      "failedGets": [],
+      "blockedMutations": [],
+      "sha256": "563fcb46e4b5f0d6ae0cb9e55bd9e68965fa346f8c0849312afec11f3a6dcc6c"
+    },
+    {
+      "file": "landing-dark-320.png",
+      "route": "/",
+      "width": 320,
+      "height": 740,
+      "theme": "dark",
+      "status": 200,
+      "geometry": {
+        "width": 320,
+        "scrollWidth": 320,
+        "overflow": false,
+        "lookup": false,
+        "title": "Texas ISD Finances — District Dashboard",
+        "body": "Skip to the data\nTexas ISD\nBETA\nThe Report\nThe Feed\nForensic File\nMap\nHeatmap\nAbout\nSources\nMore\nTheme\n\nFREE TEXAS SCHOOL-MONEY TOOL BY GUS SANCHEZ AND TAG AI SOLUTIONS\n\nWhere did Dallas ISD’s school money go?\nAsk website records\nSet up in ChatGPT\nDallas ISD recorded spending\n\nFY 2025 · all funds · $3,319,208,715\n\nTrace classroom dollars\n\n100-square view · Each square is about 1%.\n\nClassroom · 33%\n$1,092,607,589\nTEA 11 + 12 + 13\nConstruction · 23%\n$766,316,261\nTEA 6600\nDebt · 15%\n$500,174,938\nTEA 6500\nOther combined · 29%\n$960,109,927\nAll-funds remainder\nTEA PEIMS · FY 2025 all funds · snapshot Aug. 12, 2026\nOpen source record\nExact figures and definitions\nState records become one answer you can check\nrecord flow, not amount\nTEA FY 2025 function records\n11\nInstruction\n12\nLibraries\n13\nStaff"
+      },
+      "pageErrors": [],
+      "failedGets": [],
+      "blockedMutations": [],
+      "sha256": "7ff630c0262b100d233edc7d786f3d768020c584ccdc3f5b82e2aa88083530bb"
+    },
+    {
+      "file": "dallas-dark-320.png",
+      "route": "/?d=057905",
+      "width": 320,
+      "height": 740,
+      "theme": "dark",
+      "status": 200,
+      "geometry": {
+        "width": 320,
+        "scrollWidth": 320,
+        "overflow": false,
+        "lookup": false,
+        "title": "Dallas ISD — every number Texas publishes, in one place",
+        "body": "Skip to the data\nTexas ISD\nBETA\nThe Report\nThe Feed\nForensic File\nMap\nHeatmap\nAbout\nSources\nMore\nTheme\nOverview\nYour dollar\nWho it works for\nWhat it buys\nWhat you pay\nBonds you voted on\nWhat to do\nTrends\nPeers\nWhere it goes\nPayroll vs contracts\nWho it serves\nAnomalies\nAsk a question\nStatewide\nMethods\n\nChatGPT access: this route is verified for the owner only. Public listing and availability for other accounts or workspaces are unverified; no OpenAI endorsement is claimed.\n\nSet up in ChatGPT using the owner-tested route\nData-coverage counts and record types\nChecks, correction history, and why this matters\nLOOK UP A DIFFERENT DISTRICT\nShow me\nDallas ISD’s dollar, fiscal 2025. Every square is one penny of everything spent — $23,746 per student, of which $14,210 runs schools and the rest build"
+      },
+      "pageErrors": [],
+      "failedGets": [],
+      "blockedMutations": [],
+      "sha256": "85814a083478ddf40ea7192d77f7caf086bfa28c379a3a0c75982cc83a4424d7"
+    },
+    {
+      "file": "landing-light-390.png",
+      "route": "/",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "status": 200,
+      "geometry": {
+        "width": 390,
+        "scrollWidth": 390,
+        "overflow": false,
+        "lookup": false,
+        "title": "Texas ISD Finances — District Dashboard",
+        "body": "Skip to the data\nTexas ISD\nBETA\nThe Report\nThe Feed\nForensic File\nMap\nHeatmap\nAbout\nSources\nMore\nTheme\n\nFREE TEXAS SCHOOL-MONEY TOOL BY GUS SANCHEZ AND TAG AI SOLUTIONS\n\nWhere did Dallas ISD’s school money go?\nAsk website records\nSet up in ChatGPT\nDallas ISD recorded spending\n\nFY 2025 · all funds · $3,319,208,715\n\nTrace classroom dollars\n\n100-square view · Each square is about 1%.\n\nClassroom · 33%\n$1,092,607,589\nTEA 11 + 12 + 13\nConstruction · 23%\n$766,316,261\nTEA 6600\nDebt · 15%\n$500,174,938\nTEA 6500\nOther combined · 29%\n$960,109,927\nAll-funds remainder\nTEA PEIMS · FY 2025 all funds · snapshot Aug. 12, 2026\nOpen source record\nExact figures and definitions\nState records become one answer you can check\nrecord flow, not amount\nTEA FY 2025 function records\n11\nInstruction\n12\nLibraries\n13\nStaff"
+      },
+      "pageErrors": [],
+      "failedGets": [],
+      "blockedMutations": [],
+      "sha256": "b545b81d4a1fe452c0d8085360609058eebee8124847b4170ccf70219dc24fc0"
+    },
+    {
+      "file": "dallas-light-390.png",
+      "route": "/?d=057905",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "status": 200,
+      "geometry": {
+        "width": 390,
+        "scrollWidth": 390,
+        "overflow": false,
+        "lookup": false,
+        "title": "Dallas ISD — every number Texas publishes, in one place",
+        "body": "Skip to the data\nTexas ISD\nBETA\nThe Report\nThe Feed\nForensic File\nMap\nHeatmap\nAbout\nSources\nMore\nTheme\nOverview\nYour dollar\nWho it works for\nWhat it buys\nWhat you pay\nBonds you voted on\nWhat to do\nTrends\nPeers\nWhere it goes\nPayroll vs contracts\nWho it serves\nAnomalies\nAsk a question\nStatewide\nMethods\n\nChatGPT access: this route is verified for the owner only. Public listing and availability for other accounts or workspaces are unverified; no OpenAI endorsement is claimed.\n\nSet up in ChatGPT using the owner-tested route\nCHOOSE A TEXAS DISTRICT\nData-coverage counts and record types\nChecks, correction history, and why this matters\nLOOK UP A DIFFERENT DISTRICT\nShow me\nDallas ISD’s dollar, fiscal 2025. Every square is one penny of everything spent — $23,746 per student, of which $14,210 runs sc"
+      },
+      "pageErrors": [],
+      "failedGets": [],
+      "blockedMutations": [],
+      "sha256": "499845dd36d2cbef88d087c936d907784ec40b9546e9f507ce080866aeaf25d3"
+    },
+    {
+      "file": "landing-dark-390.png",
+      "route": "/",
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "status": 200,
+      "geometry": {
+        "width": 390,
+        "scrollWidth": 390,
+        "overflow": false,
+        "lookup": false,
+        "title": "Texas ISD Finances — District Dashboard",
+        "body": "Skip to the data\nTexas ISD\nBETA\nThe Report\nThe Feed\nForensic File\nMap\nHeatmap\nAbout\nSources\nMore\nTheme\n\nFREE TEXAS SCHOOL-MONEY TOOL BY GUS SANCHEZ AND TAG AI SOLUTIONS\n\nWhere did Dallas ISD’s school money go?\nAsk website records\nSet up in ChatGPT\nDallas ISD recorded spending\n\nFY 2025 · all funds · $3,319,208,715\n\nTrace classroom dollars\n\n100-square view · Each square is about 1%.\n\nClassroom · 33%\n$1,092,607,589\nTEA 11 + 12 + 13\nConstruction · 23%\n$766,316,261\nTEA 6600\nDebt · 15%\n$500,174,938\nTEA 6500\nOther combined · 29%\n$960,109,927\nAll-funds remainder\nTEA PEIMS · FY 2025 all funds · snapshot Aug. 12, 2026\nOpen source record\nExact figures and definitions\nState records become one answer you can check\nrecord flow, not amount\nTEA FY 2025 function records\n11\nInstruction\n12\nLibraries\n13\nStaff"
+      },
+      "pageErrors": [],
+      "failedGets": [],
+      "blockedMutations": [],
+      "sha256": "404ec1f0a6beac8d88e56c70988779ad36d084aebc9eb150ba21a971dd003188"
+    },
+    {
+      "file": "dallas-dark-390.png",
+      "route": "/?d=057905",
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "status": 200,
+      "geometry": {
+        "width": 390,
+        "scrollWidth": 390,
+        "overflow": false,
+        "lookup": false,
+        "title": "Dallas ISD — every number Texas publishes, in one place",
+        "body": "Skip to the data\nTexas ISD\nBETA\nThe Report\nThe Feed\nForensic File\nMap\nHeatmap\nAbout\nSources\nMore\nTheme\nOverview\nYour dollar\nWho it works for\nWhat it buys\nWhat you pay\nBonds you voted on\nWhat to do\nTrends\nPeers\nWhere it goes\nPayroll vs contracts\nWho it serves\nAnomalies\nAsk a question\nStatewide\nMethods\n\nChatGPT access: this route is verified for the owner only. Public listing and availability for other accounts or workspaces are unverified; no OpenAI endorsement is claimed.\n\nSet up in ChatGPT using the owner-tested route\nCHOOSE A TEXAS DISTRICT\nData-coverage counts and record types\nChecks, correction history, and why this matters\nLOOK UP A DIFFERENT DISTRICT\nShow me\nDallas ISD’s dollar, fiscal 2025. Every square is one penny of everything spent — $23,746 per student, of which $14,210 runs sc"
+      },
+      "pageErrors": [],
+      "failedGets": [],
+      "blockedMutations": [],
+      "sha256": "47d95b819300b18d31d6d42d09cdbcded7ec762e734ccb013faab51a23670661"
+    },
+    {
+      "file": "landing-light-430.png",
+      "route": "/",
+      "width": 430,
+      "height": 932,
+      "theme": "light",
+      "status": 200,
+      "geometry": {
+        "width": 430,
+        "scrollWidth": 430,
+        "overflow": false,
+        "lookup": false,
+        "title": "Texas ISD Finances — District Dashboard",
+        "body": "Skip to the data\nTexas ISD\nBETA\nThe Report\nThe Feed\nForensic File\nMap\nHeatmap\nAbout\nSources\nMore\nTheme\n\nFREE TEXAS SCHOOL-MONEY TOOL BY GUS SANCHEZ AND TAG AI SOLUTIONS\n\nWhere did Dallas ISD’s school money go?\nAsk website records\nSet up in ChatGPT\nDallas ISD recorded spending\n\nFY 2025 · all funds · $3,319,208,715\n\nTrace classroom dollars\n\n100-square view · Each square is about 1%.\n\nClassroom · 33%\n$1,092,607,589\nTEA 11 + 12 + 13\nConstruction · 23%\n$766,316,261\nTEA 6600\nDebt · 15%\n$500,174,938\nTEA 6500\nOther combined · 29%\n$960,109,927\nAll-funds remainder\nTEA PEIMS · FY 2025 all funds · snapshot Aug. 12, 2026\nOpen source record\nExact figures and definitions\nState records become one answer you can check\nrecord flow, not amount\nTEA FY 2025 function records\n11\nInstruction\n12\nLibraries\n13\nStaff"
+      },
+      "pageErrors": [],
+      "failedGets": [],
+      "blockedMutations": [],
+      "sha256": "3d0ca655f761cd45c326d3b171f06db6850bc484975351e19cf9a21d99249df5"
+    },
+    {
+      "file": "dallas-light-430.png",
+      "route": "/?d=057905",
+      "width": 430,
+      "height": 932,
+      "theme": "light",
+      "status": 200,
+      "geometry": {
+        "width": 430,
+        "scrollWidth": 430,
+        "overflow": false,
+        "lookup": false,
+        "title": "Dallas ISD — every number Texas publishes, in one place",
+        "body": "Skip to the data\nTexas ISD\nBETA\nThe Report\nThe Feed\nForensic File\nMap\nHeatmap\nAbout\nSources\nMore\nTheme\nOverview\nYour dollar\nWho it works for\nWhat it buys\nWhat you pay\nBonds you voted on\nWhat to do\nTrends\nPeers\nWhere it goes\nPayroll vs contracts\nWho it serves\nAnomalies\nAsk a question\nStatewide\nMethods\n\nChatGPT access: this route is verified for the owner only. Public listing and availability for other accounts or workspaces are unverified; no OpenAI endorsement is claimed.\n\nSet up in ChatGPT using the owner-tested route\nCHOOSE A TEXAS DISTRICT\nData-coverage counts and record types\nChecks, correction history, and why this matters\nLOOK UP A DIFFERENT DISTRICT\nShow me\nDallas ISD’s dollar, fiscal 2025. Every square is one penny of everything spent — $23,746 per student, of which $14,210 runs sc"
+      },
+      "pageErrors": [],
+      "failedGets": [],
+      "blockedMutations": [],
+      "sha256": "a26c87dc9480390046f80f9496eac03d16f1dfcca656d3763e65e822f4535d3e"
+    },
+    {
+      "file": "landing-dark-430.png",
+      "route": "/",
+      "width": 430,
+      "height": 932,
+      "theme": "dark",
+      "status": 200,
+      "geometry": {
+        "width": 430,
+        "scrollWidth": 430,
+        "overflow": false,
+        "lookup": false,
+        "title": "Texas ISD Finances — District Dashboard",
+        "body": "Skip to the data\nTexas ISD\nBETA\nThe Report\nThe Feed\nForensic File\nMap\nHeatmap\nAbout\nSources\nMore\nTheme\n\nFREE TEXAS SCHOOL-MONEY TOOL BY GUS SANCHEZ AND TAG AI SOLUTIONS\n\nWhere did Dallas ISD’s school money go?\nAsk website records\nSet up in ChatGPT\nDallas ISD recorded spending\n\nFY 2025 · all funds · $3,319,208,715\n\nTrace classroom dollars\n\n100-square view · Each square is about 1%.\n\nClassroom · 33%\n$1,092,607,589\nTEA 11 + 12 + 13\nConstruction · 23%\n$766,316,261\nTEA 6600\nDebt · 15%\n$500,174,938\nTEA 6500\nOther combined · 29%\n$960,109,927\nAll-funds remainder\nTEA PEIMS · FY 2025 all funds · snapshot Aug. 12, 2026\nOpen source record\nExact figures and definitions\nState records become one answer you can check\nrecord flow, not amount\nTEA FY 2025 function records\n11\nInstruction\n12\nLibraries\n13\nStaff"
+      },
+      "pageErrors": [],
+      "failedGets": [],
+      "blockedMutations": [],
+      "sha256": "275dd40ff1662583530f131554fc6761705828938ed0298fc3b1bcf969190e3d"
+    },
+    {
+      "file": "dallas-dark-430.png",
+      "route": "/?d=057905",
+      "width": 430,
+      "height": 932,
+      "theme": "dark",
+      "status": 200,
+      "geometry": {
+        "width": 430,
+        "scrollWidth": 430,
+        "overflow": false,
+        "lookup": false,
+        "title": "Dallas ISD — every number Texas publishes, in one place",
+        "body": "Skip to the data\nTexas ISD\nBETA\nThe Report\nThe Feed\nForensic File\nMap\nHeatmap\nAbout\nSources\nMore\nTheme\nOverview\nYour dollar\nWho it works for\nWhat it buys\nWhat you pay\nBonds you voted on\nWhat to do\nTrends\nPeers\nWhere it goes\nPayroll vs contracts\nWho it serves\nAnomalies\nAsk a question\nStatewide\nMethods\n\nChatGPT access: this route is verified for the owner only. Public listing and availability for other accounts or workspaces are unverified; no OpenAI endorsement is claimed.\n\nSet up in ChatGPT using the owner-tested route\nCHOOSE A TEXAS DISTRICT\nData-coverage counts and record types\nChecks, correction history, and why this matters\nLOOK UP A DIFFERENT DISTRICT\nShow me\nDallas ISD’s dollar, fiscal 2025. Every square is one penny of everything spent — $23,746 per student, of which $14,210 runs sc"
+      },
+      "pageErrors": [],
+      "failedGets": [],
+      "blockedMutations": [],
+      "sha256": "1ce1aa05361e4165b82fa474bc08c93c6629128917ae1b138bcd28914bd0ca5f"
+    },
+    {
+      "file": "landing-light-1440.png",
+      "route": "/",
+      "width": 1440,
+      "height": 900,
+      "theme": "light",
+      "status": 200,
+      "geometry": {
+        "width": 1440,
+        "scrollWidth": 1440,
+        "overflow": false,
+        "lookup": false,
+        "title": "Texas ISD Finances — District Dashboard",
+        "body": "Skip to the data\nTexas ISD\nFinancial Resource Guide\nBETA\nThe Report\nThe Feed\nForensic File\nMap\nHeatmap\nAbout\nSources\nMore\nTheme\n\nFREE TEXAS SCHOOL-MONEY TOOL BY GUS SANCHEZ AND TAG AI SOLUTIONS\n\nWhere did Dallas ISD’s school money go?\nAsk website records\nSet up in ChatGPT\nDallas ISD recorded spending\n\nFY 2025 · all funds · $3,319,208,715\n\nTrace classroom dollars\nClassroom\n$1,092,607,589\nTEA 11 + 12 + 13 · 32.9%\nOther combined\n$960,109,927\nall-funds remainder · 28.9%\nConstruction\n$766,316,261\nTEA 6600 · 23.1%\nDebt\n$500,174,938\nTEA 6500 · 15.1%\nTEA PEIMS · FY 2025 all funds · snapshot Aug. 12, 2026\nOpen source record\nExact figures and definitions\nState records become one answer you can check\nrecord flow, not amount\nTEA FY 2025 function records\n11\nInstruction\n12\nLibraries\n13\nStaff training\nAd"
+      },
+      "pageErrors": [],
+      "failedGets": [],
+      "blockedMutations": [],
+      "sha256": "3d77860c729e756c0ea83c179d112f2cd6dd83d1fbc7c64bdde818ed14380caa"
+    },
+    {
+      "file": "dallas-light-1440.png",
+      "route": "/?d=057905",
+      "width": 1440,
+      "height": 900,
+      "theme": "light",
+      "status": 200,
+      "geometry": {
+        "width": 1440,
+        "scrollWidth": 1440,
+        "overflow": false,
+        "lookup": false,
+        "title": "Dallas ISD — every number Texas publishes, in one place",
+        "body": "Skip to the data\nTexas ISD\nFinancial Resource Guide\nBETA\nThe Report\nThe Feed\nForensic File\nMap\nHeatmap\nAbout\nSources\nMore\nTheme\nOverview\nYour dollar\nWho it works for\nWhat it buys\nWhat you pay\nBonds you voted on\nWhat to do\nTrends\nPeers\nWhere it goes\nPayroll vs contracts\nWho it serves\nAnomalies\nAsk a question\nStatewide\nMethods\n\nChatGPT access: this route is verified for the owner only. Public listing and availability for other accounts or workspaces are unverified; no OpenAI endorsement is claimed.\n\nSet up in ChatGPT using the owner-tested route\nCHOOSE A TEXAS DISTRICT\nData-coverage counts and record types\nChecks, correction history, and why this matters\nLOOK UP A DIFFERENT DISTRICT\nShow me\nGus Sanchez, Founder, TAG AI Solutions\n909-268-6875ubntag.com\nDistrict snapshot\nRank, enrollment and b"
+      },
+      "pageErrors": [],
+      "failedGets": [],
+      "blockedMutations": [],
+      "sha256": "32b2ccd9e527c2e73b0cb6fa198dbe4ca259b392fdd4d10b28650feeaf3246c8"
+    },
+    {
+      "file": "landing-dark-1440.png",
+      "route": "/",
+      "width": 1440,
+      "height": 900,
+      "theme": "dark",
+      "status": 200,
+      "geometry": {
+        "width": 1440,
+        "scrollWidth": 1440,
+        "overflow": false,
+        "lookup": false,
+        "title": "Texas ISD Finances — District Dashboard",
+        "body": "Skip to the data\nTexas ISD\nFinancial Resource Guide\nBETA\nThe Report\nThe Feed\nForensic File\nMap\nHeatmap\nAbout\nSources\nMore\nTheme\n\nFREE TEXAS SCHOOL-MONEY TOOL BY GUS SANCHEZ AND TAG AI SOLUTIONS\n\nWhere did Dallas ISD’s school money go?\nAsk website records\nSet up in ChatGPT\nDallas ISD recorded spending\n\nFY 2025 · all funds · $3,319,208,715\n\nTrace classroom dollars\nClassroom\n$1,092,607,589\nTEA 11 + 12 + 13 · 32.9%\nOther combined\n$960,109,927\nall-funds remainder · 28.9%\nConstruction\n$766,316,261\nTEA 6600 · 23.1%\nDebt\n$500,174,938\nTEA 6500 · 15.1%\nTEA PEIMS · FY 2025 all funds · snapshot Aug. 12, 2026\nOpen source record\nExact figures and definitions\nState records become one answer you can check\nrecord flow, not amount\nTEA FY 2025 function records\n11\nInstruction\n12\nLibraries\n13\nStaff training\nAd"
+      },
+      "pageErrors": [],
+      "failedGets": [],
+      "blockedMutations": [],
+      "sha256": "c2aca9ff916f7135172cdc17766f76524f5eb6bf183905efed80dabeb776f38a"
+    },
+    {
+      "file": "dallas-dark-1440.png",
+      "route": "/?d=057905",
+      "width": 1440,
+      "height": 900,
+      "theme": "dark",
+      "status": 200,
+      "geometry": {
+        "width": 1440,
+        "scrollWidth": 1440,
+        "overflow": false,
+        "lookup": false,
+        "title": "Dallas ISD — every number Texas publishes, in one place",
+        "body": "Skip to the data\nTexas ISD\nFinancial Resource Guide\nBETA\nThe Report\nThe Feed\nForensic File\nMap\nHeatmap\nAbout\nSources\nMore\nTheme\nOverview\nYour dollar\nWho it works for\nWhat it buys\nWhat you pay\nBonds you voted on\nWhat to do\nTrends\nPeers\nWhere it goes\nPayroll vs contracts\nWho it serves\nAnomalies\nAsk a question\nStatewide\nMethods\n\nChatGPT access: this route is verified for the owner only. Public listing and availability for other accounts or workspaces are unverified; no OpenAI endorsement is claimed.\n\nSet up in ChatGPT using the owner-tested route\nCHOOSE A TEXAS DISTRICT\nData-coverage counts and record types\nChecks, correction history, and why this matters\nLOOK UP A DIFFERENT DISTRICT\nShow me\nGus Sanchez, Founder, TAG AI Solutions\n909-268-6875ubntag.com\nDistrict snapshot\nRank, enrollment and b"
+      },
+      "pageErrors": [],
+      "failedGets": [],
+      "blockedMutations": [],
+      "sha256": "bc4c8bec85683e5a8f46ab7987be9ab963b3122c8943657df070de15f7601e29"
+    }
+  ],
+  "failures": [],
+  "pass": true,
+  "boundary": "Public native GET smoke at all four widths, both themes, landing and Dallas. POSTs intercepted locally; no query/provider/telemetry mutation. Exact public source hashes are verified separately in release assets."
+}

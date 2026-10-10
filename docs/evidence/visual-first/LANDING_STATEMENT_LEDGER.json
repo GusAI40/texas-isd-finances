@@ -1,0 +1,96 @@
+{
+  "scope": "Landing-owner statements changed or intentionally retained from frozen round3 checkpoint8 index.html.",
+  "sourceLfSha256": "e307cc0e27a049740dbc5c745af2cf45b38fc1952a3883b78a7e3c5b6484cd8c",
+  "roles": [
+    {
+      "anchor": "#welcome .landing-kicker",
+      "original": "Free Texas school-money tool by Gus Sanchez and TAG AI Solutions",
+      "role": "visible",
+      "rationale": "Free-tool identity remains in the first journey."
+    },
+    {
+      "anchor": "#welcome #welcome-fig .dallas-meta, .dallas-map, .landing-caption",
+      "original": "Dallas FY 2025 all-funds allocation, source and Aug. 12, 2026 snapshot",
+      "role": "visible",
+      "rationale": "The real quantitative story, period, fund basis and source stay in normal flow."
+    },
+    {
+      "anchor": "#welcome .dallas-evidence",
+      "original": "Exact total, category definitions and enrollment",
+      "role": "detail",
+      "rationale": "The chart labels and source stay visible; longer definitions remain one named native disclosure away."
+    },
+    {
+      "anchor": "#welcome .source-path",
+      "original": "TEA records 11/12/13 → Dallas 057905 → $1,092,607,589 / 32.9%",
+      "role": "visible",
+      "rationale": "Existing source-flow graphic remains visible and preserves the checkable-answer explanation."
+    },
+    {
+      "anchor": "#welcome .welcome-qualification",
+      "original": "Historical public records through FY 2025; snapshot; not live budget or savings estimate; verify AI answers",
+      "role": "visible",
+      "rationale": "Material time, non-live and verification qualifications remain adjacent to the landing story."
+    },
+    {
+      "anchor": "#picker-section #hero-truth",
+      "original": "AI-built, official records, independent historical information, AI can err",
+      "role": "visible",
+      "rationale": "Trust and AI-error qualification remains visible before district lookup."
+    },
+    {
+      "anchor": "#picker-section .landing-source-context",
+      "original": "Coverage-count context formerly presented in #proof: 6.6 million data points, 1,310 districts, 17 finance years and 10 official sources.",
+      "role": "visible-context plus detail",
+      "rationale": "The new visible paragraph clarifies source, fiscal coverage, all-funds basis, snapshot and non-live scope. The original four count statements remain verbatim in the adjacent named #proof disclosure Data-coverage counts and record types; they are not represented as one visual relationship."
+    },
+    {
+      "anchor": "#picker-section #proof",
+      "original": "The four data-coverage counts and their record-type notes",
+      "role": "detail",
+      "rationale": "All original counts remain in the named native disclosure Data-coverage counts and record types; they are not presented as one visual relationship."
+    },
+    {
+      "anchor": "#picker-section .landing-more",
+      "original": "Tax relevance, $2,000/0.15 result, credentials, provenance, correction history, Wills Point $69.9m 2025 correction, AI/source explanation",
+      "role": "detail",
+      "rationale": "Retained verbatim behind the descriptive native disclosure Checks, correction history, and why this matters."
+    },
+    {
+      "anchor": "#picker-section #search, #searchbtn, #ask-your-own",
+      "original": "District lookup and website-records chat route",
+      "role": "visible",
+      "rationale": "Independent website lookup and chat choice remain available in the normal flow."
+    },
+    {
+      "anchor": "#picker-section #selected-contact, #welcome .welcome-contact",
+      "original": "Gus Sanchez, Founder, TAG AI Solutions; 909-268-6875; ubntag.com",
+      "role": "visible",
+      "rationale": "Identity and contact remain before outbound paths and in the landing journey."
+    },
+    {
+      "anchor": "#chatgpt-setup + preceding .chatgpt-route-caveat",
+      "original": "Owner verified 11 read-only tools; public listing/other accounts/workspaces unverified; no endorsement",
+      "role": "visible",
+      "rationale": "Availability uncertainty now appears before the named setup control and any external setup link."
+    },
+    {
+      "anchor": "#chatgpt-setup .setup-body",
+      "original": "Exact plugins route, server, auth, Personal/create/plugin/new-chat sequence and developer references",
+      "role": "detail",
+      "rationale": "Retained in a descriptive native setup disclosure; no install-eligibility promise is made."
+    },
+    {
+      "anchor": "#methods-section .method-primary",
+      "original": "Official file → exact fields → measure → recompute; scale, comparison and limits",
+      "role": "visible",
+      "rationale": "Method visual, source period and material calculation limitations remain in default flow."
+    },
+    {
+      "anchor": "#methods-section > details",
+      "original": "Sources, calculations, limits and citation detail",
+      "role": "detail",
+      "rationale": "All content retained with subject-specific native summary names: sources/fields, calculation/comparison basis, data limits/overlap, citation."
+    }
+  ]
+}
