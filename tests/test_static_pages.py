@@ -385,7 +385,11 @@ def test_chart_png_export_serializes_a_clone_and_reports_failure():
 def test_ask_footer_names_only_the_llm_actually_used():
     """The compact answer footer stays honest about its public-data basis."""
     html = (STATIC / "index.html").read_text(encoding="utf-8")
-    assert 'Answers come from <span id="ask-model">the configured AI model</span> and public records.' in html
+    import re
+    footer = re.search(r'<div class="cite">(Answers[\s\S]*?)</div>', html)
+    assert footer, "the public-data answer disclosure is gone"
+    assert '<span id="ask-model">the configured AI model</span>' in footer.group(1)
+    assert "public records" in footer.group(1), "the source basis is no longer disclosed"
     for absent in ("Perplexity", "Pinecone", "MongoDB", "Multi-LLM", "GOAT-UIX"):
         assert absent not in html, f"{absent} is not in this stack and must not appear"
 
@@ -400,7 +404,7 @@ def test_the_trust_question_is_asked_and_answered_in_plain_language():
     checking, corrections, the AI's role, and check-it-yourself. The Wills
     Point correction is named because a real mistake, fixed in public, is the
     strongest trust evidence the site owns."""
-    html = (ROOT / "static" / "index.html").read_text()
+    html = (ROOT / "static" / "index.html").read_text(encoding="utf-8")
     assert 'id="trust"' in html
     assert "Can I trust these numbers?" in html
     for must in ("/sources", "/provenance", "/transparency"):

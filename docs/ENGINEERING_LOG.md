@@ -17,6 +17,152 @@ Entry template:
 
 ---
 
+## 2026-10-10 - Exact-source review saved; visual95 still fails
+
+**What changed:** Root integrated isolated, nonoverlapping report/landing/chat
+stages using exact hashes and unique anchors. Added truthful finance bases,
+common-scale chat bars, readable SVG tokens, actual selected320 first-view
+data, source context and qualified ChatGPT setup. Full technical matrix
+passes against immutable checkpoint8; see `docs/TXISD_VISUAL95_ROUND3.md`.
+Original checkout, backend/data/configuration and production are preserved.
+
+**Why:** Every complete primary/page/chat measurement remains below95.
+Technical PASS and semantic coverage cannot substitute for visual acceptance.
+The finite Sol320chat assessment found no valid next95 candidate without
+hiding required facts, unsupported part-to-whole assumptions or inflated
+graphics; Astra's bounded plan stops further cosmetic retries. This is
+limited to measured states, not universal impossibility. Publication held.
+
+**Gotchas:** Earlier source interception forgot to call request.method();
+retain invalid captures and actual-response hash corrections. A checkpoint5
+browser harness mixed8787fixtures with8788navigation, and omitted its Dallas
+truth fixture; that failed run is invalid and preserved. Corrected full
+browser tests verify immutable bodies, with one explicitly named unavailable
+widget fault injection. Legacy clipping counted hidden screen-reader text;
+keep legacy FAIL and separate corrected diagnostic, no silent metric swap.
+Desktop caption3px clipping and selected320 data absence were real layout
+issues; staged repairs pass both engines. SVG17px/calc declarations exceeded
+type policy; existing bounded20px tokens now pass actual14px/reflow checks.
+
+**Open items:** Actual95complete-experience design, complete independent
+R04/R17 role/paint reconciliation, public ChatGPT distribution eligibility.
+Private Git preview needs its exact build/GET receipt and stays protected;
+no keyless preview promotion, protection bypass, secret pull or master merge.
+Future work must preserve the source/basis/control contracts and retained
+failed evidence, then obtain a fresh independent verdict.
+
+
+## 2026-10-10 - Round-three complete-primary scope and browser source proof
+
+**What changed:** Astra's R3.2 addendum keeps genuine 95/5 on entire primary
+landing/report/chat journeys. All substantive report chapters and essential
+interpretations must be visible together. It withdraws only the added
+requirement that every raw record, extended derivation and full policy,
+forced open simultaneously, must reach 95. A content-role ledger and
+independent retention review are mandatory; hiding analysis cannot pass.
+Sol continues the focused index/ask redesign on the same isolated branch.
+The 18:09 UTC immutable checkpoint remains below 95 in all eight default
+views: landing 60.86-84.07%, selected 60.46-76.94% by the unchanged generous
+frame/text inventory. New exact-source final checks remain pending.
+
+**Why:** Technical correctness and semantic chart coverage do not establish
+the requested whole-page design. The primary report still has substantial
+text, and further consolidation must retain safe interpretation and every
+unique fact. Secondary reference coverage remains complete and separately
+measured; the scope correction is not a candidate PASS.
+
+**Gotchas:** The first round-three paint capture recorded frozen-file
+hashes but rendered the changing candidate: the interception predicate
+compared `request.method` instead of calling `request.method()`. Preserve
+that failed capture with `INVALID_SOURCE_MISMATCH`. Corrected captures
+assert the actual HTML and ask.js response digests against immutable input
+assets before any screenshot. An independent mask audit also found white
+SVG halo credit, omitted border connectors and operation-label
+classification; fixes apply only to the review collector. The paint
+registry remains partial, not a certified ratio or release verdict.
+
+**Open items:** Finish continuous primary visual stories and the role
+ledger; freeze exact runtime; measure complete primary and reference-open
+journeys; run fresh behavior, accessibility, export and repository checks;
+obtain fresh Luna review. Publication stays held on failed visual gates.
+Existing production and all data/security/outreach boundaries remain intact.
+
+## 2026-10-10 - Genuine 95/5 visual acceptance reaffirmed; deployment held
+
+**What changed:** Gus explicitly rejected the remaining text-heavy
+composition and reaffirmed 95% information-bearing visuals / 5% text for
+the entire desktop/mobile experience. No production publication occurred.
+The source-stable round-two candidate and all successful technical checks
+are preserved as historical evidence, with release acceptance false.
+
+**Why:** Closed-page C values of 65.19-76.97% and the complete expanded
+Dallas report's 33.73% at 390px fail the requested composition. The 10/10
+visual-claim inventory is semantic coverage, not a site-wide visual ratio.
+C generously counts graphic frames and necessary labels; it cannot certify
+painted information or award credit to blank space, cards or icons.
+
+**Open items:** Revised audit/plan and objective Sol escalation address
+whole pages, expanded chapters and the existing website chat. Keep required
+sources, dates, limitations, access qualification, creator contact and
+readable accessible controls. Publish only after honest independent visual
+and functional review passes. Publication authority remains available for
+that validated outcome; no outreach or new paid questions are authorized.
+
+## 2026-10-10 - Round-two visual redesign validated; exact-source release preparation
+
+**What changed:** The same isolated `feat/txisd-visual95-20261010` branch now
+has a compact landing and selected overview, retained expandable report
+chapters, marked FY2020/FY2025 spending comparison, polished shared website
+chat and the approved public creator contact. Runtime scope is index.html,
+ask.js and contact-only forensics.html. Final LF hashes are index
+`92329c8c1663c3efa53249505af9fef65066f4a905fcada31e8515970e38e9c4`, ask
+`3a4860da40073ebaeaefe7d4c55d9db71d0f748de9e8c0b4760e1cc1ca750e35`,
+forensics `270dfe1731bbc50ad95848625c05582ec43ddcc82c6756a36d6215a19552f939`.
+Both Python 3.10/3.12 suites pass 1,169 tests with 31 skips; 154 Chromium/
+Firefox cases, 80 accessibility states, 16 HTML contact states, 24 decoded
+PNG exports and two native PDFs pass. Complete final capture has 550
+source-stable screens without page errors or horizontal overflow. Ruff,
+14-page JS parsing, ask parsing, offline lock and whitespace checks pass.
+See `docs/TXISD_VISUAL95_ROUND2.md` and its final evidence subset.
+
+**Why:** Whole default journeys needed substantial compression, not just
+another hero. Required source/AI/access disclosures, 14px informational
+labels, 16px inputs and 44px controls take priority over ratio optimization.
+Default landing words fell about 71-73%; selected words about 92-93% against
+Aea. Frozen C is 65.19-76.97%, still below literal 95. The separate corrected
+covered-prose inventory passes 10/10 substantive graphic claims; supporting
+R content earns zero graphic points, and compound S2r remains one claim.
+Legacy A12 FAIL and original S2 inventory FAIL/superseded remain historical.
+
+**Gotchas:** A purported 11/13 semantic result split the compound claim and
+awarded points to supporting text; it was withdrawn. Native chart pixels
+caught a duplicate FY2025 endpoint annotation; the targeted second repair
+removes only that duplicate. A complete scrolled 320px report exposed a
+nowrap, unbounded economics tooltip missed by the initial 72-state audit.
+Sol's narrow tooltip repair preserves full 14px text and handles resize,
+local chart scrolling, leave and scroll-away; 80-state verification and
+38 exact-width scroll samples pass. The mobile action width test used a
+zero-size `display:contents` ancestor; it now measures the actual laid-out
+containing block with both edge checks intact. Simultaneous Python suites
+collided on the existing dictionary test's fixed `/tmp/dd_check.md`; the
+unchanged 3.12 suite passes alone. Failed intermediate evidence is retained.
+
+**Open items / authority correction:** Later trusted user steering authorizes
+root-owned publication after concrete validation; it supersedes the older
+entry's blanket preview-only / request-new-direction language. Protected
+master is not merged or bypassed. The exact production build/health result
+is a separate release receipt, not established by local tests. Production
+must rebuild the reviewed Git source with existing production environment;
+the protected preview lacks a provider key and must not be promoted. SSO
+protection, credentials, providers, backend/data, dependencies, billing,
+contact lists and outreach remain unchanged. No paid question or district
+email was sent. Independent-account ChatGPT access/public listing remains
+unverified; the owner route is visibly qualified. Python 3.11/Linux CI is
+unavailable; Actions remain disabled. Shareable preview-auth bypass creation
+was rejected by automatic review and not retried; existing private GET-only
+review remains available. Source SHA, draft PR #85, preview and any confirmed
+release mappings are recorded separately for the final branch state.
+
 ## 2026-10-10 - Visual redesign prepared for review; strict visual gate unresolved
 
 **What changed:** A new isolated branch `feat/txisd-visual95-20261010` starts

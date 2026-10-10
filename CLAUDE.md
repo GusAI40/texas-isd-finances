@@ -142,7 +142,49 @@ The newest bullets control. Dated bullets below retain useful engineering
 history and may contain superseded counts; never let them override the current
 outreach item or `data/outreach_watermark.json`.
 
-- **Visual redesign review candidate (2026-10-10, newest).** Branch
+- **Round-three frozen review candidate (2026-10-10T19:55:34.165Z, newest).** See
+  `docs/TXISD_VISUAL95_ROUND3.md`. Index LF SHA `e307cc0e27a049740dbc5c745af2cf45b38fc1952a3883b78a7e3c5b6484cd8c`;
+  ask LF SHA `227a9cf9f85ce6578339b14cc446f7554f7c6dd1fdb4b635eca7672598f13b13`.
+  Final Python3.10/3.12 each1169pass/31skip; browser156pass; AA80pass;
+  static checks and16HTML/24PNG/2PDF exports pass. All queries mocked.
+  Whole primary landing C 38.03%-68.27%,
+  report 34.89%-59.92%, whole chat
+  50.57%-58.01%: all below95. R03FAIL; R04/R17 remain
+  unsealed/BLOCKED. Bounded Sol chat feasibility found no valid next95
+  candidate under the current contract; cosmetic retries stopped. No
+  universal impossibility or acceptance claim. Root saved the isolated
+  branch for review; production14326 and protected master remain unchanged.
+  Owner-verified ChatGPT custom setup is verified; other-account eligibility
+  and public listing are unverified. Protected preview is for review only.
+  No paid queries, backend/data/security/billing/outreach changes.
+
+- **95/5 visual acceptance reopened (2026-10-10, historical).** Gus explicitly
+  reaffirmed meaningful 95% visual / 5% text across complete mobile and
+  desktop pages. Deployment is held: round-two technical checks pass, but
+  its 65.19-76.97% generous graph-frame/text inventory and 10/10 semantic
+  claim ledger do not satisfy that requirement. The complete expanded
+  Dallas report at 390px is only 33.73% by the same inventory. A new
+  read-only audit and explicit revised plan precede the Sol escalation;
+  source/data/backend/security/outreach boundaries remain unchanged.
+
+- **Round-two visual redesign technically validated (2026-10-10, historical).** Same isolated
+  `feat/txisd-visual95-20261010` branch; runtime index/ask plus approved
+  contact-only forensics. Python 3.10/3.12 each 1,169 pass/31 skip; browser
+  154/154, accessibility 80/80, complete final capture 550 overflow/error-free
+  screens, 16 HTML/24 PNG/2 PDF contact checks pass. Default/selected PDFs are
+  2/15 pages with source values and contact links intact. Fresh corrected
+  semantic review is 10/10; frozen C remains 65.19-76.97%, below literal 95.
+  Original S2/A12 failures and withdrawn counts are historical. Later trusted
+  user steering authorizes root-owned publication after validation and
+  supersedes the older preview-only/direction-request language below. No
+  protected-master merge. Exact production source/build/health is a separate
+  release receipt. Rebuild using existing production environment; do not
+  promote the keyless protected preview. No paid query, outreach, provider,
+  credential, security, data or dependency change. Independent ChatGPT
+  availability remains unverified and visibly qualified; Python 3.11/Linux
+  CI unavailable. See `docs/TXISD_VISUAL95_ROUND2.md` and newest log entry.
+
+- **Visual redesign review candidate (2026-10-10, historical).** Branch
   `feat/txisd-visual95-20261010` starts from actual published source
   `14326baf497f782db702f12427d6432af1df46be`, TAG-ai deployment
   `dpl_9REP3jKBiDs4nkLyUPvNPkDaV1Dg`. Public read-only checks pass 40/40;

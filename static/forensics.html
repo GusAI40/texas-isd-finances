@@ -70,6 +70,22 @@
   .sub-note { font-size:var(--fs-sm); color:var(--ink-3); max-width:44rem;
              margin:var(--s-2) 0; }
 
+  /* Public creator contact for this human-readable financial report. */
+  .forensic-contact { max-width:44rem; margin:var(--s-4) 0 var(--s-5); padding:var(--s-3) var(--s-4);
+                      border:1px solid var(--rule); border-left:4px solid var(--accent);
+                      border-radius:var(--r-md); background:var(--surface); }
+  .forensic-contact__label { margin:0 0 .2rem; color:var(--accent); font-size:var(--fs-xs);
+                             font-weight:var(--fw-bold); letter-spacing:var(--tracking-eyebrow);
+                             text-transform:uppercase; }
+  .forensic-contact__identity { margin:0; font-size:var(--fs-base); font-weight:var(--fw-bold); }
+  .forensic-contact__links { display:flex; flex-wrap:wrap; gap:var(--s-2); margin-top:var(--s-2); }
+  .forensic-contact__links a { align-items:center; color:var(--accent); display:inline-flex;
+                               font-size:var(--fs-base); font-weight:var(--fw-bold); min-height:44px;
+                               min-width:44px; padding:.45rem .65rem; text-decoration:none; }
+  .forensic-contact__links a:hover { text-decoration:underline; }
+  .forensic-contact__links a:focus-visible { outline:2px solid var(--accent); outline-offset:2px;
+                                              text-decoration:underline; }
+
   /* --- the four statewide figures --- */
   .band { display:grid; gap:var(--s-4); margin:var(--s-5) 0 var(--s-2);
           grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); }
@@ -211,7 +227,12 @@
           padding-top:var(--s-4); border-top:1px solid var(--rule); max-width:52rem; }
   .foot b { color:var(--ink-2); }
   .err { color:var(--neg); font-size:var(--fs-sm); }
-  @media print { .picker, .tabs, .btn-theme, .cta { display:none } }
+  @media print {
+    .picker, .tabs, .btn-theme, .cta { display:none }
+    .forensic-contact { break-inside:avoid; margin:1rem 0; padding:.55rem .8rem; }
+    .forensic-contact__links { margin-top:.15rem; }
+    .forensic-contact__links a { min-height:0; padding:.1rem 0; }
+  }
 </style>
 </head>
 <body>
@@ -378,6 +399,15 @@
      belong side by side are published apart — and two of the biggest are published in a form
      that makes them look smaller than they are. This puts them together, for every district,
      and shows its work.</p>
+
+  <aside class="forensic-contact" aria-label="Creator contact">
+    <p class="forensic-contact__label">TAG AI Solutions</p>
+    <p class="forensic-contact__identity">Gus Sanchez, Founder, TAG AI Solutions</p>
+    <div class="forensic-contact__links">
+      <a href="tel:+19092686875">909-268-6875</a>
+      <a href="https://ubntag.com">ubntag.com</a>
+    </div>
+  </aside>
 
   <div class="band" id="band"></div>
   <p class="sub-note" id="band-note"></p>

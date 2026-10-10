@@ -115,15 +115,13 @@ for (const width of [320, 390, 430, 1440]) {
     await expect(page.locator('#welcome #tx-cap-2')).toBeHidden();
     expect(await page.locator('#example-dallas').evaluate(el => parseFloat(getComputedStyle(el).fontSize)))
       .toBeGreaterThanOrEqual(14);
-    await expect(page.locator('.source-records .record-row')).toHaveCount(4);
-    await expect(page.locator('.district-match .match-code')).toHaveText('057905');
-    await expect(page.locator('.source-answer .answer-stack i')).toHaveCount(4);
-    const sourceShares = await page.locator('.source-answer .answer-stack i').evaluateAll(nodes =>
-      nodes.map(n => n.getBoundingClientRect().width / n.parentElement.getBoundingClientRect().width * 100));
-    [32.9177,23.0873,15.0691,28.9259].forEach((share,index) =>
-      expect(Math.abs(sourceShares[index] - share)).toBeLessThan(.5));
-    await expect(page.locator('.source-answer')).toContainText('$1,092,607,589');
-    await expect(page.locator('.source-answer a')).toHaveAttribute('href','/sources');
+    const sourceFlow = page.locator('.source-diagram:visible');
+    await expect(sourceFlow).toHaveCount(1);
+    await expect(sourceFlow).toHaveAttribute('aria-label', /functions 11, 12 and 13.*057905.*1,092,607,589.*32.9/);
+    await expect(sourceFlow.locator('.match-code')).toHaveText('057905');
+    await expect(sourceFlow).toContainText('$1,092,607,589');
+    await expect(page.locator('.source-path')).toContainText('record flow, not amount');
+    await expect(page.locator('.landing-caption a')).toHaveAttribute('href','/sources');
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     const composition = await page.evaluate(() => {
       const chart=document.querySelector('.dallas-map').getBoundingClientRect();
@@ -163,9 +161,9 @@ for (const width of [320, 390, 430, 1440]) {
     await expect(guide).toBeVisible();
     await expect(guide).toHaveAttribute('open', '');
     await expect(guide.locator('.setup-body')).toBeVisible();
-    for (const label of ['Add custom MCP server', 'Texas ISD Finances', 'https://txisd.dev/mcp',
+    for (const label of ['Texas ISD Finances', 'https://txisd.dev/mcp',
       'No authentication', 'Create as a plugin', 'Personal']) await expect(guide).toContainText(label);
-    await expect(guide).toContainText(/account and workspace/);
+    await expect(guide).toContainText(/other accounts or workspaces are unverified/);
     const qualification = guide.locator('.setup-qualification');
     await expect(qualification).toBeVisible();
     expect(await guide.evaluate(node => {
@@ -214,39 +212,48 @@ test('recorded Dallas example highlights evidence without a paid query', async (
   await expect(page.locator('.ta-wrap')).toBeHidden();
 });
 
-test('landing keeps the original pipeline in the DOM but shows only the recorded hero', async ({page}) => {
+test('landing presents the recorded allocation and connected source path', async ({page}) => {
   await prepared(page);
   const welcome = page.locator('#welcome');
-  await expect(welcome.locator(':scope > .pipeline')).toBeAttached();
-  await expect(welcome.locator(':scope > .pipeline')).toBeHidden();
   await expect(welcome.locator(':scope > .hero-grid')).toBeVisible();
-  const visibleChildren = await welcome.locator(':scope > *').evaluateAll(nodes => nodes
-    .filter(node => getComputedStyle(node).display !== 'none').map(node => node.className));
-  expect(visibleChildren).toEqual(['hero-grid', 'source-path']);
+  await expect(welcome.locator('.source-path')).toBeVisible();
+  await expect(welcome.locator('.source-diagram:visible .match-code')).toContainText('057905');
+  await expect(welcome.locator('.source-diagram:visible')).toHaveAttribute('aria-label', /2025.*057905.*32.9/);
 });
 
-test('landing purpose immediately follows the welcome card with no visual gap', async ({page}) => {
+test('landing purpose is part of the first recorded-data journey', async ({page}) => {
   await page.setViewportSize({width:1440,height:900});
   await prepared(page);
-  const adjacent = await page.evaluate(() => {
-    const welcome = document.querySelector('#welcome');
-    const purpose = document.querySelector('.landing-purpose');
-    const r = welcome.getBoundingClientRect(), p = purpose.getBoundingClientRect();
-    return { adjacent: welcome.nextElementSibling === purpose, gap: p.top - r.bottom };
-  });
-  expect(adjacent.adjacent).toBe(true);
-  expect(adjacent.gap).toBeLessThanOrEqual(32);
+  const welcome=page.locator('#welcome');
+  await expect(welcome).toContainText(/free/i);
+  await expect(welcome).toContainText(/Gus.*TAG/);
+  await expect(welcome).toContainText(/historical/i);
+  await expect(welcome).toContainText(/ChatGPT/);
+  await expect(welcome.locator('#ask-your-own')).toBeVisible();
 });
 
 test('mobile example action matches the landing content width', async ({page}) => {
   await page.setViewportSize({width:390,height:844});
   await prepared(page);
-  const widths = await page.evaluate(() => {
-    const button = document.querySelector('#welcome .example-question').getBoundingClientRect();
-    const content = document.querySelector('#welcome .hero-left').getBoundingClientRect();
-    return { button: button.width, content: content.width };
+    const widths = await page.evaluate(() => {
+    const action = document.querySelector('#welcome .example-question');
+    const button = action.getBoundingClientRect();
+      let element = action.parentElement;
+      while (getComputedStyle(element).display === 'contents') element = element.parentElement;
+      const content = element.getBoundingClientRect();
+      const style = getComputedStyle(element);
+      const leftInset = parseFloat(style.paddingLeft) + parseFloat(style.borderLeftWidth);
+      const rightInset = parseFloat(style.paddingRight) + parseFloat(style.borderRightWidth);
+      return {
+        button: button.width,
+        content: content.width - leftInset - rightInset,
+        leftOffset: button.left - content.left - leftInset,
+        rightOffset: content.right - rightInset - button.right,
+      };
   });
   expect(Math.abs(widths.button - widths.content)).toBeLessThanOrEqual(1);
+    expect(Math.abs(widths.leftOffset)).toBeLessThanOrEqual(1);
+    expect(Math.abs(widths.rightOffset)).toBeLessThanOrEqual(1);
 });
 
 test('exact example figures and definitions remain available through keyboard disclosure', async({page})=>{
@@ -319,7 +326,8 @@ test('setup anchor remains usable for a returning district reader', async ({page
   await prepared(page,{url:'/?d=057905#chatgpt-setup'});
   await expect(page.locator('#welcome')).toBeHidden();
   await expect(page.locator('#chatgpt-setup')).toBeVisible();
-  await expect(page.locator('#chatgpt-setup')).toContainText('Add custom MCP server');
+  await expect(page.locator('#chatgpt-setup')).toContainText('Texas ISD Finances');
+  await expect(page.locator('#chatgpt-setup .setup-qualification')).toContainText('other accounts or workspaces are unverified');
 });
 
 test('single setup disclosure toggles with keyboard and hash navigation opens it', async ({page}) => {
@@ -515,14 +523,19 @@ test('currency answer puts an exact visual before optional complete evidence', a
   await expect(evidenceDetails.locator('tbody tr')).toHaveCount(5);
   for(const row of supplied.structured.blocks[0].rows) await expect(evidenceDetails).toContainText(row[1]);
   const support = chat.locator('.ta-support');
-  await support.locator('summary').click();
-  await expect(support).toContainText(longLead);
+  await expect(support).toHaveAttribute('open','');
+  await expect(support).toContainText('This second sentence remains available with the complete explanation.');
+  await expect(support).not.toContainText('Classroom teaching was the largest featured category.');
   await expect(support).toContainText('Additional supplied explanation remains available.');
-  await expect(support.getByRole('link',{name:'TEA PEIMS actual finance'})).toHaveAttribute('href','/sources');
+  const source = chat.getByRole('link',{name:'TEA PEIMS actual finance'});
+  await expect(source).toHaveCount(1);
+  await expect(source).toBeVisible();
+  await expect(source).toHaveAttribute('href','/sources');
 });
 
 for(const [name,head,rows] of [
   ['ambiguous unit',['Category','Value'],[['Teaching','100'],['Buildings','50']]],
+  ['unprefixed amount',['Category','Amount'],[['Teaching','100'],['Buildings','50']]],
   ['mixed currencies',['Category','Dollars'],[['Teaching','$100'],['Buildings','\u00a350']]],
   ['malformed number',['Category','Dollars'],[['Teaching','$1,00'],['Buildings','$50']]],
   ['missing value',['Category','Dollars'],[['Teaching','$100'],['Buildings','']]],
@@ -540,6 +553,11 @@ for(const [name,head,rows] of [
     const chat = await ask(page);
     await expect(chat.locator('.ta-lead')).toBeVisible();
     await expect(chat.locator('.ta-chart')).toHaveCount(0);
+    await expect(chat.locator('.ta-context')).toBeVisible();
+    await expect(chat.locator('.ta-context')).toContainText(/Dallas ISD.*2025.*All funds/);
+    await expect(chat.locator('.ta-answer-source')).toBeVisible();
+    await expect(chat.locator('.ta-answer-source')).toContainText('TEA PEIMS actual finance');
+    await expect(chat.locator('.ta-answer-source').getByRole('link')).toHaveAttribute('href','/sources');
     const disclosure = chat.locator('.ta-evidence');
     if(await disclosure.count()) await disclosure.first().locator('summary').click();
     await expect(chat.locator('tbody tr')).toHaveCount(rows.length);

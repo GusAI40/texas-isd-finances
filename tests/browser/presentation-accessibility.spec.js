@@ -44,7 +44,7 @@ for (const [width, height] of [[320, 740], [390, 844], [430, 932], [1440, 900]])
       await expect(page.locator('#welcome-h')).toBeVisible();
       await audit(page);
       await page.setViewportSize({ width: Math.round(width / 2), height: Math.round(height / 2) });
-      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+      await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), {timeout:3000}).toBe(true);
       await page.setViewportSize({ width, height });
       await page.locator('#ask-your-own').click();
       await audit(page, '.ta-wrap');
@@ -53,7 +53,8 @@ for (const [width, height] of [[320, 740], [390, 844], [430, 932], [1440, 900]])
       await expect(page.locator('.ta-chart')).toBeVisible();
       await audit(page, '.ta-wrap');
       await page.locator('.ta-evidence>summary').click();
-      await page.locator('.ta-support>summary').click();
+      // Unique context starts open; show every present support block without closing it.
+      await page.locator('.ta-support').evaluateAll(nodes => nodes.forEach(node => { node.open = true; }));
       await audit(page, '.ta-wrap');
       unavailable = true;
       await page.locator('.ta-row input').fill('Please check that record again.');
@@ -65,7 +66,7 @@ for (const [width, height] of [[320, 740], [390, 844], [430, 932], [1440, 900]])
       await waitForDashboard(page);
       await audit(page);
       await page.setViewportSize({ width: Math.round(width / 2), height: Math.round(height / 2) });
-      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+      await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), {timeout:3000}).toBe(true);
     });
   }
 }

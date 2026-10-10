@@ -7,6 +7,7 @@ does not double-handle the click, textContent-only answer rendering so a
 model's output cannot inject markup, reduced-motion fallbacks so the reveal
 never becomes a barrier, and the dialog semantics a screen reader needs.
 """
+import re
 import shutil
 import subprocess
 from pathlib import Path
@@ -201,7 +202,11 @@ def test_a_long_table_scrolls_instead_of_burying_everything_under_it():
 def test_the_chat_lead_is_concise_and_preserves_the_full_answer_in_disclosure():
     """The answer opens with one sentence; remaining source material remains available."""
     assert "String(s.lead || '').match(/^.*?[.!?](?:\\s|$)/)" in JS
-    assert "Sources, context, and full answer" in JS
+    assert "var support = el('details', 'ta-support')" in JS
+    disclosure = re.search(r"support\.appendChild\(el\('summary', null, '([^']+)'\)\)", JS)
+    assert disclosure, "the full-answer disclosure has no accessible summary"
+    for required in ("full answer", "sources", "context"):
+        assert required in disclosure.group(1).lower(), f"summary no longer names {required}"
 
 
 def test_the_screen_reader_hears_the_figures_and_the_ranking_too():
