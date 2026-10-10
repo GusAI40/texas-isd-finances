@@ -388,9 +388,13 @@ def test_chart_png_export_serializes_a_clone_and_reports_failure():
 
 
 def test_ask_footer_names_only_the_llm_actually_used():
-    """The ask box must not claim a multi-LLM stack it does not have."""
+    """Disclose the configured model without hardcoding a provider or stack."""
     html = (STATIC / "index.html").read_text(encoding="utf-8")
-    assert "OpenAI" in html and "LangChain" in html
+    assert '<span id="ask-model">the configured AI model</span>' in html
+    assert "const h = await api('/health')" in html
+    assert "h.llm" in html
+    footer = html.split('<span id="ask-model">')[1].split('</div>')[0]
+    assert "TAG ai" in footer and "official TEA releases" in footer
     for absent in ("Perplexity", "Pinecone", "MongoDB", "Multi-LLM", "GOAT-UIX"):
         assert absent not in html, f"{absent} is not in this stack and must not appear"
 

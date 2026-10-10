@@ -595,7 +595,7 @@
      on hover, and the strip is focusable so a tap holds it on touch screens.
      Under reduced motion nothing self-updates at all: every item renders at
      once in a strip the reader scrolls themselves. */
-  .ticker-view { flex:1; overflow:hidden; position:relative; display:flex; align-items:center; }
+  .ticker-view { flex:1; min-width:0; overflow:hidden; position:relative; display:flex; align-items:center; }
   .ticker-track {
     display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
     width:100%; padding:.45rem 1.2rem; transition:opacity .3s ease;
@@ -763,9 +763,44 @@
   .welcome-cta a:hover { background: var(--wash); }
   .welcome-cta .cta-primary { background: var(--blue); color: var(--surface); border-color: var(--blue); }
   .welcome-cta .cta-primary:hover { filter: brightness(1.06); }
+  .setup-note { display:block; margin-top:.65rem; color:var(--ink-2); font-size:var(--fs-sm); line-height:1.4; }
   .welcome-strip { display: flex; flex-wrap: wrap; gap: .25rem .7rem; margin: 1rem 0 0;
     font-size: var(--fs-xs); color: var(--muted); }
   .welcome-strip b { color: var(--ink-2); font-weight: 600; }
+  /* Landing: an inspectable record rather than decorative dashboard art. */
+  .welcome { padding:clamp(1rem,3vw,2.2rem); border:1px solid var(--hairline); border-radius:18px;
+    background:linear-gradient(135deg, color-mix(in srgb, var(--surface) 94%, #dce9fb), var(--surface)); }
+  .welcome .hero-grid { gap:2.2rem; align-items:start; }
+  .welcome-h { max-width:15ch; font-size:var(--fs-2xl); }
+  .welcome > .welcome-cta, .welcome > .welcome-method, .welcome > .welcome-strip { display:none; }
+  .dallas-meta { margin:0 0 1rem; color:var(--ink-2); font-size:var(--fs-md); line-height:1.4; }.dallas-meta .dallas-total { color:var(--ink); font-weight:700; }
+  .example-question { display:inline-flex; align-items:center; padding:.68rem 1rem; border:1px solid #174f9b; border-radius:var(--r-lg); background:#174f9b; color:#fff; font-family:inherit; font-weight:600; font-size:var(--fs-md); line-height:1.25; cursor:pointer; }
+  .example-question:hover, .example-question[aria-pressed="true"] { background:#12365f; }
+  .example-answer { margin:.7rem 0 0; color:var(--ink); font-size:var(--fs-md); line-height:1.45; }
+  .dallas-record { margin:0; padding:clamp(1.1rem,2.5vw,1.8rem); border:1px solid var(--hairline); border-radius:14px;
+    background:var(--surface); box-shadow:0 12px 30px rgba(13,48,92,.08); }
+  .dallas-record h2 { margin:0; font-size:var(--fs-md); }
+  .dallas-total { display:inline; }
+  .dallas-map { display:grid; grid-template-columns:61.8435805716fr 38.1564194284fr; gap:2px; height:20rem; overflow:hidden; border-radius:10px; background:var(--surface); }
+  .dallas-column { display:grid; min-width:0; gap:2px; }.dallas-column.left { grid-template-rows:32.9177127085fr 28.9258678631fr; }.dallas-column.right { grid-template-rows:23.0873176952fr 15.0691017332fr; }
+  .dallas-cell { position:relative; display:flex; flex-direction:column; justify-content:flex-end; min-width:0; padding:clamp(.65rem,1.4vw,1.1rem); color:#fff; background:#174f9b; overflow:hidden; }.dallas-cell.other { background:#376fba; }.dallas-cell.construction { background:#4c73a4; }.dallas-cell.debt { background:#334e68; }
+  .dallas-fill { position:absolute; inset:0; background:inherit; }.dallas-label { position:relative; z-index:1; }
+  .dallas-cell strong { display:block; font-size:var(--fs-md); line-height:1.15; }.dallas-cell span { display:block; margin-top:.25rem; font-size:var(--fs-sm); font-variant-numeric:tabular-nums; }.dallas-cell small { display:block; margin-top:.12rem; font-size:var(--fs-sm); }
+  .dallas-map .dallas-cell strong, .dallas-map .dallas-cell span, .dallas-map .dallas-cell small { color:#fff !important; opacity:1; }
+  .dallas-record figcaption { margin-top:1rem; color:var(--ink-2); font-size:var(--fs-sm); line-height:1.45; }
+  .dallas-evidence { margin-top:.85rem; color:var(--ink-2); font-size:var(--fs-sm); line-height:1.45; }.dallas-evidence summary { cursor:pointer; color:var(--blue); }.dallas-evidence p { margin:.55rem 0 0; }
+  .landing-purpose { margin:1rem 0; max-width:54rem; color:var(--ink-2); font-size:var(--fs-md); line-height:1.5; }.landing-purpose p { margin:.35rem 0; }.landing-purpose b { color:var(--ink); }
+  .setup-guide { margin:1rem 0 0; padding:0; border:0; background:none; }.setup-guide summary { display:inline-flex; align-items:center; cursor:pointer; padding:.62rem 1.15rem; border-radius:var(--r-lg); background:var(--blue); color:var(--surface); font-weight:600; }.setup-guide[open] summary { margin-bottom:.8rem; }.setup-guide .setup-body { padding:1.1rem 1.2rem; border-left:3px solid var(--blue); background:var(--wash); border-radius:0 12px 12px 0; }
+  .setup-guide h2 { margin:0; font-size:var(--fs-md); }.setup-guide p,.setup-guide ol { max-width:54rem; color:var(--ink-2); }
+  .setup-guide ol { list-style:none; padding:0; display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.55rem; }.setup-guide li { margin:0; padding:.7rem; border:1px solid var(--hairline); border-radius:9px; background:var(--surface); }.setup-guide li > b:first-child{display:block;color:var(--blue);font-size:var(--fs-micro);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.4rem}.setup-guide .setup-glyph{display:flex;align-items:center;gap:.3rem;min-height:1.9rem;margin-bottom:.45rem;color:var(--ink);font-size:var(--fs-sm);font-weight:700}.setup-guide .setup-glyph i{display:block;width:1.25rem;height:1.25rem;border:2px solid var(--blue);border-radius:3px}.setup-guide .setup-glyph.plus i:after{content:'+';display:block;text-align:center;line-height:1rem;color:var(--blue);font-style:normal}.setup-guide .setup-glyph.url i{border-radius:999px}.setup-guide .setup-glyph.install i{background:linear-gradient(90deg,#174f9b 50%,#dce9fb 50%)}.setup-guide .setup-glyph.at i:after{content:'@';display:block;text-align:center;line-height:1rem;color:var(--blue);font-style:normal}.setup-guide .setup-field{display:block;padding:.3rem .4rem;border:1px solid var(--hairline);border-radius:5px;background:var(--wash);font:var(--fs-sm)/1.25 ui-monospace,SFMono-Regular,monospace;overflow-wrap:anywhere;word-break:break-word}.setup-guide li span{display:block;margin-top:.45rem;font-size:var(--fs-sm);line-height:1.35}.setup-guide code { color:var(--ink); overflow-wrap:anywhere; } .setup-guide details{margin-top:.75rem;font-size:var(--fs-sm);color:var(--ink-2)}
+  .setup-guide, .setup-guide summary, .setup-guide .setup-body, .setup-guide ol, .setup-guide li, .setup-guide .setup-glyph, .setup-guide .setup-field { box-sizing:border-box; min-width:0; max-width:100%; }.setup-guide .setup-body, .setup-guide li, .setup-guide .setup-field { overflow-wrap:anywhere; }
+  @media(max-width:700px){.setup-guide ol{grid-template-columns:1fr 1fr}} @media(max-width:420px){.setup-guide ol{grid-template-columns:1fr}}
+  #welcome, #welcome .hero-grid, .dallas-record { min-width:0; }
+  #welcome #tx-pennies-2, #welcome #tx-cap-2 { display:none; }
+  #ask-your-own { color:var(--blue); font-weight:600; }
+  html:not(.has-district) .ta-fab { display:none !important; }
+  .dallas-cell.classroom.is-highlighted { outline:3px solid #fff; outline-offset:-5px; box-shadow:inset 0 0 0 3px #12365f; }
+  @media (max-width:700px) { .welcome { margin:0 0 .6rem; padding:.55rem; }.welcome .hero-grid { display:flex; flex-direction:column; gap:.45rem; }.welcome .dallas-record { width:100%; padding:.55rem; }.welcome-h { max-width:none; font-size:var(--fs-xl); margin:0 0 .25rem; }.dallas-meta { margin-bottom:.45rem; }.dallas-record h2, .dallas-record > .dallas-total { display:none; }.dallas-map { display:flex; flex-direction:column; gap:.32rem; height:auto; overflow:visible; background:transparent; border-radius:0; }.dallas-column { display:contents; }.dallas-cell, .dallas-cell.other, .dallas-cell.construction, .dallas-cell.debt { display:block; min-height:3.15rem; padding:.38rem .6rem 1rem; background:transparent; color:var(--ink); border:1px solid var(--hairline); border-radius:7px; overflow:hidden; }.dallas-fill { top:auto; bottom:.36rem; left:.6rem; right:auto; width:var(--share); height:.42rem; opacity:1; }.dallas-cell.classroom .dallas-fill { background:#174f9b; }.dallas-cell.other .dallas-fill { background:#376fba; }.dallas-cell.construction .dallas-fill { background:#4c73a4; }.dallas-cell.debt .dallas-fill { background:#334e68; }.dallas-cell.classroom.is-highlighted .dallas-fill { height:.56rem; bottom:.29rem; }.dallas-map .dallas-cell strong, .dallas-map .dallas-cell span, .dallas-map .dallas-cell small { color:var(--ink) !important; }.dallas-cell strong { white-space:nowrap; }.dallas-label { display:block; }.dallas-cell span, .dallas-cell small { display:inline; margin:0; }.dallas-cell span { margin-left:.65rem; }.dallas-cell small { margin-left:.4rem; }.dallas-record figcaption { margin-top:.5rem; } }
   .hero-num { color: var(--blue); white-space: nowrap; }
   .nowrap { white-space: nowrap; }
   .hero-row { display: block; }
@@ -1099,8 +1134,8 @@
   </header>
 
   <div class="ticker" id="ticker" hidden>
-    <span class="ticker-tag">Live figures</span>
-    <div class="ticker-view"><div class="ticker-track" id="ticker-track" tabindex="0" aria-label="Live figures from this page — tap or focus to hold the current one"></div></div>
+    <span class="ticker-tag">Recorded figures</span>
+    <div class="ticker-view"><div class="ticker-track" id="ticker-track" tabindex="0" aria-label="Recorded figures from this page - tap or focus to hold the current one"></div></div>
   </div>
 
   <!-- The Feed's newest stories, on the front page. Same discipline as the
@@ -1115,29 +1150,26 @@
   <div class="warnbar" id="dbwarn">The database is not reachable right now. If this persists,
     the project may be paused — an administrator can wake it in the Supabase dashboard.</div>
 
-  <section class="welcome" id="welcome" aria-labelledby="welcome-h">
+  <section class="welcome" id="welcome" aria-label="Texas school money, made clear">
     <div class="hero-grid">
     <div class="hero-left">
-    <h1 class="welcome-h" id="welcome-h">Texas school district finance · FY 2009–2025 actual records</h1>
-    <p class="welcome-sub">A free, plain-English guide to all 1,310 Texas school districts — built
-      entirely from the state's own official records, with a source on every number. No login, no
-      spin, nothing to sell.</p>
-    <p class="welcome-who">Made for the people the money belongs to — <b>parents, taxpayers, teachers,
-      reporters, and school board members</b> — not the agencies that spend it.</p>
+    <h1 class="welcome-h" id="welcome-h">See where school money goes.</h1>
+    <p class="dallas-meta">Dallas ISD &middot; FY 2025 &middot; Recorded spending &middot; All funds &middot; <span class="dallas-total" aria-label="$3,319,208,715 total recorded spending">$3.32B total</span></p>
+    <button class="example-question" id="example-dallas" type="button" aria-controls="example-answer" aria-pressed="false">How much went to classrooms?</button>
+    <p class="example-answer" id="example-answer" role="status" hidden>Classroom teaching accounted for $1.09B of recorded spending.</p>
     </div>
-    <figure class="hero-fig" id="welcome-fig">
+    <figure class="dallas-record" id="welcome-fig" aria-labelledby="dallas-title">
+      <div class="dallas-static"><h2 id="dallas-title">Dallas ISD recorded spending</h2>
+      <div class="dallas-map" role="img" aria-label="Dallas ISD FY 2025 all-funds recorded spending: Classroom $1,092,607,589, 32.9 percent; Other combined $960,109,927, 28.9 percent; Construction $766,316,261, 23.1 percent; Debt $500,174,938, 15.1 percent.">
+        <div class="dallas-column left"><div class="dallas-cell classroom" data-group="classroom" data-dollars="1092607589" style="--share:32.9177127085%"><i class="dallas-fill" aria-hidden="true"></i><div class="dallas-label"><strong>Classroom</strong><span>$1.09B</span><small>32.9%</small></div></div><div class="dallas-cell other" data-group="other" data-dollars="960109927" style="--share:28.9258678631%"><i class="dallas-fill" aria-hidden="true"></i><div class="dallas-label"><strong>Other combined</strong><span>$960.1M</span><small>28.9%</small></div></div></div>
+        <div class="dallas-column right"><div class="dallas-cell construction" data-group="construction" data-dollars="766316261" style="--share:23.0873176952%" aria-label="Construction: $766.3 million, 23.1 percent"><i class="dallas-fill" aria-hidden="true"></i><div class="dallas-label"><strong>Construction</strong><span>$766.3M</span><small>23.1%</small></div></div><div class="dallas-cell debt" data-group="debt" data-dollars="500174938" style="--share:15.0691017332%"><i class="dallas-fill" aria-hidden="true"></i><div class="dallas-label"><strong>Debt</strong><span>$500.2M</span><small>15.1%</small></div></div></div>
+      </div>
+      <figcaption class="landing-caption">TEA PEIMS &middot; FY 2025 all funds &middot; Snapshot Aug. 12, 2026. <a href="/sources">Source</a>.</figcaption></div>
+      <details class="dallas-evidence"><summary>Exact figures and definitions</summary><p>Total recorded spending: $3,319,208,715. Classroom: $1,092,607,589. Construction: $766,316,261. Debt: $500,174,938. Other combined: $960,109,927, calculated as the remaining all-funds recorded spending after those three categories. Enrollment: 139,776. Classroom combines TEA 11, 12, and 13: teaching, libraries, and training. Construction is TEA 6600, including land, buildings, renovations, and equipment. Debt is TEA 6500.</p></details>
       <div class="pennies" id="tx-pennies-2" role="img"
            aria-label="One hundred pennies showing where each cent of the statewide dollar goes"></div>
       <figcaption id="tx-cap-2">Loading the statewide dollar…</figcaption>
     </figure>
-    </div>
-    <div class="welcome-cta">
-      <a class="cta-primary" href="#search" id="wc-find"><svg class="ico" aria-hidden="true"><use href="#i-search"/></svg> Find your district</a>
-      <a href="/feed"><svg class="ico" aria-hidden="true"><use href="#i-activity"/></svg> What's happening now</a>
-      <a href="/geomap"><svg class="ico" aria-hidden="true"><use href="#i-map"/></svg> Explore the map</a>
-      <a href="/forensics"><svg class="ico" aria-hidden="true"><use href="#i-scale"/></svg> Follow the money</a>
-      <a href="/about"><svg class="ico" aria-hidden="true"><use href="#i-book"/></svg> Why we built this</a>
-      <a href="#" id="wc-tour"><svg class="ico" aria-hidden="true"><use href="#i-play"/></svg> 60-second tour</a>
     </div>
     <!-- The five-second answer to "what is this?": the state's scattered
          files go in one side, plain-English answers come out the other. The
@@ -1189,6 +1221,56 @@
       <span>·</span><span>17 years, fiscal 2009–2025</span><span>·</span><span>Open source</span>
     </div>
   </section>
+    <div class="landing-purpose"><p><a id="ask-your-own" href="/#ask-section">Ask your own question</a> with the website chat.</p><p>A free, independent Texas school-finance tool for ChatGPT, built by Gus at TAG. It explains historical public records; it does not provide a live budget or savings estimate.</p></div>
+
+  <details class="setup-guide" id="chatgpt-setup">
+    <summary>Set up in ChatGPT</summary>
+    <div class="setup-body"><h2 id="setup-title">Set up Texas ISD Finances in ChatGPT</h2>
+    <p class="setup-qualification">Custom setup is required. Availability depends on your ChatGPT account and workspace.</p>
+    <ol><li><b>1. Add server</b><div class="setup-glyph plus"><i aria-hidden="true"></i><span>+ Add custom MCP server</span></div><span>Open <a href="https://chatgpt.com/plugins" target="_blank" rel="noopener">chatgpt.com/plugins</a>.</span></li>
+      <li><b>2. Add details</b><div class="setup-glyph url"><i aria-hidden="true"></i><span>Texas ISD Finances</span></div><span class="setup-field">https://txisd.dev/mcp</span><span>No authentication</span></li>
+      <li><b>3. Install</b><div class="setup-glyph install"><i aria-hidden="true"></i><span>Create as a plugin</span></div><span>Review warning. Choose Personal, then + install.</span></li>
+      <li><b>4. Ask</b><div class="setup-glyph at"><i aria-hidden="true"></i><span>@ select app</span></div><span>Start a new chat and choose Texas ISD Finances.</span></li></ol>
+    <p>Concept illustration, not a ChatGPT screenshot.</p>
+    <details><summary>Developer references</summary><a href="https://developers.openai.com/api/docs/guides/custom-mcp-server" target="_blank" rel="noopener">Custom MCP servers</a> and <a href="https://learn.chatgpt.com/docs/plugins" target="_blank" rel="noopener">plugins</a>.</details>
+    </div>
+  </details>
+  <script>
+    (function () {
+      var setup = document.getElementById('chatgpt-setup');
+      var figures = document.getElementById('ticker');
+      var news = document.getElementById('newsticker');
+      if (!setup || !figures) return;
+      function placeTickers() {
+        var picker = document.getElementById('picker-section');
+        if (!picker) return;
+        picker.after(figures);
+        if (news) figures.after(news);
+      }
+      document.addEventListener('DOMContentLoaded', placeTickers);
+      function openSetupHash() { if (location.hash === '#chatgpt-setup') setup.open = true; }
+      openSetupHash();
+      addEventListener('hashchange', openSetupHash);
+      document.addEventListener('click', function (event) {
+        if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) return;
+        var link = event.target.closest && event.target.closest('a[href="#chatgpt-setup"]');
+        if (link) setup.open = true;
+      });
+    }());
+  </script>
+  <script>
+    (function () {
+      var question = document.getElementById('example-dallas');
+      var answer = document.getElementById('example-answer');
+      var classroom = document.querySelector('.dallas-cell.classroom');
+      if (!question || !answer || !classroom) return;
+      question.addEventListener('click', function () {
+        answer.hidden = false;
+        question.setAttribute('aria-pressed', 'true');
+        classroom.classList.add('is-highlighted');
+      });
+    }());
+  </script>
 
   <section id="picker-section" class="hero" tabindex="-1" data-section="picker">
     <div class="eyebrow">Storytelling with data · a story of Texas ISD</div>
@@ -1281,7 +1363,6 @@
       const picker = document.getElementById('picker-section');
       const finder = picker && picker.querySelector('.hero-row');
       const column = picker && picker.querySelector('.hero-left');
-      if (welcome && picker) welcome.before(picker);
       if (finder && column) column.prepend(finder);
     })();
   </script>
@@ -1616,10 +1697,9 @@
        (2026-08-17). It renders on the landing, on district views, and every
        page's More menu links here. -->
   <section id="ask-section" data-section="ask">
-    <div class="eyebrow">Ask anything <button class="explain" data-explain="ask" aria-label="What does this mean?" title="What does this mean?">?</button></div>
-    <h2 class="action">Plain English works here</h2>
-    <p class="support">"How did our debt service change since 2020?" — an AI turns it into a database query
-      against the same read-only data. Limited to 10 questions a minute.</p>
+    <div class="eyebrow">Ask a question <button class="explain" data-explain="ask" aria-label="What does this mean?" title="What does this mean?">?</button></div>
+    <h2 class="action">Get a source-connected answer</h2>
+    <p class="support">Try: &ldquo;Where does Dallas school money go?&rdquo; Answers use the public records behind this site.</p>
     <div class="row">
       <input type="text" id="question" maxlength="500" placeholder="Type a question about any Texas district…" aria-label="Ask a question">
       <button class="primary" id="askbtn">Ask</button>
@@ -1631,9 +1711,7 @@
          wrong company, on the one page whose whole argument is that its
          claims can be checked. The service already knows the answer, so the
          page asks it instead of repeating it. -->
-    <div class="cite">Answers by <span id="ask-model">the configured AI model</span> via LangChain,
-      run as a read-only role over the
-      two public views — nothing else is reachable. Built by
+    <div class="cite">Answers come from <span id="ask-model">the configured AI model</span> and public records. Built by
       <a href="https://ubntag.com" target="_blank" rel="noopener">TAG ai</a>.
       Double-check important figures against
       <a href="https://tea.texas.gov/finance-and-grants/state-funding/state-funding-reports-and-data/peims-financial-data-downloads" target="_blank" rel="noopener">official TEA releases</a>.
@@ -2835,7 +2913,7 @@ function applyVisualLedger() {
   ]);
 
   const selectors = [
-    '#welcome p', '#picker-section p', '#dash p', '#ask-section > p', '#statewide-section > p',
+    '#picker-section p', '#dash p', '#ask-section > p', '#statewide-section > p',
     '#exec', '#dash .ask', '#dash .why', '#dash .cmpnote'
   ];
   document.querySelectorAll(selectors.join(',')).forEach(compactNarrativeNode);
@@ -2855,7 +2933,7 @@ function applyVisualLedger() {
   // Figures keep one concise measure/period/denominator line in view. The
   // longer method and interpretation remain immediately adjacent and
   // keyboard-accessible without dominating the analytical surface.
-  document.querySelectorAll('figcaption:not(#tx-cap):not(#tx-cap-2)').forEach(node => {
+  document.querySelectorAll('figcaption:not(#tx-cap):not(#tx-cap-2):not(.landing-caption)').forEach(node => {
     if (node.closest('details') || node.dataset.compacted === '1') return;
     const text = node.textContent.replace(/\s+/g, ' ').trim();
     if (text.length <= 70) return;
@@ -5064,6 +5142,12 @@ let _askToken = 0;   // guards against an old answer streaming over a newer one
 async function ask() {
   const q = $('question').value.trim();
   if (q.length < 3) return;
+  /* The sheet owns request lifecycle and retry semantics. Keep this inline
+     fallback for a page whose deferred widget did not load. */
+  if (window.TISDAsk && window.TISDAsk.ask) {
+    window.TISDAsk.ask(q, state.district?.num || null);
+    return;
+  }
   const box = $('answer');
   const mine = ++_askToken;
   box.style.display = 'block';

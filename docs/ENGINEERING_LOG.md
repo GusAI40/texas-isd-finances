@@ -17,6 +17,40 @@ Entry template:
 
 ---
 
+## 2026-10-10 - Setup qualification precedes external ChatGPT access
+
+**What changed.** Moved the existing two-sentence custom-setup/account-workspace notice from below all steps to the top of the opened guide, before step 1 and its external ChatGPT link. The concept-illustration disclaimer remains below the steps. Closed landing composition and backend/chat contracts are unchanged. Added DOM/rendered-order checks in both engines at all four widths, refreshed106browsercases and source/screenshot receipts, and passed138focusedstatic/widgettests.
+
+**Why.** Independent pixel review approved the second revision but asked whether account eligibility was clear before access was implied. The qualification existed below the link, so this small placement change makes it visible before the actionable route.
+
+**Open items.** Draft-only review; independent-account/public ChatGPT availability remains unverified. Prior full Python baseline at9162b07passed1227/60skipped; no Python/runtime changes. Production, billing/security and outreach remain untouched.
+
+---
+
+## 2026-10-10 - Second landing/chat visual revision ready for review
+
+**What changed.** Revised the isolated PR #83 branch after the first-pass pixels were rejected: one headline and one local classroom question, desktop treemap/mobile bars, full visible source context, exact definitions on demand, one later setup action and no overlapping landing chat bubble. The shared chat now presents one answer sentence and safe USD bars with provenance before optional controls; full supplied tables, prose and metric lineage remain expandable. Preserved request/context/Stop/Retry/focus/stale-response and inline fallback behavior. Final frozen-source checks passed: 106 Chromium/Firefox browser cases and 1,227 Python tests (60 skipped, three warnings), Ruff, 15-page JavaScript parse, Node syntax/unit and uv lock. Refreshed responsive/state screenshots and source receipts.
+
+**Why.** Parent requested current state -> highlighted answer with visual storytelling, fewer competing actions and less repeated finance prose. Fresh independent review checked final source, geometry and screenshots.
+
+**Gotchas.** Mobile labels must live outside genuine amount-scaled fills. Currency charts require strict metadata and units; all original rows survive. Repeated provenance fixes hid/repeated context, so a scoped Sol cleanup removed stale CSS and duplicate hidden context before final testing. Page screenshot clips require fullPage to preserve the later setup summary. Current painted-area shares are 1.85/2.39/2.70/54.34%; scope now includes product explanation and mobile actual fills only, so first-pass percentages are not comparable. Parent explicitly says this observation is not a technical blocker; do not claim 95% success.
+
+**Open items.** Final design/release approval, independent-account/public ChatGPT availability, disabled Linux CI and human accessibility/participant testing remain separate. Production remains 73df1896ed0818020ec1c15c06f5ee823db7ec0f. No production merge/deploy, paid query, district email, credentials/security/billing changes or backend/data/runtime changes. Review docs/LANDING_CHAT_REDESIGN.md and evidence for exact source hashes and final captures.
+
+---
+
+## 2026-10-10 - Landing and website chat isolated for review; no release
+
+**What changed.** Located the actual BeastMode checkout and TAG-ai Vercel mapping for `txisd.dev`. Created branch `feat/txisd-visual-landing-chat-20261010` in an isolated worktree from `da1721a5ea40b60b76e9e3f9efe69fe67305daee`, preserving the source checkout's unrelated untracked work. Reworked `static/index.html` around a real Dallas FY2025 all-funds spending treemap, plain-language question, free/Gus/TAG/ChatGPT purpose and on-demand custom setup. Polished `static/ask.js` with Stop/Retry, timeout, cancellation, stale-response protection, readable source text, focus handling and inline fallback. Added mocked browser/data/accessibility evidence and review documentation. No backend, runtime dependency, generated data, security or deployment configuration changed.
+
+**Why.** The previous welcome and always-expanded guide still carried too much text. Fresh independent review rejected a 95/5 claim. A focused Astra revision removed duplicate charts/decorative flows and introduced one exact-area treemap with readable context. This is a concrete review draft, not a certified visual-ratio success or production release.
+
+**Gotchas.** Use the existing Python 3.12 virtual environment; default Python lacks project dependencies. Windows sandbox subprocess/temp errors required controlled test execution with a workspace basetemp. CRLF checkout altered byte-sensitive plugin schema and skill files; restoring their committed LF bytes fixed package checks without changing Git content. CSSOM rounds percentages to six significant digits, so rendered geometry is tested against recorded amounts with divider tolerance. Stop must replace the active loading bubble, not merely abort a request and leave its skeleton visible. The fixed source snapshot date is August 12, 2026, not a live-budget or verification date.
+
+**Open items.** Review `docs/LANDING_CHAT_REDESIGN.md`, fresh screenshots and final test receipt. The strict 95% visual / 5% text target remains a measured shortfall under painted-area scoring; do not reuse PR #82 report evidence for this landing. The ChatGPT custom setup route is documented, but independent-account installation, public directory approval and full native report/package installation remain unverified. Production publication, disabled Linux CI and human accessibility/participant evidence remain separate gates. Production is still `73df1896ed0818020ec1c15c06f5ee823db7ec0f`. No paid answer call, production SQL, district email, credential/account change, merge or release occurred.
+
+---
+
 ## 2026-10-07 — Public reports satisfy independently measured 95/5; package ready
 
 **What changed.** Completed the public report composition, financial scope/period labels, maps, focus/dialog handling, honest exports/print/offline behavior, public MCP resource, schema/metadata checks and portable plugin archive. All 72 final report cells pass initial/full 95/5 with independent agent inspection: 95.83% minimum full-report visual share; 98.29% minimum initial visual share. The 36 widget cells and 56 bridge checks pass. All 37 public recorded GETs and populated insights/turnarounds are retained; source hashes and compressed evidence identify the captured implementation. Root documentation inventories, dictionary and index are complete. Full Windows suite passed 1,227/60 skipped in each encoding mode; isolated finance verification passed 29 integration plus four runner checks. Actual preview tools/resources and source/health/figure checks passed at their recorded revision.
