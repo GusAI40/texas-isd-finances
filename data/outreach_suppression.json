@@ -55,6 +55,55 @@
    "district_number": "066005",
    "recorded": "2026-08-16",
    "status": "suppressed"
+  },
+  "1e8e0a0d34a9b93c683299b3aa3796c1c9ff12badc1490164af5333760e0333e": {
+   "district_number": "141902",
+   "recorded": "2026-10-12",
+   "status": "bounced",
+   "evidence_source": "public.outreach_status",
+   "source_status_checked_at": "2026-08-17T16:10:55.446495+00:00"
+  },
+  "2436d524fa5cd966b594fcd58394621844139d8f09719294a6215a1efded2f8e": {
+   "district_number": "078901",
+   "recorded": "2026-10-12",
+   "status": "bounced",
+   "evidence_source": "public.outreach_status",
+   "source_status_checked_at": "2026-08-17T16:10:55.446495+00:00"
+  },
+  "3e907694ecfceec12080368c052ae0dfafa8278e1af7cc5308c26078fdff790b": {
+   "district_number": "070901",
+   "recorded": "2026-10-12",
+   "status": "bounced",
+   "evidence_source": "public.outreach_status",
+   "source_status_checked_at": "2026-08-17T16:10:55.446495+00:00"
+  },
+  "46212d28fa204395c10b8c4f57a8d8340d9e5ed5b25faa4e22c2e4db6dbeb698": {
+   "district_number": "133902",
+   "recorded": "2026-10-12",
+   "status": "bounced",
+   "evidence_source": "public.outreach_status",
+   "source_status_checked_at": "2026-08-17T16:10:55.446495+00:00"
+  },
+  "8231288ebeb565f50a33c77af7f14315557ea8c128801914c495d68562a927fb": {
+   "district_number": "112907",
+   "recorded": "2026-10-12",
+   "status": "bounced",
+   "evidence_source": "public.outreach_status",
+   "source_status_checked_at": "2026-08-17T16:10:55.446495+00:00"
+  },
+  "979eeb75d7da5b804aaf128f0dfd2183fa9b25cf84036634929db6749e28e5b8": {
+   "district_number": "091917",
+   "recorded": "2026-10-12",
+   "status": "bounced",
+   "evidence_source": "public.outreach_status",
+   "source_status_checked_at": "2026-08-17T16:10:55.446495+00:00"
+  },
+  "add55c9fb2556950f01bd839c89c687bc093ce17a3da03783ec8097c96c4c243": {
+   "district_number": "130901",
+   "recorded": "2026-10-12",
+   "status": "bounced",
+   "evidence_source": "public.outreach_status",
+   "source_status_checked_at": "2026-08-17T16:10:55.446495+00:00"
   }
  }
 }
