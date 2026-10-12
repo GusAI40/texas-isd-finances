@@ -1,0 +1,54 @@
+diff --git a/src/mcp_tools.py b/src/mcp_tools.py
+index c631ea3..f1f0c8c 100644
+--- a/src/mcp_tools.py
++++ b/src/mcp_tools.py
+@@ -770,7 +770,7 @@ TOOLS: list[dict] = [
+     {
+         "name": "district_bonds",
+         "title": "Every bond a district put on a ballot",
+-        "description": ("All decided bond propositions 1958-2024 with date, stated "
++        "description": ("All decided bond propositions 1958-2026 with date, stated "
+                         "purpose, amount, and whether voters carried or defeated it. "
+                         "The ballot is the only public record of what school debt was "
+                         "for — TEA does not itemise facilities."),
+diff --git a/tests/test_mcp.py b/tests/test_mcp.py
+index 8674475..1571327 100644
+--- a/tests/test_mcp.py
++++ b/tests/test_mcp.py
+@@ -18,6 +18,7 @@ numbers into someone else's chat window. A result without its `limits` is worse
+ than no result, because it reads as certainty.
+ """
+ import json
++import re
+ import sys
+ from pathlib import Path
+ 
+@@ -86,6 +87,28 @@ def test_tools_list_is_cacheable_and_deterministic(client):
+     assert first["ttlMs"] >= 3_600_000 and first["cacheScope"] == "public"
+ 
+ 
++def test_bond_tool_description_matches_committed_election_years(client):
++    """A discoverable coverage claim must include the actual ballot record."""
++    data = json.loads((ROOT / "static" / "bond_data.json").read_text(encoding="utf-8"))
++    years = [e["year"] for rec in data["districts"].values() for e in rec["elections"]]
++    tools = rpc(client, "tools/list", {}).json()["result"]["tools"]
++    description = next(t["description"] for t in tools if t["name"] == "district_bonds")
++    coverage = re.search(r"\b(\d{4})-(\d{4})\b", description)
++    assert coverage, "district_bonds must state its available election-year coverage"
++    assert tuple(map(int, coverage.groups())) == (min(years), max(years)), (
++        "district_bonds description must match the first and last committed election years"
++    )
++
++
++def test_bond_tool_returns_the_committed_dallas_record_unchanged(client):
++    data = json.loads((ROOT / "static" / "bond_data.json").read_text(encoding="utf-8"))
++    result = call(client, "district_bonds", {"district_number": DALLAS}).json()["result"]
++    assert result["isError"] is False
++    assert result["structuredContent"] == {
++        **data["districts"][DALLAS], "limits": data["meta"].get("limits", [])
++    }
++
++
+ def test_every_tool_is_well_formed(client):
+     tools = rpc(client, "tools/list", {}).json()["result"]["tools"]
+     assert len(tools) >= 6

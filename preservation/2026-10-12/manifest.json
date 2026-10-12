@@ -1,0 +1,24 @@
+{
+  "purpose": "Preserve existing uncommitted work only; not reviewed for activation, merged, deployed, or operationally resumed. Original working tree unchanged.",
+  "source_workspace": "2026-10-09/task-5/visual95",
+  "base_commit": "fb5e88e3db5d06dd67ea81e7a98551f657957056",
+  "files": [
+    {
+      "path": "src/mcp_tools.py",
+      "sha256": "043cf1c40657dc1752142f793d2f256281abeae9bb74cf223205b9273159ce53"
+    },
+    {
+      "path": "tests/test_mcp.py",
+      "sha256": "b7714de8891fc66a37a3417c85fdd27d826cbb7dd2227b07897f17026e5f15bd"
+    }
+  ],
+  "restore": "Apply uncommitted-source.patch to an isolated checkout of base_commit; review and test before integration.",
+  "exclusions": [
+    "sql-integration.json audit output",
+    "browser/QA sessions",
+    "raw logs",
+    "environment files",
+    "credentials",
+    "customer/contact data"
+  ]
+}
