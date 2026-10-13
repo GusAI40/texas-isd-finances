@@ -1,6 +1,6 @@
 # Tag plus the official multi-platform manifest digest: a reviewed base update
 # is a repository diff, never an invisible mutable-tag rebuild.
-FROM python:3.12.14-slim-bookworm@sha256:a116514e19457bcb7af7efe9c3dd0b9b71e85b317694e7882a1c52aa15a78134
+FROM python:3.15.0rc3-slim-bookworm@sha256:ea93de1a70a03fffd10ad8cfde8f4ba969fe2658f0578af02855d1d32f49e6c2
 
 WORKDIR /app
 
