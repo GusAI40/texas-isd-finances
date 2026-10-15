@@ -1663,13 +1663,13 @@
   .scope-overlap > strong { position:absolute; z-index:2; left:50%; top:50%; transform:translate(-50%,-50%); text-align:center; font-size:14px; line-height:1.25; }
   #chatgpt-setup .setup-body { border-left:0; padding:.75rem 0; background:transparent; }
   #chatgpt-setup .setup-qualification { max-width:72rem; margin:.35rem 0 .7rem; padding:.5rem .65rem; border-left:3px solid var(--blue); background:var(--wash); font-size:14px; line-height:1.4; color:var(--ink); }
-  #chatgpt-setup .setup-flow { position:relative; grid-template-columns:.9fr 1.45fr 1fr 1fr; gap:0; margin:.45rem 0; }
+  #chatgpt-setup .setup-flow { position:relative; grid-template-columns:repeat(5,minmax(0,1fr)); gap:0; margin:.45rem 0; }
   #chatgpt-setup .setup-flow li { position:relative; min-width:0; border:0; border-top:3px solid var(--blue); border-radius:0; background:transparent; padding:.65rem .7rem 0; }
   #chatgpt-setup .setup-flow li:not(:last-child)::after { content:""; position:absolute; right:-.38rem; top:-.48rem; width:.75rem; height:.75rem; border-top:3px solid var(--blue); border-right:3px solid var(--blue); transform:rotate(45deg); background:var(--surface); }
   #chatgpt-setup .setup-flow b { display:block; margin:0 0 .3rem; color:var(--blue); font-size:14px; }
   #chatgpt-setup .setup-flow p { margin:.22rem 0 0; font-size:14px; line-height:1.35; }
   #chatgpt-setup .setup-field-list { display:grid; gap:.25rem; margin:.35rem 0 0; }
-  #chatgpt-setup .setup-field-list span { display:grid; grid-template-columns:6.2rem minmax(0,1fr); gap:.35rem; margin:0; padding:.28rem .38rem; border-bottom:1px solid var(--hairline); font-size:14px; }
+  #chatgpt-setup .setup-field-list span { display:grid; grid-template-columns:minmax(0,1fr); gap:.35rem; margin:0; padding:.28rem .38rem; border-bottom:1px solid var(--hairline); font-size:14px; }
   #chatgpt-setup .setup-field-list strong { color:var(--ink-2); font-weight:600; }
   #chatgpt-setup .setup-field-list code { color:var(--ink); overflow-wrap:anywhere; }
   #chatgpt-setup .setup-reference { margin:.5rem 0 0; font-size:14px; color:var(--ink-2); }
@@ -2031,19 +2031,20 @@
     <address class="welcome-contact"><strong>Gus Sanchez, Founder, TAG AI Solutions</strong><a href="tel:+19092686875">909-268-6875</a><a href="https://ubntag.com" target="_blank" rel="noopener">ubntag.com</a></address>
   </section>
 
-  <p class="chatgpt-route-caveat"><strong>ChatGPT access:</strong> this route is verified for the owner only. Public listing and availability for other accounts or workspaces are unverified; no OpenAI endorsement is claimed.</p>
+  <p class="chatgpt-route-caveat"><strong>ChatGPT access:</strong> this route is verified for the owner only. Account and workspace policies apply; public listing and availability for other accounts, workspaces, or mobile use are unverified. Mobile use depends on the plugin being available to your account. If Plugins or custom setup controls are unavailable, use this website instead. No OpenAI endorsement is claimed.</p>
   <details class="setup-guide" id="chatgpt-setup">
     <summary>Set up in ChatGPT using the owner-tested route</summary>
     <div class="setup-body"><h2 id="setup-title">Set up Texas ISD Finances in ChatGPT</h2>
-    <p class="setup-qualification">The owner verified this custom setup with 11 read-only tools. The access uncertainty above still applies before you open the external setup page.</p>
+    <p class="setup-qualification">These are the current documented setup steps. The owner previously verified a custom connection with 11 read-only tools; the access uncertainty above still applies before you open the external setup page.</p>
     <ol class="setup-flow">
-      <li><b>1. Open the setup page</b><p>Go to <a href="https://chatgpt.com/plugins" target="_blank" rel="noopener">chatgpt.com/plugins</a>.</p></li>
-      <li><b>2. Enter these exact fields</b><div class="setup-field-list"><span><strong>Name</strong><code>Texas ISD Finances</code></span><span><strong>Server</strong><code>https://txisd.dev/mcp</code></span><span><strong>Authentication</strong><code>No authentication</code></span></div></li>
-      <li><b>3. Create for Personal</b><p>Choose <strong>Create as a plugin</strong>, review the warning, select <strong>Personal</strong>, then install.</p></li>
-      <li><b>4. Use it in a new chat</b><p>Type <strong>@</strong> and select <strong>Texas ISD Finances</strong>.</p></li>
+      <li><b>1. Open Plugins</b><p>Go to <a href="https://chatgpt.com/plugins" target="_blank" rel="noopener">chatgpt.com/plugins</a>. The owner route used Personal; controls can vary by account or workspace.</p></li>
+      <li><b>2. Add a custom server</b><p>Select the <strong>+</strong> button, then choose <strong>Add custom MCP server</strong>.</p></li>
+      <li><b>3. Enter these exact fields</b><div class="setup-field-list"><span><strong>Name</strong><code>Texas ISD Finances</code></span><span><strong>Description</strong><code>Read-only Texas school district finance records</code></span><span><strong>Server</strong><code>https://txisd.dev/mcp</code></span><span><strong>Authentication</strong><code>No authentication</code></span></div></li>
+      <li><b>4. Review and create</b><p>Review the risk warning and acknowledgment, then choose <strong>Create as a plugin</strong>.</p></li>
+      <li><b>5. Install and use it</b><p>Inspect the discovered tools, install the plugin, then begin a new chat. Type <strong>@</strong> and select <strong>Texas ISD Finances</strong>.</p></li>
     </ol>
-    <p class="setup-reference">This sequence documents the verified owner route; it is a field guide, not a ChatGPT screenshot.</p>
-    <details><summary>Developer references</summary><a href="https://developers.openai.com/api/docs/guides/custom-mcp-server" target="_blank" rel="noopener">Custom MCP servers</a> and <a href="https://learn.chatgpt.com/docs/plugins" target="_blank" rel="noopener">plugins</a>.</details>
+    <p class="setup-reference">This is a current documentation field guide, not a ChatGPT screenshot.</p>
+    <details><summary>Developer references</summary><a href="https://developers.openai.com/plugins/deploy/connect-chatgpt" target="_blank" rel="noopener">Connect and test a plugin</a> and <a href="https://learn.chatgpt.com/docs/plugins" target="_blank" rel="noopener">plugins on supported surfaces</a>.</details>
     </div>
   </details>
   <script>
