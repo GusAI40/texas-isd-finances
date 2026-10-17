@@ -670,8 +670,8 @@
   {
    "file": "debt_data.json",
    "title": "What is still owed",
-   "what_it_is": "Principal and unpaid interest outstanding per district, the year it clears, and which districts carry capital appreciation bonds.",
-   "bytes": 485783,
+   "what_it_is": "Principal and unpaid interest outstanding per district, the last positive BRB balance year, and which districts carry capital appreciation bonds.",
+   "bytes": 485771,
    "records": 917,
    "sample_district": "057905",
    "source": "bond_review_board_debt",
@@ -679,7 +679,7 @@
    "year": 2025,
    "first_year": null,
    "limits": [
-    "Figures are as of fiscal 2025, the Board's most recent completed year. Years after it are the amortisation schedule for debt already sold, not a forecast of future borrowing \u2014 districts will issue more, so the schedule is a floor.",
+    "Figures carry fiscal 2025, this artifact's reference year. Years after it are the amortisation schedule for debt already sold, not a forecast of future borrowing \u2014 districts will issue more, so the schedule is a floor.",
     "Excludes obligations maturing in under a year, commercial paper, and special obligations that do not require Attorney General approval, per the Board's own scope note.",
     "Dollars repaid per dollar borrowed is reported at each district's PEAK year, not the current one. On outstanding balances the ratio rises on its own as principal is retired and is not a measure of anything.",
     "No ratio is reported where CAB principal never reached $5m in any year on record. Below that the figure is dominated by a nearly-retired balance, and for districts whose bonds were sold before 2005, or whose reported years have a gap, the record never shows the deal at all. Their deferred interest is still reported \u2014 it is the ratio, not the debt, that is unknowable here.",
@@ -729,6 +729,82 @@
     "districts",
     "meta",
     "texas"
+   ]
+  },
+  {
+   "file": "debt_source_reviews.json",
+   "title": "Where dated debt disclosures disagree",
+   "what_it_is": "Reviewed district-source disagreements, separate reporting dates and links to the original disclosures. These do not replace the BRB series.",
+   "bytes": 3144,
+   "records": 1,
+   "sample_district": "061910",
+   "source": null,
+   "publisher": null,
+   "year": null,
+   "first_year": null,
+   "limits": [],
+   "fields": {
+    "status": {
+     "type": "str",
+     "example": "unresolved"
+    },
+    "reviewed_on": {
+     "type": "str",
+     "example": "2026-10-17"
+    },
+    "summary": {
+     "type": "str",
+     "example": "Unresolved Argyle source disagreement: the BRB fiscal 2025 s"
+    },
+    "comparability": {
+     "type": "str",
+     "example": "Not established. Fiscal-period labels, principal as-of dates"
+    },
+    "sources": {
+     "type": "list",
+     "length": 4
+    },
+    "sources[].publisher": {
+     "type": "str",
+     "example": "Texas Bond Review Board"
+    },
+    "sources[].url": {
+     "type": "str",
+     "example": "https://data.brb.texas.gov/charts/local/isd/118/cab_cib_debt"
+    },
+    "sources[].basis": {
+     "type": "str",
+     "example": "Committed BRB fiscal 2025 artifact; exact source as-of date "
+    },
+    "sources[].fiscal_year": {
+     "type": "int",
+     "example": "2025"
+    },
+    "sources[].as_of_date": {
+     "type": "NoneType",
+     "example": null
+    },
+    "sources[].principal": {
+     "type": "int",
+     "example": "670626909"
+    },
+    "sources[].interest": {
+     "type": "int",
+     "example": "554498697"
+    },
+    "sources[].total": {
+     "type": "int",
+     "example": "1225125606"
+    },
+    "sources[].last_positive_balance_year": {
+     "type": "int",
+     "example": "2056"
+    }
+   },
+   "top_level": [
+    "districts",
+    "purpose",
+    "reviewed_on"
    ]
   },
   {
@@ -1278,7 +1354,7 @@
    "file": "forensic_data.json",
    "title": "Four questions Texas answers in four incompatible files",
    "what_it_is": "What sits outside the operating total, who pays, what the ballot promised, and where results landed against what need predicts.",
-   "bytes": 2417658,
+   "bytes": 2417833,
    "records": 1202,
    "sample_district": "057905",
    "source": null,
@@ -1368,7 +1444,7 @@
     },
     "outside_operating.annual_total": {
      "type": "int",
-     "example": "500118528"
+     "example": "500174938"
     },
     "who_pays": {
      "type": "object",
@@ -3005,10 +3081,10 @@
   }
  ],
  "totals": {
-  "artifacts": 20,
-  "bytes": 25745529,
-  "district_records": 16739,
-  "fields_documented": 617
+  "artifacts": 21,
+  "bytes": 25748836,
+  "district_records": 16740,
+  "fields_documented": 631
  },
  "routes": [
   {
@@ -3104,7 +3180,7 @@
   {
    "method": "GET",
    "path": "/district/{district_number}/debt",
-   "summary": "What one district still owes, and the year it clears."
+   "summary": "One district's BRB debt balance, schedule years and source disagreements."
   },
   {
    "method": "GET",
@@ -3375,6 +3451,11 @@
    "method": "GET",
    "path": "/static/track.js",
    "summary": "The dwell beacon. Inert for everyone except a mailed recipient \u2014 it"
+  },
+  {
+   "method": "GET",
+   "path": "/static/txisd-icon.svg",
+   "summary": "The portal's existing four-square favicon, usable by MCP discovery."
   },
   {
    "method": "GET",
@@ -5676,8 +5757,8 @@
     {
      "file": "debt_data.json",
      "title": "What is still owed",
-     "what_it_is": "Principal and unpaid interest outstanding per district, the year it clears, and which districts carry capital appreciation bonds.",
-     "bytes": 485783,
+     "what_it_is": "Principal and unpaid interest outstanding per district, the last positive BRB balance year, and which districts carry capital appreciation bonds.",
+     "bytes": 485771,
      "records": 917,
      "sample_district": "057905",
      "source": "bond_review_board_debt",
@@ -5685,7 +5766,7 @@
      "year": 2025,
      "first_year": null,
      "limits": [
-      "Figures are as of fiscal 2025, the Board's most recent completed year. Years after it are the amortisation schedule for debt already sold, not a forecast of future borrowing \u2014 districts will issue more, so the schedule is a floor.",
+      "Figures carry fiscal 2025, this artifact's reference year. Years after it are the amortisation schedule for debt already sold, not a forecast of future borrowing \u2014 districts will issue more, so the schedule is a floor.",
       "Excludes obligations maturing in under a year, commercial paper, and special obligations that do not require Attorney General approval, per the Board's own scope note.",
       "Dollars repaid per dollar borrowed is reported at each district's PEAK year, not the current one. On outstanding balances the ratio rises on its own as principal is retired and is not a measure of anything.",
       "No ratio is reported where CAB principal never reached $5m in any year on record. Below that the figure is dominated by a nearly-retired balance, and for districts whose bonds were sold before 2005, or whose reported years have a gap, the record never shows the deal at all. Their deferred interest is still reported \u2014 it is the ratio, not the debt, that is unknowable here.",
@@ -5735,6 +5816,82 @@
       "districts",
       "meta",
       "texas"
+     ]
+    },
+    {
+     "file": "debt_source_reviews.json",
+     "title": "Where dated debt disclosures disagree",
+     "what_it_is": "Reviewed district-source disagreements, separate reporting dates and links to the original disclosures. These do not replace the BRB series.",
+     "bytes": 3144,
+     "records": 1,
+     "sample_district": "061910",
+     "source": null,
+     "publisher": null,
+     "year": null,
+     "first_year": null,
+     "limits": [],
+     "fields": {
+      "status": {
+       "type": "str",
+       "example": "unresolved"
+      },
+      "reviewed_on": {
+       "type": "str",
+       "example": "2026-10-17"
+      },
+      "summary": {
+       "type": "str",
+       "example": "Unresolved Argyle source disagreement: the BRB fiscal 2025 s"
+      },
+      "comparability": {
+       "type": "str",
+       "example": "Not established. Fiscal-period labels, principal as-of dates"
+      },
+      "sources": {
+       "type": "list",
+       "length": 4
+      },
+      "sources[].publisher": {
+       "type": "str",
+       "example": "Texas Bond Review Board"
+      },
+      "sources[].url": {
+       "type": "str",
+       "example": "https://data.brb.texas.gov/charts/local/isd/118/cab_cib_debt"
+      },
+      "sources[].basis": {
+       "type": "str",
+       "example": "Committed BRB fiscal 2025 artifact; exact source as-of date "
+      },
+      "sources[].fiscal_year": {
+       "type": "int",
+       "example": "2025"
+      },
+      "sources[].as_of_date": {
+       "type": "NoneType",
+       "example": null
+      },
+      "sources[].principal": {
+       "type": "int",
+       "example": "670626909"
+      },
+      "sources[].interest": {
+       "type": "int",
+       "example": "554498697"
+      },
+      "sources[].total": {
+       "type": "int",
+       "example": "1225125606"
+      },
+      "sources[].last_positive_balance_year": {
+       "type": "int",
+       "example": "2056"
+      }
+     },
+     "top_level": [
+      "districts",
+      "purpose",
+      "reviewed_on"
      ]
     },
     {
@@ -5980,7 +6137,7 @@
      "file": "forensic_data.json",
      "title": "Four questions Texas answers in four incompatible files",
      "what_it_is": "What sits outside the operating total, who pays, what the ballot promised, and where results landed against what need predicts.",
-     "bytes": 2417658,
+     "bytes": 2417833,
      "records": 1202,
      "sample_district": "057905",
      "source": null,
@@ -6070,7 +6227,7 @@
       },
       "outside_operating.annual_total": {
        "type": "int",
-       "example": "500118528"
+       "example": "500174938"
       },
       "who_pays": {
        "type": "object",

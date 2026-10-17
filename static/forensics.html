@@ -1055,9 +1055,9 @@
       ['Per student', usd(D.per_student),
        'Owed over decades, not in a year. This sits outside the operating budget ' +
        'entirely and is not comparable to it.'],
-      ['The last payment falls due in', String(D.clears_in),
-       'On debt already sold. Districts will borrow again, so that year is a floor, ' +
-       'not a forecast.']
+      ['Last positive BRB balance year', String(D.clears_in),
+       'On debt already sold. This balance year is not a verified final payment ' +
+       'or maturity date. Districts may borrow again.']
     ];
     $('dt-findings').innerHTML = find.map(function (f) {
       return '<div class="finding"><h4>' + esc(f[0]) + '</h4>' +

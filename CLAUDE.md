@@ -138,6 +138,17 @@ proxy), run `scratchpad/liveproxy.py` and point Playwright at
 
 ## Current Status (updated 2026-10-10 - keep this a snapshot, history goes in the log)
 
+- **2026-10-17 bounded MCP closeout (newest).** Gus directly authorized fixing
+  and launching, then asked to move to the next plugin. Prepared PR88 guide plus
+  bounded source/provenance fixes; see `docs/TXISD_MCP_RELEASE_20261017.md`.
+  BRB Argyle balances stay unchanged; separately dated issuer disclosures remain
+  unresolved. Annual debt totals use verified source numerators. Server metadata
+  advertises Texas ISD Finance Intelligence and the portal favicon; installed
+  listing is not claimed renamed. Python1193pass/31skip, scopedChromium71pass;
+  exact live/PR/deployment receipts belong to the resulting PR. Origin expansion
+  retains its separate security gate; Actions stay paused, no paid calls.
+
+
 The newest bullets control. Dated bullets below retain useful engineering
 history and may contain superseded counts; never let them override the current
 outreach item or `data/outreach_watermark.json`.

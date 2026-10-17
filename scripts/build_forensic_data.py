@@ -87,6 +87,20 @@ def load(p: Path) -> dict:
     return json.loads(p.read_text())
 
 
+def annual_debt_service(entry: dict) -> int | None:
+    """Use the source numerator; multiplying rounded per-student dollars loses money."""
+    alloc = entry.get("allocation") or {}
+    lineage = alloc.get("lineage") or {}
+    figure = (lineage.get("figures") or {}).get("spend_debt_per_student") or {}
+    numerator = figure.get("numerator")
+    if (not isinstance(numerator, (int, float))
+            or lineage.get("denominator") != entry.get("students")
+            or figure.get("value") != alloc.get("debt_per_student")
+            or figure.get("recomputed_value") != figure.get("value")):
+        return None
+    return round(numerator)
+
+
 def build(econ: dict, bonds: dict, outcomes: dict) -> dict:
     E = econ["districts"]
     B = bonds["districts"]
@@ -122,7 +136,7 @@ def build(econ: dict, bonds: dict, outcomes: dict) -> dict:
                 "teachers_equivalent": alloc.get("teachers_equivalent_of_debt"),
                 "operating_per_student": alloc.get("operating_per_student"),
                 "total_per_student": alloc.get("total_per_student"),
-                "annual_total": round(debt * students) if students else None,
+                "annual_total": annual_debt_service(e),
             }
             if debt_pct is not None and debt_pct >= TOP_DECILE:
                 flags.append({
@@ -289,8 +303,10 @@ def build(econ: dict, bonds: dict, outcomes: dict) -> dict:
         "recapture": econ["macro"]["recapture_concentration"],
         "debt_median": round(median(debt_all)),
         "debt_p90": round(sorted(debt_all)[int(len(debt_all) * 0.9)]) if debt_all else 0,
-        "debt_total": round(sum((E[r["n"]]["allocation"].get("debt_per_student") or 0)
-                                * (r["students"] or 0) for r in table)),
+        "debt_total": sum(annual_debt_service(E[r["n"]]) or 0 for r in table),
+        "debt_total_districts": sum(annual_debt_service(E[r["n"]]) is not None for r in table),
+        "debt_total_basis": "Sum of verified TEA PEIMS debt-service source numerators; "
+                            "districts without verified numerators are excluded, not estimated.",
         "recapture_payers": sum(1 for r in table if r["recapture"]),
         "absences": {},  # filled in below, once every district is built
         "ballot": {

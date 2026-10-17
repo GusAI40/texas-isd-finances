@@ -31,6 +31,7 @@ from . import (
     absences,
     analytics,
     answer,
+    debt_provenance,
     intel,
     lineage,
     llm_config,
@@ -2393,6 +2394,13 @@ async def ask_script():
                         headers={"Cache-Control": "public, max-age=3600, must-revalidate"})
 
 
+@app.get("/static/txisd-icon.svg", include_in_schema=False)
+async def txisd_icon():
+    """The portal's existing four-square favicon, usable by MCP discovery."""
+    return FileResponse(STATIC_DIR / "txisd-icon.svg", media_type="image/svg+xml",
+                        headers={"Cache-Control": "public, max-age=86400"})
+
+
 @app.get("/static/tag-pipeline.png", include_in_schema=False)
 async def tag_pipeline_graphic():
     """The TAG ai intelligence-layer graphic, hot-linked by the superintendent
@@ -2574,6 +2582,8 @@ async def well_known_mcp():
     return JSONResponse({
         "mcpServers": {
             "texas-isd": {
+                "name": "Texas ISD Finance Intelligence",
+                "icons": mcp_protocol.SERVER_INFO["icons"],
                 "url": "https://txisd.dev/mcp",
                 "transport": "http",
                 "description": (
@@ -2582,7 +2592,7 @@ async def well_known_mcp():
                     "forensics, trends, bonds, debt, campuses, comparisons."),
             }
         },
-        "description": "Texas ISD Finances MCP server — official state data, "
+        "description": "Texas ISD Finance Intelligence MCP server — official state data, "
                        "every result carries its caveats.",
         "documentation": "https://txisd.dev/transparency",
     }, headers={"Cache-Control": "public, max-age=3600"})
@@ -2699,7 +2709,8 @@ async def get_texas_debt():
     district paid out in one year. This is the balance. As of fiscal 2025 Texas
     school districts owed **$236.7 billion** — $148.4B of principal not yet
     repaid and **$88.3B of interest nobody has paid yet**, 37.3% of the whole.
-    On debt already sold, it clears in **2061**.
+    The last positive balance in the BRB schedule is in **2061**; this does
+    not establish a final payment or maturity date.
 
     Split by instrument, because the two are not the same promise:
 
@@ -2725,12 +2736,12 @@ async def get_texas_debt():
             status_code=503,
             detail="Debt data not built. Run scripts/ingest_brb_debt.py then "
                    "scripts/build_debt_data.py")
-    return {"meta": data["meta"], **data["texas"]}
+    return {"meta": data["meta"], **data["texas"], **debt_provenance.context(data, "")}
 
 
 @app.get("/district/{district_number}/debt", tags=["Districts"])
 async def get_district_debt(district_number: str):
-    """What one district still owes, and the year it clears.
+    """One district's BRB debt balance, schedule years and source disagreements.
 
     Principal and interest outstanding, the interest share, the per-student
     balance, the history of the balance since 2005, and — where the district
@@ -2753,7 +2764,8 @@ async def get_district_debt(district_number: str):
         return {"district_number": district_number, "district_name": name,
                 "meta": data["meta"],
                 "absence": absences.no_debt_outstanding(name)}
-    return {"district_number": district_number, "meta": data["meta"], **rec}
+    return {"district_number": district_number, "meta": data["meta"], **rec,
+            **debt_provenance.context(data, district_number)}
 
 
 _campus_cache: Optional[Dict[str, Any]] = None

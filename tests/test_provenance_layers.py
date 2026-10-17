@@ -550,6 +550,7 @@ def test_every_published_layer_has_a_provenance_test_here_or_upstream():
     number that only its own builder vouches for.
     """
     covered = {
+        "debt_source_reviews.json",  # dated original disclosures, test_mcp_launch.py
         "bond_data.json", "debt_data.json", "campus_data.json",   # this file
         "forensic_data.json", "trend_data.json",                  # test_provenance.py
         "economics_data.json", "outcomes_data.json",              # ditto

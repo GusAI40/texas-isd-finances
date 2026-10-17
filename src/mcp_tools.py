@@ -28,9 +28,10 @@ there is nothing to inject and nothing to spend.
 """
 from __future__ import annotations
 
+import re
 from typing import Any, Callable
 
-from . import absences
+from . import absences, debt_provenance
 from . import format as fmt
 
 # What an assistant is told this server is for, returned by server/discover.
@@ -43,7 +44,7 @@ from . import format as fmt
 # Counts are therefore read from the artefact rather than written down. The
 # prose is fixed; the numbers in it cannot drift from what the tools serve.
 _INSTRUCTIONS = (
-    "Authoritative Texas school district finance data, built from the Texas "
+    "Published Texas school district finance data, built from the Texas "
     "Education Agency's own records (PEIMS fiscal 2009-2025, TEA Snapshot, "
     "district STAAR, Comptroller property values) and the Texas Bond Review "
     "Board's ballot record ({bonds} decided bond elections, {first}-{last}) "
@@ -51,7 +52,8 @@ _INSTRUCTIONS = (
     "its six-digit TEA district number — Texas has thirteen pairs of "
     "districts that share a name, so a name alone is not an identifier. Every "
     "result carries a `limits` list describing what that data cannot show; "
-    "quote those limits when you use the numbers. Nothing here supports a "
+    "quote those limits, source dates and unresolved source disagreements when "
+    "you use the numbers. Nothing here supports a "
     "claim about any named individual."
 )
 
@@ -214,11 +216,13 @@ def find_district(args: dict) -> tuple[str, dict]:
         f"  {r['district_number']}  {r['district_name']}"
         + (f"  ({r['students']:,} students)" if r["students"] else "")
         for r in out)
-    text = (f"{len(out)} district(s) matching {args.get('name')!r}:\n{lines}\n\n"
+    student_year = (forensic or {}).get("meta", {}).get("year")
+    text = (f"{len(out)} district(s) matching {args.get('name')!r}:\n{lines}\n"
+            f"Student counts are finance fiscal {student_year}.\n\n"
             "Texas has thirteen pairs of districts sharing a name (two Wylie ISDs, "
             "two Highland Park ISDs, two Northside ISDs and more), so confirm which "
             "one is meant before quoting figures.")
-    return text, {"matches": out, "limits": [
+    return text, {"matches": out, "student_count_fiscal_year": student_year, "limits": [
         "A district name is not an identifier in Texas — thirteen names are "
         "shared by two districts each. Use the district_number.",
     ]}
@@ -346,7 +350,8 @@ def district_forensics(args: dict) -> tuple[str, dict]:
     absent_findings = [a for a in absent if a.get("is_finding")]
     absent_context = [a for a in absent if not a.get("is_finding")]
     text = (
-        f"{name} ({num}) — the four money questions Texas reports separately.\n"
+        f"{name} ({num}) — the four money questions Texas reports separately; "
+        f"finance fiscal {rec.get('year')}.\n"
         f"1. OUTSIDE the operating total: {_usd(o.get('per_student'))} per student a "
         f"year in debt service, higher than {o.get('percentile')}% of Texas districts "
         f"(state median {_usd(o.get('state_median'))}).\n"
@@ -357,7 +362,7 @@ def district_forensics(args: dict) -> tuple[str, dict]:
            f"{b.get('athletics_share_pct')}% of what was asked named athletics — an "
            f"UPPER BOUND, because propositions bundle purposes.\n"
            if b else "3. THE BALLOT: no bond election on record.\n")
-        + (f"4. WHERE IT LANDED: {land.get('actual')}% at Meets against "
+        + (f"4. WHERE IT LANDED (TEA Snapshot {land.get('year')}): {land.get('actual')}% at Meets against "
            f"{land.get('expected')}% predicted by this district's own student need "
            f"({land.get('gap'):+.1f} points).\n" if land else "")
         + ("\nWhat stands out:\n" + "\n".join(
@@ -416,22 +421,35 @@ def district_bonds(args: dict) -> tuple[str, dict]:
         raise ToolError(
             f"District {num} has no bond election on record. Districts that never "
             "went to voters for building debt have no entry.")
+    # Keep the publisher's text and stored analytic category intact. A display
+    # spelling correction is not a reclassification of the ballot dataset.
+    elections = []
+    for election in rec["elections"]:
+        display = re.sub("atheltics", "Athletics", election["purpose"], flags=re.IGNORECASE)
+        elections.append({**election, "purpose_display": display})
+    limits = list(data["meta"].get("limits", []))
+    if any(e["purpose"] != e["purpose_display"] for e in elections):
+        limits.append("Atheltics is displayed as Athletics; original purpose text is retained. "
+                      "Stored keyword categories can miss source misspellings, so athletics totals "
+                      "have not been reclassified by this display correction.")
     t = rec["totals"]
     name = _title(rec.get("district_name", num))
-    recent = rec["elections"][-5:]
+    recent = elections[-5:]
     text = (
         f"{name} ({num}) put {t['props']} bond propositions to voters between "
         f"{t['first_year']} and {t['last_year']}; {t['passed']} carried "
         f"({t['pass_rate']}%). Asked {_usd(t['asked'])}, approved "
         f"{_usd(t['approved'])}.\nMost recent:\n"
         + "\n".join(f"  {e['date']}  {_big(e['amount'])}  "
-                    f"{'carried' if e['passed'] else 'defeated'}  {e['purpose']}"
+                    f"{'carried' if e['passed'] else 'defeated'}  {e['purpose_display']}"
                     for e in recent)
         + "\n\nThe ballot is the only public record of what school debt was FOR — TEA "
           "does not itemise facilities. Amounts are as asked, in the dollars of their "
           "own year, and are not inflation-adjusted."
     )
-    return text, {**rec, "limits": data["meta"].get("limits", [])}
+    if any(e["purpose"] != e["purpose_display"] for e in elections):
+        text += "\n" + limits[-1]
+    return text, {**rec, "elections": elections, "limits": limits}
 
 
 def district_debt(args: dict) -> tuple[str, dict]:
@@ -445,13 +463,18 @@ def district_debt(args: dict) -> tuple[str, dict]:
             f"is a finding about the district, not missing data.")
     name = _title(rec.get("district_name", num))
     fy = data["meta"]["fiscal_year"]
+    provenance = debt_provenance.context(data, num)
     lines = [
-        f"{name} ({num}) still owes {_big(rec['total'])} as of fiscal {fy}: "
-        f"{_big(rec['principal'])} of principal and {_big(rec['interest'])} of "
+        f"{name} ({num}), Texas Bond Review Board fiscal {fy} balance: {_usd(rec['total'])}; "
+        f"{_usd(rec['principal'])} of principal and {_usd(rec['interest'])} of "
         f"interest not yet paid ({rec['interest_share_pct']}% of the total).",
         f"That is {_usd(rec['per_student'])} per student, owed over decades rather "
-        f"than in a year. On debt already sold it clears in {rec['clears_in']}.",
+        f"than in a year. The last positive balance in the BRB schedule is "
+        f"{rec['clears_in']}; this is not a verified final payment or maturity year.",
     ]
+    lines.append(debt_provenance.SCHEDULE_LIMIT)
+    if provenance["source_review"]:
+        lines.append(provenance["source_review"]["summary"])
     cab = rec.get("cab")
     if cab:
         peak = cab.get("peak")
@@ -474,7 +497,7 @@ def district_debt(args: dict) -> tuple[str, dict]:
         "Borrowing to build schools is lawful and ordinary, and this is a balance "
         "sheet rather than a budget — it sits outside TEA's operating total "
         "entirely and is not comparable to it.")
-    return "\n".join(lines), {**rec, "limits": data["meta"].get("limits", [])}
+    return "\n".join(lines), {"district_number": num, **rec, **provenance}
 
 
 def district_campuses(args: dict) -> tuple[str, dict]:
@@ -491,7 +514,8 @@ def district_campuses(args: dict) -> tuple[str, dict]:
     worst = [c for c in rec["campuses"] if c["rating"] in ("D", "F")
              and not c["is_alternative_education"]]
     lines = [
-        f"{name} ({num}) is rated {rec['district_rating']} by Texas. Its "
+        f"{name} ({num}) is rated {rec['district_rating']} by Texas in "
+        f"{data['meta']['year']}. Its "
         f"{len(rec['campuses'])} rated campuses run from {rec['worst']} to "
         f"{rec['best']}" + (f", spanning {rec['spans_grades']} letter grades."
                             if rec["spans_grades"] else ".")]
@@ -510,7 +534,8 @@ def district_campuses(args: dict) -> tuple[str, dict]:
         "campuses elsewhere. Unrated campuses are excluded — that is missing "
         "data, not failure. A rating measures tested performance against state "
         "targets, not a school.")
-    return "\n".join(lines), {**rec, "limits": data["meta"].get("limits", [])}
+    return "\n".join(lines), {"district_number": num, "rating_year": data["meta"]["year"],
+                               **rec, "limits": data["meta"].get("limits", [])}
 
 
 def district_national(args: dict) -> tuple[str, dict]:
@@ -561,7 +586,7 @@ def district_national(args: dict) -> tuple[str, dict]:
         f"{fy} is an earlier year than the TEA data on this site; never "
         f"blend the two in one number.")
     return "\n".join(lines), {
-        "district_number": num, **rec,
+        "district_number": num, "fiscal_year": fy, **rec,
         "states": {"texas": tx}, "national": nat,
         "limits": data["meta"].get("limits", [])}
 
@@ -572,7 +597,7 @@ def texas_overview(args: dict) -> tuple[str, dict]:
     s, w = f["statewide"], f["statewide"].get("did_it_work") or {}
     findings = t["findings"]
     text = (
-        f"Texas school finance, {s['districts']:,} districts.\n"
+        f"Texas school finance, fiscal {f['meta']['year']}, {s['districts']:,} districts.\n"
         f"Debt service OUTSIDE TEA's operating total: "
         f"${s['debt_total'] / 1e9:,.1f}B a year, median {_usd(s['debt_median'])} per "
         f"student.\nWho pays: {s['revenue']['local_pct']}c local, "
@@ -590,7 +615,7 @@ def texas_overview(args: dict) -> tuple[str, dict]:
               "raise test scores." if w.get("fragile") else ".") if w else "")
     )
     return text, {
-        "statewide": s, "trend_findings": findings,
+        "fiscal_year": f["meta"]["year"], "statewide": s, "trend_findings": findings,
         "trend_change": t["statewide"]["change"],
         "deficit_by_year": t["statewide"]["deficit_by_year"],
         "balanced_panel_check": t["meta"]["balanced_panel_check"],
@@ -626,6 +651,7 @@ def compare_districts(args: dict) -> tuple[str, dict]:
             "tax_on_300k_home": p.get("tax_bill_on_home"),
             "recapture_per_student": p.get("recapture_per_student"),
             "points_vs_predicted": land.get("gap"),
+            "outcomes_year": land.get("year"),
         })
     if not rows:
         raise ToolError("None of those district numbers are in the dataset: "
@@ -641,13 +667,14 @@ def compare_districts(args: dict) -> tuple[str, dict]:
         f"{(r['local_pct'] if r['local_pct'] is not None else 0):>7}%"
         f"{_gap(r['points_vs_predicted']):>9}"
         for r in rows)
-    text = (head + "\n" + body
+    text = (f"Finance fiscal {data['meta']['year']}; outcomes retain their separate TEA Snapshot years.\n"
+            + head + "\n" + body
             + ("\n\nNot found: " + ", ".join(missing) if missing else "")
             + "\n\n'vs pred' is percentage points at the Meets bar against what each "
               "district's OWN poverty, emergent-bilingual and special-education rates "
               "predict — not against the state, which mostly measures poverty. Debt "
               "per student sits outside TEA's operating total.")
-    return text, {"districts": rows, "not_found": missing,
+    return text, {"fiscal_year": data["meta"]["year"], "districts": rows, "not_found": missing,
                   "limits": data["meta"].get("limits", [])}
 
 
@@ -770,7 +797,7 @@ TOOLS: list[dict] = [
     {
         "name": "district_bonds",
         "title": "Every bond a district put on a ballot",
-        "description": ("All decided bond propositions 1958-2024 with date, stated "
+        "description": ("All decided bond propositions in the committed BRB ballot record with date, stated "
                         "purpose, amount, and whether voters carried or defeated it. "
                         "The ballot is the only public record of what school debt was "
                         "for — TEA does not itemise facilities."),
@@ -781,13 +808,13 @@ TOOLS: list[dict] = [
     },
     {
         "name": "district_debt",
-        "title": "What a district still owes, and the year it clears",
+        "title": "BRB outstanding debt, schedule years and source disagreements",
         "description": ("Principal and interest still outstanding as the Texas Bond "
                         "Review Board reports it — the balance, not the yearly "
                         "payment every other figure here describes. Includes the "
-                        "interest share, the per-student balance, the year the debt "
-                        "clears, and any capital appreciation bonds, which pay "
-                        "nothing until maturity."),
+                        "fiscal year, interest share, per-student balance, last positive "
+                        "BRB schedule year (not verified maturity), capital appreciation "
+                        "bonds, and unresolved district-source disagreements where reviewed."),
         "inputSchema": {"type": "object", "properties": {"district_number": _DISTRICT_ARG},
                         "required": ["district_number"], "additionalProperties": False},
         "annotations": {"readOnlyHint": True, "openWorldHint": False},
@@ -896,9 +923,10 @@ def call_tool(name: str, args: dict, input_responses: dict = None) -> dict:
         return {"resultType": "input_required", "inputRequests": e.as_input_request()}
     except ToolError as e:
         return {"content": [{"type": "text", "text": str(e)}], "isError": True}
-    except Exception as e:  # a bug here must not look like a data finding
+    except Exception:  # a bug here must not look like a data finding
         return {"content": [{"type": "text",
-                             "text": f"{name} failed: {type(e).__name__}"}],
+                             "text": "This dataset could not be read. Try again later; "
+                                     "this is unavailable data, not a finding about the district."}],
                 "isError": True}
     return {
         "content": [{"type": "text", "text": text}],

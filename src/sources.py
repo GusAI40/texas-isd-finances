@@ -166,7 +166,7 @@ SOURCES: dict[str, dict] = {
                   "debt already sold out to 2061; 967 districts",
         "authoritative_for": "principal and interest still owed, split into "
                              "current interest bonds and capital appreciation "
-                             "bonds, and the year the borrowing clears",
+                             "bonds, and the last positive balance year in its schedule",
         "local_file": "data/brb_debt_outstanding.csv",
         "ingested_by": "scripts/ingest_brb_debt.py",
         "attribution_url": "https://data.brb.texas.gov/main_search.json",
@@ -436,9 +436,11 @@ MEASURES: list[dict] = [
         "source": "brb_debt_outstanding",
         "columns": ["CIBPrincipalOutstanding", "CIBInterestOutstanding",
                     "CABPrincipalOutstanding", "CABInterestOutstanding"],
-        "method": "Summed per district for fiscal 2025, the Board's most recent "
-                  "completed year. Years after 2025 are the amortisation "
-                  "schedule for debt already sold and are never added to it.",
+        "method": "Summed per district for fiscal 2025, this artifact's reference "
+                  "year. Years after 2025 are scheduled balances on debt already "
+                  "sold, not verified payment or maturity dates. They are never "
+                  "added to the historical balance. Reviewed source disagreements "
+                  "and separate dates travel in the district debt endpoint.",
         "shown_on": ["/forensics"],
         "api": "/district/{n}/debt",
         "test": "tests/test_debt.py::test_the_statewide_total_is_the_sum_of_its_districts",

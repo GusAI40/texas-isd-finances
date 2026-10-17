@@ -94,7 +94,7 @@ CHECKS: list[tuple[str, str, str, str, str]] = [
     ("debt still owed", "/debt/texas", "total", "debt_data.json", "texas.total"),
     ("interest not yet paid", "/debt/texas", "interest", "debt_data.json",
      "texas.interest"),
-    ("year the debt clears", "/debt/texas", "clears_in", "debt_data.json",
+    ("last positive BRB balance year", "/debt/texas", "clears_in", "debt_data.json",
      "texas.clears_in"),
     ("districts carrying CABs", "/debt/texas", "cab.districts", "debt_data.json",
      "texas.cab.districts"),

@@ -173,7 +173,7 @@ for (const width of [320, 390, 430, 1440]) {
     await expect(guide).toBeVisible();
     await expect(guide).toHaveAttribute('open', '');
     await expect(guide.locator('.setup-body')).toBeVisible();
-    for (const label of ['Texas ISD Finances', 'https://txisd.dev/mcp',
+    for (const label of ['Texas ISD Finance Intelligence', 'https://txisd.dev/mcp',
       'No authentication', 'Create as a plugin', 'Personal']) await expect(guide).toContainText(label);
     const qualification = guide.locator('.setup-qualification');
     await expect(qualification).toBeVisible();
@@ -345,7 +345,7 @@ test('setup anchor remains usable for a returning district reader', async ({page
   await prepared(page,{url:'/?d=057905#chatgpt-setup'});
   await expect(page.locator('#welcome')).toBeHidden();
   await expect(page.locator('#chatgpt-setup')).toBeVisible();
-  await expect(page.locator('#chatgpt-setup')).toContainText('Texas ISD Finances');
+  await expect(page.locator('#chatgpt-setup')).toContainText('Texas ISD Finance Intelligence');
   await expect(page.locator('.chatgpt-route-caveat')).toBeVisible();
   await expect(page.locator('.chatgpt-route-caveat')).toContainText('other accounts, workspaces, or mobile use are unverified');
 });
