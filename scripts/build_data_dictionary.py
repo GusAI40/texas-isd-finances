@@ -86,8 +86,12 @@ PURPOSE = {
         "counts, matched to districts."),
     "debt_data.json": (
         "What is still owed",
-        "Principal and unpaid interest outstanding per district, the year it "
-        "clears, and which districts carry capital appreciation bonds."),
+        "Principal and unpaid interest outstanding per district, the last positive "
+        "BRB balance year, and which districts carry capital appreciation bonds."),
+    "debt_source_reviews.json": (
+        "Where dated debt disclosures disagree",
+        "Reviewed district-source disagreements, separate reporting dates and "
+        "links to the original disclosures. These do not replace the BRB series."),
     "forensic_data.json": (
         "Four questions Texas answers in four incompatible files",
         "What sits outside the operating total, who pays, what the ballot "
@@ -142,7 +146,7 @@ GROUPS = [
      ["outcomes_data.json", "campus_performance.json", "campus_data.json",
       "equity_data.json", "takeover_data.json"]),
     ("Obligations", "What is owed, and what voters agreed to",
-     ["debt_data.json", "bond_data.json"]),
+     ["debt_data.json", "debt_source_reviews.json", "bond_data.json"]),
     ("Context", "How a district compares, and what else reaches it",
      ["national_data.json", "erate_data.json", "forensic_data.json",
       "forensic_quality.json"]),

@@ -160,7 +160,8 @@ for (const width of [320, 390, 430, 1440]) {
     const routeCaveat = page.locator('.chatgpt-route-caveat');
     await expect(routeCaveat).toBeVisible();
     await expect(routeCaveat).toContainText('this route is verified for the owner only');
-    await expect(routeCaveat).toContainText('Public listing and availability for other accounts or workspaces are unverified');
+    await expect(routeCaveat).toContainText('public listing and availability for other accounts, workspaces, or mobile use are unverified');
+    await expect(routeCaveat).toContainText('Mobile use depends on the plugin being available to your account');
     await expect(guide).not.toHaveAttribute('open', '');
     expect(await page.evaluate(() => {
       const caveat=document.querySelector('.chatgpt-route-caveat');
@@ -172,7 +173,7 @@ for (const width of [320, 390, 430, 1440]) {
     await expect(guide).toBeVisible();
     await expect(guide).toHaveAttribute('open', '');
     await expect(guide.locator('.setup-body')).toBeVisible();
-    for (const label of ['Texas ISD Finances', 'https://txisd.dev/mcp',
+    for (const label of ['Texas ISD Finance Intelligence', 'https://txisd.dev/mcp',
       'No authentication', 'Create as a plugin', 'Personal']) await expect(guide).toContainText(label);
     const qualification = guide.locator('.setup-qualification');
     await expect(qualification).toBeVisible();
@@ -344,9 +345,9 @@ test('setup anchor remains usable for a returning district reader', async ({page
   await prepared(page,{url:'/?d=057905#chatgpt-setup'});
   await expect(page.locator('#welcome')).toBeHidden();
   await expect(page.locator('#chatgpt-setup')).toBeVisible();
-  await expect(page.locator('#chatgpt-setup')).toContainText('Texas ISD Finances');
+  await expect(page.locator('#chatgpt-setup')).toContainText('Texas ISD Finance Intelligence');
   await expect(page.locator('.chatgpt-route-caveat')).toBeVisible();
-  await expect(page.locator('.chatgpt-route-caveat')).toContainText('other accounts or workspaces are unverified');
+  await expect(page.locator('.chatgpt-route-caveat')).toContainText('other accounts, workspaces, or mobile use are unverified');
 });
 
 test('single setup disclosure toggles with keyboard and hash navigation opens it', async ({page}) => {
@@ -362,6 +363,51 @@ test('single setup disclosure toggles with keyboard and hash navigation opens it
   await expect(guide.locator('.setup-body')).toBeHidden();
   await page.evaluate(()=>{ location.hash='chatgpt-setup'; });
   await expect(guide.locator('.setup-body')).toBeVisible();
+});
+
+test('setup guide presents the current custom-plugin steps and complete fields', async ({page}) => {
+  await prepared(page);
+  const guide = page.locator('#chatgpt-setup');
+  await guide.locator(':scope > summary').click();
+  const steps = await guide.locator('.setup-flow > li').allTextContents();
+  expect(steps).toHaveLength(5);
+  expect(steps[0]).toMatch(/Open Plugins/i);
+  expect(steps[1]).toMatch(/\+ button.*Add custom MCP server/i);
+  expect(steps[2]).toMatch(/Name.*Description.*https:\/\/txisd\.dev\/mcp.*No authentication/i);
+  expect(steps[3]).toMatch(/risk warning.*Create as a plugin/i);
+  expect(steps[4]).toMatch(/new chat.*@/i);
+  await expect(page.locator('.chatgpt-route-caveat')).toContainText(/account.*workspace.*mobile/i);
+  await expect(page.locator('.chatgpt-route-caveat')).toContainText(/plugin.*available.*account.*website instead/i);
+  await expect(guide.locator('.setup-qualification')).toContainText(/current documented setup steps.*previously verified/i);
+  await expect(guide.locator('a[href="https://developers.openai.com/plugins/deploy/connect-chatgpt"]')).toHaveCount(1);
+  for (const width of [390, 1440]) {
+    await page.setViewportSize({width, height: 900});
+    const geometry = await guide.evaluate(node => {
+      const flow = node.querySelector('.setup-flow');
+      const flowRect = flow.getBoundingClientRect();
+      const steps = [...flow.querySelectorAll('li')];
+      const fits = child => {
+        const rect = child.getBoundingClientRect();
+        return rect.width > 0 && rect.left >= flowRect.left - 1
+          && rect.right <= flowRect.right + 1;
+      };
+      const stepsFit = steps.every(fits);
+      const fieldsFit = [...node.querySelectorAll('.setup-field-list span')]
+        .every(field => field.getBoundingClientRect().width > 0
+          && field.getBoundingClientRect().right <= flowRect.right + 1);
+      const arrowsFit = steps.slice(0, -1)
+        .every(step => getComputedStyle(step, '::after').content !== 'none');
+      const lastHasNoArrow = getComputedStyle(steps.at(-1), '::after').content === 'none';
+      const oneDesktopRow = innerWidth <= 700
+        || new Set(steps.map(step => Math.round(step.getBoundingClientRect().top))).size === 1;
+      return {
+        stepsFit, fieldsFit, arrowsFit, lastHasNoArrow, oneDesktopRow,
+      };
+    });
+    expect(geometry).toEqual({
+      stepsFit: true, fieldsFit: true, arrowsFit: true, lastHasNoArrow: true, oneDesktopRow: true,
+    });
+  }
 });
 
 for (const [name, mock, expected] of [

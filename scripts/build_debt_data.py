@@ -206,8 +206,8 @@ def build(debt: Path, finance: Path, out: Path) -> dict:
                                 "bonds were legal when sold and remain legal within "
                                 "the limits set in 2015.",
             "limits": [
-                f"Figures are as of fiscal {CURRENT_FY}, the Board's most recent "
-                f"completed year. Years after it are the amortisation schedule for "
+                f"Figures carry fiscal {CURRENT_FY}, this artifact's reference "
+                f"year. Years after it are the amortisation schedule for "
                 f"debt already sold, not a forecast of future borrowing — districts "
                 f"will issue more, so the schedule is a floor.",
                 "Excludes obligations maturing in under a year, commercial paper, "

@@ -1,0 +1,55 @@
+{
+  "reviewed_on": "2026-10-17",
+  "purpose": "Separately dated source comparisons, not replacements for the BRB series. No review entry means not reviewed, not reconciled.",
+  "districts": {
+    "061910": {
+      "status": "unresolved",
+      "reviewed_on": "2026-10-17",
+      "summary": "Unresolved Argyle source disagreement: the BRB fiscal 2025 series reports principal $670,626,909, interest $554,498,697 and total $1,225,125,606, with a last positive scheduled balance in 2056. Argyle's debt-obligations HTML labeled August 31, 2025 reports total $1,225,069,254; its FY2025 HB1378 PDF reports $1,273,804,555 and final maturity August 15, 2057. The continuing-disclosure filing dated February 26, 2026 reports principal as of February 15, 2026 and Table 11 payments through FY2057 totaling $1,273,804,554.70. Principal agrees to the nearest dollar, but dates, coverage and interest assumptions have not been reconciled; none of these figures replaces another.",
+      "comparability": "Not established. Fiscal-period labels, principal as-of dates, balance years and payment years are distinct. No issuer-level reconciliation of variable-rate interest or issue coverage has been completed.",
+      "sources": [
+        {
+          "publisher": "Texas Bond Review Board",
+          "url": "https://data.brb.texas.gov/charts/local/isd/118/cab_cib_debtoutstanding_longitudinal.csv",
+          "basis": "Committed BRB fiscal 2025 artifact; exact source as-of date not established",
+          "fiscal_year": 2025,
+          "as_of_date": null,
+          "principal": 670626909,
+          "interest": 554498697,
+          "total": 1225125606,
+          "last_positive_balance_year": 2056
+        },
+        {
+          "publisher": "Argyle ISD",
+          "url": "https://www.argyleisd.com/departments/finance/financial-transparency/debt-obligations",
+          "basis": "HTML section Debt Obligations as of August 31, 2025",
+          "as_of_date": "2025-08-31",
+          "principal": 670626909,
+          "interest": 554442345,
+          "total": 1225069254
+        },
+        {
+          "publisher": "Argyle ISD",
+          "url": "https://resources.finalsite.net/images/v1772203309/argyleisdcom/j4ha2rq67sbssd45u3if/2025DebtTransparency.pdf",
+          "basis": "HB1378 report labeled fiscal year end August 31, 2025; pages 2-3",
+          "fiscal_period_end": "2025-08-31",
+          "principal": 670626909,
+          "total": 1273804555,
+          "final_maturity_date": "2057-08-15"
+        },
+        {
+          "publisher": "Argyle ISD",
+          "url": "https://resources.finalsite.net/images/v1772203077/argyleisdcom/tifhl3nzc8q3rc8ymevi/2024-2025AnnualContinuingDisclosureFiling.pdf",
+          "basis": "Table 1 principal as of February 15, 2026; Table 11 fiscal-year payments September 1-August 31, FY2026-FY2057",
+          "filing_date": "2026-02-26",
+          "fiscal_period_end": "2025-08-31",
+          "principal_as_of_date": "2026-02-15",
+          "principal": 670626909.40,
+          "interest": 603177645.30,
+          "total": 1273804554.70,
+          "last_payment_fiscal_year": 2057
+        }
+      ]
+    }
+  }
+}

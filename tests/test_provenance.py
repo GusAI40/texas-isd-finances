@@ -278,9 +278,7 @@ def test_statewide_debt_total_recomputes_from_source(fx, forensic):
     """$13.9B a year, the lead figure on /forensics."""
     got = fx["years"][LAST]["debt_service"]
     pub = forensic["statewide"]["debt_total"]
-    # The forensic layer sums per-student x students, which rounds per
-    # district; 0.5% leaves room for that and nothing else.
-    assert abs(got - pub) / got < 0.005, f"{got:,.0f} vs {pub:,.0f}"
+    assert got == pub, f"{got:,.0f} vs {pub:,.0f}"
 
 
 def test_district_and_student_counts_agree(fx, forensic):

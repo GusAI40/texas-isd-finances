@@ -1,6 +1,6 @@
 # The MCP server
 
-`https://txisd.dev/mcp` speaks **Model Context Protocol 2026-07-28**. It gives an
+**Texas ISD Finance Intelligence** at `https://txisd.dev/mcp` speaks **Model Context Protocol 2026-07-28**. It gives an
 assistant eleven read-only tools over Texas school district finance, built from the
 state's own records.
 
@@ -55,7 +55,7 @@ curl -sS https://txisd.dev/mcp \
 | `district_trends` | Fiscal 2009–2025 in constant dollars, against the statewide line |
 | `district_bonds` | Every bond proposition 1958–2026, with stated purpose and result |
 | `district_campuses` | Every rated campus in a district, worst first, against the district's own A–F rating |
-| `district_debt` | What is still owed — principal, unpaid interest, the year it clears, and any capital appreciation bonds |
+| `district_debt` | BRB principal and interest, fiscal year, last positive schedule balance year, CABs and reviewed source disagreements |
 | `district_national` | The district against every U.S. district (Census F-33 current spending + percentile), and Texas's rank among the 50 states and DC |
 | `texas_overview` | Statewide totals and the six measured seventeen-year trends |
 | `compare_districts` | Two to six districts side by side |
@@ -127,6 +127,26 @@ land on any instance. That turns an MCP server here into what everything else al
 a stateless POST handler over committed JSON.
 
 ## Maintaining it
+
+Debt results identify their BRB fiscal-year basis; an exact BRB as-of date is
+not established by that label. The legacy `clears_in` field means the last
+positive outstanding-balance year in this artifact, not a verified final payment
+or maturity year. Separately dated issuer disclosures live in
+`static/debt_source_reviews.json` and travel in `source_review`, the text and
+`limits`. The Argyle review remains unresolved; its BRB balance is preserved.
+No review entry means not reviewed, not reconciled.
+
+Server discovery advertises the requested display title and the portal's own
+four-square favicon. These metadata do not rename an already installed ChatGPT
+listing; that account change remains separate. The ChatGPT Origin approval gate
+is preserved.
+
+Finance years and outcome/rating years are returned separately. Annual
+debt-service district totals use the existing, independently recomputed PEIMS
+source numerators instead of multiplying rounded per-student dollars.
+`purpose_display` normalizes the publisher typo “Atheltics”; `purpose` and stored
+categories remain unchanged, and the tool discloses that categories can miss
+source misspellings. This release does not reclassify ballot analytics.
 
 `tests/test_mcp.py` covers the wire format, the header contract, every tool, and the
 blast radius (read-only, no database, `/query` not exposed, no named individuals). Run

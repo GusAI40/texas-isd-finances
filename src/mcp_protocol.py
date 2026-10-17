@@ -68,7 +68,11 @@ from typing import Any, Callable
 PROTOCOL_VERSION = "2026-07-28"
 SUPPORTED_VERSIONS = [PROTOCOL_VERSION]
 
-SERVER_INFO = {"name": "txisd", "version": "1.0.0"}
+SERVER_INFO = {
+    "name": "texas-isd-finance-intelligence", "version": "1.0.1",
+    "title": "Texas ISD Finance Intelligence", "websiteUrl": "https://txisd.dev",
+    "icons": [{"src": "https://txisd.dev/static/txisd-icon.svg", "mimeType": "image/svg+xml"}],
+}
 
 # JSON-RPC standard codes, plus the sub-range -32020..-32099 the MCP spec
 # reserves for itself. Nothing outside these may be emitted from that range.

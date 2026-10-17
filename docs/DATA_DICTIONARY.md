@@ -5,7 +5,7 @@ A hand-written dictionary is accurate the day it is written and wrong by
 the next release, and a dictionary that is wrong is worse than none.
 Everything here is read out of the real files at build time.
 
-20 data files · 25.7 MB · 617 fields · 78 public routes
+21 data files · 25.7 MB · 631 fields · 79 public routes
 
 ## What each file holds
 
@@ -14,7 +14,8 @@ Everything here is read out of the real files at build time.
 | `bond_data.json` | **Every school bond election since 1958** — 4,992 decided propositions with dates, amounts, purpose and vote counts, matched to districts. | 952 | 1.2 MB | 2026 |
 | `campus_data.json` | **What the district rating hides** — Every rated campus with its letter grade and score, so a district's average can be checked against the schools inside it. | 1,195 | 1.7 MB | 2025 |
 | `campus_performance.json` | **STAAR by school, and by student group** — What students actually scored, by subject for 8,264 campuses, and by 15 student groups for every district. Plus per-campus teacher experience, tenure and degree mix. | 1,204 | 6.7 MB | 2025 |
-| `debt_data.json` | **What is still owed** — Principal and unpaid interest outstanding per district, the year it clears, and which districts carry capital appreciation bonds. | 917 | 0.5 MB | 2025 |
+| `debt_data.json` | **What is still owed** — Principal and unpaid interest outstanding per district, the last positive BRB balance year, and which districts carry capital appreciation bonds. | 917 | 0.5 MB | 2025 |
+| `debt_source_reviews.json` | **Where dated debt disclosures disagree** — Reviewed district-source disagreements, separate reporting dates and links to the original disclosures. These do not replace the BRB series. | 1 | 0.0 MB | — |
 | `district_geo.json` | **District boundaries** — Census TIGER polygons for 1,016 districts, joined to TEA numbers by the county the polygon physically sits in. | 1,016 | 0.5 MB | — |
 | `economics_data.json` | **What you pay and where it goes** — Tax bill on a $300,000 home, what leaves under recapture, the split between teaching, buildings and debt, and which similar districts do better. One year, every district. | 1,202 | 2.9 MB | 2025 |
 | `equity_data.json` | **How low-income students do** — District STAAR for economically disadvantaged students, benchmarked against poor students statewide rather than against the local gap. | 1,090 | 0.4 MB | 2025 |
@@ -195,7 +196,7 @@ Fields (from district `057905`):
 
 ### `debt_data.json` — What is still owed
 
-Principal and unpaid interest outstanding per district, the year it clears, and which districts carry capital appreciation bonds.
+Principal and unpaid interest outstanding per district, the last positive BRB balance year, and which districts carry capital appreciation bonds.
 
 **Source** bond_review_board_debt · **Publisher** Texas Bond Review Board · **Year** 2025
 
@@ -215,12 +216,35 @@ Fields (from district `057905`):
 
 **What this data cannot tell you:**
 
-- Figures are as of fiscal 2025, the Board's most recent completed year. Years after it are the amortisation schedule for debt already sold, not a forecast of future borrowing — districts will issue more, so the schedule is a floor.
+- Figures carry fiscal 2025, this artifact's reference year. Years after it are the amortisation schedule for debt already sold, not a forecast of future borrowing — districts will issue more, so the schedule is a floor.
 - Excludes obligations maturing in under a year, commercial paper, and special obligations that do not require Attorney General approval, per the Board's own scope note.
 - Dollars repaid per dollar borrowed is reported at each district's PEAK year, not the current one. On outstanding balances the ratio rises on its own as principal is retired and is not a measure of anything.
 - No ratio is reported where CAB principal never reached $5m in any year on record. Below that the figure is dominated by a nearly-retired balance, and for districts whose bonds were sold before 2005, or whose reported years have a gap, the record never shows the deal at all. Their deferred interest is still reported — it is the ratio, not the debt, that is unknowable here.
 - Debt outstanding is not comparable to a district's operating budget: it is a stock owed over decades, and it sits outside TEA's operating total entirely.
 - 68 of the Board's 1,035 listed school districts publish no series and carry no Board-tracked debt.
+
+### `debt_source_reviews.json` — Where dated debt disclosures disagree
+
+Reviewed district-source disagreements, separate reporting dates and links to the original disclosures. These do not replace the BRB series.
+
+Fields (from district `061910`):
+
+| Field | Type | Example |
+|---|---|---|
+| `status` | str | unresolved |
+| `reviewed_on` | str | 2026-10-17 |
+| `summary` | str | Unresolved Argyle source disagreement: the BRB fiscal 2025 s |
+| `comparability` | str | Not established. Fiscal-period labels, principal as-of dates |
+| `sources` | list | 4 items |
+| `sources[].publisher` | str | Texas Bond Review Board |
+| `sources[].url` | str | https://data.brb.texas.gov/charts/local/isd/118/cab_cib_debt |
+| `sources[].basis` | str | Committed BRB fiscal 2025 artifact; exact source as-of date  |
+| `sources[].fiscal_year` | int | 2025 |
+| `sources[].as_of_date` | NoneType |  |
+| `sources[].principal` | int | 670626909 |
+| `sources[].interest` | int | 554498697 |
+| `sources[].total` | int | 1225125606 |
+| `sources[].last_positive_balance_year` | int | 2056 |
 
 ### `district_geo.json` — District boundaries
 
@@ -426,7 +450,7 @@ Fields (from district `057905`):
 | `outside_operating.teachers_equivalent` | int | 8826 |
 | `outside_operating.operating_per_student` | int | 14210 |
 | `outside_operating.total_per_student` | int | 17788 |
-| `outside_operating.annual_total` | int | 500118528 |
+| `outside_operating.annual_total` | int | 500174938 |
 | `who_pays` | object | 13 keys |
 | `who_pays.local_pct` | int | 79 |
 | `who_pays.state_pct` | int | 9 |
@@ -807,7 +831,7 @@ Fields (from district `057905`):
 | `GET /district/{district_number}/breakdown` | Function-level spending breakdown (MECE categories from TEA function |
 | `GET /district/{district_number}/campus-performance` | Every campus in one district with its own STAAR scores, by subject. |
 | `GET /district/{district_number}/campuses` | Every rated campus in one district, worst first, against the district's |
-| `GET /district/{district_number}/debt` | What one district still owes, and the year it clears. |
+| `GET /district/{district_number}/debt` | One district's BRB debt balance, schedule years and source disagreements. |
 | `GET /district/{district_number}/dollar` | Where one dollar goes, as 100 pennies — for this district, for its |
 | `GET /district/{district_number}/economics` | What you pay, where it goes, what it buys, and who does better. |
 | `GET /district/{district_number}/equity` | How this district does for the students it actually serves. |
@@ -862,6 +886,7 @@ Fields (from district `057905`):
 | `GET /static/design.css` | The shared design system, linked by every page. |
 | `GET /static/tag-pipeline.png` | The TAG ai intelligence-layer graphic, hot-linked by the superintendent |
 | `GET /static/track.js` | The dwell beacon. Inert for everyone except a mailed recipient — it |
+| `GET /static/txisd-icon.svg` | The portal's existing four-square favicon, usable by MCP discovery. |
 | `GET /stats` | Get database statistics |
 | `GET /takeover/houston` | Did the June 2023 state takeover of Houston ISD change results? |
 | `GET /tax/texas` | What school tax rates have actually done since 2009. |

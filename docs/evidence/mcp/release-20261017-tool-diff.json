@@ -1,0 +1,71 @@
+{
+  "find_district": {
+    "changed_fields": [
+      "student_count_fiscal_year"
+    ],
+    "text_changed": true
+  },
+  "district_money": {
+    "changed_fields": [],
+    "text_changed": false
+  },
+  "district_lineage": {
+    "changed_fields": [],
+    "text_changed": false
+  },
+  "district_forensics": {
+    "changed_fields": [
+      "outside_operating"
+    ],
+    "text_changed": true
+  },
+  "district_trends": {
+    "changed_fields": [],
+    "text_changed": false
+  },
+  "district_bonds": {
+    "changed_fields": [
+      "elections",
+      "limits"
+    ],
+    "text_changed": true
+  },
+  "district_debt": {
+    "changed_fields": [
+      "district_number",
+      "fiscal_year",
+      "limits",
+      "schedule_year_basis",
+      "source",
+      "source_review"
+    ],
+    "text_changed": true
+  },
+  "district_campuses": {
+    "changed_fields": [
+      "district_number",
+      "rating_year"
+    ],
+    "text_changed": true
+  },
+  "district_national": {
+    "changed_fields": [
+      "fiscal_year"
+    ],
+    "text_changed": false
+  },
+  "texas_overview": {
+    "changed_fields": [
+      "fiscal_year",
+      "statewide"
+    ],
+    "text_changed": true
+  },
+  "compare_districts": {
+    "changed_fields": [
+      "districts",
+      "fiscal_year"
+    ],
+    "text_changed": true
+  }
+}

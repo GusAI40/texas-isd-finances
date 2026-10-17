@@ -9,7 +9,7 @@
 [project]
 name = "texas-isd-finances"
 version = "1.0.0"
-description = "Public transparency portal for Texas school district finances"
+description = "Texas ISD Finance Intelligence — public Texas school district finance records"
 requires-python = ">=3.10,<3.13"
 # Every entry carries an upper bound. Vercel resolves these at BUILD time, so
 # without a ceiling a breaking major release upstream breaks a deploy with no
