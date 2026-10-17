@@ -13,7 +13,7 @@ asyncpg>=0.29.0,<0.32.0
 # NLP and AI (LangChain 1.x create_agent + application-owned SQL tools)
 langchain>=1.0.0,<2.0.0
 langchain-openai>=1.0.0,<2.0.0
-openai>=2.0.0,<3.0.0
+openai>=2.0.0,<4.0.0
 sqlglot>=30.17.0,<31.0.0
 
 # API
